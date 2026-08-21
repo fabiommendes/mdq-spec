@@ -1,0 +1,3 @@
+# [essay-no-title]
+
+Explain the difference between a list and a tuple in Python.

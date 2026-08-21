@@ -1,0 +1,83 @@
+"$schema": "https://json-schema.org/draft/2020-12/schema"
+"$id": "https://raw.githubusercontent.com/codehood-lms/mdq.spec/master/schema/essay.yaml"
+title: Essay question
+description: >-
+  An open-ended question where the student writes a free-form answer,
+  rather than choosing among predefined options. Extends the common
+  question-base schema with an `input` field describing how the answer
+  should be edited/rendered.
+
+allOf:
+  - "$ref": "./question-base.yaml"
+  - type: object
+    properties:
+      type:
+        const: essay
+
+      input:
+        "$ref": "#/$defs/Input"
+
+      answer:
+        type: string
+        description: >-
+          Optional reference/model answer, e.g. for instructors to compare
+          student submissions against during grading.
+        minLength: 1
+        pattern: "\\S"
+
+    required:
+      - type
+
+# Rejects any key not defined by question-base.yaml or by the object
+# schema above. Plain `additionalProperties: false` can't be used here
+# because it only sees properties declared in its *own* schema object,
+# not sibling schemas combined via `allOf` -- `unevaluatedProperties`,
+# evaluated after the whole `allOf` is applied, is the composition-safe
+# equivalent.
+unevaluatedProperties: false
+
+"$defs":
+  Input:
+    type: object
+    title: Input
+    description: >-
+      Describes the kind of editor/answer box shown to the student.
+      `richtext` shows a formatted text editor, `text` a plain text box,
+      and `code` a code editor (which additionally requires a
+      `language`).
+    additionalProperties: false
+    properties:
+      type:
+        type: string
+        enum:
+          - rich-text
+          - plain-text
+          - short-answer
+          - code
+        description: The kind of input widget used to collect the answer.
+
+      language:
+        type: string
+        description: >-
+          Programming language for syntax highlighting/validation. Only
+          applicable (and required) when `type` is `code`.
+        examples:
+          - python
+          - javascript
+          - sql
+
+    required:
+      - type
+
+    if:
+      properties:
+        type:
+          const: code
+      required:
+        - type
+    then:
+      required:
+        - language
+    else:
+      properties:
+        language: false

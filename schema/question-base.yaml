@@ -1,0 +1,72 @@
+"$schema": "https://json-schema.org/draft/2020-12/schema"
+"$id": "https://raw.githubusercontent.com/codehood-lms/mdq.spec/master/schema/question-base.yaml"
+title: Question (base)
+description: >-
+  Common properties shared by every MDQ question type. Question-type
+  schemas (multiple-choice, multiple-selection, true-false, fill-in-the-blank,
+  associative, e-judge, ...) extend this schema, typically via `allOf` +
+  `$ref`, and add their own `type`-specific fields (e.g. `choices`).
+type: object
+properties:
+  id:
+    type: string
+    description: >-
+      Url-friendly identifier for the question. Used to reference the
+      question from exams, results, and cross-links. When omitted, an id
+      may be derived from the question's position or title.
+    pattern: "^[a-zA-Z0-9]+(?:[-_][a-zA-Z0-9]+)*$"
+    examples:
+      - q1
+      - rgb-question
+      - composite-id-42
+
+  title:
+    type: string
+    description: >-
+      Human readable title, e.g. shown in question listings, tables of
+      contents, or instructor-facing question banks.
+    minLength: 1
+
+  stem:
+    type: string
+    description: >-
+      The main command shown to the students (e.g. "Select all correct
+      answers", "Write a program that..."). This is the sentence that
+      tells the student what to do and is always shown to them.
+    minLength: 1
+
+  preamble:
+    type: string
+    description: >-
+      One or more paragraphs of context shown before the stem. May contain
+      Markdown markup.
+
+  epilogue:
+    type: string
+    description: >-
+      One or more paragraphs of text shown after the question body (e.g.
+      after the list of choices). May contain Markdown markup.
+
+  comment:
+    type: string
+    description: >-
+      Free-form text shown only to instructors, never to students. Used to
+      explain the intent of the question, grading rationale, formatting
+      decisions, etc.
+
+  tags:
+    type: array
+    description: Arbitrary set of strings associated with the question.
+    items:
+      type: string
+    uniqueItems: true
+
+  meta:
+    type: object
+    description: >-
+      Arbitrary mapping of strings to JSON values, for extension data not
+      covered by the standard fields.
+    additionalProperties: true
+
+required:
+  - stem

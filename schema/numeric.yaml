@@ -1,0 +1,58 @@
+"$schema": "https://json-schema.org/draft/2020-12/schema"
+"$id": "https://raw.githubusercontent.com/codehood-lms/mdq.spec/master/schema/numeric.yaml"
+title: Numeric question
+description: >-
+  A question where the student must enter a numeric value, graded against
+  an expected answer within an optional tolerance. Extends the common
+  question-base schema with `answer` and `tolerance` fields.
+
+allOf:
+  - "$ref": "./question-base.yaml"
+  - type: object
+    properties:
+      type:
+        const: numeric
+
+      answer:
+        type: number
+        description: The expected correct numeric value.
+
+      tolerance:
+        "$ref": "#/$defs/Tolerance"
+
+    required:
+      - type
+      - answer
+
+# Rejects any key not defined by question-base.yaml or by the object
+# schema above. Plain `additionalProperties: false` can't be used here
+# because it only sees properties declared in its *own* schema object,
+# not sibling schemas combined via `allOf` -- `unevaluatedProperties`,
+# evaluated after the whole `allOf` is applied, is the composition-safe
+# equivalent.
+unevaluatedProperties: false
+
+"$defs":
+  Tolerance:
+    type: object
+    title: Tolerance
+    description: >-
+      Acceptable margin of error around the expected answer. Both fields
+      are optional; when both are given, a submitted value is accepted if
+      it satisfies either one.
+    additionalProperties: false
+    properties:
+      absolute:
+        type: number
+        description: >-
+          Maximum allowed absolute difference between the submitted value
+          and the answer, i.e. |submitted - answer| <= absolute.
+        minimum: 0
+
+      relative:
+        type: number
+        description: >-
+          Maximum allowed relative difference between the submitted value
+          and the answer, expressed as a fraction (e.g. 0.05 for 5%),
+          i.e. |submitted - answer| / |answer| <= relative.
+        minimum: 0

@@ -1,0 +1,73 @@
+"$schema": "https://json-schema.org/draft/2020-12/schema"
+"$id": "https://raw.githubusercontent.com/codehood-lms/mdq.spec/master/schema/true-false.yaml"
+title: True/False question
+description: >-
+  A question where the student must judge each statement in a list as
+  true or false. Extends the common question-base schema with a
+  `choices` field, where each choice represents one statement to be
+  judged.
+
+allOf:
+  - "$ref": "./question-base.yaml"
+  - type: object
+    properties:
+      type:
+        const: true-false
+
+      choices:
+        type: array
+        description: >-
+          The list of statements presented to the student, each to be
+          judged as true or false.
+        items:
+          "$ref": "#/$defs/Choice"
+        minItems: 2
+
+    required:
+      - type
+      - choices
+
+# Rejects any key not defined by question-base.yaml or by the object
+# schema above. Plain `additionalProperties: false` can't be used here
+# because it only sees properties declared in its *own* schema object,
+# not sibling schemas combined via `allOf` -- `unevaluatedProperties`,
+# evaluated after the whole `allOf` is applied, is the composition-safe
+# equivalent.
+unevaluatedProperties: false
+
+"$defs":
+  Choice:
+    type: object
+    title: Choice
+    description: A single statement in a true/false question.
+    additionalProperties: false
+    properties:
+      id:
+        type: string
+        description: Unique url-friendly identifier for the choice.
+        pattern: "^[a-zA-Z0-9]+(?:[-_][a-zA-Z0-9]+)*$"
+        examples:
+          - berlin
+          - red-green-and-blue
+
+      text:
+        type: string
+        description: A textual display for the statement.
+        minLength: 1
+
+      answer:
+        type: boolean
+        description: >-
+          Whether the statement is true. If omitted, it is interpreted as
+          false (i.e. the statement is false).
+        default: false
+
+      feedback:
+        type: string
+        description: >-
+          Feedback text shown to students that judged this statement
+          incorrectly. Usually explains why the statement is true or
+          false.
+
+    required:
+      - text
