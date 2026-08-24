@@ -1,0 +1,10 @@
+title: Question 1
+type: multiple-choice
+stem: What is the capital of France?
+choices:
+  - text: Berlin
+    id: berlin
+  - text: Paris
+    id: paris
+  - text: Madrid
+    id: madrid

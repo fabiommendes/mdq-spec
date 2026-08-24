@@ -16,49 +16,31 @@ from pathlib import Path
 
 import pytest
 
+from mdq_spec.testing import (
+    INVALID_FILES,
+    VALID_DIR,
+    VALID_FILES,
+    WARNING_FILES,
+    WARNINGS_DIR,
+    relative_id,
+)
 from mdq_spec.validator import SchemaError, validate_file
-
-ROOT = Path(__file__).resolve().parent.parent
-EXAMPLES_DIR = ROOT / "examples"
-INVALID_DIR = EXAMPLES_DIR / "invalid"
-DOCUMENT_SUFFIXES = (".yaml", ".yml", ".json")
-
-
-def _collect(root: Path) -> list[Path]:
-    if not root.exists():
-        return []
-    return sorted(
-        path
-        for path in root.rglob("*")
-        if path.is_file() and path.suffix.lower() in DOCUMENT_SUFFIXES
-    )
-
-
-VALID_FILES = [
-    path for path in _collect(EXAMPLES_DIR) if INVALID_DIR not in path.parents
-]
-INVALID_FILES = _collect(INVALID_DIR)
-
-
-def _relative_id(path: Path) -> str:
-    return str(path.relative_to(EXAMPLES_DIR))
 
 
 def test_examples_dir_has_documents() -> None:
     """
     Guard against a typo'd path silently making every test below a no-op.
     """
-    assert VALID_FILES, f"no example .yaml/.yml/.json files found under {EXAMPLES_DIR}"
+    assert VALID_FILES, f"no example .yml/.json files found under {VALID_DIR}"
+    assert WARNING_FILES, f"no example .yml/.json files found under {WARNINGS_DIR}"
 
 
-@pytest.mark.parametrize(
-    "path", VALID_FILES, ids=[_relative_id(p) for p in VALID_FILES]
-)
+@pytest.mark.parametrize("path", VALID_FILES, ids=[relative_id(p) for p in VALID_FILES])
 def test_example_is_valid(path: Path) -> None:
     try:
         result = validate_file(path)
     except SchemaError as exc:
-        pytest.fail(f"{_relative_id(path)}: {exc}")
+        pytest.fail(f"{relative_id(path)}: {exc}")
 
     if not result.valid:
         details = "\n".join(
@@ -66,12 +48,12 @@ def test_example_is_valid(path: Path) -> None:
             for err in result.errors
         )
         pytest.fail(
-            f"{_relative_id(path)} failed validation as {result.question_type!r}:\n{details}"
+            f"{relative_id(path)} failed validation as {result.question_type!r}:\n{details}"
         )
 
 
 @pytest.mark.parametrize(
-    "path", INVALID_FILES, ids=[_relative_id(p) for p in INVALID_FILES]
+    "path", INVALID_FILES, ids=[relative_id(p) for p in INVALID_FILES]
 )
 def test_invalid_fixture_is_actually_invalid(path: Path) -> None:
     try:
@@ -82,6 +64,6 @@ def test_invalid_fixture_is_actually_invalid(path: Path) -> None:
         return
 
     assert not result.valid, (
-        f"{_relative_id(path)} lives under examples/invalid/ but validated "
+        f"{relative_id(path)} lives under examples/invalid/ but validated "
         f"successfully as {result.question_type!r}"
     )

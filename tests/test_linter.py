@@ -7,8 +7,8 @@ from __future__ import annotations
 
 import pytest
 
-from mdq_spec.linter import lint_document  # noqa: E402
-from mdq_spec.validator import validate_document  # noqa: E402
+from mdq_spec.linter import lint_document
+from mdq_spec.validator import validate_document
 
 
 def _rules(warnings) -> set[str]:

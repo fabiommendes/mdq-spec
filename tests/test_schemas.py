@@ -58,7 +58,11 @@ def test_schema_declares_an_id(schema_path: Path) -> None:
 
 
 def test_schema_ids_are_unique() -> None:
-    ids = [yaml.safe_load(p.read_text(encoding="utf-8")).get("$id") for p in SCHEMA_FILES]
+    ids = [
+        yaml.safe_load(p.read_text(encoding="utf-8")).get("$id") for p in SCHEMA_FILES
+    ]
     seen: set[str] = set()
-    duplicates = {schema_id for schema_id in ids if schema_id in seen or seen.add(schema_id)}
+    duplicates = {
+        schema_id for schema_id in ids if schema_id in seen or seen.add(schema_id)
+    }
     assert not duplicates, f"duplicate $id values across schema/: {duplicates}"

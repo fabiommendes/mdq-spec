@@ -27,7 +27,7 @@ __all__ = [
 
 # The schema/ directory lives at the root of the mdq.spec repo, one level
 # above this package.
-DEFAULT_SCHEMA_DIR = Path(__file__).resolve().parent.parent.parent / "schema"
+DEFAULT_SCHEMA_DIR = Path(__file__).resolve().parent.parent / "schema"
 
 # Maps the `type` discriminator used in question documents to the schema
 # file (relative to a schema directory) that defines that question type.
