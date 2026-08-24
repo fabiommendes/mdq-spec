@@ -1,6 +1,11 @@
 MDQ
 ===
 
+> [WARNING]
+> This is a work in progress. The specification is not yet stable and may change
+> in the future. The reference implementations are also under development and
+> may not yet support all features described in this document.
+
 `MDQ` defines a simple file format to declare questions for a LMS environment
 using straightforward Markdown idioms. This has a similar scope as other formats
 such as GIFT and AIKEN. However, by using Markdown as the underlying format, MDQ

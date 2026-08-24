@@ -37,6 +37,7 @@ def _collect(root: Path) -> list[Path]:
 VALID_FILES = [
     path for path in _collect(EXAMPLES_DIR) if INVALID_DIR not in path.parents
 ]
+INVALID_FILES = _collect(INVALID_DIR)
 
 
 def _relative_id(path: Path) -> str:
@@ -67,3 +68,20 @@ def test_example_is_valid(path: Path) -> None:
         pytest.fail(
             f"{_relative_id(path)} failed validation as {result.question_type!r}:\n{details}"
         )
+
+
+@pytest.mark.parametrize(
+    "path", INVALID_FILES, ids=[_relative_id(p) for p in INVALID_FILES]
+)
+def test_invalid_fixture_is_actually_invalid(path: Path) -> None:
+    try:
+        result = validate_file(path)
+    except SchemaError:
+        # Could not even be validated (e.g. missing/unknown 'type') --
+        # that also counts as "not a valid document".
+        return
+
+    assert not result.valid, (
+        f"{_relative_id(path)} lives under examples/invalid/ but validated "
+        f"successfully as {result.question_type!r}"
+    )
