@@ -7,11 +7,15 @@ Usage:
 
 from __future__ import annotations
 
+import shutil
+import sys
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Annotated, Literal, Optional
 
 import typer
+from rich.console import Console
 
+from .testing import EXAMPLES_ROOT
 from .validator import SchemaError, ValidationResult, validate_file
 
 app = typer.Typer(
@@ -23,6 +27,9 @@ app = typer.Typer(
 
 
 Level = Literal["default", "strict"]
+
+stderr = Console(file=sys.stderr, highlight=False, force_terminal=True)
+stdout = Console(file=sys.stdout, highlight=False, force_terminal=True)
 
 
 @app.callback()
@@ -108,6 +115,58 @@ def validate(
     exit_code = _print_result(file, result)
     if exit_code:
         raise typer.Exit(code=exit_code)
+
+
+@app.command()
+def examples(
+    destination: Annotated[
+        Path | None,
+        typer.Argument(
+            help="Directory to copy the example question files into (default: current working directory).",
+        ),
+    ] = None,
+    force: Annotated[
+        bool,
+        typer.Option(
+            ...,
+            "--force",
+            "-f",
+            help="Overwrite existing files/directories in the destination.",
+        ),
+    ] = False,
+) -> None:
+    """
+    Copy the bundled example question files into the current directory.
+    """
+
+    if not EXAMPLES_ROOT.exists():
+        msg = f"[b red]instalation error:[/] examples directory not found: {EXAMPLES_ROOT}"
+        stderr.print(msg)
+        raise typer.Exit(code=2)
+
+    if destination is None:
+        destination = Path.cwd()
+
+    n_copied = 0
+    n_skipped = 0
+
+    for entry in EXAMPLES_ROOT.rglob("*"):
+        if entry.suffix not in (".yaml", ".yml", ".json", ".md", ".mdq", "mde"):
+            continue
+        if entry.is_dir():
+            continue
+
+        target = destination / entry.name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if target.exists() and not force:
+            n_skipped += 1
+            continue
+
+        shutil.copy2(entry, target)
+        n_copied += 1
+
+    msg = f"Copied {n_copied} item(s) and skipped {n_skipped} item(s) from {EXAMPLES_ROOT} to {destination}"
+    stdout.print(f"[b green]success:[/] {msg}")
 
 
 def main() -> None:
