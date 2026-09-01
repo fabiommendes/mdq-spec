@@ -16,6 +16,10 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+import yaml
+from rich.console import Console
+from rich.panel import Panel
+from rich.syntax import Syntax
 
 from mdq.parser import parse_any, parse_exam, parse_file
 from mdq.testing import VALID_SOURCES, parsed_sibling, relative_id
@@ -31,12 +35,15 @@ NOT_YET_SUPPORTED: dict[str, str] = {
         "line breaks and stops being valid fenced-code Markdown; see "
         "BACKLOG.md"
     ),
-    "numeric.table-preamble.mdq.md": (
-        "the parser uses plain CommonMark with no table extension, so a "
-        "GFM pipe table is just an ordinary paragraph to it and its rows "
-        "collapse into a single line of prose; see BACKLOG.md"
-    ),
+    # "numeric.table-preamble.mdq.md": (
+    #     "the parser uses plain CommonMark with no table extension, so a "
+    #     "GFM pipe table is just an ordinary paragraph to it and its rows "
+    #     "collapse into a single line of prose; see BACKLOG.md"
+    # ),
 }
+
+
+console = Console(force_terminal=True)
 
 
 def parse_file_from_text(source: str) -> dict:
@@ -114,7 +121,20 @@ def test_parses_matches_fixture(source: Path) -> None:
     key = relative_id(source)
     if key in NOT_YET_SUPPORTED:
         pytest.xfail(NOT_YET_SUPPORTED[key])
-    assert parse_file(source) == load_document(parsed_sibling(source))
+
+    got = parse_file(source)
+    parsed_path = parsed_sibling(source)
+    expected = load_document(parsed_path)
+
+    # More helpful output than pytest's default diff.
+    if got != expected:
+        console.print(Panel(Syntax(yaml.dump(got), "yaml"), title="Parsed"))
+        console.print(Panel(Syntax(yaml.dump(expected), "yaml"), title="Expected"))
+
+        print("md:", source)
+        print("yaml:", parsed_path)
+
+    assert got == expected
 
 
 @pytest.mark.parametrize(
@@ -198,12 +218,7 @@ def test_prose_list_in_preamble_has_no_trailing_blank_line(question_type: str) -
         body = "* [x] 4\n* [ ] 5\n"
     else:
         body = "[short-answer]: 4\n"
-    source = (
-        "Consider the following:\n\n"
-        "* first\n"
-        "* second\n\n"
-        "What is 2 + 2?\n\n" + body
-    )
+    source = "Consider the following:\n\n* first\n* second\n\nWhat is 2 + 2?\n\n" + body
     document = parse_file_from_text(source)
     assert document["preamble"] == "Consider the following:\n\n* first\n* second"
 

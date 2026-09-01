@@ -60,7 +60,9 @@ __all__ = [
 # Constants
 #
 
-md = MarkdownIt("commonmark")
+md = MarkdownIt("gfm-like")
+
+
 # MDQ's own tags (`[short-answer]: ...`, `[numeric]: ...`, `[^blank]: ...`)
 # are syntactically indistinguishable from CommonMark link reference
 # definitions (`[label]: destination`), which are otherwise consumed
@@ -1312,7 +1314,9 @@ def _split_exam_blocks(lines: list[str]) -> tuple[str | None, list[list[str]]]:
         stripped = line.strip()
         blank_before = index == 0 or not lines[index - 1].strip()
 
-        if not body_seen and (_matches_tag(stripped) or BRACKET_ITEM_RE.match(stripped)):
+        if not body_seen and (
+            _matches_tag(stripped) or BRACKET_ITEM_RE.match(stripped)
+        ):
             body_seen = True
 
         if line == SEPARATOR and blank_before:

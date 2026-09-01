@@ -1,19 +1,11 @@
-# NOT_YET_SUPPORTED (numeric.table-preamble.mdq.md): markdown-it-py's base
-# CommonMark parser (used with no GFM table extension, see mdq/parser.py)
-# has no table block type, so a pipe table is just an ordinary paragraph
-# to it -- its rows get soft-wrap-collapsed into a single line of prose,
-# the same as any other paragraph, throwing away the table structure. This
-# file documents the *correct* document -- the table preserved verbatim
-# across lines, the way a fenced code block or blockquote already is --
-# not what the parser currently produces. See BACKLOG.md.
 type: numeric
 preamble: |-
-    Consider the table of Brazilian biomes and their approximate area:
+  Consider the table of Brazilian biomes and their approximate area:
 
-    | Biome   | Area (million km²) |
-    | ------- | ------------------- |
-    | Amazon  | 4.2                  |
-    | Cerrado | 2.0                  |
+  | Biome   | Area (million km²) |
+  | ------- | ------------------ |
+  | Amazon  | 4.2                |
+  | Cerrado | 2.0                |
 stem: >-
   What is the combined area, in million square kilometers, of the Amazon
   and Cerrado biomes shown above?

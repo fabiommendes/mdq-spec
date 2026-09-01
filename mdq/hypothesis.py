@@ -20,14 +20,6 @@ is what makes this a precise, checkable contract instead of a hand-wavy
 one: it runs the same CommonMark parser MDQ uses and reconstructs each
 top-level block exactly as `MDQParser.raw_text` would once it is
 embedded in a full document and parsed back out.
-
-No `md_table`: `mdq.parser` parses with `MarkdownIt("commonmark")`, the
-base CommonMark preset, which has no GFM table extension. A `| a | b |`
-row is not a table's header row there -- it is just a paragraph whose
-text happens to contain pipe characters -- so there is no table
-structure for a strategy to preserve, and offering `md_table()` would
-misleadingly imply one exists. Plain paragraph text already covers
-whatever a pipe-containing string round-trips to.
 """
 
 from typing import Any, Callable, Literal, get_args
@@ -325,6 +317,81 @@ def md_list(max_depth: int = 1) -> st.SearchStrategy[str]:
     return _list_lines(max_depth).map("\n".join)
 
 
+def md_table(
+    *,
+    min_rows: int = 0,
+    max_rows: int | None = None,
+    min_cols: int = 1,
+    max_cols: int | None = None,
+) -> st.SearchStrategy[str]:
+    """
+    Return a strategy for generating a Markdown table in GFM.
+
+    Depending on the parser configuration, a table may be parsed as table or a
+    simple paragraph. For instance, A `| a | b |` row is not a table's header
+    row in CommonMark -- it is just a paragraph whose text happens to contain
+    pipe characters. If GFM is enabled, the same row is a table's header row.
+
+    This strategy generates tables that are valid under the most common
+    table formats.
+    """
+
+    if min_rows < 0:
+        raise ValueError("min_rows must be non-negative")
+    if max_rows is None:
+        max_rows = min_rows + 5
+    if min_cols < 1:
+        raise ValueError("min_cols must be at least 1")
+    if max_cols is None:
+        max_cols = min_cols + 5
+
+    cols = st.integers(min_value=min_cols, max_value=max_cols)
+
+    def render(header: str, body: list[str]) -> str:
+        return "\n".join([header, *body])
+
+    def builder(n_cols: int) -> st.SearchStrategy[str]:
+        header = _table_header(n_cols)
+        body = _table_row(n_cols)
+        return st.builds(render, st.just(header), st.just(body))
+
+    return cols.flatmap(builder)
+
+
+def _table_header(n_cols: int) -> st.SearchStrategy[str]:
+    """
+    Markdown table header strategy.
+    """
+
+    content = st.lists(md_inline(), min_size=n_cols, max_size=n_cols)
+    head = content.map(lambda cells: "| " + " | ".join(cells) + " |")
+    aligns = st.lists(
+        st.sampled_from(["---", ":---", "---:", ":---:"]),
+        min_size=n_cols,
+        max_size=n_cols,
+    ).map(lambda aligns: "| " + " | ".join(aligns) + " |")
+
+    return st.booleans().flatmap(
+        lambda has_align: (
+            st.builds(
+                lambda header, align: "\n".join([header, align]),
+                head,
+                aligns,
+            )
+            if has_align
+            else aligns
+        )
+    )
+
+
+def _table_row(n_cols: int) -> st.SearchStrategy[str]:
+    """
+    Return a Markdown table row with `n_cols` columns.
+    """
+    content = st.lists(md_inline(), min_size=n_cols, max_size=n_cols)
+    return content.map(lambda cells: "| " + " | ".join(cells) + " |")
+
+
 def _list_lines(depth_remaining: int) -> st.SearchStrategy[list[str]]:
     """Return a strategy for one list's raw source lines."""
     marker = st.sampled_from(["- ", "1. "])
@@ -335,9 +402,7 @@ def _list_lines(depth_remaining: int) -> st.SearchStrategy[list[str]]:
     )
 
 
-def _list_item_lines(
-    marker: str, depth_remaining: int
-) -> st.SearchStrategy[list[str]]:
+def _list_item_lines(marker: str, depth_remaining: int) -> st.SearchStrategy[list[str]]:
     """
     Return a strategy for one list item's raw source lines: its own text
     line, plus -- while `depth_remaining` allows -- a nested sub-list
@@ -356,9 +421,7 @@ def _list_item_lines(
             return [line]
         return [line] + [indent + subline for subline in sublist]
 
-    return st.builds(
-        combine, item_line, st.none() | _list_lines(depth_remaining - 1)
-    )
+    return st.builds(combine, item_line, st.none() | _list_lines(depth_remaining - 1))
 
 
 def md_code_block() -> st.SearchStrategy[str]:
@@ -367,6 +430,13 @@ def md_code_block() -> st.SearchStrategy[str]:
     ``` ``` ``` or `~~~`, with or without an info string) or indented.
     """
     return _md_fenced_code_block() | _md_indented_code_block()
+
+
+def md_inline() -> st.SearchStrategy[str]:
+    """
+    Return a strategy for generating inline Markdown content.
+    """
+    return safe_text(multiline=False)
 
 
 def _md_fenced_code_block() -> st.SearchStrategy[str]:
@@ -422,9 +492,7 @@ def md_safe_block() -> st.SearchStrategy[str]:
     ordered list (possibly nested), a blockquote, and a heading (H2-H6).
     No table: see the module docstring.
     """
-    return (
-        md_paragraph() | md_code_block() | md_list() | md_blockquote() | md_heading()
-    )
+    return md_paragraph() | md_code_block() | md_list() | md_blockquote() | md_heading()
 
 
 def md_safe_blocks(min_size: int = 1, max_size: int = 3) -> st.SearchStrategy[str]:
