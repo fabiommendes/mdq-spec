@@ -1,0 +1,23 @@
+id: fill-in-capital
+title: Brazilian capital
+type: fill-in
+stem: The capital of Brazil is [^capital]. It has approximately [^size] habitants.
+blanks:
+  - id: capital
+    type: multiple-choice
+    choices:
+      - id: lisbon
+        text: Lisbon
+      - id: brasilia
+        text: Brasília
+        score: 1
+      - id: sao-paulo
+        text: São Paulo
+      - id: rio-de-janeiro
+        text: Rio de Janeiro
+  - id: size
+    type: numeric
+    answer: 2800000
+    domain: integer
+    tolerance:
+      relative: 0.1

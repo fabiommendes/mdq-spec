@@ -1,0 +1,21 @@
+# `V`/`F` -- verdadeiro/falso -- rather than `T`/`F`. Both spell the same
+# two booleans; `marker` is what records which spelling was used, and the
+# locale is what makes `V` the expected one here.
+id: tf-geografia
+title: Geografia do Brasil
+type: true-false
+locale: pt-BR
+stem: Julgue as alternativas.
+choices:
+  - id: brasilia-e-a-capital-do-brasil
+    text: Brasília é a capital do Brasil.
+    correct: true
+    marker: V
+  - id: o-rio-amazonas-desagua-no-oceano-pacifico
+    text: O Rio Amazonas deságua no Oceano Pacífico.
+    correct: false
+    marker: F
+  - id: o-brasil-faz-fronteira-com-a-argentina
+    text: O Brasil faz fronteira com a Argentina.
+    correct: true
+    marker: V

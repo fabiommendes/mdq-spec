@@ -23,6 +23,13 @@ allOf:
           "$ref": "#/$defs/Choice"
         minItems: 2
 
+      shuffle:
+        type: boolean
+        description: >-
+          If true, the statements are safe to shuffle. If false, they
+          should never be shuffled, and if omitted the system is free to
+          choose.
+
     required:
       - type
       - choices
@@ -55,19 +62,35 @@ unevaluatedProperties: false
         description: A textual display for the statement.
         minLength: 1
 
-      answer:
+      correct:
         type: boolean
         description: >-
           Whether the statement is true. If omitted, it is interpreted as
           false (i.e. the statement is false).
         default: false
 
+      marker:
+        type: string
+        description: >-
+          The single letter written between the brackets in the source
+          document (`T`, `F`, `V`, ...). Preserved verbatim: `answer`
+          carries the meaning, but the letter itself is needed to warn
+          about PROVISIONAL letters and locale mismatches, and to
+          round-trip the document unchanged.
+        minLength: 1
+        maxLength: 1
+
       feedback:
         type: string
         description: >-
           Feedback text shown to students that judged this statement
-          incorrectly. Usually explains why the statement is true or
-          false.
+          incorrectly or left it unjudged. Usually explains why the
+          statement is true or false.
+
+      comment:
+        type: string
+        description: >-
+          Optional comment for the instructor. Do not show to students.
 
     required:
       - text

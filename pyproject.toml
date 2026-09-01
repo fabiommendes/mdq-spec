@@ -1,5 +1,5 @@
 [project]
-name = "mdq-spec"
+name = "mdq"
 version = "0.1.0"
 description = "Reference schemas and validation CLI for the MDQ question file format."
 readme = "README.md"
@@ -9,37 +9,61 @@ dependencies = [
     "referencing>=0.28",
     "PyYAML>=6.0",
     "typer>=0.12",
-    "pytest>=8.4.2",
     "rich>=15.0.0",
+    "lark-parser>=0.12.0",
+    "markdown-it-py>=4.2.0",
+    "pydantic>=2.9",
+    "optionz>=0.2.0",
 ]
 
 [project.optional-dependencies]
 test = ["pytest>=7"]
 
 [project.scripts]
-mdq-spec = "mdq_spec.cli:main"
+mdq = "mdq.cli:main"
 
 [tool.setuptools]
-packages = ["mdq_spec"]
+packages = ["mdq"]
 
 [build-system]
 requires = ["uv_build>=0.12.5,<0.13"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]
-module-name = "mdq_spec"
+module-name = "mdq"
 module-root = "."
 
 [dependency-groups]
 dev = [
+    "hypothesis>=6.167.1",
+    "lark-run>=0.1.1",
+    "mypy>=2.3.1",
     "pytest>=8.4.2",
+    "pytest-cov>=7.1.0",
     "pytest-coverage>=0.0",
     "taskipy>=1.14.1",
 ]
 
 [tool.taskipy.tasks]
 test = "pytest tests"
-cov = "pytest --cov=mdq_spec --cov-report=term-missing"
+cov = "pytest --cov=mdq --cov-report=term-missing"
 doc = "uv doc0 build"
 doc-watch = "uv doc0 watch"
-examples = "uv run mdq_spec examples"
+examples = "uv run mdq examples"
+
+
+[[tool.mypy.overrides]]
+module = ["jsonschema.*"]
+follow_untyped_imports = true
+
+[[tool.mypy.overrides]]
+module = ["yaml.*"]
+follow_untyped_imports = true
+
+[tool.ruff.lint]
+ignore = [
+    "F402", # Ignore redefinition of unused name from import
+]
+
+[tool.pytest]
+markers = ["slow: marks tests as slow (deselect with '-m \"not slow\"')"]

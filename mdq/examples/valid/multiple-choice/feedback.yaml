@@ -1,0 +1,27 @@
+# Feedback lines (`>`) attach to the individual choice and are shown to a
+# student who picked it. Choices without feedback simply omit the field.
+#
+# "Shown to whoever picked it" is the multiple-choice rule only. Multiple
+# selection and true/false show feedback for wrongly judged choices instead
+# -- see docs/question-types/multiple-selection.md#feedback.
+id: mc-feedback
+title: Largest river
+type: multiple-choice
+stem: Which one is the largest river in the world?
+choices:
+  - id: amazon
+    text: Amazon
+    score: 1
+  - id: nile
+    text: Nile
+    score: 0
+    feedback: >-
+      The Amazon is much larger by volume of water, and recent surveys put
+      it ahead by length too.
+  - id: mississippi
+    text: Mississippi
+    score: 0
+    feedback: Not even close!
+  - id: yellow-river
+    text: Yellow River
+    score: 0

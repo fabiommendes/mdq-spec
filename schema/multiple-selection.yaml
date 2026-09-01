@@ -20,6 +20,12 @@ allOf:
           "$ref": "#/$defs/Choice"
         minItems: 2
 
+      shuffle:
+        type: boolean
+        description: >-
+          If true, the choices are safe to shuffle. If false, they should never
+          be shuffled and if ommited, use the system is free to choose.
+
     required:
       - type
       - choices
@@ -52,7 +58,7 @@ unevaluatedProperties: false
         description: A textual display for the choice.
         minLength: 1
 
-      answer:
+      correct:
         type: boolean
         description: >-
           Whether this choice should be selected in a correct answer. If
@@ -63,8 +69,16 @@ unevaluatedProperties: false
       feedback:
         type: string
         description: >-
-          Feedback text shown to students that selected this choice.
-          Usually explains why the choice is wrong (or right).
+          Feedback text shown to students that judged this choice wrongly
+          -- either by ticking one that should not be ticked, or by
+          leaving unticked one that should be. Usually explains why the
+          choice belongs in the answer or does not. Unlike
+          multiple-choice, a correctly judged choice never shows it.
+
+      comment:
+        type: string
+        description: >-
+          Optional comment for the instructor. Do not show to students.
 
     required:
       - text

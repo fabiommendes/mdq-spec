@@ -12,188 +12,38 @@ such as GIFT and AIKEN. However, by using Markdown as the underlying format, MDQ
 users can leverage existing Markdown and (both human and LLM) familiarity with
 this ubiquitous format.
 
-`MDQ` files can declare single questions or exams. We distinguish each case by
-file extension, using either `.mdq` or `.q.md` for the former and `.mde` or
-`.e.md` for the latter.
+`MDQ` files can declare single questions or exams. Both use the same file
+extension -- either `.mdq` or `.mdq.md` -- and are told apart by their
+content rather than by their name. The `.mdq.md` spelling exists so that
+editors and forges that key off `.md` still treat the file as Markdown.
 
 This document describes the accepted questions formats and their respective
-syntax. The `MDQ` project has a [Python reference implementation](https://github.com/codehood-lms/mdq.py) and a [Typescript implementation](https://github.com/codehood-lms/mdq.js). Each
-have parsers that can be used to parse and validate `MDQ` documents.
+syntax. The `MDQ` project [Python](https://github.com/codehood-lms/mdq.py) and
+[Typescript](https://github.com/codehood-lms/mdq.js) implementations. Each have
+parsers that can be used to parse and validate `MDQ` documents.
 
 
-## Questions formats
+## Questions format
 
-### Generic structure
-
-A mdq exam file is a human-readable Markdown document that contains a series of
-questions. Each question is declared using a header and an optional YAML
-configuration section. The question body follows the configuration section and
-can be written in Markdown.
-
-
-```md
-# [exam-id] Exam title
-
-## Optional subtitle is a small description to show in listings, tables, etc.
-
-One or more descriptive paragraphs. Any inline **markdown** *markup* is ~~valid~~.
-These optional paragraphs are stored in the `preamble` attribute of the exam.
-
----
-
-## [question-`id`] Question `title`
-
-    # Yaml configuration section
-    # This is an indented block of code interpreted as YAML and is used to
-    # specify advanced options. The first block of comment in this section is
-    # stored in the `comment` attribute for the question.
-    type: multiple-selection  # (usually can be inferred from the body)
-    format: md
-    weight: 1.0
-    grading: all-or-nothing
-    shuffle: true
-
-One or more descriptive paragraphs. Any inline **markdown** *markup* is ~~valid~~.
-Those optional paragraphs are stored in the `preamble` attribute of the question.
-
-The `stem` is the last paragraph before the question body. It usually commands the 
-student to do some action (e.g., "Select all correct answers", "Write a program that...").
-
-<QUESTION BODY, this depends on the question type>
-
-The text after the body is stored in the `epilogue` attribute of the question.
-```
-
-The exam contains multiple questions, each separated by a horizontal rule (`---`).
-
-### Multiple selection questions
-
-```md
-[Q1] What are the even numbers?
-* [x] 2
-* [ ] 3
-* [x] 4
-* [ ] 5
-```
-
-### Multiple choice
-
-Multiple choice questions are declared using an unordered list:
+Questions are written as markdown documents, with very little cerimony and extra
+syntax. Bellow is a very simple multiple-choice question, for example:
 
 ```md
 [Q1] How much is 2 + 2?
-* 2 
-* 3
-* 4 ✅ 
-* 5
+* [ ] 2 
+* [ ] 3
+* [*] 4
+* [ ] 5
 ```
 
+MDQ accepts several question formats, each with its own specific syntax and 
+options
 
-### True/False questions
+* **Multiple choice**
+* **Multiple selection**
+* **Open/Essay**
+* **True/False**
+* **Fill in the blanks**
+* **Associative**
+* **Repository questions** 
 
-```md
-[Q1] Judge the statements.
-* [T] Markdown is a lightweight markup.
-* [F] I'd rather be writing XML.
-* [T] MDQ accepts True/False questions.
-* [F] The Earth is flat.
-```
-
-### Fill in the blanks
-
-```md
-[Q1] 2 + 2 = [^value], which is an [^oddity]
-
-[^value]:
-  * 1 
-  * 2 
-  * 3
-  * 4 ✅
-
-[^oddity]:
-  * odd
-  * even ✅
-```
-
-### Associative questions
-
-```md
-[Q1] Associate the computations with their respective results
-
-1 + 1 =
-: 2
-
-2 + 2 =
-: 4
-
-3 + 3 =
-: 6
-```
-
-### I/O based E-judge questions
-
-````md
-[Q1] Create a program that asks the user for their name and prints "Hello <name>!".
-
-## [io]
-
-    @input $name
-
-## [program]
-
-```python
-name = input("name: ")
-print(f"Hello {name}!")
-```
-````
-
-### Test based E-judge based questions
-
-````md
-[Q1] Create a function f that receives an integer and return twice its value.
-
-## [test]
-
-  compare: f
-
-## [module]
-
-```python
-def f(x: int) -> int:
-    return x + x
-```
-````
-
-
-
-Advanced Features
-=================
-
-If necessary, users can specify additional information and use Markdown
-markup.
-
-```md
-# Q1
-
-    # An optional block of meta-information written in YAML
-    slug: simple-sum 
-    type: multiple-choice
-    user-defined-attribute: 42
-
-One or more descriptive paragraphs. Any inline **markdown** *markup* is ~~valid~~.
-The exact flavor of supported Markdown depends on the target platform.
-
-* Correct answer uses a `*` or `+` symbol.
-- Incorrect choices uses a `-` symbol.
-- (50%) Partial grades are specified as a percentage.
-- The question may have multiple correct answers.
-  > This is a feedback message presented to the user
-```
-
-
-Exams
-=====
-
-
-Advanced options
-================

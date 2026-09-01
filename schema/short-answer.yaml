@@ -1,0 +1,77 @@
+"$schema": "https://json-schema.org/draft/2020-12/schema"
+"$id": "https://raw.githubusercontent.com/codehood-lms/mdq.spec/master/schema/short-answer.yaml"
+title: Short answer question
+description: >-
+  A question answered with a short piece of free text, graded by comparing
+  the response against a list of accepted answers or against a regular
+  expression. Extends the common question-base schema.
+
+allOf:
+  - "$ref": "./question-base.yaml"
+  - type: object
+    properties:
+      type:
+        const: short-answer
+
+      oneOf:
+        type: array
+        description: >-
+          The list of accepted responses; a response is correct if it
+          matches any entry, after the normalization implied by `exact`.
+          This is where the body's answer text is stored -- either the
+          single string written after `[short-answer]:`, or the unordered
+          list written below it.
+        items:
+          type: string
+          minLength: 1
+        minItems: 1
+        uniqueItems: true
+
+      regex:
+        type: string
+        description: >-
+          A regular expression matching every correct response. Matching
+          is a *full match*, so leading `^` and trailing `$` are
+          redundant. Set from the frontmatter, or from a body whose
+          answer text is delimited by `/`; the frontmatter wins.
+        minLength: 1
+
+      exact:
+        type: boolean
+        description: >-
+          If true, compare responses verbatim. If false (the default),
+          comparison ignores case, normalizes unicode letters, collapses
+          runs of whitespace into a single space, and strips leading and
+          trailing whitespace.
+        default: false
+
+      openEnded:
+        type: boolean
+        description: >-
+          If true, the question has no answer key and requires manual
+          grading. Inferred when the body declares no answer text.
+        default: false
+
+    required:
+      - type
+
+    # An open-ended question is graded by hand, so an answer key would
+    # have nothing to grade against.
+    if:
+      properties:
+        openEnded:
+          const: true
+      required:
+        - openEnded
+    then:
+      properties:
+        oneOf: false
+        regex: false
+
+# Rejects any key not defined by question-base.yaml or by the object
+# schema above. Plain `additionalProperties: false` can't be used here
+# because it only sees properties declared in its *own* schema object,
+# not sibling schemas combined via `allOf` -- `unevaluatedProperties`,
+# evaluated after the whole `allOf` is applied, is the composition-safe
+# equivalent.
+unevaluatedProperties: false

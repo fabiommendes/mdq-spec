@@ -1,0 +1,144 @@
+"$schema": "https://json-schema.org/draft/2020-12/schema"
+"$id": "https://raw.githubusercontent.com/codehood-lms/mdq.spec/master/schema/exam.yaml"
+title: Exam
+description: >-
+  A set of questions gathered for assessment. An exam is recognized by its
+  H1 title, which a question document can never carry. Each entry in
+  `questions` is either a complete question document or an `include`
+  referring to one that lives elsewhere.
+
+type: object
+properties:
+  type:
+    const: exam
+    description: >-
+      Redundant in practice -- an exam is recognized by its H1 title --
+      but accepted so a document can state its kind explicitly.
+
+  id:
+    type: string
+    description: >-
+      Url-friendly slug identifying the exam, written either in the H1
+      (`# [slug] Title`) or in the frontmatter. A number written in the
+      frontmatter is read as its decimal string form.
+    pattern: "^[a-zA-Z0-9]+(?:[-_][a-zA-Z0-9]+)*$"
+    examples:
+      - midterm
+      - cs101-final
+
+  uuid:
+    type: string
+    description: Universally unique identifier for the exam.
+    format: uuid
+    pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+
+  title:
+    type: string
+    description: >-
+      Human readable title, normally taken from the H1 heading. When the
+      frontmatter also sets it, the frontmatter wins.
+    minLength: 1
+
+  course:
+    type: string
+    description: The course code the exam belongs to.
+    minLength: 1
+
+  author:
+    type: string
+    description: >-
+      The exam author. Inherited by any question that does not name one.
+    minLength: 1
+
+  locale:
+    type: string
+    description: >-
+      The language the exam is written in, as an IETF BCP 47 language
+      tag. Inherited by any question that does not set one. Well-formedness
+      is left to the implementation -- see mdq.linter.
+    examples:
+      - pt-BR
+      - en
+
+  instructions:
+    type: string
+    description: >-
+      The paragraphs between the title and the first question, shown to
+      the student before the assessment begins. May contain Markdown.
+
+  tags:
+    type: array
+    description: >-
+      Arbitrary set of strings associated with the exam. Unlike `locale`
+      and `author`, tags are NOT inherited by the questions.
+    items:
+      type: string
+    uniqueItems: true
+
+  meta:
+    type: object
+    description: >-
+      Arbitrary mapping of strings to JSON values, for extension data not
+      covered by the standard fields.
+    additionalProperties: true
+
+  penalty:
+    enum:
+      - none
+      - capped
+      - full
+    default: none
+    description: >-
+      The exam's policy for whether a negative question score survives.
+      Questions never clamp their own score -- this is the only place
+      clamping happens. `none` floors each question score at 0 before
+      weighting it into the total. `capped` keeps the full, possibly
+      negative, question values but floors the exam total at 0. `full`
+      floors nothing, at either level.
+
+  questions:
+    type: array
+    description: >-
+      The questions, in the order their blocks appear in the document.
+      An entry is either a full question document or an `include`.
+    items:
+      "$ref": "#/$defs/Entry"
+
+required:
+  - questions
+
+additionalProperties: false
+
+"$defs":
+  Entry:
+    title: Exam entry
+    description: >-
+      One question block: either a question written inline, or a
+      reference to one stored elsewhere.
+    oneOf:
+      - "$ref": "#/$defs/Include"
+      - "$ref": "./multiple-choice.yaml"
+      - "$ref": "./multiple-selection.yaml"
+      - "$ref": "./true-false.yaml"
+      - "$ref": "./essay.yaml"
+      - "$ref": "./numeric.yaml"
+      - "$ref": "./short-answer.yaml"
+      - "$ref": "./fill-in.yaml"
+
+  Include:
+    type: object
+    title: Include
+    description: >-
+      A reference to a question defined outside this exam, by its id.
+      Resolving the reference is the host system's job; a document that
+      merely fails to resolve is still well-formed.
+    additionalProperties: false
+    properties:
+      include:
+        type: string
+        description: The id of the question to pull in.
+        pattern: "^.*(/?([a-zA-Z0-9]+(?:[-_][a-zA-Z0-9]+)*))+$"
+        examples:
+          - recursion-01
+    required:
+      - include

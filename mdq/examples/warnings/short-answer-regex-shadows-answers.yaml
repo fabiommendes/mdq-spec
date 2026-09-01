@@ -1,0 +1,7 @@
+# `regex` takes precedence over the listed answers, so `oneOf` is dead
+# weight here.
+type: short-answer
+stem: Write the year Brazil declared independence.
+regex: "18[0-9]{2}"
+oneOf:
+  - "1822"

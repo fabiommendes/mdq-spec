@@ -1,0 +1,181 @@
+"$schema": "https://json-schema.org/draft/2020-12/schema"
+"$id": "https://raw.githubusercontent.com/codehood-lms/mdq.spec/master/schema/fill-in.yaml"
+title: Fill in the blanks question
+description: >-
+  A question whose stem contains one or more named blanks, each answered
+  in place by the student. Extends the common question-base schema with a
+  `blanks` field. Every blank is itself a small graded question -- a set
+  of choices, a short answer, or a numeric value -- referenced from the
+  stem by its id, as in `The capital of Brazil is [^capital].`
+
+allOf:
+  - "$ref": "./question-base.yaml"
+  - type: object
+    properties:
+      type:
+        const: fill-in
+
+      blanks:
+        type: array
+        description: >-
+          The blanks referenced by the stem, in the order their
+          definitions appear in the document.
+        items:
+          "$ref": "#/$defs/Blank"
+        minItems: 1
+
+      shuffle:
+        type: boolean
+        description: >-
+          If true, the choices of every choice-based blank are safe to
+          shuffle. If false, they should never be shuffled, and if
+          omitted the system is free to choose.
+
+    required:
+      - type
+      - blanks
+
+# Rejects any key not defined by question-base.yaml or by the object
+# schema above. Plain `additionalProperties: false` can't be used here
+# because it only sees properties declared in its *own* schema object,
+# not sibling schemas combined via `allOf` -- `unevaluatedProperties`,
+# evaluated after the whole `allOf` is applied, is the composition-safe
+# equivalent.
+unevaluatedProperties: false
+
+"$defs":
+  Blank:
+    title: Blank
+    description: >-
+      A single blank. `type` discriminates the three kinds; it is
+      required here even though the surface syntax may leave it implicit
+      (`[^capital]:` infers its kind from the definition that follows,
+      while `[^size/numeric]:` states it).
+    oneOf:
+      - "$ref": "#/$defs/ChoiceBlank"
+      - "$ref": "#/$defs/ShortAnswerBlank"
+      - "$ref": "#/$defs/NumericBlank"
+
+  BlankId:
+    type: string
+    description: >-
+      Url-friendly identifier for the blank, matching the `[^id]` marker
+      used in the stem. MUST be unique within the question.
+    pattern: "^[a-zA-Z0-9]+(?:[-_][a-zA-Z0-9]+)*$"
+    examples:
+      - capital
+      - size
+
+  ChoiceBlank:
+    type: object
+    title: Choice blank
+    description: >-
+      A blank the student answers by picking one of a list of choices,
+      graded exactly like a multiple-choice question.
+    additionalProperties: false
+    properties:
+      id:
+        "$ref": "#/$defs/BlankId"
+
+      type:
+        const: multiple-choice
+
+      choices:
+        type: array
+        description: The list of choices presented for this blank.
+        items:
+          "$ref": "./multiple-choice.yaml#/$defs/Choice"
+        minItems: 2
+
+    required:
+      - id
+      - type
+      - choices
+
+  ShortAnswerBlank:
+    type: object
+    title: Short answer blank
+    description: >-
+      A blank the student answers by typing a short piece of text, graded
+      exactly like a short-answer question.
+    additionalProperties: false
+    properties:
+      id:
+        "$ref": "#/$defs/BlankId"
+
+      type:
+        const: short-answer
+
+      oneOf:
+        type: array
+        description: >-
+          The list of accepted responses; a response is correct if it
+          matches any entry, after the normalization implied by `exact`.
+        items:
+          type: string
+          minLength: 1
+        minItems: 1
+        uniqueItems: true
+
+      regex:
+        type: string
+        description: >-
+          A regular expression matching every correct response, applied
+          as a full match. Takes precedence over `oneOf`.
+        minLength: 1
+
+      exact:
+        type: boolean
+        description: >-
+          If true, compare responses verbatim; if false (the default),
+          normalize case, unicode letters, and whitespace first.
+        default: false
+
+    required:
+      - id
+      - type
+
+  NumericBlank:
+    type: object
+    title: Numeric blank
+    description: >-
+      A blank the student answers with a number, graded exactly like a
+      numeric question.
+    additionalProperties: false
+    properties:
+      id:
+        "$ref": "#/$defs/BlankId"
+
+      type:
+        const: numeric
+
+      answer:
+        type: number
+        description: The expected correct numeric value.
+
+      unit:
+        type: string
+        description: The unit (e.g., kg, m, lm, etc) of the expected answer.
+        pattern: "^[\\w.\\-]+$"
+
+      domain:
+        enum:
+          - integer
+          - decimal
+          - fraction
+        description: The domain/kind of number for the response.
+
+      decimalPlaces:
+        type: integer
+        minimum: 0
+        description: >-
+          The number of decimal places used in the decimal value
+          representation. Ignored if domain is 'integer' or 'fraction'.
+
+      tolerance:
+        "$ref": "./numeric.yaml#/$defs/Tolerance"
+
+    required:
+      - id
+      - type
+      - answer

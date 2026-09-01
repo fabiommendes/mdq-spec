@@ -20,6 +20,12 @@ allOf:
           "$ref": "#/$defs/Choice"
         minItems: 2
 
+      shuffle:
+        type: boolean
+        description: >-
+          If true, the choices are safe to shuffle. If false, they should never
+          be shuffled and if ommited, use the system is free to choose.
+
     required:
       - type
       - choices
@@ -54,17 +60,28 @@ unevaluatedProperties: false
 
       score:
         type: number
+        minimum: -1
+        maximum: 1
         description: >-
-          Numeric grade associated with the choice. 1 is considered
-          correct and 0 incorrect. The instructor may omit this for
-          incorrect choices, or set negative values as penalties for
-          selecting a wrong choice.
+          Numeric grade associated with the choice, on a scale from -1 to
+          1. 1 is considered correct and 0 incorrect. The instructor may
+          omit this for incorrect choices, or set negative values as
+          penalties for selecting a wrong choice. A question never clamps
+          its own score -- whether a negative value survives into the
+          exam total is decided entirely by the exam's `penalty` policy
+          (see schema/exam.yaml), never here. A value outside [-1, 1] is a
+          malformed question, not a clamped grade.
 
       feedback:
         type: string
         description: >-
           Feedback text shown to students that selected this choice.
           Usually explains why the choice is wrong (or right).
+
+      comment:
+        type: string
+        description: >-
+          Optional comment for the instructor. Do not shown to students.
 
     required:
       - text

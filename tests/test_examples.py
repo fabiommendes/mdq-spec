@@ -16,26 +16,28 @@ from pathlib import Path
 
 import pytest
 
-from mdq_spec.testing import (
-    INVALID_FILES,
+from mdq.testing import (
+    INVALID_PARSED,
     VALID_DIR,
-    VALID_FILES,
-    WARNING_FILES,
+    VALID_PARSED,
+    WARNING_PARSED,
     WARNINGS_DIR,
     relative_id,
 )
-from mdq_spec.validator import SchemaError, validate_file
+from mdq.validator import SchemaError, validate_file
 
 
 def test_examples_dir_has_documents() -> None:
     """
     Guard against a typo'd path silently making every test below a no-op.
     """
-    assert VALID_FILES, f"no example .yml/.json files found under {VALID_DIR}"
-    assert WARNING_FILES, f"no example .yml/.json files found under {WARNINGS_DIR}"
+    assert VALID_PARSED, f"no example .yml/.json files found under {VALID_DIR}"
+    assert WARNING_PARSED, f"no example .yml/.json files found under {WARNINGS_DIR}"
 
 
-@pytest.mark.parametrize("path", VALID_FILES, ids=[relative_id(p) for p in VALID_FILES])
+@pytest.mark.parametrize(
+    "path", VALID_PARSED, ids=[relative_id(p) for p in VALID_PARSED]
+)
 def test_example_is_valid(path: Path) -> None:
     try:
         result = validate_file(path)
@@ -53,7 +55,7 @@ def test_example_is_valid(path: Path) -> None:
 
 
 @pytest.mark.parametrize(
-    "path", INVALID_FILES, ids=[relative_id(p) for p in INVALID_FILES]
+    "path", INVALID_PARSED, ids=[relative_id(p) for p in INVALID_PARSED]
 )
 def test_invalid_fixture_is_actually_invalid(path: Path) -> None:
     try:
@@ -66,4 +68,29 @@ def test_invalid_fixture_is_actually_invalid(path: Path) -> None:
     assert not result.valid, (
         f"{relative_id(path)} lives under examples/invalid/ but validated "
         f"successfully as {result.question_type!r}"
+    )
+
+
+@pytest.mark.parametrize(
+    "path", WARNING_PARSED, ids=[relative_id(p) for p in WARNING_PARSED]
+)
+def test_warning_fixture_actually_warns(path: Path) -> None:
+    """
+    Files under examples/warnings/ are valid documents that a linter
+    should still complain about. Assert both halves: a fixture that
+    stopped validating, or stopped producing any warning, is no longer
+    testing what it claims to.
+    """
+    try:
+        result = validate_file(path, level="strict")
+    except SchemaError as exc:
+        pytest.fail(f"{relative_id(path)}: {exc}")
+
+    assert result.valid, (
+        f"{relative_id(path)} lives under examples/warnings/ but does not "
+        f"validate as {result.question_type!r}"
+    )
+    assert result.warnings, (
+        f"{relative_id(path)} lives under examples/warnings/ but the linter "
+        f"reported nothing"
     )

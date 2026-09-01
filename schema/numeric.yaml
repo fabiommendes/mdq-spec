@@ -17,6 +17,25 @@ allOf:
         type: number
         description: The expected correct numeric value.
 
+      unit:
+        type: string
+        description: The unit (e.g., kg, m, lm, etc) of the expected answer.
+        pattern: ^[\w.-_]+$
+
+      domain:
+        enum:
+          - integer
+          - decimal
+          - fraction
+        description: The domain/kind of number for the response.
+
+      decimalPlaces:
+        type: integer
+        minimum: 0
+        description: >-
+          The number of decimal places used in the decimal value representation.
+          This value is ignored if domain is 'integer' or 'fraction'.
+
       tolerance:
         "$ref": "#/$defs/Tolerance"
 

@@ -1,0 +1,21 @@
+id: tf-astronomy
+title: Astronomy claims
+type: true-false
+stem: Judge the alternatives.
+choices:
+  - id: earth-is-flat
+    text: Earth is flat.
+    correct: false
+    marker: F
+  - id: humans-descend-from-apes
+    text: Humans descend from apes.
+    correct: true
+    marker: T
+  - id: the-earth-is-billions-of-years-old
+    text: The Earth is billions of years old.
+    correct: true
+    marker: T
+  - id: light-travels-instantly-through-space
+    text: Light travels instantly through space.
+    correct: false
+    marker: F

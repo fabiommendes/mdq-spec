@@ -1,0 +1,6 @@
+# `decimalPlaces` must be greater than or equal to zero.
+type: numeric
+stem: What is the value of pi?
+answer: 3.14
+domain: decimal
+decimalPlaces: -2

@@ -1,3 +1,7 @@
+.coverage
+.rtk/
+.ruff_cache/
+.mypy_cache/
 .venv/
 .pytest_cache/
 __pycache__/
