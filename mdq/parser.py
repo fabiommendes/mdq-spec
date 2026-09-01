@@ -53,6 +53,7 @@ __all__ = [
     "parse_exam",
     "parse_question",
     "is_exam",
+    "reconstruct_blocks",
 ]
 
 #
@@ -367,6 +368,35 @@ def is_exam(text: str) -> bool:
     return False
 
 
+def reconstruct_blocks(src: str) -> list[tuple[str, str]]:
+    """
+    Parse `src` as a standalone sequence of top-level Markdown blocks and
+    reconstruct each one exactly as it would read after being embedded in
+    a full MDQ document and parsed back out.
+
+    This is `MDQParser.raw_text`, applied to every top-level block `src`
+    parses into: a plain paragraph's soft-wrapped lines collapse to
+    single spaces, while a list, blockquote, heading or code block is
+    reproduced byte-for-byte. It exists so `mdq.models` can canonicalize
+    a `preamble`/`epilogue`/`stem` field into the fixed point a
+    render-then-parse round trip actually produces, using the parser's
+    own reconstruction rules instead of a second, drifting copy of them.
+
+    Args:
+        src: Markdown source for a preamble, epilogue, or stem -- a
+            sequence of block elements with no YAML frontmatter of its
+            own (a bare `---` at the very start would be misread as one,
+            but no MDQ block legitimately starts with a thematic break).
+
+    Returns:
+        One `(node_type, text)` pair per top-level block found in `src`,
+        in source order.
+    """
+
+    reader = MDQParser(src)
+    return [(node.type, reader.raw_text(node)) for node in reader.children]
+
+
 #
 # Implementation
 #
@@ -503,7 +533,21 @@ class MDQParser:
 
         if node.children and node.children[0].type == "inline":
             return node.children[0].content.replace("\n", " ")
-        return "\n".join(line for line in self.raw_lines(node))
+        lines = self.raw_lines(node)
+        # markdown-it's `.map` for a list (bullet or ordered) that is not
+        # the last block in the document extends one line past the list's
+        # own content, into the blank line that follows it -- see the
+        # module docstring's note on trusting `.map` for line ranges.
+        # Trailing blank lines are never part of a block's own content, so
+        # dropping them is always correct, not just for lists -- verified
+        # this is a no-op (never trims real content) for a fenced code
+        # block, whose `.map` always ends on its own closing ` ``` ` line,
+        # and for an indented code block, whose `.map` always ends on its
+        # last indented line, even when either has a blank line before
+        # the end of its own body.
+        while lines and not lines[-1].strip():
+            lines.pop()
+        return "\n".join(lines)
 
     def join_blocks(self, nodes: list[Node]) -> str | None:
         if not nodes:
@@ -1210,33 +1254,103 @@ def _split_exam_blocks(lines: list[str]) -> tuple[str | None, list[list[str]]]:
     """
     Split the text below the title into (instructions, question blocks).
 
-    A block starts at a `===` separator or at a `---` frontmatter fence,
-    whichever comes first; everything before the first block is the
-    exam's instructions.
+    A block starts at a `===` separator -- always, unconditionally -- or
+    at a bare `---` frontmatter fence. Telling a fence-that-opens-a-new-
+    question apart from a thematic break sitting in some other question's
+    own preamble/epilogue prose (which generic.md allows outright) can't
+    be done by content alone: an entirely ordinary prose line like "Nota:
+    leia com atenção." parses as a YAML mapping just as readily as real
+    frontmatter fields do, so a bare `---` only opens a *new* question
+    when position says it structurally could:
+
+    * it is the very first one found at all -- there is nothing yet to
+      confuse it with, and exam.md's Body rule already forbids ordinary
+      instructions prose from using a `---`-fenced block, so whatever
+      fence is found first, however much instructions prose precedes it,
+      is trustworthy; or
+    * nothing but blank lines separates it from the line right after a
+      *previous bare fence's own closing* `---` (exam.md's worked example
+      chains two bare-frontmatter questions exactly this way, back to
+      back, with no `===` between them); or
+    * the current question (opened by `===` or a previous fence) has
+      already shown a recognizable body -- a body tag (`[essay]`,
+      `[short-answer]: ...`, `[numeric]: ...`, a `[^blank]:` line) or the
+      first item of a bracket-choice list -- since its own frontmatter
+      closed. Once that has happened the question is structurally
+      complete (only optional epilogue prose can still follow), so a
+      further bare fence safely opens the next question even with
+      arbitrary epilogue text in between, no `===` required -- this is
+      exactly what lets a duplicate-id check span two bare-frontmatter
+      essay questions with real bodies, not just empty `include`s.
+
+    A fence immediately after a `===`, with nothing but blank lines
+    before it, is none of those: it is simply that question's own
+    frontmatter (any question may have one, `===`-opened or not), not a
+    second, separate start -- so it is consumed like normal content, not
+    recorded as a new block, though a further fence chaining off *its*
+    close is fair game again.
+
+    Before any body tag has appeared for the current question, a bare
+    `---` is necessarily still inside its own preamble/stem, and no
+    signal available from raw lines can tell a thematic break there from
+    a genuine fence -- so it is never treated as one.
     """
 
     starts: list[int] = []
     index = 0
+    #: Position right after the most recently accepted block boundary.
+    boundary = 0
+    #: Whether that boundary was a `===` (as opposed to a previous bare
+    #: fence's own closing `---`, or the still-unresolved start of the
+    #: instructions region).
+    boundary_is_separator = False
+    #: Whether the current question has shown a recognizable body tag or
+    #: bracket-choice list item since its own frontmatter (if any) closed.
+    body_seen = False
     while index < len(lines):
         line = lines[index].rstrip()
+        stripped = line.strip()
         blank_before = index == 0 or not lines[index - 1].strip()
+
+        if not body_seen and (_matches_tag(stripped) or BRACKET_ITEM_RE.match(stripped)):
+            body_seen = True
 
         if line == SEPARATOR and blank_before:
             starts.append(index)
+            boundary = index + 1
+            boundary_is_separator = True
+            body_seen = False
             index += 1
             continue
 
         if line == "---" and blank_before:
-            # A `---` opens a question only when it fences a YAML block;
-            # an unterminated one is a thematic break in the prose.
-            closing = next(
-                (j for j in range(index + 1, len(lines)) if lines[j].rstrip() == "---"),
-                None,
+            adjacent = all(not gap.strip() for gap in lines[boundary:index])
+            is_own_frontmatter = boundary_is_separator and adjacent
+            is_new_start = not is_own_frontmatter and (
+                not starts or adjacent or body_seen
             )
-            if closing is not None:
-                starts.append(index)
-                index = closing + 1
-                continue
+            if is_own_frontmatter or is_new_start:
+                # Positionally this candidate is allowed to open a fence;
+                # still require the enclosed text to actually look like
+                # YAML frontmatter (a cheap secondary guard, never the
+                # primary test) before committing to it.
+                closing = next(
+                    (
+                        j
+                        for j in range(index + 1, len(lines))
+                        if lines[j].rstrip() == "---"
+                        and _looks_like_frontmatter(lines[index + 1 : j])
+                    ),
+                    None,
+                )
+                if closing is not None:
+                    if is_new_start:
+                        starts.append(index)
+                    boundary = closing + 1
+                    boundary_is_separator = False
+                    body_seen = False
+                    index = closing + 1
+                    continue
 
         index += 1
 
@@ -1247,6 +1361,26 @@ def _split_exam_blocks(lines: list[str]) -> tuple[str | None, list[list[str]]]:
     bounds = starts + [len(lines)]
     blocks = [lines[bounds[i] : bounds[i + 1]] for i in range(len(starts))]
     return instructions, blocks
+
+
+def _looks_like_frontmatter(lines: list[str]) -> bool:
+    """
+    Report whether the lines between a candidate `---` pair parse as a
+    YAML mapping, or nothing at all (an empty frontmatter block).
+
+    A cheap secondary guard only: `_split_exam_blocks` decides whether a
+    `---` is even eligible to open a fence by *position* first (see its
+    docstring); this just keeps a positionally-eligible candidate from
+    being treated as frontmatter when its enclosed text plainly isn't
+    YAML at all (e.g. a malformed document, or two coincidentally close
+    thematic breaks).
+    """
+
+    try:
+        loaded = yaml.safe_load("\n".join(lines))
+    except yaml.YAMLError:
+        return False
+    return loaded is None or isinstance(loaded, dict)
 
 
 def _clean_block(text: str) -> str | None:

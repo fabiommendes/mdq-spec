@@ -17,14 +17,26 @@ from pathlib import Path
 
 import pytest
 
-from mdq.parser import parse_any, parse_file
+from mdq.parser import parse_any, parse_exam, parse_file
 from mdq.testing import VALID_SOURCES, parsed_sibling, relative_id
 from mdq.validator import load_document, validate_document
 
 #: Pairs the parser is known not to reproduce exactly, with the reason.
 #: Keyed by the same id `relative_id` gives the pair (e.g.
 #: "multiple-choice.composite-ids.mdq.md").
-NOT_YET_SUPPORTED: dict[str, str] = {}
+NOT_YET_SUPPORTED: dict[str, str] = {
+    "multiple-choice.fenced-code-choice.mdq.md": (
+        "choice text is folded to single-line prose the same way preamble/"
+        "stem text is, so a fenced code block nested in a choice loses its "
+        "line breaks and stops being valid fenced-code Markdown; see "
+        "BACKLOG.md"
+    ),
+    "numeric.table-preamble.mdq.md": (
+        "the parser uses plain CommonMark with no table extension, so a "
+        "GFM pipe table is just an ordinary paragraph to it and its rows "
+        "collapse into a single line of prose; see BACKLOG.md"
+    ),
+}
 
 
 def parse_file_from_text(source: str) -> dict:
@@ -171,3 +183,118 @@ def test_numeric_blank_infers_domain_like_a_numeric_question() -> None:
     assert blanks["mass"]["domain"] == "integer"
     assert blanks["price"]["domain"] == "decimal"
     assert blanks["price"]["decimalPlaces"] == 2
+
+
+@pytest.mark.parametrize("question_type", ["multiple-selection", "short-answer"])
+def test_prose_list_in_preamble_has_no_trailing_blank_line(question_type: str) -> None:
+    """
+    markdown-it's `.map` for a list block that isn't the last block in the
+    document extends one line past the list itself, into the blank line
+    that follows it. `MDQParser.raw_text` must trim that trailing blank
+    line back off, or a plain (non-choice) list used as preamble prose
+    ends up with a spurious trailing newline baked into the field.
+    """
+    if question_type == "multiple-selection":
+        body = "* [x] 4\n* [ ] 5\n"
+    else:
+        body = "[short-answer]: 4\n"
+    source = (
+        "Consider the following:\n\n"
+        "* first\n"
+        "* second\n\n"
+        "What is 2 + 2?\n\n" + body
+    )
+    document = parse_file_from_text(source)
+    assert document["preamble"] == "Consider the following:\n\n* first\n* second"
+
+
+def test_exam_preamble_thematic_break_does_not_fence_a_later_question() -> None:
+    """
+    `_split_exam_blocks` looks for a `---` that fences a question's
+    frontmatter without an explicit `===` separator (exam.md's own
+    example chains two bare-frontmatter questions back to back). A
+    thematic break inside an earlier question's own preamble/epilogue
+    prose is also a lone, blank-line-preceded `---`, and must not be
+    mistaken for the start of that fence just because some *later*
+    question's real frontmatter closes with one too.
+    """
+    source = (
+        "# Sample Exam\n\n"
+        "===\n\n"
+        "Some background text.\n\n"
+        "---\n\n"
+        "More background, after a thematic break.\n\n"
+        "What is 2 + 2?\n\n"
+        "[short-answer]: 4\n\n"
+        "---\ntype: essay\n---\n\n"
+        "Describe the water cycle.\n\n"
+        "[essay]\n"
+    )
+    exam = parse_exam(source)
+    assert [q["type"] for q in exam["questions"]] == ["short-answer", "essay"]
+    assert exam["questions"][0]["preamble"] == (
+        "Some background text.\n\n---\n\nMore background, after a thematic break."
+    )
+    assert validate_document(exam).valid
+
+
+def test_colon_bearing_preamble_line_is_not_mistaken_for_frontmatter() -> None:
+    """
+    A content-only guess at whether a `---` fences YAML is not safe:
+    ordinary prose regularly contains a colon (labeled notes like "Nota:
+    ..." or "Atenção: ..."), which parses as a one-key YAML mapping just
+    as readily as a real frontmatter field does. `_split_exam_blocks`
+    must reject a thematic break on *position* -- it sits before this
+    question has shown any body tag yet -- not on what its text looks
+    like.
+    """
+    source = (
+        "# Sample Exam\n\n"
+        "===\n\n"
+        "Considere o processo abaixo.\n\n"
+        "---\n\n"
+        "Atenção: a resposta deve ser justificada.\n\n"
+        "Explique a seleção natural.\n\n"
+        "[essay]\n"
+    )
+    exam = parse_exam(source)
+    assert len(exam["questions"]) == 1
+    assert exam["questions"][0]["preamble"] == (
+        "Considere o processo abaixo.\n\n---\n\nAtenção: a resposta deve ser justificada."
+    )
+    assert exam["questions"][0]["stem"] == "Explique a seleção natural."
+    assert validate_document(exam).valid
+
+
+def test_exam_separator_immediately_followed_by_frontmatter_is_one_question() -> None:
+    """
+    A `---` right after a `===`, with nothing but a blank line between
+    them, is that question's own frontmatter -- not a second, separate
+    start layered on top of the `===` that already opened it. Getting
+    this wrong produces a spurious empty question between the two.
+    Regression for the exact shape reported against the first version of
+    the positional fix above.
+    """
+    source = (
+        "# Prova de Biologia\n\n"
+        "Leia com atenção.\n\n"
+        "===\n\n"
+        "Considere o processo abaixo.\n\n"
+        "---\n\n"
+        "Atenção: a resposta deve ser justificada.\n\n"
+        "Explique a seleção natural.\n\n"
+        "[essay]\n\n"
+        "===\n\n"
+        "---\ntype: essay\nid: q2\n---\n\n"
+        "Descreva a fotossíntese.\n\n"
+        "[essay]\n"
+    )
+    exam = parse_exam(source)
+    assert exam["instructions"] == "Leia com atenção."
+    assert [q.get("id") for q in exam["questions"]] == ["q1", "q2"]
+    assert [q["type"] for q in exam["questions"]] == ["essay", "essay"]
+    assert exam["questions"][0]["preamble"] == (
+        "Considere o processo abaixo.\n\n---\n\nAtenção: a resposta deve ser justificada."
+    )
+    assert exam["questions"][1]["stem"] == "Descreva a fotossíntese."
+    assert validate_document(exam).valid

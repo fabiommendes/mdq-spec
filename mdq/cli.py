@@ -13,8 +13,13 @@ from pathlib import Path
 from typing import Annotated, Literal
 
 import typer
+from pydantic import ValidationError as PydanticValidationError
 from rich.console import Console
+from rich.text import Text
 
+from . import show as _show
+from .errors import ParseError
+from .loaders import FileLoader
 from .testing import EXAMPLES_ROOT
 from .validator import SchemaError, ValidationResult, validate_file
 
@@ -167,6 +172,78 @@ def examples(
 
     msg = f"Copied {n_copied} item(s) and skipped {n_skipped} item(s) from {EXAMPLES_ROOT} to {destination}"
     stdout.print(f"[b green]success:[/] {msg}")
+
+
+@app.command()
+def show(
+    file: Path = typer.Argument(
+        ...,
+        help="Path to a question or exam document (.mdq.md or .mdq), or - for stdin.",
+    ),
+    no_answer_key: bool = typer.Option(
+        False,
+        "--no-answer-key",
+        help=(
+            "Hide anything that reveals the correct answer (correctness "
+            "marks, an essay's answer key, a numeric answer, ...), as if "
+            "previewing the question for a student."
+        ),
+    ),
+    width: int | None = typer.Option(
+        None,
+        "--width",
+        help="Console width to render at (default: the terminal's own width).",
+    ),
+) -> None:
+    """
+    Show the parsed representation of a question or exam document.
+
+    Renders rich-text fields (preamble, stem, epilogue, choice text,
+    feedback, ...) as Markdown and everything else as structured
+    metadata, so the document's shape is easy to check at a glance.
+    """
+
+    # Built fresh (rather than reusing the module-level `stdout`/`stderr`)
+    # so each binds the *current* `sys.stdout`/`sys.stderr` -- important
+    # under test runners that swap those out from under an
+    # already-constructed Console.
+    console = Console(
+        file=sys.stdout, width=width, highlight=False, force_terminal=True
+    )
+    error_console = Console(file=sys.stderr, highlight=False, force_terminal=True)
+
+    # Everything below that can embed a path or an exception message is
+    # printed as a `Text` object, never spliced into a markup `str` --
+    # `file` and `exc` can both carry document/filesystem content with
+    # square brackets, which Rich would otherwise parse as markup (and,
+    # for a stray closing tag like `[/]`, raise instead of print).
+    loader = None
+    if str(file) == "-":
+        source = sys.stdin.read()
+    else:
+        if not file.is_file():
+            error_console.print("[b red]error:[/]", Text(f"file not found: {file}"))
+            raise typer.Exit(code=2)
+        try:
+            source = file.read_text(encoding="utf-8")
+        except OSError as exc:
+            error_console.print(
+                "[b red]error:[/]", Text(f"could not read {file}: {exc}")
+            )
+            raise typer.Exit(code=2)
+        # Resolve an exam's `include:` entries against its own directory,
+        # the same convention `mdq.loaders.FileLoader` documents. Ignored
+        # entirely for a question document, and for input read from stdin
+        # (which has no directory to resolve against).
+        loader = FileLoader(file.parent)
+
+    try:
+        _show.show_source(
+            source, console, show_answer_key=not no_answer_key, loader=loader
+        )
+    except (ParseError, PydanticValidationError) as exc:
+        error_console.print("[b red]error:[/]", Text(str(exc)))
+        raise typer.Exit(code=1)
 
 
 def main() -> None:

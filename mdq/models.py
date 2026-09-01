@@ -21,6 +21,16 @@ Two rules govern this module:
    came from.
 
 Nothing here is implemented yet: the fields are the design.
+
+This module imports `mdq.parser` -- a new direction of coupling for the
+model layer, which otherwise knows nothing about how Markdown gets
+parsed. It is deliberate: `normalize_paragraphs`/`normalize_intro` need
+to canonicalize `preamble`/`stem`/`epilogue` into the exact fixed point
+a render-then-parse round trip produces, and the only way to guarantee
+that without a second, drifting copy of the parser's reconstruction
+rules is to call the parser itself (`parser.reconstruct_blocks`).
+`mdq.parser` has no reciprocal dependency on this module (it hands back
+plain dicts), so this stays one-directional.
 """
 
 from __future__ import annotations
@@ -31,7 +41,7 @@ import opt
 from pydantic import BaseModel, ConfigDict, Field, RootModel
 from pydantic.alias_generators import to_camel
 
-from . import render
+from . import parser, render
 
 
 class MdqModel(BaseModel):
@@ -210,9 +220,17 @@ class BaseQuestion(MdqModel):
         frontmatter = self.frontmatter(skip_defaults=True)
 
         # If the frontmatter would only have in "id", we render it inline in the
-        # preamble or stem.
+        # preamble or stem -- but only when that is actually recoverable:
+        # `MDQParser.split_intro` only recognizes the `[id]` prefix on the
+        # first intro block (preamble's first block if there is one, else
+        # the stem) when that block is a plain paragraph. Prefixing a
+        # list, code block, blockquote or heading would corrupt it, so
+        # fall back to YAML frontmatter whenever the preamble does not
+        # start with a paragraph.
         id = self.id
-        if not self.comment and frontmatter.keys() == {"id"}:
+        if not self.comment and frontmatter.keys() == {"id"} and _can_inline_id(
+            self.preamble, self.stem
+        ):
             ...
         else:
             id = None
@@ -233,8 +251,9 @@ class BaseQuestion(MdqModel):
         """
         Return a copy of the model with normalized fields.
 
-        Normalization is not a validation step: it does not check that
-        the model is valid, only that its fields are in a canonical form.
+        Two models that normalize to the same model should have the same
+        markdown representation. Treat it as a canonical form for the model,
+        useful for comparing two elements.
         """
         copy = self.model_copy()
         copy._normalize()
@@ -243,11 +262,22 @@ class BaseQuestion(MdqModel):
     def _normalize(self) -> None:
         """
         Normalize *inplace*.
+
+        Runs `mdq.parser`'s Markdown parser over `preamble`/`stem`/
+        `epilogue` (via `normalize_intro`/`normalize_paragraphs`) to
+        canonicalize them, so this is no longer a handful of cheap
+        string operations -- fine at this project's scale, but worth
+        knowing if it ever shows up in a profile.
         """
-        self.preamble = opt.map(normalize_paragraphs, self.preamble)
-        self.epilogue = opt.map(normalize_paragraphs, self.epilogue)
-        self.comment = opt.map(remove_trailing_ws, self.comment)
-        self.stem = self.stem.strip()
+        # `preamble`/`epilogue`/`comment` are rendered as the mere
+        # presence of raw lines (prose blocks, `#`-comment lines) with
+        # no field marker of their own, so an empty string and no value
+        # at all render identically and a parse can only ever produce
+        # the latter. Collapsing an all-whitespace value to None here
+        # keeps normalization a fixed point of that round trip.
+        self.preamble, self.stem = normalize_intro(self.preamble, self.stem)
+        self.epilogue = opt.map(normalize_paragraphs, self.epilogue) or None
+        self.comment = opt.map(remove_trailing_ws, self.comment) or None
         self.tags = [tag.strip() for tag in self.tags if tag.strip()]
         self.author = opt.map(str.strip, self.author)
 
@@ -606,15 +636,67 @@ def _render_numeric_tag(
     return f"{tag}: {' '.join(terms)}"
 
 
+def _can_inline_id(preamble: str | None, stem: str) -> bool:
+    """
+    Report whether an inline `[id]` prefix would parse back correctly.
+
+    See the comment in `BaseQuestion._render_lines` for why: it only
+    round-trips when the block receiving the prefix -- the *first* block
+    of the combined preamble+stem sequence, per `MDQParser.split_intro`
+    -- is a plain paragraph. That is the preamble's own first block when
+    there is a preamble; otherwise it's the stem's first block, which is
+    not guaranteed to be a paragraph either -- a `stem` may legally span
+    more than one Markdown block (see `normalize_intro`) unless the
+    caller already normalized the model.
+    """
+    combined = f"{preamble}\n\n{stem}" if preamble else stem
+    blocks = parser.reconstruct_blocks(combined.strip())
+    return bool(blocks) and blocks[0][0] == "paragraph"
+
+
 def normalize_paragraphs(src: str) -> str:
     """
     Normalize a string that is a Markdown paragraph or series of
     paragraphs.
 
     This is used to normalize the `preamble` and `epilogue` fields of
-    questions, which are Markdown blocks but not full documents.
+    questions, which are Markdown blocks but not full documents. Naively
+    splitting on blank lines and stripping each chunk is not enough: a
+    plain paragraph's soft-wrapped lines collapse to a single space once
+    a render/parse round trip touches them (`MDQParser.raw_text`), while
+    a list, blockquote, heading or code block survives byte-for-byte.
+    `parser.reconstruct_blocks` applies the parser's own rule for each
+    block instead of guessing, so this function is a fixed point of
+    render-then-parse: normalizing again after a round trip is a no-op.
     """
-    return "\n\n".join(p.strip() for p in src.split("\n\n"))
+    return "\n\n".join(text for _, text in parser.reconstruct_blocks(src))
+
+
+def normalize_intro(preamble: str | None, stem: str) -> tuple[str | None, str]:
+    """
+    Normalize a question's `preamble` and `stem` fields together.
+
+    `MDQParser.split_intro` does not care which field a block came from:
+    it always assigns the *last* intro block to the stem and everything
+    before it to the preamble. A `stem` spanning more than one Markdown
+    block is legal per the schema (`schema/question-base.yaml`'s `stem`
+    is just a non-empty string; `docs/question-types/generic.md` only
+    *recommends* -- "SHOULD" -- a single paragraph), so it does not
+    stay put on a render/parse round trip: every block but the last
+    migrates into the preamble. Normalizing has to do the same to stay a
+    fixed point of that round trip -- keeping only the first block
+    (dropping the rest) or only the last would both be lossy, and either
+    way would put the surviving block in the wrong field. Reconstructing
+    `preamble` and `stem` together, rather than field by field, is what
+    makes that possible.
+    """
+    combined = f"{preamble}\n\n{stem}" if preamble else stem
+    blocks = parser.reconstruct_blocks(combined.strip())
+    if not blocks:
+        return None, stem.strip()
+    new_stem = blocks[-1][1]
+    new_preamble = "\n\n".join(text for _, text in blocks[:-1]) or None
+    return new_preamble, new_stem
 
 
 def remove_trailing_ws(src: str) -> str:

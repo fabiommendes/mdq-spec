@@ -226,6 +226,58 @@ The capital is [^capital], and pi is [^pi].
 
 
 #
+# normalize() on a multi-block stem
+#
+# `stem` is just a non-empty string in the schema (`schema/
+# question-base.yaml`); `docs/question-types/generic.md` only
+# *recommends* -- "SHOULD" -- that it be a single paragraph, so a model
+# built by hand (not through `mdq.hypothesis`, which never generates a
+# multi-block stem) may legally carry more than one block in it.
+# `MDQParser.split_intro` always treats the *last* intro block as the
+# stem, so that is where normalize has to leave content too -- not the
+# first, and not both (silently dropping everything past the first
+# block used to be the bug here).
+#
+def test_normalize_moves_leading_stem_blocks_into_preamble() -> None:
+    question = models.EssayQuestion(
+        id="x", stem="First paragraph.\n\nSecond paragraph."
+    )
+    normalized = question.normalize()
+
+    assert normalized.preamble == "First paragraph."
+    assert normalized.stem == "Second paragraph."
+
+    rt = parse_question(normalized.render())
+    assert rt == normalized
+
+
+def test_normalize_appends_leading_stem_blocks_after_existing_preamble() -> None:
+    question = models.EssayQuestion(preamble="Intro.", stem="Middle.\n\nLast one.")
+    normalized = question.normalize()
+
+    assert normalized.preamble == "Intro.\n\nMiddle."
+    assert normalized.stem == "Last one."
+
+    rt = parse_question(normalized.render())
+    assert rt == normalized
+
+
+def test_id_does_not_inline_onto_a_stem_that_leads_with_a_non_paragraph_block() -> None:
+    """
+    Regression test for `_can_inline_id`: with no preamble, the `[id]`
+    prefix would land on the *stem's* first block. Rendering directly
+    (no `.normalize()` first, which would otherwise migrate the leading
+    list into the preamble) exercises the check on an unnormalized
+    model, where a multi-block stem's first block need not be a
+    paragraph.
+    """
+    question = models.EssayQuestion(id="x", stem="- a list item\n\nActual stem text.")
+    src = question.render()
+
+    assert "id: x" in src
+
+
+#
 # Generalization
 #
 class AssertRTError(AssertionError):

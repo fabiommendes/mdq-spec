@@ -1,4 +1,36 @@
-from typing import Any, Callable, get_args
+"""
+Hypothesis strategies for generating MDQ questions, exams, and the
+Markdown fragments (paragraphs, lists, code blocks, ...) their
+`preamble`/`epilogue`/`stem` fields are made of.
+
+The markdown-related strategies at the bottom of this module *construct*
+valid Markdown rather than generate arbitrary text and filter out what
+doesn't parse: filtering throws away draws, which both slows generation
+and hurts shrinking (a strategy that filters too much trips Hypothesis's
+`filter_too_much`/`too_slow` health checks -- the fix is to construct
+more precisely, not to relax the check). Each strategy's docstring
+explains the specific CommonMark rule it is built around.
+
+A generated block is "safe" when it survives render -> parse -> normalize
+unchanged: rendering it into a document, parsing that document back with
+`mdq.parser`, and normalizing both sides (`mdq.models.BaseQuestion.
+normalize`) yields the same value it started from. `mdq.parser.
+reconstruct_blocks` -- also used by `mdq.models.normalize_paragraphs` --
+is what makes this a precise, checkable contract instead of a hand-wavy
+one: it runs the same CommonMark parser MDQ uses and reconstructs each
+top-level block exactly as `MDQParser.raw_text` would once it is
+embedded in a full document and parsed back out.
+
+No `md_table`: `mdq.parser` parses with `MarkdownIt("commonmark")`, the
+base CommonMark preset, which has no GFM table extension. A `| a | b |`
+row is not a table's header row there -- it is just a paragraph whose
+text happens to contain pipe characters -- so there is no table
+structure for a strategy to preserve, and offering `md_table()` would
+misleadingly imply one exists. Plain paragraph text already covers
+whatever a pipe-containing string round-trips to.
+"""
+
+from typing import Any, Callable, Literal, get_args
 
 from hypothesis import strategies as st
 
@@ -176,53 +208,238 @@ def code_highlight() -> st.SearchStrategy[str]:
     return st.sampled_from(CODE_HIGHLIGHT_FORMATS)
 
 
+#: Subset of `hypothesis.strategies.characters`'s category names used by
+#: the Markdown-safe text strategies below. Spelled out so
+#: `_TEXT_BLACKLIST_CATEGORIES` keeps the precise `Literal` type
+#: `characters()` expects -- a bare `tuple[str, ...]` loses it and fails
+#: mypy at every use site.
+_CharCategory = Literal["Cs", "Cc", "Zl", "Zp"]
+
+#: Categories excluded from every Markdown-safe text strategy below:
+#: surrogates (never valid standalone text), other control characters,
+#: and the two Unicode line/paragraph separators, which behave like line
+#: breaks CommonMark does not expect inside a single logical line.
+_TEXT_BLACKLIST_CATEGORIES: tuple[_CharCategory, ...] = ("Cs", "Cc", "Zl", "Zp")
+
+#: A single physical line's worth of Markdown-safe text: any character
+#: outside `_TEXT_BLACKLIST_CATEGORIES` except a literal newline.
+_LINE_ALPHABET = st.characters(
+    blacklist_categories=_TEXT_BLACKLIST_CATEGORIES,
+    blacklist_characters="\n",
+)
+
+#: A Unicode letter -- safe as the first character of a line that must
+#: not be misread as the start of a different block. See `_safe_line`.
+_LETTER = st.characters(whitelist_categories=("Ll", "Lu", "Lt", "Lm", "Lo"))
+
+
+def _safe_line(max_size: int = 40) -> st.SearchStrategy[str]:
+    """
+    Return a strategy for one physical line of Markdown-safe text.
+
+    CommonMark decides a line's block type from its first character: `#`
+    opens a heading, `>` a blockquote, `-`/`+`/`*`/a digit marker opens a
+    list, three or more `` ` ``/`~` opens a fenced code block, a run of
+    `-`/`=`/`_`/`*` is a thematic break or a setext underline, and `[`
+    can be read as a link reference definition or (for a question's
+    first intro block) the `[id]` slug prefix. Forcing the line to start
+    with a Unicode letter rules out all of these at once -- for every
+    physical line of a block, not just its first.
+
+    What comes after the first character needs no such care: markdown-it
+    exposes a paragraph or heading's inline content as `.content`, the
+    *raw source text before inline parsing* -- emphasis, code spans,
+    links, autolinks, entities and raw HTML all leave it untouched (see
+    `mdq.parser.MDQParser.raw_text`) -- so no punctuation used by an
+    inline construct can corrupt the round trip; only where a line
+    begins matters.
+    """
+    return st.builds(
+        lambda first, rest: first + rest,
+        _LETTER,
+        st.text(alphabet=_LINE_ALPHABET, max_size=max_size),
+    )
+
+
 def md_paragraph() -> st.SearchStrategy[str]:
     """
-    Return a strategy for generating markdown paragraphs.
+    Return a strategy for generating Markdown paragraphs.
+
+    Safe = survives render -> parse -> normalize unchanged (see the
+    module docstring). A draw is one or more `_safe_line`s joined by a
+    single newline, so this also exercises multi-line, soft-wrapped
+    paragraphs -- every line, not just the first, is guarded against
+    starting a different block. `mdq.models.normalize_intro` and
+    `normalize_paragraphs` collapse the soft-wrapped newlines back to
+    single spaces, exactly as a render/parse round trip does. A draw
+    here is always a single Markdown block (no blank line ever appears
+    in it), so used as `stem` it never triggers `normalize_intro`'s
+    block-migration into `preamble` -- that only matters for a stem
+    constructed by hand, spanning more than one block.
     """
-    return st.text(
-        alphabet=st.characters(
-            blacklist_categories=("Cs", "Cc", "Zl", "Zp"),
-            blacklist_characters="\n",
-        ),
-        min_size=1,
-    ).filter(lambda s: (s := s.lstrip()) and s[0] not in "#-+*>[")
+    return st.lists(_safe_line(), min_size=1, max_size=4).map("\n".join)
 
 
-def md_safe_block() -> st.SearchStrategy[str]:
+def md_heading() -> st.SearchStrategy[str]:
     """
-    Return a strategy for generating markdown blocks that are safe to use in
-    tests.
+    Return a strategy for generating ATX headings, `##` through `######`.
+
+    H1 (a single `#`) is excluded: `docs/question-types/generic.md`
+    forbids one in a preamble/epilogue outright, since that syntax is
+    reserved for an exam's title.
     """
-    return (
-        md_paragraph() | md_code_block()
-    )  # | md_list() | md_blockquote() | md_table() | ...
+    return st.builds(
+        lambda level, text: f"{'#' * level} {text}",
+        level=st.integers(min_value=2, max_value=6),
+        text=_safe_line(),
+    )
 
 
-def md_safe_blocks(min_size: int = 1, max_size: int = 3) -> st.SearchStrategy[str]:
+def md_blockquote() -> st.SearchStrategy[str]:
     """
-    Return a strategy for generating a list of markdown blocks that are safe to
-    use in tests.
+    Return a strategy for generating a (possibly multi-line) blockquote.
+
+    Every line is prefixed with `> `, so -- unlike a paragraph -- its
+    block type can never be ambiguous, and the quoted text itself may
+    start with anything `_safe_line` allows.
     """
-    return st.lists(md_safe_block(), min_size=min_size, max_size=max_size).map(
-        lambda blocks: "\n\n".join(blocks)
+    return st.lists(_safe_line(), min_size=1, max_size=3).map(
+        lambda lines: "\n".join(f"> {line}" for line in lines)
+    )
+
+
+def md_list(max_depth: int = 1) -> st.SearchStrategy[str]:
+    """
+    Return a strategy for generating a tight bullet or ordered list, with
+    up to `max_depth` levels of nesting.
+
+    A list always uses one marker throughout a given level -- `- ` for a
+    bullet list, `1. ` for every item of an ordered one, since CommonMark
+    never requires increasing numbers -- and is tight (no blank line
+    between items). A *loose* list, or two adjacent lists that happen to
+    share a marker and so parse back as a single, merged CommonMark node,
+    would still reconstruct correctly (`mdq.parser.reconstruct_blocks` is
+    verbatim for list blocks, merged or not); tight just keeps the
+    generated source simple.
+    """
+    return _list_lines(max_depth).map("\n".join)
+
+
+def _list_lines(depth_remaining: int) -> st.SearchStrategy[list[str]]:
+    """Return a strategy for one list's raw source lines."""
+    marker = st.sampled_from(["- ", "1. "])
+    return marker.flatmap(
+        lambda m: st.lists(
+            _list_item_lines(m, depth_remaining), min_size=1, max_size=3
+        ).map(lambda items: [line for item_lines in items for line in item_lines])
+    )
+
+
+def _list_item_lines(
+    marker: str, depth_remaining: int
+) -> st.SearchStrategy[list[str]]:
+    """
+    Return a strategy for one list item's raw source lines: its own text
+    line, plus -- while `depth_remaining` allows -- a nested sub-list
+    indented to the column where this item's own content starts
+    (`len(marker)`), which is what CommonMark requires for a sub-list to
+    belong to the item rather than close it.
+    """
+    item_line = _safe_line().map(lambda text: f"{marker}{text}")
+    if depth_remaining <= 0:
+        return item_line.map(lambda line: [line])
+
+    indent = " " * len(marker)
+
+    def combine(line: str, sublist: list[str] | None) -> list[str]:
+        if sublist is None:
+            return [line]
+        return [line] + [indent + subline for subline in sublist]
+
+    return st.builds(
+        combine, item_line, st.none() | _list_lines(depth_remaining - 1)
     )
 
 
 def md_code_block() -> st.SearchStrategy[str]:
     """
-    Return a strategy for generating markdown code blocks.
+    Return a strategy for generating Markdown code blocks: fenced (with
+    ``` ``` ``` or `~~~`, with or without an info string) or indented.
     """
-    return st.builds(
-        lambda lang, code: f"```{lang}\n{code}\n```",
-        lang=st.sampled_from(CODE_HIGHLIGHT_FORMATS),
-        code=st.text(
-            alphabet=st.characters(
-                blacklist_categories=("Cs", "Cc", "Zl", "Zp"),
-                blacklist_characters="\n",
-            ),
-            min_size=1,
-        ).filter(lambda s: "```" not in s),
+    return _md_fenced_code_block() | _md_indented_code_block()
+
+
+def _md_fenced_code_block() -> st.SearchStrategy[str]:
+    """
+    A fenced code block's body never contains its own fence character --
+    constructed that way, rather than filtered -- so no body line can
+    ever be mistaken for the closing fence, however long a run of it
+    would otherwise appear.
+    """
+    return st.tuples(
+        st.sampled_from(["`", "~"]),
+        st.integers(min_value=3, max_value=5),
+        st.none() | code_highlight(),
+    ).flatmap(_build_fenced_code_block)
+
+
+def _build_fenced_code_block(
+    params: tuple[str, int, str | None],
+) -> st.SearchStrategy[str]:
+    fence_char, fence_len, info = params
+    fence = fence_char * fence_len
+    header = f"{fence}{info}" if info else fence
+    body_alphabet = st.characters(
+        blacklist_categories=_TEXT_BLACKLIST_CATEGORIES,
+        blacklist_characters="\n" + fence_char,
+    )
+    body = st.lists(st.text(alphabet=body_alphabet, max_size=40), max_size=4)
+    return body.map(lambda lines: "\n".join([header, *lines, fence]))
+
+
+def _md_indented_code_block() -> st.SearchStrategy[str]:
+    """
+    An indented code block needs no fence-collision guard: every line is
+    just prefixed with four spaces, and CommonMark treats everything
+    past the indent as literal text. Lines are kept non-blank, since a
+    blank line inside one needs a following indented line to still
+    belong to the block -- simpler to just never generate one.
+    """
+    line = st.text(alphabet=_LINE_ALPHABET, min_size=1, max_size=40).map(
+        lambda s: "    " + s
+    )
+    return st.lists(line, min_size=1, max_size=4).map("\n".join)
+
+
+def md_safe_block() -> st.SearchStrategy[str]:
+    """
+    Return a strategy for generating a single "safe" Markdown block --
+    one that survives render -> parse -> normalize unchanged (see the
+    module docstring) -- suitable for any position in a preamble or
+    epilogue.
+
+    Composes a paragraph, a fenced or indented code block, a bullet or
+    ordered list (possibly nested), a blockquote, and a heading (H2-H6).
+    No table: see the module docstring.
+    """
+    return (
+        md_paragraph() | md_code_block() | md_list() | md_blockquote() | md_heading()
+    )
+
+
+def md_safe_blocks(min_size: int = 1, max_size: int = 3) -> st.SearchStrategy[str]:
+    """
+    Return a strategy for generating a sequence of safe Markdown blocks,
+    joined the way `mdq.render` joins a preamble/epilogue's blocks: two
+    newlines apart.
+
+    `mdq.parser.reconstruct_blocks` (and so `mdq.models.
+    normalize_paragraphs`) reconstructs the result exactly, even when two
+    adjacent blocks of the same kind parse back as a single, merged
+    CommonMark node -- see `md_list`.
+    """
+    return st.lists(md_safe_block(), min_size=min_size, max_size=max_size).map(
+        "\n\n".join
     )
 
 
@@ -231,27 +448,29 @@ def safe_text(multiline: bool = False) -> st.SearchStrategy[str]:
     Somewhat safe text for use in tests. It excludes control characters, line
     separators, and paragraph separators. It also excludes the empty string.
     """
-    return st.text(
-        alphabet=st.characters(
-            blacklist_categories=("Cs", "Cc", "Zl", "Zp"),
-            blacklist_characters="\n" if not multiline else None,
-        ),
-        min_size=1,
+    alphabet = (
+        st.characters(blacklist_categories=_TEXT_BLACKLIST_CATEGORIES)
+        if multiline
+        else _LINE_ALPHABET
     )
+    return st.text(alphabet=alphabet, min_size=1)
 
 
 def slug() -> st.SearchStrategy[str]:
     """
-    Return a strategy for generating slugs (lowercase alphanumeric strings with
-    hyphens).
+    Return a strategy for generating slugs: ASCII alphanumeric groups
+    joined by a single `-`, matching `mdq.parser`'s `SLUG_BODY_RE`.
+
+    A question's `id` is only ever recovered from the inline `[id]`
+    prefix (`docs/question-types/generic.md`) when it matches that
+    regex, which is ASCII-only. Drawing from the full Unicode `Ll`
+    category -- as this used to -- can produce a lowercase letter like
+    "µ" that `SLUG_BODY_RE` rejects, silently turning a rendered `[id]
+    stem` back into plain stem text with no id at all.
     """
-    return st.text(
-        alphabet=st.characters(
-            whitelist_categories=("Ll", "Nd"),
-            blacklist_characters="-",
-        ),
-        min_size=1,
-    ).map(lambda s: s.lower().replace(" ", "-"))
+    ascii_alnum = st.sampled_from("abcdefghijklmnopqrstuvwxyz0123456789")
+    group = st.text(alphabet=ascii_alnum, min_size=1, max_size=8)
+    return st.lists(group, min_size=1, max_size=3).map("-".join)
 
 
 def uuid() -> st.SearchStrategy[str]:
