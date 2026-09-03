@@ -15,6 +15,7 @@ dependencies = [
     "pydantic>=2.9",
     "optionz>=0.2.0",
     "linkify-it-py>=2.2.0",
+    "python-slugify>=8.0.4",
 ]
 
 [project.optional-dependencies]
@@ -51,6 +52,7 @@ cov = "pytest --cov=mdq --cov-report=term-missing"
 doc = "uv doc0 build"
 doc-watch = "uv doc0 watch"
 examples = "uv run mdq examples"
+bundle-schema = "uv run mdq bundle-schema"
 
 
 [[tool.mypy.overrides]]

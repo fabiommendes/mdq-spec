@@ -6,8 +6,8 @@ import pytest
 from hypothesis import given
 from rich.console import Console
 
-from mdq import hypothesis as mst
 from mdq import models, parse_question
+from mdq.hypothesis import documents as mst
 
 
 #
@@ -264,7 +264,7 @@ def test_normalize_appends_leading_stem_blocks_after_existing_preamble() -> None
 
 def test_id_does_not_inline_onto_a_stem_that_leads_with_a_non_paragraph_block() -> None:
     """
-    Regression test for `_can_inline_id`: with no preamble, the `[id]`
+    Regression test for `can_inline_id`: with no preamble, the `[id]`
     prefix would land on the *stem's* first block. Rendering directly
     (no `.normalize()` first, which would otherwise migrate the leading
     list into the preamble) exercises the check on an unnormalized
@@ -311,7 +311,7 @@ class AssertRTError(AssertionError):
 
 
 @pytest.mark.slow
-@given(mst.question(normalize=True))
+@given(mst.questions(normalize=True))
 def test_render_question_roundtrip(question: models.Question) -> None:
     """
     Test that rendering a question and then parsing it back yields the same

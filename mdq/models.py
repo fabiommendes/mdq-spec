@@ -35,6 +35,9 @@ plain dicts), so this stays one-directional.
 
 from __future__ import annotations
 
+import re
+import unicodedata
+from fractions import Fraction
 from typing import Annotated, Any, Iterable, Literal, Self
 
 import opt
@@ -42,6 +45,40 @@ from pydantic import BaseModel, ConfigDict, Field, RootModel
 from pydantic.alias_generators import to_camel
 
 from . import parser, render
+from . import types as t
+from .errors import NotAutoGradable, ResponseError
+
+__all__ = [
+    "MdqModel",
+    "Tolerance",
+    "ScoredChoice",
+    "BooleanChoice",
+    "Statement",
+    "BaseQuestion",
+    "MultipleChoiceQuestion",
+    "MultipleSelectionQuestion",
+    "TrueFalseQuestion",
+    "NumericQuestion",
+    "ShortAnswerQuestion",
+    "EssayQuestion",
+    "ChoiceBlank",
+    "ShortAnswerBlank",
+    "NumericBlank",
+    "Blank",
+    "FillInQuestion",
+    "Question",
+    "QuestionRoot",
+    "Exam",
+    "QuestionScore",
+    "ExamScore",
+    "GradingStrategy",
+    "PenaltyPolicy",
+    "NumericDomain",
+    "EssayInput",
+    "normalize_paragraphs",
+    "normalize_intro",
+    "remove_trailing_ws",
+]
 
 
 class MdqModel(BaseModel):
@@ -168,7 +205,7 @@ class Statement(MdqModel):
 #
 # Questions
 #
-class BaseQuestion(MdqModel):
+class BaseQuestion[R](MdqModel):
     """
     Fields every question type carries.
 
@@ -209,7 +246,7 @@ class BaseQuestion(MdqModel):
             "meta": self.meta,
         }
         if skip_defaults:
-            data = _clear_nones(data)
+            data = clear_nones(data)
         if self.weight != 1.0 or not skip_defaults:
             data["weight"] = self.weight
         if self.tags != [] or not skip_defaults:
@@ -219,20 +256,13 @@ class BaseQuestion(MdqModel):
     def _render_lines(self) -> Iterable[str]:
         frontmatter = self.frontmatter(skip_defaults=True)
 
-        # If the frontmatter would only have in "id", we render it inline in the
-        # preamble or stem -- but only when that is actually recoverable:
-        # `MDQParser.split_intro` only recognizes the `[id]` prefix on the
-        # first intro block (preamble's first block if there is one, else
-        # the stem) when that block is a plain paragraph. Prefixing a
-        # list, code block, blockquote or heading would corrupt it, so
-        # fall back to YAML frontmatter whenever the preamble does not
-        # start with a paragraph.
         id = self.id
-        if not self.comment and frontmatter.keys() == {"id"} and _can_inline_id(
-            self.preamble, self.stem
-        ):
-            ...
-        else:
+        skip_frontmatter = (
+            frontmatter.keys() == {"id"}
+            and can_inline_id(self.preamble, self.stem)
+            and not self.comment
+        )
+        if not skip_frontmatter:
             id = None
             yield from render.yield_frontmatter(frontmatter, self.comment)
             yield ""
@@ -281,8 +311,14 @@ class BaseQuestion(MdqModel):
         self.tags = [tag.strip() for tag in self.tags if tag.strip()]
         self.author = opt.map(str.strip, self.author)
 
+    def score_response(self, response: R) -> QuestionScore:
+        """
+        Return the score for one response to this question.
+        """
+        raise NotImplementedError("Subclasses must implement score_response()")
 
-class MultipleChoiceQuestion(BaseQuestion):
+
+class MultipleChoiceQuestion(BaseQuestion[t.MultipleChoiceResponse]):
     choices: list[ScoredChoice]
     type: Literal["multiple-choice"] = "multiple-choice"
     shuffle: bool | None = None
@@ -306,8 +342,22 @@ class MultipleChoiceQuestion(BaseQuestion):
 
             yield from render.yield_choice(choice, mark=mark)
 
+    def score_response(self, response: t.MultipleChoiceResponse) -> QuestionScore:
+        """
+        Score the response by its picked choice's `score`.
 
-class MultipleSelectionQuestion(BaseQuestion):
+        Raises:
+            ResponseError: `response` names no choice.
+        """
+        choice = next((c for c in self.choices if c.id == response), None)
+        if choice is None:
+            raise ResponseError(f"Response id {response!r} not found in choices")
+        score = choice.score or 0.0
+        feedback = [choice.feedback] if choice.feedback else []
+        return QuestionScore(score=score, feedback=feedback)
+
+
+class MultipleSelectionQuestion(BaseQuestion[t.MultipleSelectionResponse]):
     choices: Annotated[list[BooleanChoice], Field(min_length=2)]
     type: Literal["multiple-selection"] = "multiple-selection"
     shuffle: bool | None = None
@@ -327,8 +377,38 @@ class MultipleSelectionQuestion(BaseQuestion):
             mark = "x" if choice.correct else " "
             yield from render.yield_choice(choice, mark=mark)
 
+    def score_response(self, response: t.MultipleSelectionResponse) -> QuestionScore:
+        """
+        Score marked choices against their `correct` flags.
 
-class TrueFalseQuestion(BaseQuestion):
+        `"symmetric"` awards +-1/n per choice for each correct/incorrect
+        judgement; `"partial"` floors that at 0; `"all-or-nothing"`
+        requires every choice judged correctly. A choice missing from
+        `response` asserts false.
+        """
+        n = len(self.choices)
+        marks = [
+            (choice, lookup(response, choice.id, False)) for choice in self.choices
+        ]
+        judged_correctly = sum(1 for choice, mark in marks if mark == choice.correct)
+        symmetric = (2 * judged_correctly - n) / n
+
+        if self.grading == "all-or-nothing":
+            score = 1.0 if judged_correctly == n else 0.0
+        elif self.grading == "partial":
+            score = max(0.0, symmetric)
+        else:
+            score = symmetric
+
+        feedback = [
+            choice.feedback
+            for choice, mark in marks
+            if mark != choice.correct and choice.feedback
+        ]
+        return QuestionScore(score=score, feedback=feedback)
+
+
+class TrueFalseQuestion(BaseQuestion[t.TrueFalseResponse]):
     choices: Annotated[list[Statement], Field(min_length=2)]
     type: Literal["true-false"] = "true-false"
     shuffle: bool | None = None
@@ -351,8 +431,42 @@ class TrueFalseQuestion(BaseQuestion):
                 mark = choice.marker
             yield from render.yield_choice(choice, mark=mark)
 
+    def score_response(self, response: t.TrueFalseResponse) -> QuestionScore:
+        """
+        Score judged statements against their `correct` flags.
 
-class NumericQuestion(BaseQuestion):
+        `"partial"` is correct-count over total; `"symmetric"` also
+        subtracts incorrect judgements. A statement missing from
+        `response` counts as an abstention, like an explicit `None`.
+        """
+        n = len(self.choices)
+        marks = [
+            (statement, lookup(response, statement.id, None))
+            for statement in self.choices
+        ]
+        correct = sum(1 for statement, mark in marks if mark == statement.correct)
+        incorrect = sum(
+            1
+            for statement, mark in marks
+            if mark is not None and mark != statement.correct
+        )
+
+        if self.grading == "all-or-nothing":
+            score = 1.0 if correct == n else 0.0
+        elif self.grading == "partial":
+            score = correct / n
+        else:
+            score = (correct - incorrect) / n
+
+        feedback = [
+            statement.feedback
+            for statement, mark in marks
+            if mark != statement.correct and statement.feedback
+        ]
+        return QuestionScore(score=score, feedback=feedback)
+
+
+class NumericQuestion(BaseQuestion[t.NumericResponse]):
     #: The correct value. A `str` carries an exact rational ("1/3"),
     #: which no float can represent.
     answer: float | str
@@ -372,14 +486,24 @@ class NumericQuestion(BaseQuestion):
 
     def _render_body(self) -> Iterable[str]:
         yield ""
-        yield _render_numeric_tag(
+        yield render_numeric_tag(
             self.answer,
             unit=self.unit,
             tolerance=self.tolerance,
         )
 
+    def score_response(self, response: t.NumericResponse) -> QuestionScore:
+        """
+        Score 1 if `response` is within tolerance of `answer`, else 0.
 
-class ShortAnswerQuestion(BaseQuestion):
+        Raises:
+            ResponseError: `response` isn't a valid number.
+        """
+        correct = numeric_matches(self.answer, response, self.tolerance)
+        return QuestionScore(score=1.0 if correct else 0.0)
+
+
+class ShortAnswerQuestion(BaseQuestion[t.TextResponse]):
     type: Literal["short-answer"] = "short-answer"
     one_of: list[str] | None = None
     regex: str | None = None
@@ -410,8 +534,24 @@ class ShortAnswerQuestion(BaseQuestion):
             for answer in self.one_of:
                 yield f"* {answer}"
 
+    def score_response(self, response: t.TextResponse) -> QuestionScore:
+        """
+        Score 1 if `response` matches `regex` or `one_of`, else 0.
 
-class EssayQuestion(BaseQuestion):
+        Raises:
+            NotAutoGradable: the question has no answer key.
+        """
+        if self.open_ended or (self.regex is None and not self.one_of):
+            raise NotAutoGradable(
+                "short-answer question has no machine-checkable answer key"
+            )
+        correct = short_answer_matches(
+            response, one_of=self.one_of, regex=self.regex, exact=self.exact
+        )
+        return QuestionScore(score=1.0 if correct else 0.0)
+
+
+class EssayQuestion(BaseQuestion[t.TextResponse]):
     type: Literal["essay"] = "essay"
     input: EssayInput = "text"
     highlight: str | None = None
@@ -431,6 +571,15 @@ class EssayQuestion(BaseQuestion):
     def _render_body(self) -> Iterable[str]:
         yield ""
         yield "[essay]"
+
+    def score_response(self, response: t.TextResponse) -> QuestionScore:
+        """
+        Never gradable automatically.
+
+        Raises:
+            NotAutoGradable: always.
+        """
+        raise NotAutoGradable("essay questions require manual grading")
 
     def _render_lines(self) -> Iterable[str]:
         yield from super()._render_lines()
@@ -471,7 +620,7 @@ Blank = Annotated[
 ]
 
 
-class FillInQuestion(BaseQuestion):
+class FillInQuestion(BaseQuestion[t.FillInResponse]):
     blanks: list[Blank]
     type: Literal["fill-in"] = "fill-in"
     shuffle: bool | None = None
@@ -506,11 +655,72 @@ class FillInQuestion(BaseQuestion):
                     answers = blank.one_of or [""]
                     yield f"[^{blank.id}/short-answer]: {answers[0]}"
             else:
-                yield _render_numeric_tag(
+                yield render_numeric_tag(
                     blank.answer,
                     tag=f"[^{blank.id}/numeric]",
                     tolerance=blank.tolerance,
                 )
+
+    def score_response(self, response: t.FillInResponse) -> QuestionScore:
+        """
+        Score each blank independently and combine by `grading`.
+
+        Raises:
+            ResponseError: a blank's response doesn't match its type.
+        """
+        scores: list[float] = []
+        feedback: list[str] = []
+
+        for blank in self.blanks:
+            sub_response = response.get(blank.id)
+            if isinstance(blank, ChoiceBlank):
+                if sub_response is None:
+                    scores.append(0.0)
+                    continue
+                choice = next((c for c in blank.choices if c.id == sub_response), None)
+                if choice is None:
+                    raise ResponseError(
+                        f"Response id {sub_response!r} not found in blank {blank.id!r}"
+                    )
+                scores.append(choice.score or 0.0)
+                if choice.feedback:
+                    feedback.append(choice.feedback)
+            elif isinstance(blank, ShortAnswerBlank):
+                if sub_response is None:
+                    scores.append(0.0)
+                    continue
+                if not isinstance(sub_response, str):
+                    raise ResponseError(
+                        f"Response {sub_response!r} to blank {blank.id!r} is not text"
+                    )
+                correct = short_answer_matches(
+                    sub_response,
+                    one_of=blank.one_of,
+                    regex=blank.regex,
+                    exact=blank.exact,
+                )
+                scores.append(1.0 if correct else 0.0)
+            else:
+                if sub_response is None:
+                    scores.append(0.0)
+                    continue
+                if isinstance(sub_response, dict):
+                    raise ResponseError(
+                        f"Response {sub_response!r} to blank {blank.id!r} is not numeric"
+                    )
+                correct = numeric_matches(blank.answer, sub_response, blank.tolerance)
+                scores.append(1.0 if correct else 0.0)
+
+        mean = sum(scores) / len(scores)
+
+        if self.grading == "all-or-nothing":
+            score = 1.0 if all(s == 1.0 for s in scores) else 0.0
+        elif self.grading == "partial":
+            score = max(0.0, mean)
+        else:
+            score = mean
+
+        return QuestionScore(score=score, feedback=feedback)
 
 
 Question = Annotated[
@@ -535,11 +745,6 @@ class QuestionRoot(RootModel):
 class Exam(MdqModel):
     """
     A resolved exam.
-
-    `include` entries are resolved before a model is built, so a
-    `Question` here is always a real question -- there is no `Include`
-    member. Resolution also applies each entry's `weight` override onto
-    the question it resolved.
     """
 
     type: Literal["exam"] = "exam"
@@ -563,9 +768,7 @@ class QuestionScore(MdqModel):
     """
     What one response to one question was worth.
 
-    `score` is the raw value, in [-1, 1], with no exam policy applied --
-    clamping belongs to the exam (see
-    docs/adr/0001-score-scale-and-exam-level-clamping.md).
+    `score` is the raw value, in [-1, 1], with no exam policy applied.
     """
 
     score: float = Field(ge=-1, le=1)
@@ -609,14 +812,90 @@ class ExamScore(MdqModel):
 #
 # Utilities
 #
-def _clear_nones(d: dict[str, Any]) -> dict[str, Any]:
+def clear_nones(d: dict[str, Any]) -> dict[str, Any]:
     """
     Return a copy of `d` with all `None` values removed.
     """
     return {k: v for k, v in d.items() if v is not None}
 
 
-def _render_numeric_tag(
+def lookup[V](response: dict[str, V], key: str | None, default: V) -> V:
+    """Look up `key` in `response`, returning `default` if `key` is `None`."""
+    if key is None:
+        return default
+    return response.get(key, default)
+
+
+def numeric_value(value: float | int | str | Fraction) -> float:
+    """
+    Convert a numeric value to a float.
+
+    Args:
+        value: a number, or a decimal/rational string (e.g. "3.14", "1/3").
+
+    Raises:
+        ValueError: `value` isn't a valid number.
+    """
+    if isinstance(value, str):
+        value = Fraction(value)
+    return float(value)
+
+
+def numeric_matches(
+    answer: float | str, response: t.NumericResponse, tolerance: Tolerance | None
+) -> bool:
+    """
+    Report whether `response` is within `answer`'s tolerance.
+
+    With neither tolerance set, the match must be exact. With both set,
+    either one passing is enough.
+
+    Raises:
+        ResponseError: `response` isn't a valid number.
+    """
+    try:
+        target = numeric_value(answer)
+        value = numeric_value(response)
+    except (ValueError, ZeroDivisionError) as exc:
+        raise ResponseError(f"{response!r} is not a valid numeric response") from exc
+
+    if tolerance is None or (tolerance.absolute is None and tolerance.relative is None):
+        return value == target
+    if tolerance.absolute is not None and abs(value - target) <= tolerance.absolute:
+        return True
+    if (
+        tolerance.relative is not None
+        and abs(value - target) <= abs(target) * tolerance.relative
+    ):
+        return True
+    return False
+
+
+def normalize_text(value: str) -> str:
+    """Fold case, normalize unicode, and collapse whitespace to single spaces."""
+    value = unicodedata.normalize("NFKC", value).casefold()
+    return re.sub(r"\s+", " ", value).strip()
+
+
+def short_answer_matches(
+    response: str, *, one_of: list[str] | None, regex: str | None, exact: bool
+) -> bool:
+    """
+    Report whether `response` matches `regex` or `one_of`.
+
+    `regex` takes precedence when both are given. Matching is always a
+    full match, never a search.
+    """
+    candidate = response if exact else normalize_text(response)
+    if regex is not None:
+        return re.fullmatch(regex, candidate) is not None
+    targets = one_of or []
+    if not exact:
+        targets = [normalize_text(target) for target in targets]
+    return candidate in targets
+
+
+def render_numeric_tag(
     answer: float | str,
     *,
     tag: str = "[numeric]",
@@ -636,7 +915,7 @@ def _render_numeric_tag(
     return f"{tag}: {' '.join(terms)}"
 
 
-def _can_inline_id(preamble: str | None, stem: str) -> bool:
+def can_inline_id(preamble: str | None, stem: str) -> bool:
     """
     Report whether an inline `[id]` prefix would parse back correctly.
 

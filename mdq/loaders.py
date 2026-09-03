@@ -11,9 +11,10 @@ provides the obvious filesystem implementation.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Protocol, runtime_checkable
+from typing import Protocol, cast, runtime_checkable
 
 from .errors import MdqError
+from .types import QuestionDict
 
 __all__ = [
     "IncludeNotFound",
@@ -49,7 +50,7 @@ class QuestionLoader(Protocol):
     is free to serve questions that were never Markdown to begin with.
     """
 
-    def load(self, question_id: str) -> dict[str, Any]: ...
+    def load(self, question_id: str) -> QuestionDict: ...
 
 
 class FileLoader:
@@ -81,7 +82,7 @@ class FileLoader:
                 unique.append(path)
         return unique
 
-    def load(self, question_id: str) -> dict[str, Any]:
+    def load(self, question_id: str) -> QuestionDict:
         # Imported here rather than at module scope: the parser imports
         # this module to type its `loader` argument, so a top-level import
         # back into the parser would be circular.
@@ -89,7 +90,10 @@ class FileLoader:
 
         for path in self.candidates(question_id):
             if path.is_file():
-                return parse_file(path)
+                # An included file is always a question document, never
+                # an exam -- `parse_file` types the general case, but a
+                # loader only ever resolves one question by id.
+                return cast(QuestionDict, parse_file(path))
 
         raise IncludeNotFound(
             question_id,
@@ -105,10 +109,10 @@ class DictLoader:
     would implement.
     """
 
-    def __init__(self, questions: dict[str, dict[str, Any]]) -> None:
+    def __init__(self, questions: dict[str, QuestionDict]) -> None:
         self.questions = questions
 
-    def load(self, question_id: str) -> dict[str, Any]:
+    def load(self, question_id: str) -> QuestionDict:
         try:
             return self.questions[question_id]
         except KeyError:

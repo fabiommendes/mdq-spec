@@ -38,7 +38,7 @@ import re
 import unicodedata
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, NamedTuple
+from typing import Any, NamedTuple, Required, TypedDict, cast
 
 import yaml
 from markdown_it import MarkdownIt
@@ -46,6 +46,17 @@ from markdown_it.tree import SyntaxTreeNode as Node
 
 from .errors import IncompleteQuestion, MissingField, ParseError
 from .loaders import QuestionLoader
+from .types import (
+    BlankDict,
+    ExamDict,
+    ExamEntryDict,
+    IncludeDict,
+    NumericBlankDict,
+    NumericDomain,
+    QuestionDict,
+    ScoredChoiceDict,
+    ToleranceDict,
+)
 
 __all__ = [
     "parse_any",
@@ -157,7 +168,9 @@ INHERITED_FIELDS = ("locale", "author")
 #
 # Public API
 #
-def parse_any(text: str, loader: QuestionLoader | None = None) -> dict[str, Any]:
+def parse_any(
+    text: str, loader: QuestionLoader | None = None
+) -> QuestionDict | ExamDict:
     """
     Parse MDQ source into a JSON-like document, dispatching on its kind.
 
@@ -190,7 +203,9 @@ def parse_any(text: str, loader: QuestionLoader | None = None) -> dict[str, Any]
     return parse_question(text)
 
 
-def parse_file(path: Path, loader: QuestionLoader | None = None) -> dict[str, Any]:
+def parse_file(
+    path: Path, loader: QuestionLoader | None = None
+) -> QuestionDict | ExamDict:
     """
     Parse a file, dispatching on whether it holds an exam or a question.
 
@@ -220,7 +235,7 @@ def parse_file(path: Path, loader: QuestionLoader | None = None) -> dict[str, An
     return parse_any(path.read_text(encoding="utf-8"), loader=loader)
 
 
-def parse_exam(text: str, loader: QuestionLoader | None = None) -> dict[str, Any]:
+def parse_exam(text: str, loader: QuestionLoader | None = None) -> ExamDict:
     """
     Parse an exam document.
 
@@ -301,15 +316,15 @@ def parse_exam(text: str, loader: QuestionLoader | None = None) -> dict[str, Any
     if instructions:
         doc["instructions"] = instructions
 
-    questions: list[dict[str, Any]] = []
+    questions: list[ExamEntryDict] = []
     for position, block in enumerate(blocks, start=1):
         questions.append(_parse_exam_block(block, position, doc, loader))
     doc["questions"] = questions
 
-    return doc
+    return cast(ExamDict, doc)
 
 
-def parse_question(text: str) -> dict[str, Any]:
+def parse_question(text: str) -> QuestionDict:
     """
     Parse MDQ Markdown source into a question document dict, matching the
     shape validated by mdq.validator.validate_document.
@@ -812,7 +827,7 @@ class MDQParser:
         if "shuffle" in front:
             self.state["shuffle"] = front["shuffle"]
 
-        blanks: list[dict[str, Any]] = []
+        blanks: list[BlankDict] = []
         text = tag_text
         while True:
             m = BLANK_RE.match(text)
@@ -832,9 +847,9 @@ class MDQParser:
                 self.read()
                 raw_choices = self.parse_item_list(next_node)
                 ids = _assign_choice_ids(raw_choices)
-                choices = []
+                choices: list[ScoredChoiceDict] = []
                 for choice, choice_id in zip(raw_choices, ids):
-                    entry: dict[str, Any] = {"id": choice_id, "text": choice.text}
+                    entry: ScoredChoiceDict = {"id": choice_id, "text": choice.text}
                     score = _score_from_value(choice.value)
                     if score:
                         entry["score"] = score
@@ -851,14 +866,17 @@ class MDQParser:
                 # A numeric blank is graded exactly like a numeric
                 # question (fill-in.md), so the domain is inferred from
                 # the written representation there too.
-                blank: dict[str, Any] = {
+                blank: NumericBlankDict = {
                     "id": blank_id,
                     "type": "numeric",
                     "answer": parsed["answer"],
                 }
-                for key in ("domain", "decimalPlaces", "tolerance"):
-                    if key in parsed:
-                        blank[key] = parsed[key]
+                if "domain" in parsed:
+                    blank["domain"] = parsed["domain"]
+                if "decimalPlaces" in parsed:
+                    blank["decimalPlaces"] = parsed["decimalPlaces"]
+                if "tolerance" in parsed:
+                    blank["tolerance"] = parsed["tolerance"]
                 blanks.append(blank)
             elif blank_type == "short-answer":
                 if rest.startswith("/") and rest.endswith("/") and len(rest) >= 2:
@@ -915,7 +933,7 @@ class MDQParser:
     #
     # Main driver
     #
-    def parse_question(self) -> dict[str, Any]:
+    def parse_question(self) -> QuestionDict:
         """
         Parse the question document this instance was constructed with.
 
@@ -994,7 +1012,7 @@ class MDQParser:
 
         self.apply_type_specific_frontmatter(question_type)
 
-        return self.state
+        return cast(QuestionDict, self.state)
 
 
 #
@@ -1195,7 +1213,22 @@ def _score_from_value(value: str) -> float | int:
 #
 # Numeric body parsing
 #
-def _parse_numeric_expression(expr: str) -> dict[str, Any]:
+class _NumericExpr(TypedDict, total=False):
+    """
+    The fields `_parse_numeric_expression` fills in.
+
+    A fragment of `NumericQuestionDict`/`NumericBlankDict` -- everything
+    but the `type` (and, for a blank, `id`) the caller already knows and
+    adds itself.
+    """
+
+    answer: Required[float]
+    domain: NumericDomain
+    decimalPlaces: int
+    tolerance: ToleranceDict
+
+
+def _parse_numeric_expression(expr: str) -> _NumericExpr:
     """
     Parse the value/tolerance grammar from docs/question-types/numeric.md
     (`sign? value abstol? reltol?`, order-independent in practice -- see
@@ -1210,20 +1243,20 @@ def _parse_numeric_expression(expr: str) -> dict[str, Any]:
     sign = -1 if m.group("sign") == "-" else 1
     value_str = m.group("value")
 
-    result: dict[str, Any] = {}
+    result: _NumericExpr
     if "/" in value_str:
         num, den = value_str.split("/")
-        result["answer"] = sign * (int(num) / int(den))
-        result["domain"] = "fraction"
+        result = {"answer": sign * (int(num) / int(den)), "domain": "fraction"}
     elif "." in value_str:
-        result["answer"] = sign * float(value_str)
-        result["domain"] = "decimal"
-        result["decimalPlaces"] = len(value_str.split(".", 1)[1])
+        result = {
+            "answer": sign * float(value_str),
+            "domain": "decimal",
+            "decimalPlaces": len(value_str.split(".", 1)[1]),
+        }
     else:
-        result["answer"] = sign * int(value_str)
-        result["domain"] = "integer"
+        result = {"answer": sign * int(value_str), "domain": "integer"}
 
-    tolerance: dict[str, float] = {}
+    tolerance: ToleranceDict = {}
     for tol_match in TOL_TERM_RE.finditer(m.group("tolerances")):
         num = float(tol_match.group("num"))
         if tol_match.group("pct"):
@@ -1397,7 +1430,7 @@ def _parse_exam_block(
     position: int,
     exam: dict[str, Any],
     loader: QuestionLoader | None,
-) -> dict[str, Any]:
+) -> ExamEntryDict:
     """Turn one question block into an entry of the exam's `questions`."""
 
     # Drop a leading `===`; what follows is ordinary question source.
@@ -1411,18 +1444,18 @@ def _parse_exam_block(
     if "include" in front:
         target = str(front["include"])
         if loader is None:
-            return {"include": target}
-        question = dict(loader.load(target))
+            return IncludeDict(include=target)
+        question: dict[str, Any] = dict(loader.load(target))
         # An include names a question that already has an identity, so it
         # keeps its own id -- falling back to the id it was found by.
         question.setdefault("id", target)
         _inherit_from_exam(question, exam)
-        return question
+        return cast(QuestionDict, question)
 
-    question = parse_question(source)
-    question.setdefault("id", f"q{position}")
-    _inherit_from_exam(question, exam)
-    return question
+    parsed_question: dict[str, Any] = dict(parse_question(source))
+    parsed_question.setdefault("id", f"q{position}")
+    _inherit_from_exam(parsed_question, exam)
+    return cast(QuestionDict, parsed_question)
 
 
 def _inherit_from_exam(question: dict[str, Any], exam: dict[str, Any]) -> None:

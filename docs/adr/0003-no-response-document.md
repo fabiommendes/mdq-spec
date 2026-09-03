@@ -2,9 +2,8 @@
 
 MDQ specifies questions and exams, and deliberately does not specify what a
 student's response looks like as a document. Responses exist only as inputs to
-the library's grading functions: there is no `schema/response.yaml`, no `$id`,
-no Markdown surface, and no example pairs. `ExamScore` is likewise a return
-type rather than a document.
+the library's grading functions: there is no Markdown surface, and no example 
+pairs. `ExamScore` is likewise a returntype rather than a document.
 
 ## Considered options
 

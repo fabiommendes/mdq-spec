@@ -20,6 +20,7 @@ from rich.text import Text
 from . import show as _show
 from .errors import ParseError
 from .loaders import FileLoader
+from .schema_bundle import write_bundle
 from .testing import EXAMPLES_ROOT
 from .validator import SchemaError, ValidationResult, validate_file
 
@@ -120,6 +121,33 @@ def validate(
     exit_code = _print_result(file, result)
     if exit_code:
         raise typer.Exit(code=exit_code)
+
+
+@app.command("bundle-schema")
+def bundle_schema(
+    output: Path = typer.Argument(
+        Path("schema/mdq.schema.json"),
+        help="Where to write the bundled JSON Schema file.",
+    ),
+    schema_dir: Path | None = typer.Option(
+        None,
+        "--schema-dir",
+        help="Directory containing the MDQ *.yaml schemas (default: the repo's schema/ directory).",
+    ),
+) -> None:
+    """
+    Bundle every schema/*.yaml file into one self-contained JSON Schema
+    document, so a consumer needs to fetch and resolve only a single file.
+    """
+
+    try:
+        bundle = write_bundle(output, schema_dir=schema_dir)
+    except SchemaError as exc:
+        typer.echo(f"error: {exc}", err=True)
+        raise typer.Exit(code=2)
+
+    n_defs = len(bundle["$defs"])
+    stdout.print(f"[b green]wrote[/] {output} ({n_defs} schemas bundled)")
 
 
 @app.command()

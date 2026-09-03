@@ -26,10 +26,8 @@ from typing import Any, Callable, Literal, get_args
 
 from hypothesis import strategies as st
 
-from . import models
-from .types import QuestionType
-
-__all__ = ["question", "exam"]
+from .. import models
+from ..types import QuestionType
 
 # QUESTION_TYPES = get_args(QuestionType)
 QUESTION_TYPES: tuple[QuestionType, ...] = ("essay",)
@@ -54,7 +52,7 @@ CODE_HIGHLIGHT_FORMATS = [
 #
 # Question strategies
 #
-def question(
+def questions(
     *,
     type: QuestionType | None = None,
     normalize: bool = False,
@@ -74,7 +72,7 @@ def question(
     return question
 
 
-def multiple_choice_question() -> st.SearchStrategy[models.Question]:
+def multiple_choice_questions() -> st.SearchStrategy[models.Question]:
     """
     Return a strategy for generating questions of the given type.
 
@@ -86,7 +84,7 @@ def multiple_choice_question() -> st.SearchStrategy[models.Question]:
     )
 
 
-def multiple_selection_question() -> st.SearchStrategy[models.Question]:
+def multiple_selection_questions() -> st.SearchStrategy[models.Question]:
     """
     Return a strategy for generating questions of the given type.
 
@@ -98,7 +96,7 @@ def multiple_selection_question() -> st.SearchStrategy[models.Question]:
     )
 
 
-def true_false_question() -> st.SearchStrategy[models.Question]:
+def true_false_questions() -> st.SearchStrategy[models.Question]:
     """
     Return a strategy for generating questions of the given type.
 
@@ -110,7 +108,7 @@ def true_false_question() -> st.SearchStrategy[models.Question]:
     )
 
 
-def numeric_question() -> st.SearchStrategy[models.Question]:
+def numeric_questions() -> st.SearchStrategy[models.Question]:
     """
     Return a strategy for generating questions of the given type.
 
@@ -122,7 +120,7 @@ def numeric_question() -> st.SearchStrategy[models.Question]:
     )
 
 
-def short_answer_question() -> st.SearchStrategy[models.Question]:
+def short_answer_questions() -> st.SearchStrategy[models.Question]:
     """
     Return a strategy for generating questions of the given type.
 
@@ -134,7 +132,7 @@ def short_answer_question() -> st.SearchStrategy[models.Question]:
     )
 
 
-def essay_question(
+def essay_questions(
     *,
     input: models.EssayInput | None = None,
 ) -> st.SearchStrategy[models.Question]:
@@ -145,16 +143,18 @@ def essay_question(
     """
     if input is None:
         inputs = get_args(models.EssayInput)
-        return st.sampled_from(inputs).flatmap(lambda t: essay_question(input=t))
+        return st.sampled_from(inputs).flatmap(lambda t: essay_questions(input=t))
 
     return st.builds(
         models.EssayQuestion,
-        highlight=code_highlight() | st.none() if input == "code" else st.none(),
+        highlight=code_highlight_formats() | st.none()
+        if input == "code"
+        else st.none(),
         **_base_question_kwargs(),
     )
 
 
-def fill_in_question() -> st.SearchStrategy[models.Question]:
+def fill_in_questions() -> st.SearchStrategy[models.Question]:
     """
     Return a strategy for generating questions of the given type.
 
@@ -169,7 +169,7 @@ def fill_in_question() -> st.SearchStrategy[models.Question]:
 #
 # Exam strategies
 #
-def exam(max_questions: int) -> st.SearchStrategy[models.Exam]:
+def exams(max_questions: int) -> st.SearchStrategy[models.Exam]:
     """
     Create a strategy for generating an exam with up to `max_questions`
     questions.
@@ -193,7 +193,7 @@ def exam(max_questions: int) -> st.SearchStrategy[models.Exam]:
 #
 # Auxiliary strategies
 #
-def code_highlight() -> st.SearchStrategy[str]:
+def code_highlight_formats() -> st.SearchStrategy[str]:
     """
     Return a strategy for generating code formats for highlighting.
     """
@@ -253,7 +253,7 @@ def _safe_line(max_size: int = 40) -> st.SearchStrategy[str]:
     )
 
 
-def md_paragraph() -> st.SearchStrategy[str]:
+def md_paragraphs() -> st.SearchStrategy[str]:
     """
     Return a strategy for generating Markdown paragraphs.
 
@@ -272,7 +272,7 @@ def md_paragraph() -> st.SearchStrategy[str]:
     return st.lists(_safe_line(), min_size=1, max_size=4).map("\n".join)
 
 
-def md_heading() -> st.SearchStrategy[str]:
+def md_headings() -> st.SearchStrategy[str]:
     """
     Return a strategy for generating ATX headings, `##` through `######`.
 
@@ -287,7 +287,7 @@ def md_heading() -> st.SearchStrategy[str]:
     )
 
 
-def md_blockquote() -> st.SearchStrategy[str]:
+def md_blockquotes() -> st.SearchStrategy[str]:
     """
     Return a strategy for generating a (possibly multi-line) blockquote.
 
@@ -300,7 +300,7 @@ def md_blockquote() -> st.SearchStrategy[str]:
     )
 
 
-def md_list(max_depth: int = 1) -> st.SearchStrategy[str]:
+def md_lists(max_depth: int = 1) -> st.SearchStrategy[str]:
     """
     Return a strategy for generating a tight bullet or ordered list, with
     up to `max_depth` levels of nesting.
@@ -317,7 +317,7 @@ def md_list(max_depth: int = 1) -> st.SearchStrategy[str]:
     return _list_lines(max_depth).map("\n".join)
 
 
-def md_table(
+def md_tables(
     *,
     min_rows: int = 0,
     max_rows: int | None = None,
@@ -363,7 +363,7 @@ def _table_header(n_cols: int) -> st.SearchStrategy[str]:
     Markdown table header strategy.
     """
 
-    content = st.lists(md_inline(), min_size=n_cols, max_size=n_cols)
+    content = st.lists(md_inlines(), min_size=n_cols, max_size=n_cols)
     head = content.map(lambda cells: "| " + " | ".join(cells) + " |")
     aligns = st.lists(
         st.sampled_from(["---", ":---", "---:", ":---:"]),
@@ -388,7 +388,7 @@ def _table_row(n_cols: int) -> st.SearchStrategy[str]:
     """
     Return a Markdown table row with `n_cols` columns.
     """
-    content = st.lists(md_inline(), min_size=n_cols, max_size=n_cols)
+    content = st.lists(md_inlines(), min_size=n_cols, max_size=n_cols)
     return content.map(lambda cells: "| " + " | ".join(cells) + " |")
 
 
@@ -424,7 +424,7 @@ def _list_item_lines(marker: str, depth_remaining: int) -> st.SearchStrategy[lis
     return st.builds(combine, item_line, st.none() | _list_lines(depth_remaining - 1))
 
 
-def md_code_block() -> st.SearchStrategy[str]:
+def md_code_blocks() -> st.SearchStrategy[str]:
     """
     Return a strategy for generating Markdown code blocks: fenced (with
     ``` ``` ``` or `~~~`, with or without an info string) or indented.
@@ -432,11 +432,11 @@ def md_code_block() -> st.SearchStrategy[str]:
     return _md_fenced_code_block() | _md_indented_code_block()
 
 
-def md_inline() -> st.SearchStrategy[str]:
+def md_inlines() -> st.SearchStrategy[str]:
     """
     Return a strategy for generating inline Markdown content.
     """
-    return safe_text(multiline=False)
+    return safe_texts(multiline=False)
 
 
 def _md_fenced_code_block() -> st.SearchStrategy[str]:
@@ -449,7 +449,7 @@ def _md_fenced_code_block() -> st.SearchStrategy[str]:
     return st.tuples(
         st.sampled_from(["`", "~"]),
         st.integers(min_value=3, max_value=5),
-        st.none() | code_highlight(),
+        st.none() | code_highlight_formats(),
     ).flatmap(_build_fenced_code_block)
 
 
@@ -481,7 +481,7 @@ def _md_indented_code_block() -> st.SearchStrategy[str]:
     return st.lists(line, min_size=1, max_size=4).map("\n".join)
 
 
-def md_safe_block() -> st.SearchStrategy[str]:
+def md_safe_blocks() -> st.SearchStrategy[str]:
     """
     Return a strategy for generating a single "safe" Markdown block --
     one that survives render -> parse -> normalize unchanged (see the
@@ -492,10 +492,18 @@ def md_safe_block() -> st.SearchStrategy[str]:
     ordered list (possibly nested), a blockquote, and a heading (H2-H6).
     No table: see the module docstring.
     """
-    return md_paragraph() | md_code_block() | md_list() | md_blockquote() | md_heading()
+    return (
+        md_paragraphs()
+        | md_code_blocks()
+        | md_lists()
+        | md_blockquotes()
+        | md_headings()
+    )
 
 
-def md_safe_blocks(min_size: int = 1, max_size: int = 3) -> st.SearchStrategy[str]:
+def md_safe_multi_blocks(
+    min_size: int = 1, max_size: int = 3
+) -> st.SearchStrategy[str]:
     """
     Return a strategy for generating a sequence of safe Markdown blocks,
     joined the way `mdq.render` joins a preamble/epilogue's blocks: two
@@ -506,12 +514,12 @@ def md_safe_blocks(min_size: int = 1, max_size: int = 3) -> st.SearchStrategy[st
     adjacent blocks of the same kind parse back as a single, merged
     CommonMark node -- see `md_list`.
     """
-    return st.lists(md_safe_block(), min_size=min_size, max_size=max_size).map(
+    return st.lists(md_safe_blocks(), min_size=min_size, max_size=max_size).map(
         "\n\n".join
     )
 
 
-def safe_text(multiline: bool = False) -> st.SearchStrategy[str]:
+def safe_texts(multiline: bool = False) -> st.SearchStrategy[str]:
     """
     Somewhat safe text for use in tests. It excludes control characters, line
     separators, and paragraph separators. It also excludes the empty string.
@@ -524,7 +532,7 @@ def safe_text(multiline: bool = False) -> st.SearchStrategy[str]:
     return st.text(alphabet=alphabet, min_size=1)
 
 
-def slug() -> st.SearchStrategy[str]:
+def slugs() -> st.SearchStrategy[str]:
     """
     Return a strategy for generating slugs: ASCII alphanumeric groups
     joined by a single `-`, matching `mdq.parser`'s `SLUG_BODY_RE`.
@@ -541,14 +549,14 @@ def slug() -> st.SearchStrategy[str]:
     return st.lists(group, min_size=1, max_size=3).map("-".join)
 
 
-def uuid() -> st.SearchStrategy[str]:
+def uuids() -> st.SearchStrategy[str]:
     """
     Return a strategy for generating UUIDs.
     """
     return st.uuids().map(str)
 
 
-def locale() -> st.SearchStrategy[str]:
+def locales() -> st.SearchStrategy[str]:
     """
     Return a strategy for generating locale strings.
     """
@@ -556,7 +564,7 @@ def locale() -> st.SearchStrategy[str]:
     return st.sampled_from(["en", "es", "fr", "de", "pt", "zh", "ja", "ko"])
 
 
-def tag() -> st.SearchStrategy[str]:
+def tags() -> st.SearchStrategy[str]:
     """
     Return a strategy for generating tags.
     """
@@ -569,7 +577,7 @@ def tag() -> st.SearchStrategy[str]:
     )
 
 
-def weight() -> st.SearchStrategy[float]:
+def weights() -> st.SearchStrategy[float]:
     """
     Return a strategy for generating weights (non-negative floats).
     """
@@ -589,17 +597,17 @@ def _base_question_kwargs() -> dict[str, st.SearchStrategy[Any]]:
     system.
     """
     return {
-        "id": st.none() | slug(),
-        "uuid": st.none() | uuid(),
-        "title": st.none() | safe_text(),
-        "author": st.none() | safe_text(),
-        "stem": md_paragraph(),
-        "preamble": st.none() | md_safe_blocks(),
-        "epilogue": st.none() | md_safe_blocks(),
-        "comment": st.none() | safe_text(multiline=True),
-        "locale": st.none() | locale(),
-        "tags": st.lists(tag(), min_size=1),
-        "weight": weight(),
+        "id": st.none() | slugs(),
+        "uuid": st.none() | uuids(),
+        "title": st.none() | safe_texts(),
+        "author": st.none() | safe_texts(),
+        "stem": md_paragraphs(),
+        "preamble": st.none() | md_safe_multi_blocks(),
+        "epilogue": st.none() | md_safe_multi_blocks(),
+        "comment": st.none() | safe_texts(multiline=True),
+        "locale": st.none() | locales(),
+        "tags": st.lists(tags(), min_size=1),
+        "weight": weights(),
         # "meta": st.none() | st.dictionaries(st.text(), st.just(None) | st.text()),
     }
 
@@ -607,7 +615,7 @@ def _base_question_kwargs() -> dict[str, st.SearchStrategy[Any]]:
 QUESTION_STRATEGIES: dict[
     QuestionType, Callable[[], st.SearchStrategy[models.Question]]
 ] = {
-    "essay": essay_question,
+    "essay": essay_questions,
     # "multiple-choice": multiple_choice_question,
     # "multiple-selection": multiple_selection_question,
     # "true-false": true_false_question,

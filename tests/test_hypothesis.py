@@ -14,14 +14,14 @@ building blocks.
 
 from __future__ import annotations
 
+import re
+
 from hypothesis import example, given
 from hypothesis import strategies as st
 from markdown_it.tree import SyntaxTreeNode as Node
 
-import re
-
-from mdq import hypothesis as mst
 from mdq import models, parse_question
+from mdq.hypothesis import documents as _st
 from mdq.parser import SLUG_BODY_RE, md, reconstruct_blocks
 
 _SLUG_RE = re.compile(rf"^{SLUG_BODY_RE}$")
@@ -35,7 +35,7 @@ def _tokenize(src: str) -> list[Node]:
 #
 # Leaf strategies
 #
-@given(mst.slug())
+@given(_st.slugs())
 def test_slug_matches_the_parsers_slug_regex(slug: str) -> None:
     """
     `slug()` feeds a question's `id`, which the parser only ever
@@ -48,7 +48,7 @@ def test_slug_matches_the_parsers_slug_regex(slug: str) -> None:
 #
 # md_paragraph
 #
-@given(mst.md_paragraph())
+@given(_st.md_paragraphs())
 @example("A")
 @example("A\nB")
 @example("A\nB\nC")
@@ -58,7 +58,7 @@ def test_paragraph_tokenizes_as_a_single_paragraph(text: str) -> None:
     assert nodes[0].type == "paragraph"
 
 
-@given(mst.md_paragraph())
+@given(_st.md_paragraphs())
 def test_paragraph_round_trips_soft_wraps_collapsed(text: str) -> None:
     """
     A multi-line (soft-wrapped) paragraph collapses to a single line
@@ -82,7 +82,7 @@ def test_paragraph_round_trips_soft_wraps_collapsed(text: str) -> None:
 #
 # md_heading
 #
-@given(mst.md_heading())
+@given(_st.md_headings())
 def test_heading_tokenizes_as_an_h2_through_h6(text: str) -> None:
     nodes = _tokenize(text)
     assert len(nodes) == 1
@@ -93,7 +93,7 @@ def test_heading_tokenizes_as_an_h2_through_h6(text: str) -> None:
 #
 # md_blockquote
 #
-@given(mst.md_blockquote())
+@given(_st.md_blockquotes())
 @example("> A")
 @example("> A\n> B")
 def test_blockquote_tokenizes_as_a_single_blockquote(text: str) -> None:
@@ -102,7 +102,7 @@ def test_blockquote_tokenizes_as_a_single_blockquote(text: str) -> None:
     assert nodes[0].type == "blockquote"
 
 
-@given(mst.md_blockquote())
+@given(_st.md_blockquotes())
 def test_blockquote_round_trips_verbatim(text: str) -> None:
     """
     Unlike a paragraph, a blockquote's raw source lines are always
@@ -116,7 +116,7 @@ def test_blockquote_round_trips_verbatim(text: str) -> None:
 #
 # md_list
 #
-@given(mst.md_list())
+@given(_st.md_lists())
 @example("- A")
 @example("1. A")
 @example("- A\n  - B")
@@ -126,13 +126,13 @@ def test_list_tokenizes_as_a_single_bullet_or_ordered_list(text: str) -> None:
     assert nodes[0].type in ("bullet_list", "ordered_list")
 
 
-@given(mst.md_list())
+@given(_st.md_lists())
 def test_list_round_trips_verbatim(text: str) -> None:
     [(_, reconstructed)] = reconstruct_blocks(text)
     assert reconstructed == text
 
 
-@given(mst.md_list(max_depth=2))
+@given(_st.md_lists(max_depth=2))
 def test_nested_list_still_round_trips_verbatim(text: str) -> None:
     [(kind, reconstructed)] = reconstruct_blocks(text)
     assert kind in ("bullet_list", "ordered_list")
@@ -142,7 +142,7 @@ def test_nested_list_still_round_trips_verbatim(text: str) -> None:
 #
 # md_code_block
 #
-@given(mst.md_code_block())
+@given(_st.md_code_blocks())
 @example("```\n```")
 @example("```python\nx = 1\n```")
 @example("~~~\n~~~")
@@ -153,7 +153,7 @@ def test_code_block_tokenizes_as_a_fence_or_indented_code_block(text: str) -> No
     assert nodes[0].type in ("fence", "code_block")
 
 
-@given(mst.md_code_block())
+@given(_st.md_code_blocks())
 def test_code_block_round_trips_verbatim(text: str) -> None:
     [(kind, reconstructed)] = reconstruct_blocks(text)
     assert kind in ("fence", "code_block")
@@ -163,7 +163,7 @@ def test_code_block_round_trips_verbatim(text: str) -> None:
 #
 # md_safe_block / md_safe_blocks
 #
-@given(mst.md_safe_block())
+@given(_st.md_safe_blocks())
 def test_safe_block_is_a_single_top_level_block(text: str) -> None:
     """
     Every `md_safe_block` draw is a *single* block on its own -- the
@@ -175,7 +175,7 @@ def test_safe_block_is_a_single_top_level_block(text: str) -> None:
     assert len(nodes) == 1
 
 
-@given(mst.md_safe_blocks())
+@given(_st.md_safe_multi_blocks())
 def test_safe_blocks_reconstruct_to_a_fixed_point(text: str) -> None:
     """
     `reconstruct_blocks` should already be idempotent on anything
@@ -192,10 +192,10 @@ def test_safe_blocks_reconstruct_to_a_fixed_point(text: str) -> None:
 # End-to-end: the blocks composed into a full question
 #
 @given(
-    id=st.none() | mst.slug(),
-    preamble=st.none() | mst.md_safe_blocks(),
-    epilogue=st.none() | mst.md_safe_blocks(),
-    stem=mst.md_paragraph(),
+    id=st.none() | _st.slugs(),
+    preamble=st.none() | _st.md_safe_multi_blocks(),
+    epilogue=st.none() | _st.md_safe_multi_blocks(),
+    stem=_st.md_paragraphs(),
 )
 @example(id="q1", preamble="```python\nx = 1\n```", epilogue=None, stem="A")
 @example(id="q1", preamble="- A\n- B", epilogue=None, stem="A")
@@ -208,7 +208,7 @@ def test_generated_blocks_round_trip_through_a_full_question(
     stem: str,
 ) -> None:
     """
-    Regression coverage for the `[id]`-inlining bug `_can_inline_id`
+    Regression coverage for the `[id]`-inlining bug `can_inline_id`
     fixes: when the only frontmatter field is `id`, `BaseQuestion.
     _render_lines` used to always inline it into the preamble, which
     corrupts a preamble that does not start with a plain paragraph (a
