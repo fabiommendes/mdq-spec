@@ -51,8 +51,7 @@ test = "pytest tests"
 cov = "pytest --cov=mdq --cov-report=term-missing"
 doc = "uv doc0 build"
 doc-watch = "uv doc0 watch"
-examples = "uv run mdq examples"
-bundle-schema = "uv run mdq bundle-schema"
+bundle-schema = "uv run python -m mdq.schema_bundle"
 
 
 [[tool.mypy.overrides]]

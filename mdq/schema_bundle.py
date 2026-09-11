@@ -22,7 +22,9 @@ needed to validate against the result.
 
 from __future__ import annotations
 
+import argparse
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -31,7 +33,7 @@ from jsonschema.validators import validator_for
 
 from .validator import DEFAULT_SCHEMA_DIR, TYPE_SCHEMAS, SchemaError
 
-__all__ = ["bundle_schemas", "write_bundle"]
+__all__ = ["bundle_schemas", "write_bundle", "main"]
 
 #: Where the bundle's own `$id` points, once assembled -- the sibling
 #: filename it would occupy next to the schemas it bundles.
@@ -105,7 +107,7 @@ def write_bundle(output_path: Path, schema_dir: Path | None = None) -> dict[str,
     """
     Write the bundle from `bundle_schemas` to `output_path` as JSON.
 
-    Returns the bundle dict, so a caller (the CLI included) can report on
+    Returns the bundle dict, so a caller (`main` included) can report on
     it without re-reading the file it just wrote.
     """
 
@@ -114,3 +116,60 @@ def write_bundle(output_path: Path, schema_dir: Path | None = None) -> dict[str,
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(bundle, indent=2) + "\n", encoding="utf-8")
     return bundle
+
+
+def main(argv: list[str] | None = None) -> int:
+    """
+    Entry point for `python -m mdq.schema_bundle`.
+
+    Bundling is a maintenance step for this repo -- it regenerates a
+    checked-in artifact from the schemas next to it -- rather than
+    something a user of the `mdq` CLI ever needs, so it is reachable
+    only by running this module directly.
+
+    Args:
+        argv: Command-line arguments, defaulting to `sys.argv[1:]`.
+
+    Returns:
+        A process exit code: 0 on success, 2 if the schemas could not be
+        bundled.
+    """
+
+    parser = argparse.ArgumentParser(
+        prog="python -m mdq.schema_bundle",
+        description=(
+            "Bundle every schema/*.yaml file into one self-contained JSON "
+            "Schema document, so a consumer needs to fetch and resolve only "
+            "a single file."
+        ),
+    )
+    parser.add_argument(
+        "output",
+        nargs="?",
+        type=Path,
+        default=Path("schema") / BUNDLE_FILENAME,
+        help="where to write the bundled JSON Schema file (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--schema-dir",
+        type=Path,
+        default=None,
+        help=(
+            "directory containing the MDQ *.yaml schemas "
+            "(default: the repo's schema/ directory)"
+        ),
+    )
+    args = parser.parse_args(argv)
+
+    try:
+        bundle = write_bundle(args.output, schema_dir=args.schema_dir)
+    except SchemaError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+
+    print(f"wrote {args.output} ({len(bundle['$defs'])} schemas bundled)")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

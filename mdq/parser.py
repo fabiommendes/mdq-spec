@@ -38,7 +38,7 @@ import re
 import unicodedata
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, NamedTuple, Required, TypedDict, cast
+from typing import Any, Mapping, NamedTuple, Required, TypedDict, cast
 
 import yaml
 from markdown_it import MarkdownIt
@@ -53,8 +53,10 @@ from .types import (
     IncludeDict,
     NumericBlankDict,
     NumericDomain,
+    PatternDict,
     QuestionDict,
     ScoredChoiceDict,
+    ShortAnswerBlankDict,
     ToleranceDict,
 )
 
@@ -124,10 +126,26 @@ SYMBOL_NAMES = {
 
 # Body-start detection.
 ESSAY_TAG_RE = re.compile(r"^\[essay\]$")
-SHORT_ANSWER_RE = re.compile(r"^\[short-answer\]:\s*(?P<rest>.*)$")
+SHORT_ANSWER_RE = re.compile(
+    r"^\[\s*short-answer\s*(?:/\s*(?P<variant>accept|reject)\s*)?\]\s*:"
+    r"\s*(?P<rest>.*)$"
+)
 NUMERIC_TAG_RE = re.compile(r"^\[numeric(?:\((?P<unit>[\w.\-]+)\))?\]:\s*(?P<rest>.*)$")
+# A blank definition tag. Deliberately permissive in `kind`: an
+# unrecognized suffix must reach BLANK_KIND_RE and raise a real error,
+# not fail to match and get swallowed by the epilogue.
 BLANK_RE = re.compile(
-    rf"^\[\^(?P<id>{SLUG_BODY_RE})(?:/(?P<type>[a-zA-Z-]+))?\]:\s*(?P<rest>.*)$"
+    rf"^\[\^(?P<id>{SLUG_BODY_RE})(?:/(?P<kind>[^\]]+))?\]:\s*(?P<rest>.*)$"
+)
+# Validates that suffix. Units attach to `numeric` and to nothing else,
+# and the accept/reject sublists to `short-answer` and nothing else --
+# both restrictions are enforced by this alternation's shape rather than
+# by a follow-up check (fill-in.md#blank-definitions).
+BLANK_KIND_RE = re.compile(
+    r"^(?:"
+    r"(?P<numeric>numeric)(?:\((?P<unit>[\w.\-]+)\))?"
+    r"|(?P<short>short-answer)(?:/(?P<variant>accept|reject))?"
+    r")$"
 )
 BRACKET_ITEM_RE = re.compile(r"^[*+-]\s*\[")
 ANSWER_KEY_RE = re.compile(r"^\[answer-key\]$")
@@ -306,6 +324,7 @@ def parse_exam(text: str, loader: QuestionLoader | None = None) -> ExamDict:
         "locale",
         "meta",
         "penalty",
+        "grading",
     ):
         if key in front:
             doc[key] = str(front[key]) if key == "id" else front[key]
@@ -685,7 +704,24 @@ class MDQParser:
 
     def parse_item(self, item_lines: list[str]) -> RawChoice:
         value, explicit_id, rest = parse_marker(item_lines[0])
+        return self.collect_item(item_lines, value, explicit_id, rest)
 
+    def parse_plain_item(self, item_lines: list[str]) -> RawChoice:
+        """
+        Parse a list item carrying no `[value]` marker, e.g. a pattern line.
+
+        Raises:
+            ParseError: `item_lines` does not start with a list marker.
+        """
+        m = PLAIN_ITEM_RE.match(item_lines[0])
+        if not m:
+            raise ParseError(f"malformed list item: {item_lines[0]!r}")
+        return self.collect_item(item_lines, "", None, m.group("rest"))
+
+    def collect_item(
+        self, item_lines: list[str], value: str, explicit_id: str | None, rest: str
+    ) -> RawChoice:
+        """Split an item's continuation lines into text, `>` feedback and `!` comments."""
         text_lines = [rest] if rest.strip() else []
         feedback_lines: list[str] = []
         comment_lines: list[str] = []
@@ -707,10 +743,10 @@ class MDQParser:
                 comment_lines.append(stripped)
 
         choice = RawChoice(value, explicit_id, " ".join(t for t in text_lines if t))
-        if feedback_lines:
-            choice.feedback = " ".join(feedback_lines)
-        if comment_lines:
-            choice.comment = " ".join(comment_lines)
+        if any(feedback_lines):
+            choice.feedback = " ".join(t for t in feedback_lines if t)
+        if any(comment_lines):
+            choice.comment = " ".join(t for t in comment_lines if t)
         return choice
 
     #
@@ -755,6 +791,11 @@ class MDQParser:
     def parse_short_answer_body(self, tag_text: str) -> None:
         m = SHORT_ANSWER_RE.match(tag_text)
         assert m
+        variant = m.group("variant")
+        if variant in ("accept", "reject"):
+            self.parse_short_answer_pattern_blocks(tag_text)
+            return
+
         rest = m.group("rest").strip()
 
         value: str | None = None
@@ -773,10 +814,9 @@ class MDQParser:
 
         front = self.frontmatter
         doc = self.state
-        if "exact" in front:
-            doc["exact"] = front["exact"]
         if "openEnded" in front:
             doc["openEnded"] = front["openEnded"]
+        _copy_pattern_lists(front, doc)
 
         regex = front.get("regex")
         if (
@@ -797,6 +837,72 @@ class MDQParser:
             doc["oneOf"] = [value]
         elif "oneOf" not in doc and "regex" not in doc and "openEnded" not in doc:
             doc["openEnded"] = True
+
+        self.parse_trailing_pattern_blocks()
+
+    def parse_trailing_pattern_blocks(self) -> None:
+        """
+        Consume `[short-answer/accept|reject]` blocks after a simple block.
+
+        Raises:
+            ParseError: the following block is another `[short-answer]`
+                block, which the simple block already is.
+        """
+        node = self.seek()
+        if node is None or node.type != "paragraph":
+            return
+        m = SHORT_ANSWER_RE.match(self.raw_text(node))
+        if m is None:
+            return
+        if m.group("variant") not in ("accept", "reject"):
+            raise ParseError("a question defines at most one [short-answer] block")
+        self.read()
+        self.parse_short_answer_pattern_blocks(self.raw_text(node))
+
+    def parse_short_answer_pattern_blocks(self, tag_text: str) -> None:
+        """
+        Fill `accept`/`reject` from a run of `[short-answer/<variant>]` blocks.
+
+        Raises:
+            ParseError: a variant is declared twice, or a block is not
+                followed by the bullet list holding its patterns.
+        """
+        text = tag_text
+        while True:
+            m = SHORT_ANSWER_RE.match(text)
+            if m is None:
+                break
+            variant = m.group("variant")
+            if variant not in ("accept", "reject"):
+                raise ParseError(
+                    "a [short-answer] block cannot follow "
+                    f"[short-answer/{variant or 'accept'}]"
+                )
+            if variant in self.state:
+                raise ParseError(f"repeated [short-answer/{variant}] block")
+            if m.group("rest").strip():
+                raise ParseError(
+                    f"[short-answer/{variant}] takes a list, not inline text"
+                )
+
+            node = self.seek()
+            if node is None or node.type != "bullet_list":
+                raise ParseError(f"[short-answer/{variant}] must be followed by a list")
+            self.read()
+            self.state[variant] = [
+                _pattern_entry(self.parse_plain_item(item))
+                for item in _split_list_items(self.raw_lines(node))
+            ]
+
+            node = self.seek()
+            if node is None or node.type != "paragraph":
+                break
+            text = self.raw_text(node)
+            if not SHORT_ANSWER_RE.match(text):
+                break
+            self.read()
+
+        _copy_pattern_lists(self.frontmatter, self.state)
 
     def parse_numeric_body(self, tag_text: str) -> None:
         m = NUMERIC_TAG_RE.match(tag_text)
@@ -823,19 +929,43 @@ class MDQParser:
             doc["tolerance"] = parsed["tolerance"]
 
     def parse_fill_in_body(self, tag_text: str) -> None:
+        """
+        Fill `blanks` from a run of `[^id...]:` definitions.
+
+        A slug may be defined more than once -- a short answer blank
+        spreads its answer, its accept list and its reject list over
+        separate definitions -- so definitions accumulate into one blank
+        per slug, keyed by the order the slug is first seen.
+
+        Raises:
+            ParseError: an unrecognized or misplaced tag suffix, a slug
+                whose definitions disagree about the blank's kind, or a
+                repeated definition of the same form.
+        """
         front = self.frontmatter
         if "shuffle" in front:
             self.state["shuffle"] = front["shuffle"]
 
-        blanks: list[BlankDict] = []
+        blanks: dict[str, BlankDict] = {}
         text = tag_text
         while True:
             m = BLANK_RE.match(text)
             if not m:
                 break
             blank_id = m.group("id")
-            blank_type = m.group("type")
+            kind = m.group("kind")
             rest = m.group("rest").strip()
+
+            unit = variant = None
+            if kind is None:
+                blank_type = None
+            else:
+                km = BLANK_KIND_RE.match(kind)
+                if km is None:
+                    raise ParseError(f"unrecognized blank definition: {text!r}")
+                blank_type = "numeric" if km.group("numeric") else "short-answer"
+                unit = km.group("unit")
+                variant = km.group("variant")
 
             next_node = self.seek()
             if (
@@ -858,8 +988,9 @@ class MDQParser:
                     if choice.comment:
                         entry["comment"] = choice.comment
                     choices.append(entry)
-                blanks.append(
-                    {"id": blank_id, "type": "multiple-choice", "choices": choices}
+                self._add_blank(
+                    blanks,
+                    {"id": blank_id, "type": "multiple-choice", "choices": choices},
                 )
             elif blank_type == "numeric":
                 parsed = _parse_numeric_expression(rest)
@@ -871,22 +1002,59 @@ class MDQParser:
                     "type": "numeric",
                     "answer": parsed["answer"],
                 }
+                if unit:
+                    blank["unit"] = unit
                 if "domain" in parsed:
                     blank["domain"] = parsed["domain"]
                 if "decimalPlaces" in parsed:
                     blank["decimalPlaces"] = parsed["decimalPlaces"]
                 if "tolerance" in parsed:
                     blank["tolerance"] = parsed["tolerance"]
-                blanks.append(blank)
-            elif blank_type == "short-answer":
-                if rest.startswith("/") and rest.endswith("/") and len(rest) >= 2:
-                    blanks.append(
-                        {"id": blank_id, "type": "short-answer", "regex": rest[1:-1]}
+                self._add_blank(blanks, blank)
+            elif blank_type == "short-answer" and variant is not None:
+                if rest:
+                    raise ParseError(
+                        f"[^{blank_id}/short-answer/{variant}] takes a list, "
+                        "not inline text"
                     )
+                node = self.seek()
+                if node is None or node.type != "bullet_list":
+                    raise ParseError(
+                        f"[^{blank_id}/short-answer/{variant}] must be "
+                        "followed by a list"
+                    )
+                self.read()
+                patterns = [
+                    _pattern_entry(self.parse_plain_item(item))
+                    for item in _split_list_items(self.raw_lines(node))
+                ]
+                list_blank: ShortAnswerBlankDict = {
+                    "id": blank_id,
+                    "type": "short-answer",
+                }
+                if variant == "accept":
+                    list_blank["accept"] = patterns
                 else:
-                    blanks.append(
-                        {"id": blank_id, "type": "short-answer", "oneOf": [rest]}
-                    )
+                    list_blank["reject"] = patterns
+                self._add_blank(blanks, list_blank)
+            elif blank_type == "short-answer":
+                # `/re/` with no trailing flags is the one form with a
+                # field of its own; everything else -- a plain literal, a
+                # backtick-enclosed exact answer, a flagged regex -- is a
+                # pattern string and goes to `oneOf` verbatim.
+                if rest.startswith("/") and rest.endswith("/") and len(rest) >= 2:
+                    entry_blank: ShortAnswerBlankDict = {
+                        "id": blank_id,
+                        "type": "short-answer",
+                        "regex": rest[1:-1],
+                    }
+                else:
+                    entry_blank = {
+                        "id": blank_id,
+                        "type": "short-answer",
+                        "oneOf": [rest],
+                    }
+                self._add_blank(blanks, entry_blank)
             else:
                 raise ParseError(f"unrecognized blank definition: {text!r}")
 
@@ -898,7 +1066,37 @@ class MDQParser:
                 break
             self.read()
 
-        self.state["blanks"] = blanks
+        self.state["blanks"] = list(blanks.values())
+
+    @staticmethod
+    def _add_blank(blanks: dict[str, BlankDict], new: BlankDict) -> None:
+        """
+        Merge one definition into the blank its slug names.
+
+        Raises:
+            ParseError: the slug is already defined with a different
+                kind, or this form of definition is already present.
+        """
+        blank_id = new["id"]
+        existing = blanks.get(blank_id)
+        if existing is None:
+            blanks[blank_id] = new
+            return
+        if existing["type"] != new["type"]:
+            raise ParseError(
+                f"blank {blank_id!r} is defined both as {existing['type']} "
+                f"and as {new['type']}"
+            )
+        if existing["type"] != "short-answer":
+            raise ParseError(f"repeated definition of blank {blank_id!r}")
+        for key, value in new.items():
+            if key in ("id", "type"):
+                continue
+            if key in existing:
+                raise ParseError(
+                    f"repeated {key!r} definition for blank {blank_id!r}"
+                )
+            existing[key] = value  # type: ignore[literal-required]
 
     def parse_answer_key(self) -> list[Node]:
         """
@@ -1103,6 +1301,32 @@ def _load_frontmatter_yaml(text: str) -> dict[str, Any]:
 #
 # Body-start detection
 #
+#: Frontmatter keys holding pattern lists, copied through verbatim.
+PATTERN_LIST_KEYS = ("accept", "reject", "preAccept", "preReject")
+
+
+def _copy_pattern_lists(front: Mapping[str, Any], doc: Any) -> None:
+    """Copy the frontmatter's pattern lists onto the parsed document."""
+    for key in PATTERN_LIST_KEYS:
+        if key in front and key not in doc:
+            doc[key] = front[key]
+
+
+def _pattern_entry(item: RawChoice) -> str | PatternDict:
+    """Return one accept/reject entry, bare when it has no feedback or comment."""
+    pattern = item.text.strip()
+    if not pattern:
+        raise ParseError("a short-answer pattern line cannot be empty")
+    if not item.feedback and not item.comment:
+        return pattern
+    entry: PatternDict = {"pattern": pattern}
+    if item.feedback:
+        entry["feedback"] = item.feedback
+    if item.comment:
+        entry["comment"] = item.comment
+    return entry
+
+
 def _matches_tag(text: str) -> str | None:
     """Return which known body/blank tag `text` looks like, if any."""
 

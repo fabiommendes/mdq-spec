@@ -145,6 +145,33 @@
           "description": "Arbitrary mapping of strings to JSON values, for extension data not covered by the standard fields.",
           "additionalProperties": true
         },
+        "grading": {
+          "description": "The grading strategy applied to the questions of the exam that do not declare their own. Either a single strategy for every question, or a mapping from question type to strategy. Types absent from the mapping are graded as `symmetric`. A question that declares its own `grading` ignores this field entirely.",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/GradingStrategy"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "multiple-choice": {
+                  "$ref": "#/$defs/GradingStrategy"
+                },
+                "multiple-selection": {
+                  "$ref": "#/$defs/GradingStrategy"
+                },
+                "true-false": {
+                  "$ref": "#/$defs/GradingStrategy"
+                },
+                "fill-in": {
+                  "$ref": "#/$defs/GradingStrategy"
+                }
+              }
+            }
+          ],
+          "default": "symmetric"
+        },
         "penalty": {
           "enum": [
             "none",
@@ -167,6 +194,13 @@
       ],
       "additionalProperties": false,
       "$defs": {
+        "GradingStrategy": {
+          "enum": [
+            "partial",
+            "all-or-nothing",
+            "symmetric"
+          ]
+        },
         "Entry": {
           "title": "Exam entry",
           "description": "One question block: either a question written inline, or a reference to one stored elsewhere.",
@@ -241,6 +275,15 @@
               },
               "minItems": 1
             },
+            "grading": {
+              "enum": [
+                "partial",
+                "all-or-nothing",
+                "symmetric"
+              ],
+              "default": "symmetric",
+              "description": "The strategy used to grade the question, see the `Grading` section of the corresponding document in docs/question-types. If omitted, the exam's `grading` field selects one, and `symmetric` applies when neither does."
+            },
             "shuffle": {
               "type": "boolean",
               "description": "If true, the choices of every choice-based blank are safe to shuffle. If false, they should never be shuffled, and if omitted the system is free to choose."
@@ -308,7 +351,7 @@
         "ShortAnswerBlank": {
           "type": "object",
           "title": "Short answer blank",
-          "description": "A blank the student answers by typing a short piece of text, graded exactly like a short-answer question.",
+          "description": "A blank the student answers by typing a short piece of text, graded exactly like a short-answer question. Carries the same answer machinery: a list of accepted responses, a regular expression, or `accept`/`reject` pattern lists that can attach feedback.",
           "additionalProperties": false,
           "properties": {
             "id": {
@@ -319,10 +362,9 @@
             },
             "oneOf": {
               "type": "array",
-              "description": "The list of accepted responses; a response is correct if it matches any entry, after the normalization implied by `exact`.",
+              "description": "The list of accepted responses; a response is correct if it matches any entry. Entries follow the same notation as any other pattern, so backticks make an entry an exact literal.",
               "items": {
-                "type": "string",
-                "minLength": 1
+                "$ref": "./short-answer.yaml#/$defs/patternString"
               },
               "minItems": 1,
               "uniqueItems": true
@@ -332,10 +374,21 @@
               "description": "A regular expression matching every correct response, applied as a full match. Takes precedence over `oneOf`.",
               "minLength": 1
             },
-            "exact": {
-              "type": "boolean",
-              "description": "If true, compare responses verbatim; if false (the default), normalize case, unicode letters, and whitespace first.",
-              "default": false
+            "accept": {
+              "description": "Patterns matching a correct response. The canonical form of the `[^id/short-answer/accept]` block; a response is correct if it matches any entry.",
+              "$ref": "./short-answer.yaml#/$defs/patternList"
+            },
+            "reject": {
+              "description": "Patterns matching a known incorrect response. The canonical form of the `[^id/short-answer/reject]` block. Rejecting never changes a score -- `accept` decides that, and wins when both match -- so this list exists to attach feedback to answers known to be wrong.",
+              "$ref": "./short-answer.yaml#/$defs/patternList"
+            },
+            "preAccept": {
+              "description": "Patterns a submission must match to be considered valid. A pre-submission validator; plays no part in grading.",
+              "$ref": "./short-answer.yaml#/$defs/patternList"
+            },
+            "preReject": {
+              "description": "Patterns a submission must not match to be considered valid. Like `preAccept`, never affects a score.",
+              "$ref": "./short-answer.yaml#/$defs/patternList"
             }
           },
           "required": [
@@ -411,6 +464,15 @@
                 "$ref": "#/$defs/Choice"
               },
               "minItems": 2
+            },
+            "grading": {
+              "enum": [
+                "partial",
+                "all-or-nothing",
+                "symmetric"
+              ],
+              "default": "symmetric",
+              "description": "The strategy used to grade the question, see the `Grading` section of the corresponding document in docs/question-types. If omitted, the exam's `grading` field selects one, and `symmetric` applies when neither does."
             },
             "shuffle": {
               "type": "boolean",
@@ -489,6 +551,15 @@
               },
               "minItems": 2
             },
+            "grading": {
+              "enum": [
+                "partial",
+                "all-or-nothing",
+                "symmetric"
+              ],
+              "default": "symmetric",
+              "description": "The strategy used to grade the question, see the `Grading` section of the corresponding document in docs/question-types. If omitted, the exam's `grading` field selects one, and `symmetric` applies when neither does."
+            },
             "shuffle": {
               "type": "boolean",
               "description": "If true, the choices are safe to shuffle. If false, they should never be shuffled and if ommited, use the system is free to choose."
@@ -564,7 +635,7 @@
             "unit": {
               "type": "string",
               "description": "The unit (e.g., kg, m, lm, etc) of the expected answer.",
-              "pattern": "^[\\w.-_]+$"
+              "pattern": "^[\\w.\\-]+$"
             },
             "domain": {
               "enum": [
@@ -608,6 +679,155 @@
               "minimum": 0
             }
           }
+        }
+      }
+    },
+    "ordering": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://raw.githubusercontent.com/codehood-lms/mdq.spec/master/schema/ordering.yaml",
+      "title": "Ordering question",
+      "description": "A question where the student sorts a list of lines into the correct order. Extends the common question-base schema with the `lines` that form the answer key, the distractor lines mixed in with them, and the alternative orderings the question accepts or rejects outright.",
+      "allOf": [
+        {
+          "$ref": "./question-base.yaml"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "ordering"
+            },
+            "lines": {
+              "description": "The lines to be ordered, in the correct order -- this is the answer key. Students are always shown them shuffled, together with `extra`. The same line may appear more than once; each occurrence is a separate copy the student must place.",
+              "$ref": "#/$defs/Lines",
+              "minItems": 2
+            },
+            "extra": {
+              "description": "Distractor lines, shuffled in among `lines` and never part of a correct response. A distractor may repeat a line of `lines`, which hands the student a spare copy of a line they do need.",
+              "$ref": "#/$defs/Lines"
+            },
+            "accept": {
+              "type": "array",
+              "description": "Alternative orderings that are also correct, each scoring 1 like `lines` itself.",
+              "items": {
+                "$ref": "#/$defs/Alternative"
+              },
+              "minItems": 1
+            },
+            "reject": {
+              "type": "array",
+              "description": "Orderings known to be wrong, each scoring 0. They exist to attach feedback to a mistake the author expects.",
+              "items": {
+                "$ref": "#/$defs/Alternative"
+              },
+              "minItems": 1
+            },
+            "content": {
+              "enum": [
+                "code",
+                "text"
+              ],
+              "description": "How the lines are written and presented: `code` for a fenced code block, normally paired with `highlight`, and `text` for an unordered list. Inferred from the body when the frontmatter leaves it out.",
+              "default": "text"
+            },
+            "highlight": {
+              "type": "string",
+              "description": "Programming language used for syntax highlighting. Only applicable when `content` is `code`; it is ignored (and the linter warns) otherwise.",
+              "minLength": 1,
+              "examples": [
+                "python",
+                "javascript"
+              ]
+            },
+            "indentation": {
+              "enum": [
+                "fixed",
+                "lenient",
+                "strict"
+              ],
+              "default": "fixed",
+              "description": "Whether the student may change a line's indentation, and whether it counts when grading. `fixed` presents the authored indentation and does not let the student change it; `lenient` lets them change it but ignores it when grading, which implies the `dedent` normalization; `strict` lets them change it and compares it."
+            },
+            "unmatched": {
+              "enum": [
+                "manual",
+                "incorrect"
+              ],
+              "default": "manual",
+              "description": "What becomes of a response that matches neither `lines` nor any entry of `accept` or `reject`. `manual` leaves it ungraded, for the instructor to score by hand, the way an essay is; `incorrect` scores it 0. A response that does match is graded automatically either way."
+            },
+            "normalizations": {
+              "type": "array",
+              "description": "Transformations applied to both sides of every comparison -- the response and each answer key alike -- before they are matched. They never change what the student is shown.",
+              "items": {
+                "enum": [
+                  "dedent",
+                  "skip-blanks"
+                ]
+              },
+              "uniqueItems": true,
+              "default": []
+            }
+          },
+          "required": [
+            "type",
+            "lines"
+          ]
+        }
+      ],
+      "unevaluatedProperties": false,
+      "$defs": {
+        "Lines": {
+          "type": "array",
+          "title": "Lines",
+          "description": "A sequence of lines, in the order they are meant to be read.",
+          "items": {
+            "$ref": "#/$defs/Line"
+          },
+          "minItems": 1
+        },
+        "Line": {
+          "type": "array",
+          "title": "Line",
+          "description": "One line, as an `[indentation level, text]` pair. The level is a count of indentation units, not of spaces -- the unit itself is inferred from the question, see docs/question-types/ordering.md#indentation. A response carries the same pair shape.",
+          "prefixItems": [
+            {
+              "type": "integer",
+              "description": "Indentation level, in indentation units.",
+              "minimum": 0
+            },
+            {
+              "type": "string",
+              "description": "The text of the line, with its leading indentation removed."
+            }
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "Alternative": {
+          "type": "object",
+          "title": "Alternative ordering",
+          "description": "One accepted or rejected ordering of the question's lines, with the feedback shown to the student whose response it matched.",
+          "additionalProperties": false,
+          "properties": {
+            "lines": {
+              "$ref": "#/$defs/Lines"
+            },
+            "feedback": {
+              "type": "string",
+              "description": "Feedback text shown to the student whose response matched this ordering. An implementation MAY supply a generic message when it is absent.",
+              "minLength": 1
+            },
+            "comment": {
+              "type": "string",
+              "description": "An author-facing note. Never shown to students.",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "lines"
+          ]
         }
       }
     },
@@ -709,7 +929,7 @@
             },
             "oneOf": {
               "type": "array",
-              "description": "The list of accepted responses; a response is correct if it matches any entry, after the normalization implied by `exact`. This is where the body's answer text is stored -- either the single string written after `[short-answer]:`, or the unordered list written below it.",
+              "description": "The list of accepted responses; a response is correct if it matches any entry. This is where the body's answer text is stored -- either the single string written after `[short-answer]:`, or the unordered list written below it.",
               "items": {
                 "type": "string",
                 "minLength": 1
@@ -722,10 +942,21 @@
               "description": "A regular expression matching every correct response. Matching is a *full match*, so leading `^` and trailing `$` are redundant. Set from the frontmatter, or from a body whose answer text is delimited by `/`; the frontmatter wins.",
               "minLength": 1
             },
-            "exact": {
-              "type": "boolean",
-              "description": "If true, compare responses verbatim. If false (the default), comparison ignores case, normalizes unicode letters, collapses runs of whitespace into a single space, and strips leading and trailing whitespace.",
-              "default": false
+            "accept": {
+              "description": "Patterns matching a correct response. The canonical form of the `[short-answer/accept]` block; a response is correct if it matches any entry.",
+              "$ref": "#/$defs/patternList"
+            },
+            "reject": {
+              "description": "Patterns matching a known incorrect response. The canonical form of the `[short-answer/reject]` block. Rejecting never changes a score -- `accept` decides that, and wins when both match -- so this list exists to attach feedback to answers known to be wrong.",
+              "$ref": "#/$defs/patternList"
+            },
+            "preAccept": {
+              "description": "Patterns a submission must match to be considered valid. A pre-submission validator: systems should warn the student before accepting the answer. Plays no part in grading.",
+              "$ref": "#/$defs/patternList"
+            },
+            "preReject": {
+              "description": "Patterns a submission must not match to be considered valid. Like `preAccept`, a pre-submission validator that never affects a score. When a response matches both, it is treated as rejected -- the opposite of the `accept`/`reject` precedence used when grading.",
+              "$ref": "#/$defs/patternList"
             },
             "openEnded": {
               "type": "boolean",
@@ -749,11 +980,57 @@
           "then": {
             "properties": {
               "oneOf": false,
-              "regex": false
+              "regex": false,
+              "accept": false,
+              "reject": false
             }
           }
         }
       ],
+      "$defs": {
+        "patternList": {
+          "type": "array",
+          "description": "A list of answer patterns, tried in the order written.",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/pattern"
+          }
+        },
+        "pattern": {
+          "description": "One answer pattern, written either as a bare string or as an object carrying feedback and comments alongside it.",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/patternString"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "pattern": {
+                  "$ref": "#/$defs/patternString"
+                },
+                "feedback": {
+                  "type": "string",
+                  "description": "Shown to the student whose response this pattern decided."
+                },
+                "comment": {
+                  "type": "string",
+                  "description": "An author-facing note. Never shown to students."
+                }
+              },
+              "required": [
+                "pattern"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "patternString": {
+          "type": "string",
+          "description": "A regular expression when delimited by `/`, an exact literal when enclosed in backticks, and a plain literal compared inexactly otherwise; a lone `*` is a wildcard matching every response.",
+          "minLength": 1,
+          "pattern": "\\S"
+        }
+      },
       "unevaluatedProperties": false
     },
     "true-false": {
@@ -778,6 +1055,15 @@
                 "$ref": "#/$defs/Choice"
               },
               "minItems": 2
+            },
+            "grading": {
+              "enum": [
+                "partial",
+                "all-or-nothing",
+                "symmetric"
+              ],
+              "default": "symmetric",
+              "description": "The strategy used to grade the question, see the `Grading` section of the corresponding document in docs/question-types. If omitted, the exam's `grading` field selects one, and `symmetric` applies when neither does."
             },
             "shuffle": {
               "type": "boolean",

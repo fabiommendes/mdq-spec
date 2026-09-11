@@ -1,0 +1,18 @@
+# The accept/reject form: `accept` decides the score, `reject` only
+# attaches feedback to known wrong answers. The trailing `*` item is a
+# wildcard supplying the default message for anything else.
+id: sa-capital
+title: Capital of Brazil
+type: short-answer
+stem: What is the capital of Brazil?
+accept:
+  - pattern: /[Bb]ras[íi]lia/i
+    feedback: Good call!
+reject:
+  - pattern: Buenos Aires
+    feedback: That is the capital of Argentina!
+    comment: Bare strings are normalized, so "buenos aires" is caught too.
+  - pattern: Rio de Janeiro
+    feedback: It used to be, but it has not been since 1960.
+  - pattern: "*"
+    feedback: Sorry, that is not the correct answer.

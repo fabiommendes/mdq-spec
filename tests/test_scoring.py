@@ -14,6 +14,8 @@ floored symmetric score yields 0.0.
 
 from __future__ import annotations
 
+from fractions import Fraction
+
 import pytest
 
 from mdq import models
@@ -56,7 +58,9 @@ def test_multiple_choice_a_penalised_choice_scores_negative() -> None:
 
 def test_multiple_choice_a_choice_without_feedback_yields_none() -> None:
     result = _CAPITAL_OF_BRAZIL.score_response("rio")
-    assert result.score == 0.0
+    # "rio" declares no score, so the default "symmetric" grading spreads the
+    # declared 1.0 and -0.5 over it: -(1.0 - 0.5) / 1 == -0.5.
+    assert result.score == -0.5
     assert result.feedback == []
 
 
@@ -76,19 +80,28 @@ def _biomes(grading: models.GradingStrategy) -> models.MultipleSelectionQuestion
             models.BooleanChoice(id="s1", text="Amazon rainforest", correct=True),
             models.BooleanChoice(id="s2", text="Cerrado", correct=True),
             models.BooleanChoice(
-                id="s3", text="Taiga", correct=False, feedback="Taiga does not occur in Brazil."
+                id="s3",
+                text="Taiga",
+                correct=False,
+                feedback="Taiga does not occur in Brazil.",
             ),
             models.BooleanChoice(
-                id="s4", text="Tundra", correct=False, feedback="Tundra does not occur in Brazil."
+                id="s4",
+                text="Tundra",
+                correct=False,
+                feedback="Tundra does not occur in Brazil.",
             ),
             models.BooleanChoice(
-                id="s5", text="Sahara desert", correct=False, feedback="The Sahara is in Africa."
+                id="s5",
+                text="Sahara desert",
+                correct=False,
+                feedback="The Sahara is in Africa.",
             ),
         ],
     )
 
 
-_ALL_MARKED_TRUE = {"s1": True, "s2": True, "s3": True, "s4": True, "s5": True}
+_ALL_MARKED_TRUE = {"s1", "s2", "s3", "s4", "s5"}
 
 
 def test_multiple_selection_symmetric_subtracts_wrong_marks() -> None:
@@ -97,14 +110,15 @@ def test_multiple_selection_symmetric_subtracts_wrong_marks() -> None:
     assert result.score == pytest.approx(-0.2)
 
 
-def test_multiple_selection_partial_floors_the_symmetric_score() -> None:
-    """The exact ADR 0002 contrast: floored symmetric is 0.0, not 0.4."""
+def test_multiple_selection_partial_is_the_correctly_judged_fraction() -> None:
+    """2 of 5 choices judged correctly (s1, s2 ticked-and-correct;
+    s3-s5 wrongly ticked) -- 2 / 5, not the floored symmetric score."""
     result = _biomes("partial").score_response(_ALL_MARKED_TRUE)
-    assert result.score == 0.0
+    assert result.score == pytest.approx(0.4)
 
 
 def test_multiple_selection_all_or_nothing_requires_every_choice_correct() -> None:
-    perfect = {"s1": True, "s2": True}
+    perfect = {"s1", "s2"}
     assert _biomes("all-or-nothing").score_response(perfect).score == 1.0
     assert _biomes("all-or-nothing").score_response(_ALL_MARKED_TRUE).score == 0.0
 
@@ -112,12 +126,12 @@ def test_multiple_selection_all_or_nothing_requires_every_choice_correct() -> No
 def test_multiple_selection_missing_key_asserts_false() -> None:
     """An empty response leaves s1/s2 wrongly unticked and s3-s5 correctly
     unticked -- (3 - 2) / 5."""
-    result = _biomes("symmetric").score_response({})
+    result = _biomes("symmetric").score_response(set())
     assert result.score == pytest.approx(0.2)
 
 
 def test_multiple_selection_feedback_lists_only_wrongly_judged_choices() -> None:
-    response = {"c1": True, "s1": True, "s3": True}
+    response = {"c1", "s1", "s3"}
     result = _biomes("symmetric").score_response(response)
     assert result.feedback == ["Taiga does not occur in Brazil."]
 
@@ -131,7 +145,9 @@ def _amazon_statements(grading: models.GradingStrategy) -> models.TrueFalseQuest
         grading=grading,
         choices=[
             models.Statement(id="s1", text="It spans nine countries.", correct=True),
-            models.Statement(id="s2", text="It holds most of Earth's fresh water.", correct=True),
+            models.Statement(
+                id="s2", text="It holds most of Earth's fresh water.", correct=True
+            ),
             models.Statement(
                 id="s3",
                 text="It is the world's driest biome.",
@@ -185,7 +201,10 @@ def test_true_false_missing_key_behaves_like_an_explicit_abstention() -> None:
 def test_true_false_all_or_nothing_requires_every_statement_correct() -> None:
     perfect = {"s1": True, "s2": True, "s3": False, "s4": False, "s5": False}
     assert _amazon_statements("all-or-nothing").score_response(perfect).score == 1.0
-    assert _amazon_statements("all-or-nothing").score_response(_ALL_JUDGED_TRUE).score == 0.0
+    assert (
+        _amazon_statements("all-or-nothing").score_response(_ALL_JUDGED_TRUE).score
+        == 0.0
+    )
 
 
 def test_true_false_feedback_covers_wrong_and_unjudged_statements() -> None:
@@ -241,8 +260,10 @@ def test_numeric_either_tolerance_accepts() -> None:
 
 
 def test_numeric_accepts_an_exact_rational_answer() -> None:
+    """The answer key may be authored as a string ("1/3"), but a response
+    arrives already validated -- a `Fraction`, not its string spelling."""
     question = models.NumericQuestion(stem="What is 1 divided by 3?", answer="1/3")
-    assert question.score_response("1/3").score == 1.0
+    assert question.score_response(Fraction(1, 3)).score == 1.0
     assert question.score_response(0.5).score == 0.0
 
 
@@ -259,17 +280,20 @@ def test_short_answer_one_of_matches_after_normalization() -> None:
 
 def test_short_answer_exact_requires_a_literal_match() -> None:
     question = models.ShortAnswerQuestion(
-        stem="Name the capital of Brazil.", one_of=["Brasília"], exact=True
+        stem="Name the capital of Brazil.", one_of=["`Brasília`"]
     )
     assert question.score_response("Brasília").score == 1.0
     assert question.score_response("brasília").score == 0.0
 
 
 def test_short_answer_regex_is_a_full_match_not_a_search() -> None:
+    """The legacy `regex` field desugars without the `i` flag, so it is
+    case-sensitive by default -- unlike `oneOf`, which is always inexact."""
     question = models.ShortAnswerQuestion(
         stem="Name a Brazilian biome.", regex="amazon|cerrado"
     )
-    assert question.score_response("Cerrado").score == 1.0
+    assert question.score_response("cerrado").score == 1.0
+    assert question.score_response("Cerrado").score == 0.0
     assert question.score_response("The Cerrado").score == 0.0
 
 
@@ -282,7 +306,9 @@ def test_short_answer_open_ended_is_not_auto_gradable() -> None:
 
 
 def test_short_answer_without_an_answer_key_is_not_auto_gradable() -> None:
-    question = models.ShortAnswerQuestion(stem="Describe your favorite Brazilian biome.")
+    question = models.ShortAnswerQuestion(
+        stem="Describe your favorite Brazilian biome."
+    )
     with pytest.raises(NotAutoGradable):
         question.score_response("The Pantanal.")
 
@@ -324,7 +350,9 @@ def _capital_and_pi(grading: models.GradingStrategy) -> models.FillInQuestion:
 
 
 def test_fill_in_averages_its_blank_scores() -> None:
-    result = _capital_and_pi("symmetric").score_response({"capital": "brasilia", "pi": 3.14})
+    result = _capital_and_pi("symmetric").score_response(
+        {"capital": "brasilia", "pi": 3.14}
+    )
     assert result.score == 1.0
 
 

@@ -127,14 +127,24 @@ def test_comma_delimited_tags_expand_to_the_parsed_list(source: Path) -> None:
 @pytest.mark.parametrize("source", VALID_SOURCES, ids=_ids(VALID_SOURCES))
 def test_body_shape_matches_the_parsed_document(source: Path) -> None:
     """
-    The body's choice items and blank definitions must line up, one for
-    one, with the parsed `choices` / `blanks`.
+    The body's choice items and blank definitions must line up with the
+    parsed `choices` / `blanks`.
+
+    Blank definitions are deduplicated first: a short answer blank may
+    spread its answer, its accept list and its reject list over several
+    definitions sharing one slug, and the parser merges them into a
+    single blank keyed by where the slug first appears
+    (fill-in.md#blank-definitions).
     """
     _, body = _split_frontmatter(source.read_text(encoding="utf-8"))
     parsed = load_document(parsed_sibling(source))
 
     if isinstance(parsed.get("blanks"), list):
-        names = [name.split("/", 1)[0] for name in _BLANK_DEF_RE.findall(body)]
+        names = list(
+            dict.fromkeys(
+                name.split("/", 1)[0] for name in _BLANK_DEF_RE.findall(body)
+            )
+        )
         assert names == [blank["id"] for blank in parsed["blanks"]], (
             f"{relative_id(source)}: the blanks defined in the body do not "
             f"match the parsed 'blanks', in this order"

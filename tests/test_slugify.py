@@ -246,7 +246,11 @@ def test_loose_singleton_never_raises(items: frozenset[str]) -> None:
     _assert_valid_unique_slugs(items, frozenset(), result)
 
 
-@given(items=st_slugs.text_sets(min_size=1, max_size=8, max_string_length=24))
+@given(
+    items=st.sets(st_slugs.short_slug_like_strings(), min_size=1, max_size=8).map(
+        frozenset
+    )
+)
 @settings(max_examples=150)
 def test_loose_is_a_no_op_on_short_text_that_is_already_a_unique_slug(
     items: frozenset[str],
@@ -256,9 +260,7 @@ def test_loose_is_a_no_op_on_short_text_that_is_already_a_unique_slug(
     to itself -- there's nothing for the short/full/counter ladder to
     change. (Longer slug-shaped text can legitimately come back
     *truncated* by the short-candidate heuristic; that's covered by the
-    general `_assert_valid_unique_slugs` properties instead.) The strategy
-    is drawn here, rather than built in `@given`, purely so its helper
-    (`_short_slug_like_strings`) can live in the Helpers section below.
+    general `_assert_valid_unique_slugs` properties instead.)
     """
     result = loose(items)
     assert result == {item: item for item in items}
@@ -279,15 +281,3 @@ def _assert_valid_unique_slugs(
 
     for slug in values:
         validate_slug(slug)  # raises ValueError if not a valid slug shape
-
-
-def _short_slug_like_strings() -> st.SearchStrategy[str]:
-    """
-    Slug-shaped strings short enough (well under the `loose` short-slug
-    cutoff) that neither the short nor the full candidate would truncate
-    them -- unlike `mdq.hypothesis.slugs.slug_like_strings`, which can
-    produce strings past that cutoff on purpose.
-    """
-    ascii_alnum = st.sampled_from("abcdefghijklmnopqrstuvwxyz0123456789")
-    group = st.text(alphabet=ascii_alnum, min_size=1, max_size=5)
-    return st.lists(group, min_size=1, max_size=3).map("-".join)

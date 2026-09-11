@@ -1,0 +1,7 @@
+# A pattern line cannot be empty: there is no response it could
+# meaningfully match.
+id: sa-empty-pattern
+type: short-answer
+stem: Name the largest Brazilian biome.
+accept:
+  - ""

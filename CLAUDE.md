@@ -39,16 +39,14 @@ running `uv run lark-run <grammar_file> -t <example_file>` on it.
 * Use builtins `list`, `dict`, `tuple`, `set` instead of `List`, `Dict`, `Tuple`, `Set`.
 * Check types with mypy `uv run mypy mdq`. 
 * Avoid using `Any`, unless it is specifying "value can be anything" and it will still work and always document its usage.
-* Model the document tree (questions, exams, grades) with Pydantic models,
-  never `TypedDict`. Use `TypedDict` for other dictionaries with a fixed
-  structure.
-* Pydantic models mirror the JSON schemas in `schema/` and must never be
-  stricter than them. A model that rejects what a schema accepts silently
-  deletes a lint rule -- `malformed-locale` and `invalid-regex` both fire on
-  documents the schemas deliberately allow.
+* Model the document tree (questions, exams, grades) with Pydantic models.
+* Pydantic models mirror the JSON schemas in `schema/`. They might be stricter
+  than the JSON schema, if the spec has a rule that cannot be enforced by schema
+  alone. Pydantic models only enforce required rules. An extra linting pass
+  may be necessary to catch non-critical violations.
 
 <!-- rtk-instructions v2 -->
-# RTK (Rust Token Killer) - Token-Optimized Commands
+# RTK
 
 ## Golden Rule
 
@@ -65,26 +63,26 @@ rtk git add . && rtk git commit -m "msg" && rtk git push
 
 ## RTK Commands by Workflow
 
-### Build & Compile (80-90% savings)
+### Build & Compile
 ```bash
-rtk lint                # ESLint/Biome violations grouped (84%)
-rtk prettier --check    # Files needing format only (70%)
-rtk next build          # Next.js build with route metrics (87%)
+rtk lint                # ESLint/Biome violations grouped
+rtk prettier --check    # Files needing format only
+rtk next build          # Next.js build with route metrics
 ```
 
-### Test (60-99% savings)
+### Test
 ```bash
-rtk pytest              # Python test failures only (90%)
+rtk pytest              # Python test failures only
 ```
 
-### Git (59-80% savings)
+### Git
 ```bash
 rtk git status          # Compact status
 rtk git log             # Compact log (works with all git flags)
-rtk git diff            # Compact diff (80%)
-rtk git show            # Compact show (80%)
-rtk git add             # Ultra-compact confirmations (59%)
-rtk git commit          # Ultra-compact confirmations (59%)
+rtk git diff            # Compact diff
+rtk git show            # Compact show
+rtk git add             # Ultra-compact confirmations
+rtk git commit          # Ultra-compact confirmations
 rtk git push            # Ultra-compact confirmations
 rtk git pull            # Ultra-compact confirmations
 rtk git branch          # Compact branch list
@@ -93,26 +91,16 @@ rtk git stash           # Compact stash
 rtk git worktree        # Compact worktree
 ```
 
-Note: Git passthrough works for ALL subcommands, even those not explicitly listed.
 
-### GitHub (26-87% savings)
+### Files & Search
 ```bash
-rtk gh pr view <num>    # Compact PR view (87%)
-rtk gh pr checks        # Compact PR checks (79%)
-rtk gh run list         # Compact workflow runs (82%)
-rtk gh issue list       # Compact issue list (80%)
-rtk gh api              # Compact API responses (26%)
+rtk ls <path>           # Tree format, compact
+rtk read <file>         # Code reading with filtering
+rtk grep <pattern>      # Search grouped by file. Format flags (-c, -l, -L, -o, -Z) run raw.
+rtk find <pattern>      # Find grouped by directory
 ```
 
-### Files & Search (60-75% savings)
-```bash
-rtk ls <path>           # Tree format, compact (65%)
-rtk read <file>         # Code reading with filtering (60%)
-rtk grep <pattern>      # Search grouped by file (75%). Format flags (-c, -l, -L, -o, -Z) run raw.
-rtk find <pattern>      # Find grouped by directory (70%)
-```
-
-### Analysis & Debug (70-90% savings)
+### Analysis & Debug
 ```bash
 rtk err <cmd>           # Filter errors only from any command
 rtk log <file>          # Deduplicated logs with counts
@@ -123,11 +111,10 @@ rtk summary <cmd>       # Smart summary of command output
 rtk diff                # Ultra-compact diffs
 ```
 
-
-### Network (65-70% savings)
+### Network
 ```bash
-rtk curl <url>          # Compact HTTP responses (70%)
-rtk wget <url>          # Compact download output (65%)
+rtk curl <url>          # Compact HTTP responses
+rtk wget <url>          # Compact download output
 ```
 
 ### Meta Commands

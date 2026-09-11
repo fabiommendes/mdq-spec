@@ -1,0 +1,8 @@
+# `openEnded` means there is nothing to grade against, so an `accept`
+# list contradicts it exactly as `oneOf` and `regex` do.
+id: sa-open-with-accept
+type: short-answer
+stem: Describe the role of the Amazon in the global carbon cycle.
+openEnded: true
+accept:
+  - /carbon sink/f

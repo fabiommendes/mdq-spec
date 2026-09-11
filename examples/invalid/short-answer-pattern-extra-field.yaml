@@ -1,0 +1,8 @@
+# The object form of a pattern declares `pattern`, `feedback` and
+# `comment` and nothing else.
+id: sa-pattern-extra-field
+type: short-answer
+stem: Name the largest Brazilian biome.
+accept:
+  - pattern: Amazonia
+    hint: not a declared key

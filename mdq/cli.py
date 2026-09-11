@@ -7,7 +7,6 @@ Usage:
 
 from __future__ import annotations
 
-import shutil
 import sys
 from pathlib import Path
 from typing import Annotated, Literal
@@ -17,11 +16,12 @@ from pydantic import ValidationError as PydanticValidationError
 from rich.console import Console
 from rich.text import Text
 
+from . import parse_question as _parse_question
 from . import show as _show
+from .convert import export_question, import_question
 from .errors import ParseError
 from .loaders import FileLoader
-from .schema_bundle import write_bundle
-from .testing import EXAMPLES_ROOT
+from .scaffold import QUESTION_TYPES, default_output_path, render_template
 from .validator import SchemaError, ValidationResult, validate_file
 
 app = typer.Typer(
@@ -35,39 +35,13 @@ app = typer.Typer(
 Level = Literal["default", "strict"]
 
 stderr = Console(file=sys.stderr, highlight=False, force_terminal=True)
-stdout = Console(file=sys.stdout, highlight=False, force_terminal=True)
 
 
-@app.callback()
-def _root() -> None:
+def main() -> None:
     """
-    Tools for the MDQ (Markdown Questions) file format.
-
-    Keeping this (even empty) callback forces Typer to expose subcommands
-    like `validate` instead of collapsing into a single top-level command,
-    since Typer only does that collapse when a Typer app has no callback
-    and exactly one registered command.
+    Main entry point to the CLI.
     """
-
-
-def _print_result(file: Path, result: ValidationResult) -> int:
-    if result.valid:
-        typer.echo(f"OK    {file}  [{result.question_type}]")
-    else:
-        typer.echo(
-            f"FAIL  {file}  [{result.question_type or 'unknown type'}]", err=True
-        )
-        for err in result.errors:
-            location = "/".join(str(part) for part in err.path) or "<root>"
-            typer.echo(f"  - {location}: {err.message}", err=True)
-
-    # Warnings are advisory: they're printed either way, but never turn an
-    # otherwise-OK result into a failing exit code.
-    for warning in result.warnings:
-        location = "/".join(str(part) for part in warning.path) or "<root>"
-        typer.echo(f"  ! {location}: {warning.message}", err=True)
-
-    return 0 if result.valid else 1
+    app()
 
 
 @app.command()
@@ -123,83 +97,146 @@ def validate(
         raise typer.Exit(code=exit_code)
 
 
-@app.command("bundle-schema")
-def bundle_schema(
-    output: Path = typer.Argument(
-        Path("schema/mdq.schema.json"),
-        help="Where to write the bundled JSON Schema file.",
+@app.command()
+def new(
+    question_type: str = typer.Argument(
+        ...,
+        help=f"Question type to scaffold ({', '.join(QUESTION_TYPES)}).",
     ),
-    schema_dir: Path | None = typer.Option(
-        None,
-        "--schema-dir",
-        help="Directory containing the MDQ *.yaml schemas (default: the repo's schema/ directory).",
+    output: Annotated[
+        Path | None,
+        typer.Option(
+            ...,
+            "-o",
+            "--output",
+            help="Where to write the new question file (default: <type>.mdq.md).",
+        ),
+    ] = None,
+    complete: bool = typer.Option(
+        False,
+        "--complete",
+        help=(
+            "Illustrate every feature the question type supports, "
+            "instead of a bare-bones example."
+        ),
     ),
 ) -> None:
     """
-    Bundle every schema/*.yaml file into one self-contained JSON Schema
-    document, so a consumer needs to fetch and resolve only a single file.
+    Scaffold a new question document.
     """
 
     try:
-        bundle = write_bundle(output, schema_dir=schema_dir)
-    except SchemaError as exc:
-        typer.echo(f"error: {exc}", err=True)
+        content = render_template(question_type, complete=complete)
+    except KeyError:
+        valid = ", ".join(QUESTION_TYPES)
+        typer.echo(
+            f"error: unknown question type {question_type!r} (expected one of: {valid})",
+            err=True,
+        )
         raise typer.Exit(code=2)
 
-    n_defs = len(bundle["$defs"])
-    stdout.print(f"[b green]wrote[/] {output} ({n_defs} schemas bundled)")
+    path = output or default_output_path(question_type)
+    if path.exists():
+        typer.echo(f"error: {path} already exists", err=True)
+        raise typer.Exit(code=2)
+
+    path.write_text(content, encoding="utf-8")
+    typer.echo(f"wrote {path}")
+
+
+@app.command("import")
+def import_(
+    file: Path = typer.Argument(
+        ...,
+        help="Path to a question file in an external format (e.g. Aiken, GIFT).",
+    ),
+    output: Annotated[
+        Path | None,
+        typer.Option(
+            "-o",
+            "--output",
+            help="Where to write the imported MDQ document (default: print to stdout).",
+        ),
+    ] = None,
+    format: str | None = typer.Option(
+        None,
+        "--format",
+        help="External format to import from (default: inferred from FILE's extension).",
+    ),
+) -> None:
+    """
+    Import a question from an external format into MDQ Markdown.
+    """
+
+    if not file.is_file():
+        typer.echo(f"error: file not found: {file}", err=True)
+        raise typer.Exit(code=2)
+
+    fmt = format or _format_from_suffix(file)
+    if fmt is None:
+        typer.echo(
+            f"error: cannot infer format from {file} -- pass --format",
+            err=True,
+        )
+        raise typer.Exit(code=2)
+
+    source = file.read_text(encoding="utf-8")
+    try:
+        question = import_question(source, format=fmt)
+    except (ValueError, NotImplementedError) as exc:
+        typer.echo(f"error: {exc}", err=True)
+        raise typer.Exit(code=1)
+
+    _write_output(str(question), output)
 
 
 @app.command()
-def examples(
-    destination: Annotated[
+def export(
+    file: Path = typer.Argument(
+        ...,
+        help="Path to an MDQ question document (.mdq.md or .mdq).",
+    ),
+    output: Annotated[
         Path | None,
-        typer.Argument(
-            help="Directory to copy the example question files into (default: current working directory).",
+        typer.Option(
+            "-o",
+            "--output",
+            help="Where to write the exported document (default: print to stdout).",
         ),
     ] = None,
-    force: Annotated[
-        bool,
-        typer.Option(
-            ...,
-            "--force",
-            "-f",
-            help="Overwrite existing files/directories in the destination.",
+    format: str | None = typer.Option(
+        None,
+        "--format",
+        help=(
+            "External format to export to (default: inferred from -o's "
+            "extension, falling back to 'aiken')."
         ),
-    ] = False,
+    ),
 ) -> None:
     """
-    Copy the bundled example question files into the current directory.
+    Export an MDQ question document to an external format.
     """
 
-    if not EXAMPLES_ROOT.exists():
-        msg = f"[b red]instalation error:[/] examples directory not found: {EXAMPLES_ROOT}"
-        stderr.print(msg)
+    if not file.is_file():
+        typer.echo(f"error: file not found: {file}", err=True)
         raise typer.Exit(code=2)
 
-    if destination is None:
-        destination = Path.cwd()
+    fmt = format or (output and _format_from_suffix(output)) or "aiken"
 
-    n_copied = 0
-    n_skipped = 0
+    source = file.read_text(encoding="utf-8")
+    try:
+        question = _parse_question(source)
+    except (ParseError, PydanticValidationError) as exc:
+        typer.echo(f"error: {exc}", err=True)
+        raise typer.Exit(code=1)
 
-    for entry in EXAMPLES_ROOT.rglob("*"):
-        if entry.suffix not in (".yaml", ".yml", ".json", ".md", ".mdq"):
-            continue
-        if entry.is_dir():
-            continue
+    try:
+        rendered = export_question(question, format=fmt)
+    except (ValueError, TypeError, NotImplementedError) as exc:
+        typer.echo(f"error: {exc}", err=True)
+        raise typer.Exit(code=1)
 
-        target = destination / entry.name
-        target.parent.mkdir(parents=True, exist_ok=True)
-        if target.exists() and not force:
-            n_skipped += 1
-            continue
-
-        shutil.copy2(entry, target)
-        n_copied += 1
-
-    msg = f"Copied {n_copied} item(s) and skipped {n_skipped} item(s) from {EXAMPLES_ROOT} to {destination}"
-    stdout.print(f"[b green]success:[/] {msg}")
+    _write_output(rendered, output)
 
 
 @app.command()
@@ -231,14 +268,17 @@ def show(
     metadata, so the document's shape is easy to check at a glance.
     """
 
-    # Built fresh (rather than reusing the module-level `stdout`/`stderr`)
-    # so each binds the *current* `sys.stdout`/`sys.stderr` -- important
-    # under test runners that swap those out from under an
-    # already-constructed Console.
     console = Console(
-        file=sys.stdout, width=width, highlight=False, force_terminal=True
+        file=sys.stdout,
+        width=width,
+        highlight=False,
+        force_terminal=True,
     )
-    error_console = Console(file=sys.stderr, highlight=False, force_terminal=True)
+    error_console = Console(
+        file=sys.stderr,
+        highlight=False,
+        force_terminal=True,
+    )
 
     # Everything below that can embed a path or an exception message is
     # printed as a `Text` object, never spliced into a markup `str` --
@@ -274,8 +314,49 @@ def show(
         raise typer.Exit(code=1)
 
 
-def main() -> None:
-    app()
+#
+# Utilities
+#
+FORMAT_SUFFIX_ALIASES = {"xml": "moodle-xml", "moodlexml": "moodle-xml"}
+
+
+def _format_from_suffix(file: Path) -> str | None:
+    """
+    Infer a converter format name from a file's extension, e.g. `.aiken`
+    -> "aiken". Returns None if the file has no extension.
+    """
+    suffix = file.suffix.lstrip(".")
+    if not suffix:
+        return None
+    return FORMAT_SUFFIX_ALIASES.get(suffix, suffix)
+
+
+def _write_output(content: str, output: Path | None) -> None:
+    if output is None:
+        typer.echo(content)
+    else:
+        output.write_text(content, encoding="utf-8")
+        typer.echo(f"wrote {output}")
+
+
+def _print_result(file: Path, result: ValidationResult) -> int:
+    if result.valid:
+        typer.echo(f"OK    {file}  [{result.question_type}]")
+    else:
+        typer.echo(
+            f"FAIL  {file}  [{result.question_type or 'unknown type'}]", err=True
+        )
+        for err in result.errors:
+            location = "/".join(str(part) for part in err.path) or "<root>"
+            typer.echo(f"  - {location}: {err.message}", err=True)
+
+    # Warnings are advisory: they're printed either way, but never turn an
+    # otherwise-OK result into a failing exit code.
+    for warning in result.warnings:
+        location = "/".join(str(part) for part in warning.path) or "<root>"
+        typer.echo(f"  ! {location}: {warning.message}", err=True)
+
+    return 0 if result.valid else 1
 
 
 if __name__ == "__main__":

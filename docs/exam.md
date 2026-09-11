@@ -47,18 +47,19 @@ Judge the statements
 
 Exams accept the following arguments in the frontmatter
 
-| Field  | Type               | Description                                              |
-| ------ | ------------------ | -------------------------------------------------------- |
-| type   | "exam"             | The type discriminator[^1]                               |
-| title  | string             | The exam title. Usually written as the H1 instead.       |
-| id     | string or number   | Slug identifier. Usually written in the H1 instead.[^2]  |
-| uuid   | string             | A universally unique identifier.[^3]                     |
-| course | string             | The course code for the exam                             |
-| author | string             | Exam author. Inherited by the questions.                 |
-| locale | string             | A locale specification (e.g., pt-BR). Inherited.[^4]     |
-| tags   | string[] or string | A list of strings or a single comma delimited string.    |
-| meta   | object             | Mapping of strings to arbitrary JSON.                    |
-| penalty | "none", "capped" or "full" | The exam's clamping policy. Defaults to "none".[^5] |
+| Field   | Type                       | Description                                                            |
+| ------- | -------------------------- | ---------------------------------------------------------------------- |
+| type    | "exam"                     | The type discriminator[^1]                                             |
+| title   | string                     | The exam title. Usually written as the H1 instead.                     |
+| id      | string or number           | Slug identifier. Usually written in the H1 instead.[^2]                |
+| uuid    | string                     | A universally unique identifier.[^3]                                   |
+| course  | string                     | The course code for the exam                                           |
+| author  | string                     | Exam author. Inherited by the questions.                               |
+| locale  | string                     | A locale specification (e.g., pt-BR). Inherited.[^4]                   |
+| tags    | string[] or string         | A list of strings or a single comma delimited string.                  |
+| meta    | object                     | Mapping of strings to arbitrary JSON.                                  |
+| penalty | "none", "capped" or "full" | The exam's clamping policy. Defaults to "none".[^5]                    |
+| grading | grading                    | The grading strategy to use for the exam. Defaults to "symmetric".[^6] |
 
 [^1]: Redundant in practice: an exam is recognized by its H1 title, which a
     question can never have.
@@ -67,6 +68,7 @@ Exams accept the following arguments in the frontmatter
 [^3]: Must be a valid UUID.
 [^4]: Must be a valid IETF BCP 47 language tag.
 [^5]: See [Penalty](#penalty) below.
+[^6]: See [Grading](#grading) below.
 
 All properties in the frontmatter are optional. `title` and `id` may be given
 either in the frontmatter or in the H1 heading; if both are set, the
@@ -129,11 +131,11 @@ own, so it is never renamed by this rule.
 A question inside an exam inherits two fields from the exam frontmatter when it
 does not declare them itself:
 
-| Field  | Inherited | Notes                                                  |
-| ------ | --------- | ------------------------------------------------------ |
-| locale | yes       | An exam is normally written in a single language.      |
-| author | yes       | The exam author is the author of its questions.        |
-| tags   | no        | Tags classify a question individually.                 |
+| Field  | Inherited | Notes                                             |
+| ------ | --------- | ------------------------------------------------- |
+| locale | yes       | An exam is normally written in a single language. |
+| author | yes       | The exam author is the author of its questions.   |
+| tags   | no        | Tags classify a question individually.            |
 
 A question that declares either field keeps its own value. No other field is
 inherited: `title`, `id`, `uuid`, `course`, and `meta` belong to whichever
@@ -160,6 +162,29 @@ diverge once the exam sets `"capped"` or `"full"`.
 A question scored outside an exam -- from a question bank, say, with no exam
 around it -- returns its raw value with no policy applied at all, since there
 is no exam to apply one.
+
+## Grading
+
+The optional `grading` field in the exam frontmatter sets the grading strategy
+for all questions in the exam that do not declare their own. It accepts the same
+values as the `grading` field in the question frontmatter: `"partial"`,
+`"all-or-nothing"`, or `"symmetric"`, but it can also be a mapping of question
+types to grading strategies, so that each question type can be graded
+differently.
+
+The mapping takes the shape:
+
+```
+grading:
+  multiple-selection: <method>
+  true-false: <method>
+  fill-in: <method>
+  multiple-choice: <method>
+```
+
+All keys are optional and missing keys are treated as `"symmetric"`. The value
+for each key is one of the three grading strategies. The exam's `grading` field
+is ignored if the question declares its own.
 
 
 ## Empty exams

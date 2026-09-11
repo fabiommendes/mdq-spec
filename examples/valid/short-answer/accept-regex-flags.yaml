@@ -1,0 +1,13 @@
+# Regex patterns need `/` delimiters; a bare string would be a literal.
+# The `n` flag strips accents and `i` folds case, so "Cerrado" and
+# "cerrado" both match. Matching is anchored, so "the cerrado" does not.
+id: sa-biome
+title: Brazilian biomes
+type: short-answer
+stem: >-
+  Name the biome that covers most of central Brazil, a savanna known for its
+  fire-adapted trees.
+accept:
+  - /cerrado/in
+  - pattern: /(?:o )?cerrado brasileiro/in
+    feedback: Accepted, though the single word is enough.

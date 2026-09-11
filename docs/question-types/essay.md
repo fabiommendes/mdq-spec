@@ -28,13 +28,34 @@ frontmatter
 
 Body consists of a single `[essay]` tag.
 
+The body has a very simple grammar:
+
+```lark
+essay : "[essay]"
+```
+
+## Input
+
+The input section describes the expected type of response for the essay
+question. It is determined by the `input` field in the frontmatter, which can be
+"code", "text", or "plain".
+
+"code" indicates that the response should be a code snippet and `highlight` 
+specifies the programming language for syntax highlighting.
+
+"text" indicates that the response should be a rich text input, potentially
+supporting markdown or other formatting. "plain" indicates that the response
+should be in plain text without any special formatting. This controls if
+rich text widgets should be shown to students or not.
+
+
 ## Answer key
 
 Essay questions are usually open ended, and may require manual grading. The answer
-key section is optional and serve as a guide for the instructor to grade the 
+key section is optional and serves as a guide for the instructor to grade the 
 responses and may be presented as feedback to the students. 
 
-The answer key section is placed bellow the `[essay]:` tag and any existing
+The answer key section is placed below the `[essay]` tag and any existing
 epilogue block. It starts with an `H2` heading with the text `## [answer-key]`
 like in the example:
 
@@ -54,3 +75,17 @@ atmosphere, which is essential for maintaining a habitable climate. However,
 human activities have increased the concentration of greenhouse gases, leading
 to an enhanced greenhouse effect and global warming.
 ```
+
+## Grading
+
+Essay questions are graded manually.
+
+
+## Additional Rules
+
+| Field      | Level   | Rule                                               |
+| ---------- | ------- | -------------------------------------------------- |
+| highlight  | warning | must be omitted unless `input` is "code"           |
+| highlight  | info    | should be a recognized language identifier         |
+| highlight  | info    | should be defined when `input` is "code"           |
+| answerKey  | info    | should be defined in the document                  |

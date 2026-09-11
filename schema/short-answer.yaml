@@ -17,10 +17,9 @@ allOf:
         type: array
         description: >-
           The list of accepted responses; a response is correct if it
-          matches any entry, after the normalization implied by `exact`.
-          This is where the body's answer text is stored -- either the
-          single string written after `[short-answer]:`, or the unordered
-          list written below it.
+          matches any entry. This is where the body's answer text is
+          stored -- either the single string written after
+          `[short-answer]:`, or the unordered list written below it.
         items:
           type: string
           minLength: 1
@@ -36,14 +35,35 @@ allOf:
           answer text is delimited by `/`; the frontmatter wins.
         minLength: 1
 
-      exact:
-        type: boolean
+      accept:
         description: >-
-          If true, compare responses verbatim. If false (the default),
-          comparison ignores case, normalizes unicode letters, collapses
-          runs of whitespace into a single space, and strips leading and
-          trailing whitespace.
-        default: false
+          Patterns matching a correct response. The canonical form of the
+          `[short-answer/accept]` block; a response is correct if it matches
+          any entry.
+        "$ref": "#/$defs/patternList"
+
+      reject:
+        description: >-
+          Patterns matching a known incorrect response. The canonical form of
+          the `[short-answer/reject]` block. Rejecting never changes a score
+          -- `accept` decides that, and wins when both match -- so this list
+          exists to attach feedback to answers known to be wrong.
+        "$ref": "#/$defs/patternList"
+
+      preAccept:
+        description: >-
+          Patterns a submission must match to be considered valid. A
+          pre-submission validator: systems should warn the student before
+          accepting the answer. Plays no part in grading.
+        "$ref": "#/$defs/patternList"
+
+      preReject:
+        description: >-
+          Patterns a submission must not match to be considered valid. Like
+          `preAccept`, a pre-submission validator that never affects a score.
+          When a response matches both, it is treated as rejected -- the
+          opposite of the `accept`/`reject` precedence used when grading.
+        "$ref": "#/$defs/patternList"
 
       openEnded:
         type: boolean
@@ -56,7 +76,9 @@ allOf:
       - type
 
     # An open-ended question is graded by hand, so an answer key would
-    # have nothing to grade against.
+    # have nothing to grade against. `preAccept`/`preReject` are not an
+    # answer key -- they validate a submission, never score it -- so they
+    # stay allowed here.
     if:
       properties:
         openEnded:
@@ -67,6 +89,50 @@ allOf:
       properties:
         oneOf: false
         regex: false
+        accept: false
+        reject: false
+
+"$defs":
+  patternList:
+    type: array
+    description: >-
+      A list of answer patterns, tried in the order written.
+    minItems: 1
+    items:
+      "$ref": "#/$defs/pattern"
+
+  pattern:
+    description: >-
+      One answer pattern, written either as a bare string or as an object
+      carrying feedback and comments alongside it.
+    oneOf:
+      - "$ref": "#/$defs/patternString"
+      - type: object
+        properties:
+          pattern:
+            "$ref": "#/$defs/patternString"
+          feedback:
+            type: string
+            description: Shown to the student whose response this pattern decided.
+          comment:
+            type: string
+            description: >-
+              An author-facing note. Never shown to students.
+        required:
+          - pattern
+        additionalProperties: false
+
+  patternString:
+    type: string
+    description: >-
+      A regular expression when delimited by `/`, an exact literal when
+      enclosed in backticks, and a plain literal compared inexactly
+      otherwise; a lone `*` is a wildcard matching every response.
+    minLength: 1
+    # Must carry at least one non-space character: a blank pattern
+    # matches no response worth naming.
+    pattern: "\\S"
+
 
 # Rejects any key not defined by question-base.yaml or by the object
 # schema above. Plain `additionalProperties: false` can't be used here

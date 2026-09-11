@@ -1,0 +1,117 @@
+# Document structure
+#
+# Question {
+#   name: string
+#   grading: "symmetric" | "all-or-nothing" | "partial"
+#
+#   // Mapping of scores
+#   choices: { [key of string]: number | null | Fraction }
+#
+#   // Mapping of examples to their scores
+#   examples: { [key of string]: number | Fraction }
+# }
+#
+# Some scores are represented as fractions because the floating point
+# representation would be inexact.
+questions:
+  # Symmetric grading
+  - name: "Single correct choice"
+    choices: { a: 1.0, b: null, c: null, d: null }
+    grading: "symmetric"
+    examples:
+      "a": 1.0
+      "b": "-1/3"
+      "c": "-1/3"
+      "d": "-1/3"
+  - name: "All choices have explicit scores"
+    choices: { a: 1.0, b: 0.0, c: 0.0, d: 0.0 }
+    grading: "symmetric"
+    examples:
+      "a": 1.0
+      "b": 0.0
+      "c": 0.0
+      "d": 0.0
+  - name: "Only one wrong choice is defined"
+    choices: { a: 1.0, b: 0.0, c: null, d: null }
+    grading: "symmetric"
+    examples:
+      "a": 1.0
+      "b": 0.0
+      "c": -0.5
+      "d": -0.5
+  - name: "Wrong choice with a negative value"
+    choices: { a: 1.0, b: -0.5, c: null, d: null }
+    grading: "symmetric"
+    examples:
+      "a": 1.0
+      "b": -0.5
+      "c": -0.25
+      "d": -0.25
+  - name: "Wrong choice with a partially correct option"
+    choices: { a: 1.0, b: 0.5, c: null, d: null }
+    grading: "symmetric"
+    examples:
+      "a": 1.0
+      "b": 0.5
+      "c": -0.75
+      "d": -0.75
+  - name: "Wrong choice with a many correct options"
+    choices: { a: 1.0, b: 0.5, c: 0.5, d: null }
+    grading: "symmetric"
+    examples:
+      "a": 1.0
+      "b": 0.5
+      "c": 0.5
+      "d": -1.0
+
+  # Partial grading
+  - name: "Single write choice"
+    choices: { a: 1.0, b: null, c: 0.5, d: null }
+    grading: "partial"
+    examples:
+      "a": 1.0
+      "b": 0.0
+      "c": 0.0
+      "d": 0.0
+  - name: "With partial score"
+    choices: { a: 1.0, b: 0.5, c: null, d: null }
+    grading: "partial"
+    examples:
+      "a": 1.0
+      "b": 0.5
+      "c": 0.0
+      "d": 0.0
+  - name: "With negative score"
+    choices: { a: 1.0, b: -0.5, c: null, d: null }
+    grading: "partial"
+    examples:
+      "a": 1.0
+      "b": -0.5
+      "c": 0.0
+      "d": 0.0
+
+  # All-or-nothing grading
+  - name: "Single write choice"
+    choices: { a: 1.0, b: null, c: 0.5, d: null }
+    grading: "all-or-nothing"
+    examples:
+      "a": 1.0
+      "b": 0.0
+      "c": 0.0
+      "d": 0.0
+  - name: "With partial score"
+    choices: { a: 1.0, b: 0.5, c: null, d: null }
+    grading: "partial"
+    examples:
+      "a": 1.0
+      "b": 0.5
+      "c": 0.0
+      "d": 0.0
+  - name: "With negative score"
+    choices: { a: 1.0, b: -0.5, c: null, d: null }
+    grading: "partial"
+    examples:
+      "a": 1.0
+      "b": -0.5
+      "c": 0.0
+      "d": 0.0

@@ -137,22 +137,16 @@ What is pi?
 def test_render_short_answer_question() -> None:
     question = models.ShortAnswerQuestion(
         stem="Name a primary colour.",
-        one_of=["red", "green", "blue"],
-        exact=True,
+        one_of=["`red`", "`green`", "`blue`"],
     )
     src = question.render()
-    expected = """
----
-exact: true
----
-
-Name a primary colour.
-
-[short-answer]:
-* red
-* green
-* blue
-""".strip()
+    expected = (
+        "\nName a primary colour.\n\n"
+        "[short-answer]:\n"
+        "* `red`\n"
+        "* `green`\n"
+        "* `blue`"
+    )
     assert src == expected
 
 

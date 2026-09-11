@@ -200,8 +200,9 @@ def _render_body(
             console,
             one_of=question.one_of,
             regex=question.regex,
-            exact=question.exact,
             open_ended=question.open_ended,
+            accept=question.accept,
+            reject=question.reject,
             show_answer_key=show_answer_key,
         )
     elif isinstance(question, models.EssayQuestion):
@@ -315,18 +316,28 @@ def _format_numeric_answer(
 #
 # Short-answer bodies (short-answer question, short-answer blank)
 #
+def _pattern_lines(label: str, patterns: list[models.AnswerPattern] | None) -> list[str]:
+    """Render one accept/reject list as markdown lines, empty when absent."""
+    if not patterns:
+        return []
+    lines = [f"**{label}:**"]
+    for rule in patterns:
+        suffix = f" -- {rule.feedback}" if rule.feedback else ""
+        lines.append(f"- `{rule.pattern}`{suffix}")
+    return lines
+
+
 def _render_short_answer(
     console: Console,
     *,
     one_of: list[str] | None,
     regex: str | None,
-    exact: bool,
     open_ended: bool,
     show_answer_key: bool,
+    accept: list[models.AnswerPattern] | None = None,
+    reject: list[models.AnswerPattern] | None = None,
 ) -> None:
     rows: list[tuple[str, str]] = []
-    if exact:
-        rows.append(("Exact match", "yes"))
     if open_ended:
         rows.append(("Grading", "manual (open-ended)"))
     if rows:
@@ -345,7 +356,10 @@ def _render_short_answer(
         console.print(_HIDDEN_ANSWER_TEXT)
         return
 
-    if regex is not None:
+    if accept is not None or reject is not None:
+        sections = [_pattern_lines("Accepted", accept), _pattern_lines("Rejected", reject)]
+        body = "\n\n".join("\n".join(s) for s in sections if s)
+    elif regex is not None:
         body = f"Matches pattern: `/{regex}/`"
     elif one_of:
         body = "\n".join(f"- {answer}" for answer in one_of)
@@ -411,7 +425,6 @@ def _render_fill_in(
                 console,
                 one_of=blank.one_of,
                 regex=blank.regex,
-                exact=blank.exact,
                 open_ended=False,
                 show_answer_key=show_answer_key,
             )

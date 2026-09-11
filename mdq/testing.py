@@ -1,7 +1,18 @@
+"""
+Locations of the example documents the test suite runs against.
+
+DEVELOPMENT ONLY: the examples live at the root of the source checkout,
+outside the package, so they are not shipped in the built distribution.
+Every path below resolves relative to the repo root and therefore means
+nothing in an installed `mdq` -- the `collect_*` functions simply return
+empty lists there. Import this from the test suite, never from library
+or CLI code.
+"""
+
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-EXAMPLES_ROOT = ROOT / "mdq" / "examples"
+EXAMPLES_ROOT = ROOT / "examples"
 INVALID_DIR = EXAMPLES_ROOT / "invalid"
 VALID_DIR = EXAMPLES_ROOT / "valid"
 WARNINGS_DIR = EXAMPLES_ROOT / "warnings"

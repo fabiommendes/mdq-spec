@@ -28,6 +28,8 @@ import unicodedata
 from dataclasses import dataclass, field
 from typing import Any, Iterator, TypeIs, Union
 
+from .regex import InvalidRegexError, RegexPattern
+
 #: Verification levels, in increasing order of strictness.
 LEVELS = ("default", "strict")
 
@@ -706,6 +708,9 @@ def _check_short_answer(
     accepted = document.get("oneOf")
     open_ended = document.get("openEnded", False)
 
+    for key in ("accept", "reject", "preAccept", "preReject"):
+        warnings.extend(_check_patterns(document.get(key), path + (key,)))
+
     if isinstance(regex, str):
         try:
             re.compile(regex)
@@ -742,18 +747,52 @@ def _check_short_answer(
                 )
             )
 
-    if not open_ended and not isinstance(regex, str) and not accepted:
+    if (
+        not open_ended
+        and not isinstance(regex, str)
+        and not accepted
+        and not document.get("accept")
+    ):
         warnings.append(
             LintWarning(
                 rule="short-answer-not-gradable",
                 path=path,
                 message=(
-                    "no 'oneOf' answers and no 'regex' are given, but the "
-                    "question is not marked 'openEnded'; nothing can grade it"
+                    "no 'accept' patterns, no 'oneOf' answers and no 'regex' "
+                    "are given, but the question is not marked 'openEnded'; "
+                    "nothing can grade it"
                 ),
             )
         )
 
+    return warnings
+
+
+def _check_patterns(
+    patterns: Any, path: tuple[Union[str, int], ...]
+) -> list[LintWarning]:
+    """
+    short-answer.md: every delimited pattern in an accept/reject list must
+    parse as an MDQ regex.
+    """
+    if not isinstance(patterns, list):
+        return []
+
+    warnings: list[LintWarning] = []
+    for index, entry in enumerate(patterns):
+        pattern = entry.get("pattern") if isinstance(entry, dict) else entry
+        if not isinstance(pattern, str) or not pattern.strip().startswith("/"):
+            continue
+        try:
+            RegexPattern(pattern)
+        except InvalidRegexError as exc:
+            warnings.append(
+                LintWarning(
+                    rule="invalid-regex",
+                    path=path + (index,),
+                    message=f"regex does not compile: {exc}",
+                )
+            )
     return warnings
 
 

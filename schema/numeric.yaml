@@ -20,7 +20,7 @@ allOf:
       unit:
         type: string
         description: The unit (e.g., kg, m, lm, etc) of the expected answer.
-        pattern: ^[\w.-_]+$
+        pattern: "^[\\w.\\-]+$"
 
       domain:
         enum:

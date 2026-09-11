@@ -6,6 +6,8 @@ see `tests/test_examples.py`, which this reuses fixtures from.
 
 from __future__ import annotations
 
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -14,7 +16,7 @@ from jsonschema import Draft202012Validator
 from jsonschema.exceptions import SchemaError as JsonSchemaError
 from jsonschema.validators import validator_for
 
-from mdq.schema_bundle import bundle_schemas, write_bundle
+from mdq.schema_bundle import bundle_schemas, main, write_bundle
 from mdq.testing import INVALID_PARSED, VALID_PARSED, relative_id
 from mdq.validator import SchemaError, TYPE_SCHEMAS
 
@@ -51,6 +53,39 @@ def test_write_bundle_round_trips(tmp_path: Path) -> None:
     assert output.exists()
     reloaded = yaml.safe_load(output.read_text(encoding="utf-8"))
     assert reloaded == written
+
+
+#
+# `python -m mdq.schema_bundle` -- the only command-line route to
+# bundling, since it is a repo maintenance step rather than an `mdq`
+# subcommand.
+#
+def test_main_writes_the_bundle(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
+    output = tmp_path / "mdq.schema.json"
+    assert main([str(output)]) == 0
+    assert yaml.safe_load(output.read_text(encoding="utf-8")) == BUNDLE
+    assert str(output) in capsys.readouterr().out
+
+
+def test_main_reports_a_bad_schema_dir(
+    tmp_path: Path, capsys: pytest.CaptureFixture
+) -> None:
+    output = tmp_path / "mdq.schema.json"
+    assert main([str(output), "--schema-dir", "/nonexistent/schema/dir"]) == 2
+    assert "error:" in capsys.readouterr().err
+    assert not output.exists()
+
+
+def test_module_is_runnable_as_a_script(tmp_path: Path) -> None:
+    """`python -m mdq.schema_bundle` must actually dispatch to `main`."""
+    output = tmp_path / "mdq.schema.json"
+    result = subprocess.run(
+        [sys.executable, "-m", "mdq.schema_bundle", str(output)],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert yaml.safe_load(output.read_text(encoding="utf-8")) == BUNDLE
 
 
 @pytest.mark.parametrize(
