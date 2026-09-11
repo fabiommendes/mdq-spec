@@ -165,6 +165,39 @@ def test_show_fill_in() -> None:
     assert "95" not in hidden
 
 
+def test_show_ordering() -> None:
+    path = next(
+        p for p in VALID_QUESTIONS if p.name == "brazil-timeline.mdq.md"
+    )
+    markers = ["Cabral", "Lisbon", "independence", "Áurea", "Brasília"]
+
+    shown = render(path)
+    for marker in markers:
+        assert marker in shown
+    # `[ordering]`'s lines are always authored in the correct order, so
+    # the answer-key view must show them exactly as written.
+    assert sorted(markers, key=shown.index) == markers
+
+    hidden = render(path, show_answer_key=False)
+    for marker in markers:
+        assert marker in hidden
+    # `_render_ordering` sorts (text, level) instead of shuffling, since
+    # its output is tested -- but the hidden view must still not present
+    # the lines in their authored (i.e. correct) order.
+    assert sorted(markers, key=hidden.index) != markers
+
+
+def test_show_ordering_answer_key_reveals_alternatives_and_feedback() -> None:
+    path = next(p for p in VALID_QUESTIONS if p.name == "reject-feedback.mdq.md")
+    shown = render(path)
+    assert "Rejected alternative" in shown
+    assert "differential survival must come first" in shown
+
+    hidden = render(path, show_answer_key=False)
+    assert "Rejected alternative" not in hidden
+    assert "differential survival must come first" not in hidden
+
+
 #
 # Regression: document content must never be parsed as Rich console
 # markup. Square brackets show up constantly in real MDQ (`[^blank]`

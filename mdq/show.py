@@ -29,7 +29,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
-from . import models
+from . import models, render
 from . import parse_exam, parse_question
 from .loaders import QuestionLoader
 from .parser import is_exam
@@ -207,6 +207,8 @@ def _render_body(
         )
     elif isinstance(question, models.EssayQuestion):
         _render_essay(console, question, show_answer_key=show_answer_key)
+    elif isinstance(question, models.OrderingQuestion):
+        _render_ordering(console, question, show_answer_key=show_answer_key)
     elif isinstance(question, models.FillInQuestion):
         _render_fill_in(console, question.blanks, show_answer_key=show_answer_key)
     else:
@@ -403,6 +405,59 @@ def _render_essay(
                 expand=False,
             )
         )
+
+
+#
+# Ordering body
+#
+def _render_ordering(
+    console: Console, question: models.OrderingQuestion, *, show_answer_key: bool
+) -> None:
+    rows: list[tuple[str, str]] = [("Content", question.content)]
+    if question.highlight:
+        rows.append(("Highlight", question.highlight))
+    if question.indentation != "fixed":
+        rows.append(("Indentation", question.indentation))
+    if question.unmatched != "manual":
+        rows.append(("Unmatched", question.unmatched))
+    if question.normalizations:
+        rows.append(("Normalizations", ", ".join(question.normalizations)))
+    _render_metadata(console, rows)
+
+    if not show_answer_key:
+        # A real presentation layer shuffles randomly; this output is
+        # tested, so it sorts instead -- deterministic, and it does not
+        # reveal the answer key's order.
+        shuffled = sorted(
+            [*question.lines, *question.extra], key=lambda line: (line[1], line[0])
+        )
+        _render_ordering_lines(console, shuffled, question.content, question.highlight)
+        return
+
+    _render_ordering_lines(console, question.lines, question.content, question.highlight)
+    if question.extra:
+        console.print()
+        console.print(Text("Extra (distractor) lines:", style="italic dim"))
+        _render_ordering_lines(console, question.extra, question.content, question.highlight)
+    for label, alternatives in (("Accepted", question.accept), ("Rejected", question.reject)):
+        for alt in alternatives:
+            console.print()
+            console.print(Text(f"{label} alternative:", style="italic dim"))
+            _render_ordering_lines(console, alt.lines, question.content, question.highlight)
+            if alt.feedback:
+                console.print(Text("Feedback:", style="italic dim"))
+                console.print(Markdown(alt.feedback))
+
+
+def _render_ordering_lines(
+    console: Console,
+    lines: Iterable[models.OrderingLine],
+    content: str,
+    highlight: str | None,
+) -> None:
+    """Print a block of ordering lines the way `render` would write them."""
+    source = "\n".join(render.yield_ordering_content(lines, content, highlight))
+    console.print(Markdown(source))
 
 
 #

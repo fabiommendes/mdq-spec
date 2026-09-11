@@ -34,6 +34,7 @@ children.
 
 from __future__ import annotations
 
+import math
 import re
 import unicodedata
 from dataclasses import dataclass, field
@@ -149,6 +150,13 @@ BLANK_KIND_RE = re.compile(
 )
 BRACKET_ITEM_RE = re.compile(r"^[*+-]\s*\[")
 ANSWER_KEY_RE = re.compile(r"^\[answer-key\]$")
+ORDERING_TAG_RE = re.compile(r"^\[ordering\]$")
+# `## [extra]` / `## [accept]` / `## [reject]`, matched the way
+# ANSWER_KEY_RE matches `## [answer-key]`.
+ORDERING_SECTION_RE = re.compile(r"^\[(?P<name>extra|accept|reject)\]$")
+# An ordering `ul` item's line: leading whitespace (the indentation to be
+# measured), the marker, and the item's raw markdown source verbatim.
+ORDERING_ITEM_RE = re.compile(r"^(?P<indent>[ \t]*)[*+-][ \t]+(?P<text>.*)$")
 
 # Choice-list parsing.
 ITEM_MARKER_RE = re.compile(r"^[*+-]\s+\[(?P<value>[^\]]*)\]\s?(?P<rest>.*)$")
@@ -788,6 +796,152 @@ class MDQParser:
         if "highlight" in front:
             self.state["highlight"] = front["highlight"]
 
+    def parse_ordering_body(self) -> None:
+        """
+        Fill `lines`, `extra`, `accept` and `reject` from an `[ordering]`
+        block and its `## [extra]`/`## [accept]`/`## [reject]` sections.
+
+        The indentation unit is inferred once across every block of the
+        question (ordering.md#indentation), so every block is read raw
+        first and only converted to `[level, text]` pairs at the end. A
+        declared `content`/`highlight`/`indentation`/`unmatched`/
+        `normalizations` wins over what the body implies, the same way
+        `parse_essay_body` copies `input`/`highlight`.
+
+        Raises:
+            ParseError: the block after `[ordering]` (or a section) is
+                neither a fenced code block nor a `ul` list, a section's
+                content is not the same kind as `[ordering]`'s, two
+                `## [extra]` sections are declared, or a section's
+                observations carry more than one feedback/comment block
+                or interleave the two.
+        """
+        main_kind, main_highlight, main_raw = self.parse_ordering_content()
+
+        extra_raw: list[RawLine] | None = None
+        accept_raw: list[RawAlternative] = []
+        reject_raw: list[RawAlternative] = []
+
+        while True:
+            node = self.seek()
+            if node is None or node.type != "heading" or node.tag != "h2":
+                break
+            m = ORDERING_SECTION_RE.match(self.raw_text(node))
+            if m is None:
+                break
+            self.read()
+            name = m.group("name")
+            if name == "extra":
+                if extra_raw is not None:
+                    raise ParseError("a question defines at most one [extra] section")
+                kind, _highlight, extra_raw = self.parse_ordering_content()
+                if kind != main_kind:
+                    raise ParseError(
+                        "[extra] must use the same content type as [ordering]"
+                    )
+            else:
+                feedback, comment = self.parse_ordering_observations()
+                kind, _highlight, raw = self.parse_ordering_content()
+                if kind != main_kind:
+                    raise ParseError(
+                        f"[{name}] must use the same content type as [ordering]"
+                    )
+                target = accept_raw if name == "accept" else reject_raw
+                target.append(RawAlternative(raw, feedback, comment))
+
+        unit = ordering_unit(
+            [indent for indent, _ in main_raw]
+            + [indent for indent, _ in (extra_raw or [])]
+            + [indent for alt in (*accept_raw, *reject_raw) for indent, _ in alt.lines]
+        )
+
+        front = self.frontmatter
+        doc = self.state
+        doc["content"] = front.get("content", main_kind)
+        highlight = front["highlight"] if "highlight" in front else main_highlight
+        if highlight:
+            doc["highlight"] = highlight
+        if "indentation" in front:
+            doc["indentation"] = front["indentation"]
+        if "unmatched" in front:
+            doc["unmatched"] = front["unmatched"]
+        if front.get("normalizations") is not None:
+            doc["normalizations"] = _normalize_tags(front["normalizations"])
+
+        doc["lines"] = ordering_leveled(main_raw, unit)
+        if extra_raw is not None:
+            doc["extra"] = ordering_leveled(extra_raw, unit)
+        if accept_raw:
+            doc["accept"] = [ordering_alternative(alt, unit) for alt in accept_raw]
+        if reject_raw:
+            doc["reject"] = [ordering_alternative(alt, unit) for alt in reject_raw]
+
+    def parse_ordering_content(self) -> tuple[str, str | None, list[RawLine]]:
+        """
+        Read the fenced code block or `ul` list holding one content
+        block's raw `(indent, text)` lines, along with the content kind
+        and highlight language it implies.
+
+        Raises:
+            ParseError: the current node is neither a fence nor a
+                bullet list.
+        """
+        node = self.seek()
+        if node is None or node.type not in ("fence", "bullet_list"):
+            raise ParseError(
+                "an [ordering] block must be followed by a code block or a list",
+                node,
+            )
+        self.read()
+        if node.type == "fence":
+            return "code", node.info.strip() or None, ordering_code_lines(node.content)
+        return "text", None, ordering_ul_lines(self.raw_lines(node))
+
+    def parse_ordering_observations(self) -> tuple[str | None, str | None]:
+        """
+        Consume an accept/reject section's optional feedback (`>`) and
+        comment (`!`) blocks, in either order.
+
+        markdown-it gives a `blockquote` node for the feedback and an
+        ordinary `paragraph` whose raw lines start with `!` for the
+        comment -- CommonMark has no idea these two are related, so
+        telling them apart from each other, and from the section's own
+        content block that follows, is just node type and a prefix
+        check, not re-parsing.
+
+        Raises:
+            ParseError: a section carries more than one feedback or
+                comment block, or the two interleave.
+        """
+        feedback = comment = None
+        for _ in range(2):
+            node = self.seek()
+            if node is not None and node.type == "blockquote" and feedback is None:
+                feedback = join_prefixed_lines(self.raw_lines(node), ">")
+                self.read()
+            elif (
+                node is not None
+                and node.type == "paragraph"
+                and comment is None
+                and is_comment_block(self.raw_lines(node))
+            ):
+                comment = join_prefixed_lines(self.raw_lines(node), "!")
+                self.read()
+            else:
+                break
+
+        node = self.seek()
+        if node is not None and (
+            node.type == "blockquote"
+            or (node.type == "paragraph" and is_comment_block(self.raw_lines(node)))
+        ):
+            raise ParseError(
+                "an accept/reject section carries at most one feedback and one "
+                "comment block, and they must not interleave",
+                node,
+            )
+        return feedback, comment
+
     def parse_short_answer_body(self, tag_text: str) -> None:
         m = SHORT_ANSWER_RE.match(tag_text)
         assert m
@@ -1184,6 +1338,9 @@ class MDQParser:
             if tag == "essay":
                 question_type = question_type or "essay"
                 self.parse_essay_body()
+            elif tag == "ordering":
+                question_type = question_type or "ordering"
+                self.parse_ordering_body()
             elif tag == "short-answer":
                 question_type = question_type or "short-answer"
                 self.parse_short_answer_body(text)
@@ -1327,11 +1484,102 @@ def _pattern_entry(item: RawChoice) -> str | PatternDict:
     return entry
 
 
+#
+# Ordering body parsing
+#
+#: A line before its indentation is reduced to a level -- the leading
+#: whitespace measured in columns (tabs counted as 4), and the text.
+RawLine = tuple[int, str]
+
+
+class RawAlternative(NamedTuple):
+    """One raw `## [accept]`/`## [reject]` section, before leveling."""
+
+    lines: list[RawLine]
+    feedback: str | None
+    comment: str | None
+
+
+def ordering_code_lines(content: str) -> list[RawLine]:
+    """Split a fence's raw content into `(indent, text)` pairs, one per line."""
+    raw_lines = content.split("\n")
+    if raw_lines and raw_lines[-1] == "":  # trailing newline
+        raw_lines.pop()
+    return [ordering_line_indent(line) for line in raw_lines]
+
+
+def ordering_ul_lines(raw_lines: list[str]) -> list[RawLine]:
+    """Split a `ul` block's raw source lines into `(indent, text)` pairs."""
+    items = []
+    for line in raw_lines:
+        m = ORDERING_ITEM_RE.match(line)
+        if m:
+            items.append((len(m.group("indent").expandtabs(4)), m.group("text")))
+    return items
+
+
+def ordering_line_indent(line: str) -> RawLine:
+    """
+    A code line's `(indent, text)`, tabs expanded to 4 spaces.
+
+    A blank line (whitespace only) carries no indentation of its own,
+    regardless of any accidental leading whitespace.
+    """
+    if not line.strip():
+        return 0, ""
+    expanded = line.expandtabs(4)
+    stripped = expanded.lstrip(" ")
+    return len(expanded) - len(stripped), stripped
+
+
+def ordering_unit(indents: list[int]) -> int:
+    """
+    The indentation unit for a question: the GCD of every positive
+    indent among `indents`, or 4 spaces when none is indented at all
+    (ordering.md#indentation).
+    """
+    positives = [i for i in indents if i > 0]
+    return math.gcd(*positives) if positives else 4
+
+
+def ordering_leveled(raw: list[RawLine], unit: int) -> list[list[int | str]]:
+    """Convert `(indent, text)` pairs into `[level, text]` lists, per fixture shape."""
+    return [[indent // unit, text] for indent, text in raw]
+
+
+def ordering_alternative(alt: RawAlternative, unit: int) -> dict[str, Any]:
+    """Build one `accept`/`reject` entry from its raw lines and observations."""
+    entry: dict[str, Any] = {"lines": ordering_leveled(alt.lines, unit)}
+    if alt.feedback:
+        entry["feedback"] = alt.feedback
+    if alt.comment:
+        entry["comment"] = alt.comment
+    return entry
+
+
+def join_prefixed_lines(lines: list[str], prefix: str) -> str:
+    """Strip a `>`/`!` prefix from each raw line and join the rest with spaces."""
+    parts = []
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith(prefix):
+            stripped = stripped[len(prefix) :].strip()
+        parts.append(stripped)
+    return " ".join(p for p in parts if p)
+
+
+def is_comment_block(lines: list[str]) -> bool:
+    """Whether every raw line of a paragraph is a `!`-prefixed comment line."""
+    return bool(lines) and all(line.strip().startswith("!") for line in lines)
+
+
 def _matches_tag(text: str) -> str | None:
     """Return which known body/blank tag `text` looks like, if any."""
 
     if ESSAY_TAG_RE.match(text):
         return "essay"
+    if ORDERING_TAG_RE.match(text):
+        return "ordering"
     if SHORT_ANSWER_RE.match(text):
         return "short-answer"
     if NUMERIC_TAG_RE.match(text):
