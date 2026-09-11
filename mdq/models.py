@@ -931,6 +931,33 @@ class OrderingQuestion(BaseQuestion[t.OrderingResponse]):
     unmatched: Unmatched = "manual"
     normalizations: list[Normalization] = Field(default_factory=list)
 
+    def frontmatter(self, skip_defaults: bool = False) -> dict[str, Any]:
+        data = super().frontmatter(skip_defaults=skip_defaults)
+        if self.indentation != "fixed":
+            data["indentation"] = self.indentation
+        if self.unmatched != "manual":
+            data["unmatched"] = self.unmatched
+        if self.normalizations:
+            data["normalizations"] = self.normalizations
+        return data
+
+    def _render_body(self) -> Iterable[str]:
+        yield ""
+        yield "[ordering]"
+        yield from render.yield_ordering_content(self.lines, self.content, self.highlight)
+        if self.extra:
+            yield from render.yield_ordering_section(
+                "extra", self.extra, self.content, self.highlight
+            )
+        for alt in self.accept:
+            yield from render.yield_ordering_section(
+                "accept", alt.lines, self.content, self.highlight, alt.feedback, alt.comment
+            )
+        for alt in self.reject:
+            yield from render.yield_ordering_section(
+                "reject", alt.lines, self.content, self.highlight, alt.feedback, alt.comment
+            )
+
     @model_validator(mode="after")
     def check_accept_and_reject_disjoint(self) -> Self:
         """

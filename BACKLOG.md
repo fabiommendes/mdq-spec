@@ -4,6 +4,10 @@
 
 * [ ] Convert all type anotations in mdq.cli to use Annotaded[] pattern instead
   of setting typer.Option/Argument as the default value.
+* [ ] `render.yield_frontmatter` dumps YAML with `allow_unicode` off and keys
+  sorted, so rendering any question with accents produces
+  `author: "F\xE1bio Mac\xEAdo Mendes"` and reorders the frontmatter the author
+  wrote. Affects every question type, not just the recently added ordering.
 
 ## Large tasks
 

@@ -119,6 +119,25 @@ million inhabitants.
 
 [^population/numeric]: 3 +- 0.5
 """,
+    "ordering": """\
+---
+title: Fibonacci sequence
+type: ordering
+---
+
+Sort the lines below to create a program that prints the first ten numbers
+of the Fibonacci sequence.
+
+[ordering]
+```python
+x, y = 1, 1
+for _ in range(10):
+    print(x)
+    aux = x + y
+    x = y
+    y = aux
+```
+""",
 }
 
 _COMPLETE_TEMPLATES: dict[str, str] = {
@@ -341,4 +360,68 @@ approximately [^moons] known moons. Its Great Red Spot is a [^feature].
 
 New moons are still being discovered, so the exact count keeps changing.
 """,
+    "ordering": '''\
+---
+id: ordering-circle-area-perimeter
+uuid: 5a5d7ca7-9d26-4513-a324-732adad9e94e
+title: Area and perimeter of a circle
+type: ordering
+tags: [mathematics, geometry, python]
+author: Euclides
+locale: en-US
+meta:
+  difficulty: medium
+---
+
+A circle's area and perimeter both depend only on its radius, so the two
+computations do not depend on each other.
+
+Sort the lines below into a program that reads a radius and prints the
+circle's area and perimeter.
+
+[ordering]
+```python
+import math
+
+radius = float(input("radius: "))
+area = math.pi * radius ** 2
+perimeter = 2 * math.pi * radius
+print(area, perimeter)
+```
+
+## [extra]
+```python
+area = math.pi * radius * 2
+```
+
+## [accept]
+
+> The area and the perimeter each depend only on `radius`, so either one
+> may be computed first.
+
+```python
+import math
+
+radius = float(input("radius: "))
+perimeter = 2 * math.pi * radius
+area = math.pi * radius ** 2
+print(area, perimeter)
+```
+
+## [reject]
+
+> `area` uses the perimeter formula instead of `pi * radius ** 2`, so the
+> printed area is wrong.
+
+! Confusing area with perimeter is a common mistake.
+
+```python
+import math
+
+radius = float(input("radius: "))
+area = math.pi * radius * 2
+perimeter = 2 * math.pi * radius
+print(area, perimeter)
+```
+''',
 }

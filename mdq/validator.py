@@ -39,6 +39,7 @@ TYPE_SCHEMAS = {
     "numeric": "numeric.yaml",
     "short-answer": "short-answer.yaml",
     "fill-in": "fill-in.yaml",
+    "ordering": "ordering.yaml",
     "exam": "exam.yaml",
 }
 

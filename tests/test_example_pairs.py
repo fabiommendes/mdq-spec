@@ -34,7 +34,7 @@ _BLANK_DEF_RE = re.compile(r"^\[\^([^\]]+)\]:", re.MULTILINE)
 #: Frontmatter keys whose surface form is written differently from the
 #: parsed form, by a rule the spec spells out. Compared separately, or
 #: not at all.
-_SHORTHAND_KEYS = frozenset({"tags"})
+_SHORTHAND_KEYS = frozenset({"tags", "normalizations"})
 
 
 def _split_frontmatter(text: str) -> tuple[dict[str, Any], str]:

@@ -95,6 +95,58 @@ def yield_conclusion(
         yield model.epilogue
 
 
+def yield_ordering_content(
+    lines: Iterable[tuple[int, str]], content: str, highlight: str | None
+) -> Iterable[str]:
+    """
+    Yield an ordering question's content block: a fenced code block for
+    `content == "code"`, a `ul` list otherwise.
+
+    A line's indentation is `level * 4` spaces in a code block and
+    `level * 2` spaces before the `* ` marker in a `ul`. A blank line
+    carries no indentation of its own, regardless of its level.
+    """
+    if content == "code":
+        yield f"```{highlight}" if highlight else "```"
+        for level, text in lines:
+            yield f"{' ' * (level * 4)}{text}" if text else ""
+        yield "```"
+    else:
+        for level, text in lines:
+            yield f"{' ' * (level * 2)}* {text}"
+
+
+def yield_ordering_section(
+    tag: str,
+    lines: Iterable[tuple[int, str]],
+    content: str,
+    highlight: str | None,
+    feedback: str | None = None,
+    comment: str | None = None,
+) -> Iterable[str]:
+    """
+    Yield an ordering `## [extra]`/`## [accept]`/`## [reject]` section.
+
+    Observations, when either is present, render feedback (`> `) before
+    comment (`! `), each block separated by a blank line -- the spec
+    allows either order, this is the canonical one.
+    """
+    yield ""
+    yield f"## [{tag}]"
+    if feedback or comment:
+        yield ""
+        if feedback:
+            for line in feedback.splitlines():
+                yield f"> {line}"
+        if feedback and comment:
+            yield ""
+        if comment:
+            for line in comment.splitlines():
+                yield f"! {line}"
+        yield ""
+    yield from yield_ordering_content(lines, content, highlight)
+
+
 def yield_choice(
     choice: models.ScoredChoice | models.BooleanChoice | models.Statement, mark: str
 ):
