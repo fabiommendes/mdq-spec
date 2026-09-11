@@ -8,6 +8,7 @@ discriminator, and the shapes a student's response may take.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from fractions import Fraction
 from typing import Any, Literal, Required, TypedDict, get_args
 
@@ -19,7 +20,19 @@ QuestionType = Literal[
     "short-answer",
     "essay",
     "fill-in",
+    "ordering",
 ]
+
+GradingType = Literal["partial", "all-or-nothing", "symmetric"]
+
+GradedQuestionType = Literal[
+    "multiple-choice",
+    "multiple-selection",
+    "true-false",
+    "fill-in",
+]
+
+ExamGradingType = GradingType | dict[GradedQuestionType, GradingType]
 
 
 QUESTION_TYPES = set(get_args(QuestionType))
@@ -59,6 +72,7 @@ class ExamDict(TypedDict, total=False):
     tags: list[str]
     meta: dict[str, Any]
     penalty: PenaltyPolicy
+    grading: ExamGradingType
     questions: Required[list[ExamEntryDict]]
 
 
@@ -83,6 +97,7 @@ type QuestionDict = (
     | ShortAnswerQuestionDict
     | EssayQuestionDict
     | FillInQuestionDict
+    | OrderingQuestionDict
 )
 
 
@@ -110,6 +125,7 @@ class MultipleChoiceQuestionDict(QuestionBaseDict, total=False):
     type: Required[Literal["multiple-choice"]]
     choices: Required[list[ScoredChoiceDict]]
     shuffle: bool
+    grading: GradingType
 
 
 class MultipleSelectionQuestionDict(QuestionBaseDict, total=False):
@@ -118,6 +134,7 @@ class MultipleSelectionQuestionDict(QuestionBaseDict, total=False):
     type: Required[Literal["multiple-selection"]]
     choices: Required[list[BooleanChoiceDict]]
     shuffle: bool
+    grading: GradingType
 
 
 class TrueFalseQuestionDict(QuestionBaseDict, total=False):
@@ -126,6 +143,7 @@ class TrueFalseQuestionDict(QuestionBaseDict, total=False):
     type: Required[Literal["true-false"]]
     choices: Required[list[StatementDict]]
     shuffle: bool
+    grading: GradingType
 
 
 class NumericQuestionDict(QuestionBaseDict, total=False):
@@ -139,14 +157,29 @@ class NumericQuestionDict(QuestionBaseDict, total=False):
     tolerance: ToleranceDict
 
 
+class PatternDict(TypedDict, total=False):
+    """schema/short-answer.yaml#/$defs/pattern"""
+
+    pattern: Required[str]
+    feedback: str
+    comment: str
+
+
+#: An accept/reject entry: a bare pattern string, or the object form.
+type PatternEntry = str | PatternDict
+
+
 class ShortAnswerQuestionDict(QuestionBaseDict, total=False):
     """schema/short-answer.yaml"""
 
     type: Required[Literal["short-answer"]]
     oneOf: list[str]
     regex: str
-    exact: bool
     openEnded: bool
+    accept: list[PatternEntry]
+    reject: list[PatternEntry]
+    preAccept: list[PatternEntry]
+    preReject: list[PatternEntry]
 
 
 class EssayQuestionDict(QuestionBaseDict, total=False):
@@ -164,6 +197,7 @@ class FillInQuestionDict(QuestionBaseDict, total=False):
     type: Required[Literal["fill-in"]]
     blanks: Required[list[BlankDict]]
     shuffle: bool
+    grading: GradingType
 
 
 #: schema/fill-in.yaml#/$defs/Blank -- discriminated by `type`.
@@ -185,7 +219,10 @@ class ShortAnswerBlankDict(TypedDict, total=False):
     type: Required[Literal["short-answer"]]
     oneOf: list[str]
     regex: str
-    exact: bool
+    accept: list[PatternEntry]
+    reject: list[PatternEntry]
+    preAccept: list[PatternEntry]
+    preReject: list[PatternEntry]
 
 
 class NumericBlankDict(TypedDict, total=False):
@@ -198,6 +235,35 @@ class NumericBlankDict(TypedDict, total=False):
     domain: NumericDomain
     decimalPlaces: int
     tolerance: ToleranceDict
+
+
+class OrderingQuestionDict(QuestionBaseDict, total=False):
+    """schema/ordering.yaml"""
+
+    type: Required[Literal["ordering"]]
+    lines: Required[list[OrderingLineDict]]
+    extra: list[OrderingLineDict]
+    accept: list[OrderingAlternativeDict]
+    reject: list[OrderingAlternativeDict]
+    content: OrderingContent
+    highlight: str
+    indentation: Indentation
+    unmatched: Unmatched
+    normalizations: list[Normalization]
+
+
+class OrderingAlternativeDict(TypedDict, total=False):
+    """An accepted or rejected ordering -- schema/ordering.yaml#/$defs/Alternative."""
+
+    lines: Required[list[OrderingLineDict]]
+    feedback: str
+    comment: str
+
+
+#: One line as an `[indentation level, text]` pair --
+#: schema/ordering.yaml#/$defs/Line. The document shape is a two-element
+#: array; `mdq.models.OrderingLine` holds the same pair as a tuple.
+type OrderingLineDict = list[int | str]
 
 
 class ScoredChoiceDict(TypedDict, total=False):
@@ -244,6 +310,20 @@ NumericDomain = Literal["integer", "decimal", "fraction"]
 #: schema/essay.yaml.
 EssayInput = Literal["code", "text", "plain"]
 
+#: schema/ordering.yaml -- how the lines are written and presented.
+OrderingContent = Literal["code", "text"]
+
+#: schema/ordering.yaml -- whether the student may re-indent a line, and
+#: whether that indentation counts when grading.
+Indentation = Literal["fixed", "lenient", "strict"]
+
+#: schema/ordering.yaml -- what becomes of a response no answer key matches.
+Unmatched = Literal["manual", "incorrect"]
+
+#: schema/ordering.yaml -- a transformation applied to both sides of every
+#: comparison before they are matched.
+Normalization = Literal["dedent", "skip-blanks"]
+
 #: schema/exam.yaml.
 PenaltyPolicy = Literal["none", "capped", "full"]
 
@@ -280,17 +360,16 @@ type QuestionResponse = (
     | NumericResponse
     | FillInResponse
     | TrueFalseResponse
+    | OrderingResponse
     | None
 )
 
 #: multiple-choice: the id of the choice the student picked.
 type MultipleChoiceResponse = str
 
-#: multiple-selection: what the student marked for each
-#: choice, keyed by choice id. A missing key means the student did not
-#: mark that choice, which each type reads its own way -- an unticked
-#: multiple-selection choice asserts false
-type MultipleSelectionResponse = dict[str, bool]
+#: multiple-selection: the set of choice ids the student marked.
+#: A missing key means the student did not mark that choice.
+type MultipleSelectionResponse = set[str]
 
 #: true-false: the student's choice, `True` or `False`. Explicit skips are
 #: `None`.
@@ -300,10 +379,15 @@ type TrueFalseResponse = dict[str, bool | None]
 #: normalisation.
 type TextResponse = str
 
-#: numeric: the value the student entered. A `str` carries an exact
-#: rational ("1/3"), which no float can represent.
-type NumericResponse = int | float | Fraction | str
+#: numeric: the value the student entered.
+type NumericResponse = int | float | Fraction
 
 #: fill-in: each blank's response, keyed by blank id, taking whatever
 #: that blank's own type takes.
 type FillInResponse = dict[str, QuestionResponse]
+
+#: ordering: the lines the student submitted, in the order they submitted
+#: them, each an `[indentation level, text]` pair. The lines carry no id:
+#: they are compared by content. A pair may arrive as the JSON array it
+#: was serialized as, or already as the tuple the models hold.
+type OrderingResponse = Sequence[OrderingLineDict | tuple[int, str]]

@@ -31,6 +31,7 @@ possible.
 | short-answer       | the text the student wrote                         |
 | essay              | the text the student wrote                         |
 | fill-in            | a mapping of blank id to that blank's own response |
+| ordering           | a list of `[indentation level, text]` pairs        |
 
 
 ### Multiple choice
@@ -160,6 +161,30 @@ response:
   size: 2750000
 ```
 
+
+### Ordering
+
+The lines the student submitted, in the order they submitted them. Each line is
+an `[indentation level, text]` pair: the level counts indentation units, not
+spaces, and the text carries no leading indentation of its own.
+
+```yaml
+response:
+  - [0, "x, y = 1, 1"]
+  - [0, "for _ in range(10):"]
+  - [1, "print(x)"]
+  - [1, "aux = x + y"]
+  - [1, "x = y"]
+  - [1, "y = aux"]
+```
+
+Ordering is the one question type whose response names nothing by id: its lines
+carry none, so they are compared by content, and a line the question repeats is
+matched as many times as it appears. A response may hold a distractor from the
+question's `extra` lines -- that is a wrong answer, not a malformed response.
+
+The indentation level is always present, even when the question sets
+`indentation: fixed` or normalizes it away; it is simply ignored in those cases.
 
 ## Skipping
 

@@ -1,0 +1,27 @@
+# `## [extra]` declares distractors: lines shuffled in among the answer
+# key's own and never part of a correct response.
+#
+# The first distractor repeats `total += x`, a line the answer key already
+# has. That is allowed -- it simply hands the student a spare copy of a
+# line they do need, and a correct response still uses it exactly once,
+# as many times as `lines` declares it.
+#
+# The second distractor differs from the answer key's last line only by
+# its indentation level, which makes it a distinct line.
+id: ordering-mean-distractors
+title: Média de uma lista
+type: ordering
+stem: >-
+  Sort the lines below to compute the arithmetic mean of the numbers in
+  `values`. Not every line belongs to the answer.
+content: code
+highlight: python
+lines:
+  - [0, "total = 0"]
+  - [0, "for x in values:"]
+  - [1, "total += x"]
+  - [0, "mean = total / len(values)"]
+extra:
+  - [1, "total += x"]
+  - [1, "mean = total / len(values)"]
+  - [0, "mean = total / x"]

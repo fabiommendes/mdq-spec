@@ -1,0 +1,29 @@
+# A `## [accept]` section is an alternative ordering that is also correct
+# and scores 1, exactly like the `[ordering]` block itself. The blockquote
+# preceding its content block becomes the feedback shown to the student
+# whose response matched it.
+#
+# Note that the `[ordering]` block carries no feedback syntax of its own:
+# feedback belongs to the accepted and rejected alternatives.
+id: ordering-temperature
+title: Conversão de temperaturas
+type: ordering
+stem: >-
+  Sort the lines below to read a temperature in degrees Celsius and print it
+  in both Fahrenheit and kelvin.
+content: code
+highlight: python
+lines:
+  - [0, 'celsius = float(input("temperature in Celsius: "))']
+  - [0, "fahrenheit = celsius * 9 / 5 + 32"]
+  - [0, "kelvin = celsius + 273.15"]
+  - [0, "print(fahrenheit, kelvin)"]
+accept:
+  - lines:
+      - [0, 'celsius = float(input("temperature in Celsius: "))']
+      - [0, "kelvin = celsius + 273.15"]
+      - [0, "fahrenheit = celsius * 9 / 5 + 32"]
+      - [0, "print(fahrenheit, kelvin)"]
+    feedback: >-
+      Both conversions read `celsius` and neither depends on the other, so
+      either one may be computed first.

@@ -1,0 +1,23 @@
+# The minimal ordering question: a stem and an `[ordering]` block. That
+# block is the answer key -- its lines are always authored in the correct
+# order, and the student is always shown them shuffled.
+#
+# A fenced code block infers `content: code`, and the fence's language
+# becomes `highlight`. The indentation unit is the greatest common divisor
+# of the leading whitespace of the indented lines -- 4 spaces here -- so
+# the body's four spaces become level 1.
+id: ordering-fibonacci
+title: Fibonacci sequence
+type: ordering
+stem: >-
+  Sort the lines below to create a program that prints the first ten numbers of
+  the Fibonacci sequence.
+content: code
+highlight: python
+lines:
+  - [0, "x, y = 1, 1"]
+  - [0, "for _ in range(10):"]
+  - [1, "print(x)"]
+  - [1, "aux = x + y"]
+  - [1, "x = y"]
+  - [1, "y = aux"]

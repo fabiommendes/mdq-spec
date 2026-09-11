@@ -1,0 +1,22 @@
+# `indentation: lenient` lets the student re-indent the lines freely but
+# ignores indentation when grading -- it implies the `dedent`
+# normalization, which flattens both sides of every comparison to level 0.
+#
+# The authored alignment is still what the student is first shown: a
+# normalization changes what is compared, never what is presented. Here the
+# unit is the greatest common divisor of the 2- and 1-space indents, so it
+# is 1 space and `FROM` sits at level 2.
+id: ordering-sql-clauses
+title: Cláusulas de uma consulta SQL
+type: ordering
+stem: >-
+  Sort the clauses below into a query that lists the most populous
+  municipalities of Goiás first.
+content: code
+highlight: sql
+indentation: lenient
+lines:
+  - [0, "SELECT nome, populacao"]
+  - [2, "FROM municipios"]
+  - [1, "WHERE uf = 'GO'"]
+  - [1, "ORDER BY populacao DESC"]

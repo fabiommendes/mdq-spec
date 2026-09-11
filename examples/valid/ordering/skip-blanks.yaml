@@ -1,0 +1,26 @@
+# `skip-blanks` ignores blank lines on both sides of the comparison, so the
+# student is free to place the blank line anywhere -- or nowhere -- without
+# it deciding the grade. Like every normalization, it changes what is
+# compared, never what is presented.
+#
+# The frontmatter spells the single normalization as a bare string, the
+# shorthand `tags` also allows. It is a surface spelling only: the parsed
+# document always holds a list.
+#
+# The blank line is a line of the answer key like any other, written as an
+# empty text at level 0.
+id: ordering-hypotenuse
+title: Hipotenusa
+type: ordering
+stem: >-
+  Sort the lines below into a module that defines a function returning the
+  hypotenuse of a right triangle.
+content: code
+highlight: python
+normalizations:
+  - skip-blanks
+lines:
+  - [0, "from math import sqrt"]
+  - [0, ""]
+  - [0, "def hypotenuse(a, b):"]
+  - [1, "return sqrt(a * a + b * b)"]

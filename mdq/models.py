@@ -8,13 +8,10 @@ time one exists, the document is known to be well formed.
 
 Two rules govern this module:
 
-1. The models mirror the JSON schemas in `schema/` and MUST NEVER be
-   stricter than them. The schemas are the normative artifact -- other
-   implementations consume them -- and a model that rejects what a
-   schema accepts silently deletes a lint rule. `locale` is a plain
-   string because `malformed-locale` explains malformed ones; `regex`
-   is a plain string because `invalid-regex` explains uncompilable
-   ones. Do not "improve" either.
+1. The models mirror the JSON schemas in `schema/` and in most cases should not
+   be stricter than them. A few exceptions are rules that are obligatory in the
+   question specification but cannot be enforced by the JSON schema. Things like
+   "all keys in a list of objects must be unique".
 
 2. Field names are the schema's names in snake_case, with the camelCase
    spelling kept as an alias, so a model round-trips to the document it
@@ -37,16 +34,19 @@ from __future__ import annotations
 
 import re
 import unicodedata
+import weakref
 from fractions import Fraction
-from typing import Annotated, Any, Iterable, Literal, Self
+from typing import Annotated, Any, Iterable, Literal, Mapping, Self
 
 import opt
-from pydantic import BaseModel, ConfigDict, Field, RootModel
+from pydantic import BaseModel, ConfigDict, Field, RootModel, model_validator
 from pydantic.alias_generators import to_camel
 
 from . import parser, render
 from . import types as t
 from .errors import NotAutoGradable, ResponseError
+from .regex import RegexPattern
+from .regex import normalize_text as strip_accents
 
 __all__ = [
     "MdqModel",
@@ -60,21 +60,34 @@ __all__ = [
     "TrueFalseQuestion",
     "NumericQuestion",
     "ShortAnswerQuestion",
+    "AnswerPattern",
     "EssayQuestion",
     "ChoiceBlank",
     "ShortAnswerBlank",
     "NumericBlank",
     "Blank",
     "FillInQuestion",
+    "OrderingLine",
+    "OrderingAlternative",
+    "OrderingQuestion",
     "Question",
     "QuestionRoot",
     "Exam",
     "QuestionScore",
     "ExamScore",
     "GradingStrategy",
+    "GradedQuestionType",
+    "ExamGrading",
     "PenaltyPolicy",
     "NumericDomain",
     "EssayInput",
+    "OrderingContent",
+    "Indentation",
+    "Unmatched",
+    "Normalization",
+    "coerce_ordering_lines",
+    "first_feedback",
+    "render_pattern_block",
     "normalize_paragraphs",
     "normalize_intro",
     "remove_trailing_ws",
@@ -108,11 +121,18 @@ class MdqModel(BaseModel):
         Return a dict representation of the model that is compatible with the
         JSON schema and the original document.
         """
-        return self.model_dump(
+        data = self.model_dump(
             by_alias=by_alias,
             exclude_none=True,
             exclude_defaults=True,
         )
+        # `type` is a defaulted Literal on every discriminated model, so
+        # `exclude_defaults` drops it. It is the one default worth keeping:
+        # without it the dict no longer says which schema it validates
+        # against, and no discriminated union can read it back.
+        if "type" in type(self).model_fields:
+            data = {"type": getattr(self, "type"), **data}
+        return data
 
     def _render_lines(self) -> Iterable[str]:
         """
@@ -144,6 +164,21 @@ class MdqModel(BaseModel):
 #: defines its own (see docs/adr/0002-partial-names-a-range-not-an-algorithm.md).
 GradingStrategy = Literal["symmetric", "partial", "all-or-nothing"]
 
+#: The question types that choose a grading strategy. The other types
+#: grade by a fixed rule and take no `grading` field.
+GradedQuestionType = Literal[
+    "multiple-choice",
+    "multiple-selection",
+    "true-false",
+    "fill-in",
+]
+
+#: An exam's grading strategy: one for every question it holds, or one
+#: per question type. Types missing from the mapping grade as
+#: `symmetric`, and a question that declares its own `grading` ignores
+#: the exam's.
+ExamGrading = GradingStrategy | dict[GradedQuestionType, GradingStrategy]
+
 #: An exam's policy for whether a negative question score survives.
 #: Questions never clamp their own score -- this is the only place
 #: clamping happens (see
@@ -153,6 +188,23 @@ PenaltyPolicy = Literal["none", "capped", "full"]
 NumericDomain = Literal["integer", "decimal", "fraction"]
 
 EssayInput = Literal["code", "text", "plain"]
+
+#: How an ordering question's lines are written and presented: `code` for
+#: a fenced code block, `text` for an unordered list.
+OrderingContent = Literal["code", "text"]
+
+#: Whether the student may re-indent an ordering question's lines, and
+#: whether that indentation counts when grading. `lenient` implies the
+#: `dedent` normalization.
+Indentation = Literal["fixed", "lenient", "strict"]
+
+#: What becomes of an ordering response that matches no answer key:
+#: `manual` leaves it for a human, `incorrect` scores it 0.
+Unmatched = Literal["manual", "incorrect"]
+
+#: A transformation applied to both sides of every ordering comparison --
+#: the response and each answer key alike -- before they are matched.
+Normalization = Literal["dedent", "skip-blanks"]
 
 
 class Tolerance(MdqModel):
@@ -225,6 +277,20 @@ class BaseQuestion[R](MdqModel):
     locale: str | None = None
     meta: dict[str, object] | None = None
     tags: list[str] = Field(default_factory=list)
+    _exam: Annotated[weakref.ref[Exam] | None, Field(default=None, exclude=True)] = None
+
+    @property
+    def exam(self) -> Exam | None:
+        if self._exam is not None:
+            return self._exam()
+        return None
+
+    def model_copy(
+        self, *, update: Mapping[str, Any] | None = None, deep: bool = False
+    ) -> Self:
+        copy = super().model_copy(update=update, deep=deep)
+        copy._exam = None  # unbind the copy from the exam.
+        return copy
 
     #: How much this question counts towards its exam. An exam entry may
     #: override it, and resolution applies that override here, so the
@@ -322,11 +388,14 @@ class MultipleChoiceQuestion(BaseQuestion[t.MultipleChoiceResponse]):
     choices: list[ScoredChoice]
     type: Literal["multiple-choice"] = "multiple-choice"
     shuffle: bool | None = None
+    grading: GradingStrategy = "symmetric"
 
     def frontmatter(self, skip_defaults: bool = False) -> dict[str, Any]:
         data = super().frontmatter(skip_defaults=skip_defaults)
         if self.shuffle is not None:
             data["shuffle"] = self.shuffle
+        if self.grading != "symmetric":
+            data["grading"] = self.grading
         return data
 
     def _render_body(self) -> Iterable[str]:
@@ -344,7 +413,8 @@ class MultipleChoiceQuestion(BaseQuestion[t.MultipleChoiceResponse]):
 
     def score_response(self, response: t.MultipleChoiceResponse) -> QuestionScore:
         """
-        Score the response by its picked choice's `score`.
+        Score the response by its picked choice's `score`, falling back to
+        `unspecified_score` for a choice that declares none.
 
         Raises:
             ResponseError: `response` names no choice.
@@ -352,9 +422,27 @@ class MultipleChoiceQuestion(BaseQuestion[t.MultipleChoiceResponse]):
         choice = next((c for c in self.choices if c.id == response), None)
         if choice is None:
             raise ResponseError(f"Response id {response!r} not found in choices")
-        score = choice.score or 0.0
+        score = choice.score if choice.score is not None else self.unspecified_score()
         feedback = [choice.feedback] if choice.feedback else []
         return QuestionScore(score=score, feedback=feedback)
+
+    def unspecified_score(self) -> float:
+        """
+        The score a choice that declares none is graded with.
+
+        `"partial"` and `"all-or-nothing"` treat it as zero. `"symmetric"`
+        spreads the negative of the declared scores evenly over the choices
+        that declare none, so picking at random averages zero, then clamps
+        the result to [-1, 0].
+        """
+        if self.grading != "symmetric":
+            return 0.0
+
+        declared = [c.score for c in self.choices if c.score is not None]
+        missing = len(self.choices) - len(declared)
+        if not missing:
+            return 0.0
+        return max(-1.0, min(0.0, -sum(declared) / missing))
 
 
 class MultipleSelectionQuestion(BaseQuestion[t.MultipleSelectionResponse]):
@@ -381,24 +469,23 @@ class MultipleSelectionQuestion(BaseQuestion[t.MultipleSelectionResponse]):
         """
         Score marked choices against their `correct` flags.
 
-        `"symmetric"` awards +-1/n per choice for each correct/incorrect
-        judgement; `"partial"` floors that at 0; `"all-or-nothing"`
-        requires every choice judged correctly. A choice missing from
-        `response` asserts false.
+        A choice not in `response` asserts false, on par with one
+        explicitly marked false. `"symmetric"` awards +-1/n per choice for
+        each correct/incorrect judgement; `"partial"` is the same count
+        but only over correctly-judged choices, so it never goes negative
+        without needing a floor; `"all-or-nothing"` requires every choice
+        judged correctly.
         """
         n = len(self.choices)
-        marks = [
-            (choice, lookup(response, choice.id, False)) for choice in self.choices
-        ]
+        marks = [(choice, choice.id in response) for choice in self.choices]
         judged_correctly = sum(1 for choice, mark in marks if mark == choice.correct)
-        symmetric = (2 * judged_correctly - n) / n
 
         if self.grading == "all-or-nothing":
             score = 1.0 if judged_correctly == n else 0.0
         elif self.grading == "partial":
-            score = max(0.0, symmetric)
+            score = judged_correctly / n
         else:
-            score = symmetric
+            score = (2 * judged_correctly - n) / n
 
         feedback = [
             choice.feedback
@@ -436,7 +523,9 @@ class TrueFalseQuestion(BaseQuestion[t.TrueFalseResponse]):
         Score judged statements against their `correct` flags.
 
         `"partial"` is correct-count over total; `"symmetric"` also
-        subtracts incorrect judgements. A statement missing from
+        subtracts incorrect judgements; `"all-or-nothing"` zeroes out on
+        any incorrect judgement, but still awards correct-count over total
+        for a response that is merely incomplete. A statement missing from
         `response` counts as an abstention, like an explicit `None`.
         """
         n = len(self.choices)
@@ -452,7 +541,7 @@ class TrueFalseQuestion(BaseQuestion[t.TrueFalseResponse]):
         )
 
         if self.grading == "all-or-nothing":
-            score = 1.0 if correct == n else 0.0
+            score = 0.0 if incorrect else correct / n
         elif self.grading == "partial":
             score = correct / n
         else:
@@ -503,52 +592,123 @@ class NumericQuestion(BaseQuestion[t.NumericResponse]):
         return QuestionScore(score=1.0 if correct else 0.0)
 
 
+class AnswerPattern(MdqModel):
+    """
+    One entry of an `accept`/`reject`/`preAccept`/`preReject` list.
+
+    A bare string in the document is shorthand for a pattern with no
+    feedback and no comment, so both spellings load into this model.
+    """
+
+    #: A regex when delimited by `/`, a lone `*` for the wildcard, and a
+    #: plain literal otherwise. Not compiled here: an uncompilable regex
+    #: must still load, so the linter can report `invalid-regex` on it.
+    pattern: Annotated[str, Field(min_length=1, pattern=r"\S")]
+    feedback: str | None = None
+    comment: str | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def _accept_bare_string(cls, value: Any) -> Any:
+        """Expand the bare-string shorthand into the object form."""
+        return {"pattern": value} if isinstance(value, str) else value
+
+    def matches(self, response: str) -> bool:
+        """
+        Report whether `response` satisfies this pattern.
+
+        A backtick-enclosed literal is compared verbatim (only its ends
+        trimmed); a bare literal is compared after normalization; a
+        regex sees the raw response and lets its own flags decide --
+        normalizing first would make a case-sensitive regex impossible.
+        """
+        pattern = self.pattern.strip()
+        if pattern == "*":
+            return True
+        if pattern.startswith("/"):
+            return RegexPattern(pattern).match(response)
+        if pattern.startswith("`") and pattern.endswith("`") and len(pattern) >= 2:
+            return response.strip() == pattern[1:-1].strip()
+        return normalize_text(response) == normalize_text(pattern)
+
+
 class ShortAnswerQuestion(BaseQuestion[t.TextResponse]):
     type: Literal["short-answer"] = "short-answer"
     one_of: list[str] | None = None
     regex: str | None = None
-    exact: bool = False
+
+    #: Grading rules. `accept` decides the score and wins over `reject`
+    #: when both match; `reject` only attaches feedback to answers known
+    #: to be wrong.
+    accept: list[AnswerPattern] | None = None
+    reject: list[AnswerPattern] | None = None
+
+    #: Pre-submission validators. A system warns the student before
+    #: accepting the answer; grading ignores them entirely.
+    pre_accept: list[AnswerPattern] | None = None
+    pre_reject: list[AnswerPattern] | None = None
 
     #: When true the question has no machine-checkable key and is graded
-    #: by hand, so `oneOf` and `regex` must both be absent.
+    #: by hand, so `oneOf`, `regex`, `accept` and `reject` must all be
+    #: absent.
     open_ended: bool = False
 
     def frontmatter(self, skip_defaults: bool = False) -> dict[str, Any]:
         data = super().frontmatter(skip_defaults=skip_defaults)
-        if self.exact:
-            data["exact"] = True
         if self.open_ended:
             data["openEnded"] = True
         return data
 
     def _render_body(self) -> Iterable[str]:
         yield ""
-        if self.regex is not None:
-            yield f"[short-answer]: /{self.regex}/"
+        tag = "[short-answer]"
+        if self.accept is not None or self.reject is not None:
+            yield from render_pattern_block("accept", self.accept)
+            yield from render_pattern_block("reject", self.reject)
+        elif self.regex is not None:
+            yield f"{tag}: /{self.regex}/"
         elif self.one_of is None:
-            yield "[short-answer]:"
+            yield f"{tag}:"
         elif len(self.one_of) == 1:
-            yield f"[short-answer]: {self.one_of[0]}"
+            yield f"{tag}: {self.one_of[0]}"
         else:
-            yield "[short-answer]:"
+            yield f"{tag}:"
             for answer in self.one_of:
                 yield f"* {answer}"
 
+    def effective_accept(self) -> list[AnswerPattern]:
+        """
+        Return the accept list grading uses, desugaring the legacy fields.
+
+        `accept` wins when set. Otherwise `regex` -- which still takes
+        precedence over `one_of` -- becomes a single delimited pattern.
+        """
+        if self.accept is not None:
+            return self.accept
+        if self.regex is not None:
+            return [AnswerPattern(pattern=f"/{self.regex}/")]
+        return [AnswerPattern(pattern=answer) for answer in self.one_of or []]
+
     def score_response(self, response: t.TextResponse) -> QuestionScore:
         """
-        Score 1 if `response` matches `regex` or `one_of`, else 0.
+        Score 1 if `response` matches an accept pattern, else 0.
 
         Raises:
-            NotAutoGradable: the question has no answer key.
+            NotAutoGradable: the question has no answer key. A question
+                carrying only `reject` lands here too: with nothing to
+                accept it could never mark an answer correct.
         """
-        if self.open_ended or (self.regex is None and not self.one_of):
+        accept = self.effective_accept()
+        if self.open_ended or not accept:
             raise NotAutoGradable(
                 "short-answer question has no machine-checkable answer key"
             )
-        correct = short_answer_matches(
-            response, one_of=self.one_of, regex=self.regex, exact=self.exact
+        correct = any(rule.matches(response) for rule in accept)
+        deciding = accept if correct else (self.reject or [])
+        return QuestionScore(
+            score=1.0 if correct else 0.0,
+            feedback=first_feedback(deciding, response),
         )
-        return QuestionScore(score=1.0 if correct else 0.0)
 
 
 class EssayQuestion(BaseQuestion[t.TextResponse]):
@@ -601,7 +761,10 @@ class ShortAnswerBlank(MdqModel):
     type: Literal["short-answer"] = "short-answer"
     one_of: list[str] | None = None
     regex: str | None = None
-    exact: bool = False
+    accept: list[AnswerPattern] | None = None
+    reject: list[AnswerPattern] | None = None
+    pre_accept: list[AnswerPattern] | None = None
+    pre_reject: list[AnswerPattern] | None = None
 
 
 class NumericBlank(MdqModel):
@@ -649,15 +812,21 @@ class FillInQuestion(BaseQuestion[t.FillInResponse]):
                         mark = f"{score * 100}%"
                     yield from render.yield_choice(choice, mark=mark)
             elif isinstance(blank, ShortAnswerBlank):
+                tag = f"^{blank.id}/short-answer"
                 if blank.regex is not None:
-                    yield f"[^{blank.id}/short-answer]: /{blank.regex}/"
-                else:
-                    answers = blank.one_of or [""]
-                    yield f"[^{blank.id}/short-answer]: {answers[0]}"
+                    yield f"[{tag}]: /{blank.regex}/"
+                elif blank.one_of:
+                    yield f"[{tag}]: {blank.one_of[0]}"
+                if blank.accept is not None or blank.reject is not None:
+                    if blank.regex is not None or blank.one_of:
+                        yield ""
+                    yield from render_pattern_block("accept", blank.accept, tag)
+                    yield from render_pattern_block("reject", blank.reject, tag)
             else:
                 yield render_numeric_tag(
                     blank.answer,
                     tag=f"[^{blank.id}/numeric]",
+                    unit=blank.unit,
                     tolerance=blank.tolerance,
                 )
 
@@ -697,14 +866,14 @@ class FillInQuestion(BaseQuestion[t.FillInResponse]):
                     sub_response,
                     one_of=blank.one_of,
                     regex=blank.regex,
-                    exact=blank.exact,
+                    accept=blank.accept,
                 )
                 scores.append(1.0 if correct else 0.0)
             else:
                 if sub_response is None:
                     scores.append(0.0)
                     continue
-                if isinstance(sub_response, dict):
+                if not isinstance(sub_response, int | float | Fraction):
                     raise ResponseError(
                         f"Response {sub_response!r} to blank {blank.id!r} is not numeric"
                     )
@@ -723,6 +892,134 @@ class FillInQuestion(BaseQuestion[t.FillInResponse]):
         return QuestionScore(score=score, feedback=feedback)
 
 
+#
+# Ordering
+#
+#: One line of an ordering question, as an `[indentation level, text]`
+#: pair. The level counts indentation units, not spaces, and the text
+#: carries no leading indentation of its own.
+OrderingLine = tuple[Annotated[int, Field(ge=0)], str]
+
+
+class OrderingAlternative(MdqModel):
+    """
+    One accepted or rejected ordering of a question's lines, with the
+    feedback shown to the student whose response matched it.
+    """
+
+    lines: list[OrderingLine]
+    feedback: str | None = None
+    comment: str | None = None
+
+
+class OrderingQuestion(BaseQuestion[t.OrderingResponse]):
+    """
+    A question asking the student to sort a list of lines.
+
+    `lines` is the answer key, always authored in the correct order; the
+    student is always shown it shuffled, together with `extra`.
+    """
+
+    type: Literal["ordering"] = "ordering"
+    lines: Annotated[list[OrderingLine], Field(min_length=2)]
+    extra: list[OrderingLine] = Field(default_factory=list)
+    accept: list[OrderingAlternative] = Field(default_factory=list)
+    reject: list[OrderingAlternative] = Field(default_factory=list)
+    content: OrderingContent = "text"
+    highlight: str | None = None
+    indentation: Indentation = "fixed"
+    unmatched: Unmatched = "manual"
+    normalizations: list[Normalization] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def check_accept_and_reject_disjoint(self) -> Self:
+        """
+        A question MUST NOT declare the same lines as both accepted and
+        rejected (ordering.md#additional-rules).
+
+        Raises:
+            ValueError: some `accept` entry holds the same lines as some
+                `reject` entry.
+        """
+        reject_lines = {tuple(alt.lines) for alt in self.reject}
+        for alt in self.accept:
+            if tuple(alt.lines) in reject_lines:
+                raise ValueError(
+                    "the same lines must not be declared in both accept and reject"
+                )
+        return self
+
+    def effective_normalizations(self) -> set[Normalization]:
+        """
+        The normalizations grading actually applies, including the
+        `dedent` that `indentation: lenient` implies.
+        """
+        normalizations = set(self.normalizations)
+        if self.indentation == "lenient":
+            normalizations.add("dedent")
+        return normalizations
+
+    def grades_indentation(self) -> bool:
+        """
+        Whether a line's indentation level takes part in the comparison.
+
+        Only `"strict"` without an effective `dedent` compares levels:
+        `dedent` flattens every level to 0, and `"lenient"` implies it.
+        """
+        return self.indentation == "strict" and "dedent" not in (
+            self.effective_normalizations()
+        )
+
+    def comparison_key(
+        self, lines: Iterable[OrderingLine]
+    ) -> tuple[OrderingLine, ...]:
+        """
+        The form `lines` takes when compared: this question's
+        normalizations applied, and every level flattened to 0 unless
+        indentation is graded.
+        """
+        graded = self.grades_indentation()
+        skip_blanks = "skip-blanks" in self.effective_normalizations()
+        key = []
+        for level, text in lines:
+            if skip_blanks and text.strip() == "":
+                continue
+            key.append((level if graded else 0, text))
+        return tuple(key)
+
+    def score_response(self, response: t.OrderingResponse) -> QuestionScore:
+        """
+        Score 1 for the answer key or an accepted ordering, 0 for a
+        rejected one, and otherwise whatever `unmatched` dictates.
+
+        Raises:
+            ResponseError: `response` is not a sequence of
+                `[indentation level, text]` pairs.
+            NotAutoGradable: nothing matched and `unmatched` is
+                "manual", so the response is for a human to score.
+        """
+        key = self.comparison_key(coerce_ordering_lines(response))
+
+        if key == self.comparison_key(self.lines):
+            return QuestionScore(score=1.0)
+
+        for alt in self.accept:
+            if key == self.comparison_key(alt.lines):
+                feedback = [alt.feedback] if alt.feedback else []
+                return QuestionScore(score=1.0, feedback=feedback)
+
+        for alt in self.reject:
+            if key == self.comparison_key(alt.lines):
+                feedback = [alt.feedback] if alt.feedback else []
+                return QuestionScore(score=0.0, feedback=feedback)
+
+        if self.unmatched == "incorrect":
+            return QuestionScore(score=0.0)
+        raise NotAutoGradable(
+            "ordering response matched no answer key and requires manual grading"
+        )
+
+
 Question = Annotated[
     MultipleChoiceQuestion
     | MultipleSelectionQuestion
@@ -730,7 +1027,8 @@ Question = Annotated[
     | NumericQuestion
     | ShortAnswerQuestion
     | EssayQuestion
-    | FillInQuestion,
+    | FillInQuestion
+    | OrderingQuestion,
     Field(discriminator="type"),
 ]
 
@@ -758,7 +1056,31 @@ class Exam(MdqModel):
     tags: list[str] | None = None
     meta: dict[str, object] | None = None
     penalty: PenaltyPolicy = "none"
+    grading: ExamGrading = "symmetric"
     questions: list[Question]
+
+    def model_post_init(self, __ctx):
+        for i, question in enumerate(self.questions):
+            if question.exam is not None:
+                raise ValueError(f"Question at index {i} already belongs to an exam")
+
+        for question in self.questions:
+            question._exam = weakref.ref(self)
+
+    def add_question(self, question: Question, position: int | None = None):
+        """
+        Add a question to the exam at `position`, or at the end if
+        `position` is `None`.
+
+        Question cannot be bound to another exam.
+        """
+        if question.exam not in (self, None):
+            raise ValueError("Question already belongs to another exam")
+        if position is None:
+            self.questions.append(question)
+        else:
+            self.questions.insert(position, question)
+        question._exam = weakref.ref(self)
 
 
 #
@@ -872,27 +1194,85 @@ def numeric_matches(
 
 
 def normalize_text(value: str) -> str:
-    """Fold case, normalize unicode, and collapse whitespace to single spaces."""
-    value = unicodedata.normalize("NFKC", value).casefold()
-    return re.sub(r"\s+", " ", value).strip()
+    """Fold case, strip accents, and collapse whitespace to single spaces."""
+    value = strip_accents(unicodedata.normalize("NFKC", value))
+    return re.sub(r"\s+", " ", value).casefold().strip()
+
+
+def render_pattern_block(
+    variant: str, patterns: list[AnswerPattern] | None, tag: str = "short-answer"
+) -> Iterable[str]:
+    """
+    Render one `accept` or `reject` pattern block.
+
+    `tag` names the owning construct: the default renders a standalone
+    question's `[short-answer/accept]`, while a fill-in blank passes
+    `^<id>/short-answer` to render `[^<id>/short-answer/accept]`.
+    """
+    if patterns is None:
+        return
+    yield f"[{tag}/{variant}]:"
+    for rule in patterns:
+        yield f"* {rule.pattern}"
+        if rule.feedback is not None:
+            yield f"  > {rule.feedback}"
+        if rule.comment is not None:
+            yield f"  ! {rule.comment}"
+    yield ""
+
+
+def coerce_ordering_lines(lines: t.OrderingResponse) -> list[OrderingLine]:
+    """
+    Read a JSON-shaped ordering response as `[level, text]` pairs.
+
+    Raises:
+        ResponseError: some entry is not an `[int, str]` pair.
+    """
+    result = []
+    for entry in lines:
+        if not isinstance(entry, list | tuple) or len(entry) != 2:
+            raise ResponseError(f"Line {entry!r} is not a [level, text] pair")
+        level, text = entry
+        if isinstance(level, bool) or not isinstance(level, int) or level < 0:
+            raise ResponseError(f"Line level {level!r} is not a non-negative int")
+        if not isinstance(text, str):
+            raise ResponseError(f"Line text {text!r} is not a string")
+        result.append((level, text))
+    return result
+
+
+def first_feedback(patterns: list[AnswerPattern], response: str) -> list[str]:
+    """
+    Return the feedback of the first matching pattern that defines one.
+
+    "First that matches AND carries feedback" is not the same as "first
+    that matches": an earlier match with no message is passed over.
+    """
+    for rule in patterns:
+        if rule.feedback is not None and rule.matches(response):
+            return [rule.feedback]
+    return []
 
 
 def short_answer_matches(
-    response: str, *, one_of: list[str] | None, regex: str | None, exact: bool
+    response: str,
+    *,
+    one_of: list[str] | None,
+    regex: str | None,
+    accept: list[AnswerPattern] | None = None,
 ) -> bool:
     """
-    Report whether `response` matches `regex` or `one_of`.
+    Report whether `response` matches `accept`, `regex` or `one_of`.
 
-    `regex` takes precedence when both are given. Matching is always a
-    full match, never a search.
+    `accept` wins over both legacy fields, and `regex` over `one_of`.
+    Matching is always a full match, never a search.
     """
-    candidate = response if exact else normalize_text(response)
-    if regex is not None:
-        return re.fullmatch(regex, candidate) is not None
-    targets = one_of or []
-    if not exact:
-        targets = [normalize_text(target) for target in targets]
-    return candidate in targets
+    if accept is None:
+        if regex is not None:
+            accept = [AnswerPattern(pattern=f"/{regex}/")]
+        else:
+            accept = [AnswerPattern(pattern=answer) for answer in one_of or []]
+    return any(rule.matches(response) for rule in accept)
 
 
 def render_numeric_tag(
