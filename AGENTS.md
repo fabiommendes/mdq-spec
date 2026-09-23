@@ -99,7 +99,7 @@ run lark-run <grammar_file> -t <example_file>` on it.
 | Typescript        | `mdq-js/`              | Typescript implementation of the MDQ parser and Components |
 | GLOSSARY          | `GLOSSARY.md`          | Glossary of terms                                          |
 | BACKLOG           | `BACKLOG.md`           | List of pending tasks and features for the project         |
-| Issue tracker     | `dev/issues/`          | Local issue tracker. Delete issue file when done.          |
+| Issue tracker     | `dev/issues/`          | Local issue tracker (not in git). Delete issue when done.  |
 | Specs             | `dev/specs/to-do`      | Specifications for features that should be implemented     |
 | Review            | `dev/specs/to-review/` | Specs that were implemented, but need review               |
 | Skills            | `skills/`              | Tell agents how to write mdq documents correctly           |
@@ -153,6 +153,51 @@ spec", or "the prompt", "prompt" or something along those lines. You should look
 for either of those files, read the spec, and then implement it accordingly.
 
 After done, delete `prompt.md` or move spec to `dev/specs/to-review/`.
+
+
+### Git layout
+
+This directory is one git repository that contains two
+[git subtrees](https://git-scm.com/book/en/v2/Git-Tools-Advanced-Merging#_subtree_merge).
+Every repository uses the `main` branch.
+
+| Directory | Git remote | GitHub repository        |
+| --------- | ---------- | ------------------------ |
+| `/`       | `origin`   | `fabiommendes/mdq-spec`  |
+| `mdq-py/` | `mdq-py`   | `fabiommendes/mdq-py`    |
+| `mdq-js/` | `mdq-js`   | `fabiommendes/mdq-js`    |
+
+Rules:
+
+- Always run git from this root directory. `mdq-py/` and `mdq-js/` are plain
+  directories: they have no `.git` of their own. Never run `git init` or
+  `git clone` inside them.
+- Commit here, as usual. If possible, keep each commit inside one subtree
+  (`mdq-py/` or `mdq-js/`). A commit that also touches the root is split
+  correctly, but its message then appears in the subtree repository and
+  describes changes that are not there.
+- `dev/` is ignored and stays local. Never commit it.
+- Push and pull only when the human asks. Push the root first, then each
+  subtree that changed:
+
+  ```bash
+  git push origin main
+  git subtree push --prefix=mdq-py mdq-py main
+  git subtree push --prefix=mdq-js mdq-js main
+  ```
+
+- To bring in commits made directly in a subtree repository, pull without
+  `--squash`, because the history is kept:
+
+  ```bash
+  git subtree pull --prefix=mdq-py mdq-py main
+  ```
+
+- `mdq-py` and `mdq-js` read `docs/`, `schema/` and `examples/` from this
+  root (for example, `mdq-py/mdq/testing.py`). A standalone clone of a subtree
+  repository cannot run its test suite.
+- The parent `codehood` repository ignores this directory. Later, it will
+  include it as a subtree.
 
 
 ### RTK
