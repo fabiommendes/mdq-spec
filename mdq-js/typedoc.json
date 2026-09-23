@@ -1,0 +1,10 @@
+{
+	"entryPoints": ["src/index.ts"],
+	"tsconfig": "tsconfig.json",
+	"out": "docs/api",
+	"exclude": ["**/tests/**", "**/examples/**", "**/*.spec.ts"],
+	"includeVersion": true,
+	"plugin": [],
+	"entryPointStrategy": "resolve",
+	"gitRevision": "main"
+}

@@ -1,0 +1,7 @@
+node_modules/
+.devenv/
+.devenv.flake.nix
+dist/
+coverage/
+.base-ast/
+.base-ast-cache/

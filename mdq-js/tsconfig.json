@@ -1,0 +1,32 @@
+{
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"lib": ["ES2022", "DOM"],
+		"declaration": true,
+		"declarationMap": true,
+		"sourceMap": true,
+		"strict": true,
+		"noImplicitReturns": true,
+		"noFallthroughCasesInSwitch": true,
+		"noUncheckedIndexedAccess": true,
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
+		"resolveJsonModule": true,
+		"verbatimModuleSyntax": true,
+		"forceConsistentCasingInFileNames": true,
+		"skipLibCheck": true,
+		"jsx": "preserve",
+		"jsxImportSource": "solid-js",
+		"types": ["node", "vitest/globals"],
+		"baseUrl": ".",
+		"paths": {
+			"@mdq": ["./src/index.ts"],
+			"@mdq/*": ["./src/*"]
+		},
+		"noEmit": true
+	},
+	"include": ["src/**/*.ts", "src/**/*.tsx", "tests/**/*.ts", "*.ts"],
+	"exclude": ["node_modules", "dist", "coverage"]
+}
