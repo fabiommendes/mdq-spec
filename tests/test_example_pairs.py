@@ -20,6 +20,7 @@ from typing import Any
 import pytest
 import yaml
 
+from mdq import schedule
 from mdq.testing import VALID_SOURCES, parsed_sibling, relative_id
 from mdq.validator import TYPE_SCHEMAS, load_document
 
@@ -34,7 +35,7 @@ _BLANK_DEF_RE = re.compile(r"^\[\^([^\]]+)\]:", re.MULTILINE)
 #: Frontmatter keys whose surface form is written differently from the
 #: parsed form, by a rule the spec spells out. Compared separately, or
 #: not at all.
-_SHORTHAND_KEYS = frozenset({"tags", "normalizations"})
+_SHORTHAND_KEYS = frozenset({"tags", "normalizations", "start", "duration"})
 
 
 def _split_frontmatter(text: str) -> tuple[dict[str, Any], str]:
@@ -122,6 +123,32 @@ def test_comma_delimited_tags_expand_to_the_parsed_list(source: Path) -> None:
     assert written == load_document(parsed_sibling(source)).get("tags"), (
         f"{relative_id(source)}: frontmatter tags do not expand to the parsed list"
     )
+
+
+@pytest.mark.parametrize("source", VALID_SOURCES, ids=_ids(VALID_SOURCES))
+def test_start_and_duration_normalize_to_the_parsed_canonical_form(
+    source: Path,
+) -> None:
+    """
+    docs/exam.md: `start`/`duration` keep their meaning but not their
+    spelling -- the frontmatter's surface form (an unquoted YAML
+    timestamp, a shorthand duration) must resolve to exactly what
+    `mdq.schedule.parse_*`/`format_*` would produce from it.
+    """
+    frontmatter, _ = _split_frontmatter(source.read_text(encoding="utf-8"))
+    parsed = load_document(parsed_sibling(source))
+
+    if "start" in frontmatter:
+        assert schedule.format_start(schedule.parse_start(frontmatter["start"])) == (
+            parsed.get("start")
+        ), f"{relative_id(source)}: frontmatter start does not match parsed start"
+
+    if "duration" in frontmatter:
+        assert schedule.format_duration(
+            schedule.parse_duration(frontmatter["duration"])
+        ) == parsed.get("duration"), (
+            f"{relative_id(source)}: frontmatter duration does not match parsed duration"
+        )
 
 
 @pytest.mark.parametrize("source", VALID_SOURCES, ids=_ids(VALID_SOURCES))

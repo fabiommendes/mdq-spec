@@ -45,7 +45,9 @@ import yaml
 from markdown_it import MarkdownIt
 from markdown_it.tree import SyntaxTreeNode as Node
 
+from . import schedule
 from .errors import IncompleteQuestion, MissingField, ParseError
+from .linter import LintWarning
 from .loaders import QuestionLoader
 from .types import (
     BlankDict,
@@ -195,7 +197,10 @@ INHERITED_FIELDS = ("locale", "author")
 # Public API
 #
 def parse_any(
-    text: str, loader: QuestionLoader | None = None
+    text: str,
+    loader: QuestionLoader | None = None,
+    *,
+    warnings: list[LintWarning] | None = None,
 ) -> QuestionDict | ExamDict:
     """
     Parse MDQ source into a JSON-like document, dispatching on its kind.
@@ -208,6 +213,9 @@ def parse_any(
         loader: Resolves an exam's `include:` references, if given. Only
             consulted when `text` turns out to be an exam; see
             `parse_exam`.
+        warnings: When given, an `unknown-frontmatter-key` `LintWarning`
+            is appended for every frontmatter key the parser does not
+            consume. Parsing never fails because of them.
 
     Returns:
         The parsed exam or question document, in the shape validated by
@@ -225,8 +233,8 @@ def parse_any(
     """
 
     if is_exam(text):
-        return parse_exam(text, loader=loader)
-    return parse_question(text)
+        return parse_exam(text, loader=loader, warnings=warnings)
+    return parse_question(text, warnings=warnings)
 
 
 def parse_file(
@@ -261,7 +269,12 @@ def parse_file(
     return parse_any(path.read_text(encoding="utf-8"), loader=loader)
 
 
-def parse_exam(text: str, loader: QuestionLoader | None = None) -> ExamDict:
+def parse_exam(
+    text: str,
+    loader: QuestionLoader | None = None,
+    *,
+    warnings: list[LintWarning] | None = None,
+) -> ExamDict:
     """
     Parse an exam document.
 
@@ -274,6 +287,11 @@ def parse_exam(text: str, loader: QuestionLoader | None = None) -> ExamDict:
         text: MDQ source text for an exam (i.e. one with an H1 title).
         loader: Resolves an `include:` reference to the question document
             it names. Includes are left unresolved when omitted.
+        warnings: When given, an `unknown-frontmatter-key` `LintWarning`
+            is appended for every frontmatter key the parser does not
+            consume -- at the exam's own top level (`path=(key,)`) and
+            inside each question block (`path=("questions", i, key)`,
+            0-based). Parsing never fails because of them.
 
     Returns:
         The parsed exam document, in the shape validated by
@@ -303,6 +321,9 @@ def parse_exam(text: str, loader: QuestionLoader | None = None) -> ExamDict:
     if frontmatter_text is not None:
         front = _load_frontmatter_yaml(frontmatter_text)
 
+    if warnings is not None:
+        warnings.extend(_unknown_frontmatter_warnings(front, EXAM_FRONTMATTER_KEYS))
+
     doc: dict[str, Any] = {"type": "exam"}
 
     lines = body.splitlines()
@@ -323,21 +344,23 @@ def parse_exam(text: str, loader: QuestionLoader | None = None) -> ExamDict:
         doc["title"] = heading
 
     # The frontmatter wins over the H1 for both fields it can also carry.
-    for key in (
-        "id",
-        "title",
-        "uuid",
-        "course",
-        "author",
-        "locale",
-        "meta",
-        "penalty",
-        "grading",
-    ):
+    for key in EXAM_PASSTHROUGH_KEYS:
         if key in front:
             doc[key] = str(front[key]) if key == "id" else front[key]
     if "tags" in front:
         doc["tags"] = _normalize_tags(front["tags"])
+    if "start" in front:
+        try:
+            doc["start"] = schedule.format_start(schedule.parse_start(front["start"]))
+        except ValueError as exc:
+            raise ParseError(f"exam start: {exc}") from exc
+    if "duration" in front:
+        try:
+            doc["duration"] = schedule.format_duration(
+                schedule.parse_duration(front["duration"])
+            )
+        except ValueError as exc:
+            raise ParseError(f"exam duration: {exc}") from exc
 
     instructions, blocks = _split_exam_blocks(lines[title_index + 1 :])
     if instructions:
@@ -345,13 +368,19 @@ def parse_exam(text: str, loader: QuestionLoader | None = None) -> ExamDict:
 
     questions: list[ExamEntryDict] = []
     for position, block in enumerate(blocks, start=1):
-        questions.append(_parse_exam_block(block, position, doc, loader))
+        questions.append(
+            _parse_exam_block(
+                block, position, doc, loader, warnings=warnings, index=position - 1
+            )
+        )
     doc["questions"] = questions
 
     return cast(ExamDict, doc)
 
 
-def parse_question(text: str) -> QuestionDict:
+def parse_question(
+    text: str, *, warnings: list[LintWarning] | None = None
+) -> QuestionDict:
     """
     Parse MDQ Markdown source into a question document dict, matching the
     shape validated by mdq.validator.validate_document.
@@ -359,6 +388,10 @@ def parse_question(text: str) -> QuestionDict:
     Args:
         text: MDQ source text for a single question, with or without YAML
             frontmatter.
+        warnings: When given, an `unknown-frontmatter-key` `LintWarning`
+            is appended for every frontmatter key the parser does not
+            consume, given the question's own type. Parsing never fails
+            because of them.
 
     Returns:
         The parsed question document, in the shape validated by
@@ -381,7 +414,11 @@ def parse_question(text: str) -> QuestionDict:
         'multiple-selection'
     """
 
-    return MDQParser(text).parse_question()
+    parser = MDQParser(text)
+    doc = parser.parse_question()
+    if warnings is not None:
+        warnings.extend(_question_frontmatter_warnings(parser.frontmatter, doc["type"]))
+    return doc
 
 
 def is_exam(text: str) -> bool:
@@ -444,6 +481,22 @@ def reconstruct_blocks(src: str) -> list[tuple[str, str]]:
 #
 # Implementation
 #
+
+#: Frontmatter keys every question type accepts, read by
+#: `MDQParser.apply_common_frontmatter` -- except `type`, which is read
+#: directly in `MDQParser.parse_question` to pick the parsing path before
+#: any state exists to apply frontmatter onto.
+COMMON_QUESTION_KEYS = frozenset(
+    {"type", "id", "uuid", "title", "author", "locale", "tags", "meta", "weight"}
+)
+
+#: The question types that choose a grading strategy and may be shuffled,
+#: read by `MDQParser.apply_type_specific_frontmatter`. Mirrors
+#: `mdq.models.GradedQuestionType`, which cannot be imported here since
+#: `mdq.models` imports this module.
+GRADED_QUESTION_TYPES = ("multiple-choice", "multiple-selection", "true-false", "fill-in")
+
+
 @dataclass(slots=True)
 class RawChoice:
     value: str
@@ -946,6 +999,8 @@ class MDQParser:
         m = SHORT_ANSWER_RE.match(tag_text)
         assert m
         variant = m.group("variant")
+        if "diacritics" in self.frontmatter:
+            self.state["diacritics"] = self.frontmatter["diacritics"]
         if variant in ("accept", "reject"):
             self.parse_short_answer_pattern_blocks(tag_text)
             return
@@ -1099,6 +1154,8 @@ class MDQParser:
         front = self.frontmatter
         if "shuffle" in front:
             self.state["shuffle"] = front["shuffle"]
+        if "diacritics" in front:
+            self.state["diacritics"] = front["diacritics"]
 
         blanks: dict[str, BlankDict] = {}
         text = tag_text
@@ -1278,9 +1335,10 @@ class MDQParser:
         return remaining
 
     def apply_type_specific_frontmatter(self, question_type: str) -> None:
-        if question_type in ("multiple-choice", "multiple-selection", "fill-in"):
-            if "shuffle" in self.frontmatter and "shuffle" not in self.state:
-                self.state["shuffle"] = self.frontmatter["shuffle"]
+        if question_type in GRADED_QUESTION_TYPES:
+            for key in ("shuffle", "grading"):
+                if key in self.frontmatter and key not in self.state:
+                    self.state[key] = self.frontmatter[key]
 
     #
     # Main driver
@@ -1450,9 +1508,79 @@ def _extract_comment(frontmatter_text: str) -> str | None:
     return " ".join(comment_lines) if comment_lines else None
 
 
+class _FrontmatterLoader(yaml.SafeLoader):
+    """
+    `yaml.SafeLoader`, minus YAML 1.1's base-60 int/float resolution.
+
+    PyYAML's `SafeLoader` reads an unquoted `1:30` as the sexagesimal
+    integer `90` (`1*60 + 30`) -- a YAML 1.1 rule that YAML 1.2 dropped.
+    MDQ needs `1:30` to stay the string `"1:30"` so `HH:MM` durations
+    need no quoting in the frontmatter (see `mdq.schedule`), so this
+    loader keeps every other implicit resolver -- timestamps included --
+    and only replaces `int`/`float`'s regex with one that drops the
+    `H:MM[:SS]` alternative.
+    """
+
+
+#: `tag:yaml.org,2002:int`'s pattern, minus the sexagesimal alternative.
+_INT_RE = re.compile(
+    r"""^(?:[-+]?0b[0-1_]+
+        |[-+]?0[0-7_]+
+        |[-+]?(?:0|[1-9][0-9_]*)
+        |[-+]?0x[0-9a-fA-F_]+)$""",
+    re.VERBOSE,
+)
+
+#: `tag:yaml.org,2002:float`'s pattern, minus the sexagesimal alternative.
+_FLOAT_RE = re.compile(
+    r"""^(?:[-+]?(?:[0-9][0-9_]*)\.[0-9_]*(?:[eE][-+][0-9]+)?
+        |\.[0-9][0-9_]*(?:[eE][-+][0-9]+)?
+        |[-+]?\.(?:inf|Inf|INF)
+        |\.(?:nan|NaN|NAN))$""",
+    re.VERBOSE,
+)
+
+_FrontmatterLoader.yaml_implicit_resolvers = {
+    first_char: [
+        (tag, _INT_RE)
+        if tag == "tag:yaml.org,2002:int"
+        else (tag, _FLOAT_RE)
+        if tag == "tag:yaml.org,2002:float"
+        else (tag, regexp)
+        for tag, regexp in resolvers
+    ]
+    for first_char, resolvers in yaml.SafeLoader.yaml_implicit_resolvers.items()
+}
+
+
 def _load_frontmatter_yaml(text: str) -> dict[str, Any]:
-    data = yaml.safe_load(text)
+    data = yaml.load(text, Loader=_FrontmatterLoader)
     return data if isinstance(data, dict) else {}
+
+
+def _unknown_frontmatter_warnings(
+    front: Mapping[str, Any],
+    known: frozenset[str],
+    path_prefix: tuple[str | int, ...] = (),
+) -> list[LintWarning]:
+    """
+    One `unknown-frontmatter-key` `LintWarning` per key of `front` that is
+    not in `known`, in frontmatter order.
+
+    The parser is the only component that knows which keys it actually
+    consumes, so it is the one reporting the ones it doesn't -- a typo
+    like `auther:`, or a field that simply does not exist, otherwise
+    vanishes without a trace.
+    """
+    return [
+        LintWarning(
+            rule="unknown-frontmatter-key",
+            path=path_prefix + (key,),
+            message=f"{key!r} is not a recognized frontmatter field and is ignored",
+        )
+        for key in front
+        if key not in known
+    ]
 
 
 #
@@ -1467,6 +1595,41 @@ def _copy_pattern_lists(front: Mapping[str, Any], doc: Any) -> None:
     for key in PATTERN_LIST_KEYS:
         if key in front and key not in doc:
             doc[key] = front[key]
+
+
+#: Per-type frontmatter keys, one entry per question type that reads
+#: fields of its own beyond `COMMON_QUESTION_KEYS`. Each set is declared
+#: next to the method that actually consumes it:
+#:
+#: * multiple-choice/multiple-selection/true-false/fill-in `shuffle` and
+#:   `grading`: `MDQParser.apply_type_specific_frontmatter` (fill-in also
+#:   reads its own `shuffle` and `diacritics` directly in
+#:   `MDQParser.parse_fill_in_body`).
+#: * essay `input`/`highlight`: `MDQParser.parse_essay_body`.
+#: * ordering: `MDQParser.parse_ordering_body`.
+#: * short-answer `openEnded`/`regex`/`diacritics`/pattern lists:
+#:   `MDQParser.parse_short_answer_body` and `_copy_pattern_lists`.
+#: * numeric `domain`/`decimalPlaces`/`unit`: `MDQParser.parse_numeric_body`.
+TYPE_QUESTION_KEYS: dict[str, frozenset[str]] = {
+    "multiple-choice": frozenset({"shuffle", "grading"}),
+    "multiple-selection": frozenset({"shuffle", "grading"}),
+    "true-false": frozenset({"shuffle", "grading"}),
+    "fill-in": frozenset({"shuffle", "grading", "diacritics"}),
+    "essay": frozenset({"input", "highlight"}),
+    "ordering": frozenset(
+        {"content", "highlight", "indentation", "unmatched", "normalizations"}
+    ),
+    "short-answer": frozenset({"openEnded", "regex", "diacritics", *PATTERN_LIST_KEYS}),
+    "numeric": frozenset({"domain", "decimalPlaces", "unit"}),
+}
+
+
+def _question_frontmatter_warnings(
+    front: Mapping[str, Any], question_type: str
+) -> list[LintWarning]:
+    """`unknown-frontmatter-key` warnings for one question's frontmatter."""
+    known = COMMON_QUESTION_KEYS | TYPE_QUESTION_KEYS.get(question_type, frozenset())
+    return _unknown_frontmatter_warnings(front, known)
 
 
 def _pattern_entry(item: RawChoice) -> str | PatternDict:
@@ -1757,6 +1920,38 @@ def _normalize_tags(tags: Any) -> list[str]:
 #
 # Exams
 #
+
+#: Simple frontmatter fields copied verbatim into the exam document by
+#: `parse_exam`; the frontmatter wins over the H1 for `id`/`title`.
+#: `tags`, `start` and `duration` need their own normalization/parsing and
+#: are handled separately there.
+EXAM_PASSTHROUGH_KEYS = (
+    "id",
+    "title",
+    "uuid",
+    "course",
+    "description",
+    "author",
+    "locale",
+    "meta",
+    "penalty",
+    "grading",
+)
+
+#: Every frontmatter key an exam accepts. `type` has no effect of its own
+#: -- an exam is recognized by its H1 title, not by declaring `type:
+#: exam` (docs/exam.md) -- but is accepted, not flagged as a mistake.
+EXAM_FRONTMATTER_KEYS = frozenset(EXAM_PASSTHROUGH_KEYS) | {"tags", "start", "duration", "type"}
+
+#: Frontmatter keys a `===`/`---`-delimited block's own YAML accepts when
+#: it names an `include:` rather than an inline question (docs/exam.md,
+#: "Question block"): nothing else, since an include only has an identity
+#: to name. A block with no `include:` is an inline question instead, and
+#: its frontmatter is checked against `COMMON_QUESTION_KEYS`/
+#: `TYPE_QUESTION_KEYS` like any other question's, by `parse_question`.
+EXAM_BLOCK_FRONTMATTER_KEYS = frozenset({"include"})
+
+
 def _split_exam_blocks(lines: list[str]) -> tuple[str | None, list[list[str]]]:
     """
     Split the text below the title into (instructions, question blocks).
@@ -1902,8 +2097,16 @@ def _parse_exam_block(
     position: int,
     exam: dict[str, Any],
     loader: QuestionLoader | None,
+    *,
+    warnings: list[LintWarning] | None = None,
+    index: int = 0,
 ) -> ExamEntryDict:
-    """Turn one question block into an entry of the exam's `questions`."""
+    """
+    Turn one question block into an entry of the exam's `questions`.
+
+    `index` is the block's 0-based position, used only to path-prefix any
+    `unknown-frontmatter-key` warning as `("questions", index, key)`.
+    """
 
     # Drop a leading `===`; what follows is ordinary question source.
     if lines and lines[0].rstrip() == SEPARATOR:
@@ -1915,6 +2118,12 @@ def _parse_exam_block(
 
     if "include" in front:
         target = str(front["include"])
+        if warnings is not None:
+            warnings.extend(
+                _unknown_frontmatter_warnings(
+                    front, EXAM_BLOCK_FRONTMATTER_KEYS, ("questions", index)
+                )
+            )
         if loader is None:
             return IncludeDict(include=target)
         question: dict[str, Any] = dict(loader.load(target))
@@ -1924,7 +2133,17 @@ def _parse_exam_block(
         _inherit_from_exam(question, exam)
         return cast(QuestionDict, question)
 
-    parsed_question: dict[str, Any] = dict(parse_question(source))
+    block_warnings: list[LintWarning] = []
+    parsed_question: dict[str, Any] = dict(
+        parse_question(source, warnings=block_warnings if warnings is not None else None)
+    )
+    if warnings is not None:
+        warnings.extend(
+            LintWarning(
+                rule=w.rule, message=w.message, path=("questions", index) + w.path
+            )
+            for w in block_warnings
+        )
     parsed_question.setdefault("id", f"q{position}")
     _inherit_from_exam(parsed_question, exam)
     return cast(QuestionDict, parsed_question)

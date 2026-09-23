@@ -1,9 +1,0 @@
-id: num-unit
-title: Water in a litre
-type: numeric
-stem: How many grams of water are there in a litre?
-answer: 1000
-unit: g
-domain: integer
-tolerance:
-  absolute: 5

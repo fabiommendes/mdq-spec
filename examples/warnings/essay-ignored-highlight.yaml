@@ -1,5 +1,0 @@
-# `highlight` is ignored unless the input is `code`.
-type: essay
-stem: Explain what a context switch is.
-input: text
-highlight: python

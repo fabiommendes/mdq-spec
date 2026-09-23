@@ -13,9 +13,12 @@ short-answer tests cover the legacy `oneOf`/`regex` fields.
 
 from __future__ import annotations
 
+import unicodedata
 from pathlib import Path
 
 import pytest
+from hypothesis import given
+from hypothesis import strategies as st
 
 from mdq import models
 from mdq.errors import NotAutoGradable, ParseError
@@ -444,3 +447,141 @@ def test_new_short_answer_fixture_round_trips(source: Path) -> None:
     got = parse_file(source)
     expected = load_document(parsed_sibling(source))
     assert got == expected
+
+
+#
+# Diacritics (docs/question-types/short-answer.md § Diacritics)
+#
+def test_matches_defaults_to_fold_when_diacritics_is_omitted() -> None:
+    pattern = models.AnswerPattern(pattern="Maceió")
+    assert pattern.matches("maceio") is True
+
+
+@pytest.mark.parametrize(
+    "response",
+    ["maceio", "MACEIO", " Maceio ", "maceió", "MACEIÓ"],
+    ids=["stripped-lower", "stripped-upper", "stripped-padded", "accented-lower", "accented-upper"],
+)
+def test_fold_accepts_the_accent_stripped_and_the_accented_form(response: str) -> None:
+    pattern = models.AnswerPattern(pattern="Maceió")
+    assert pattern.matches(response, diacritics="fold") is True
+
+
+@pytest.mark.parametrize(
+    "response",
+    ["maceió", " MACEIÓ ", "maceió"],
+    ids=["lower", "padded-upper", "lower-again"],
+)
+def test_keep_still_folds_case_and_whitespace(response: str) -> None:
+    pattern = models.AnswerPattern(pattern="Maceió")
+    assert pattern.matches(response, diacritics="keep") is True
+
+
+def test_keep_rejects_a_response_missing_the_diacritic() -> None:
+    pattern = models.AnswerPattern(pattern="Maceió")
+    assert pattern.matches("Maceio", diacritics="keep") is False
+    assert pattern.matches("maceio", diacritics="keep") is False
+
+
+def test_keep_still_matches_across_nfd_and_nfc_forms() -> None:
+    """`í` as one code point (NFC) and as `i` plus a combining acute (NFD)
+    compare equal under `keep`: only accent *stripping* is skipped, not
+    Unicode normalization."""
+    nfc_pattern = models.AnswerPattern(pattern="Maceió")
+    nfd_response = unicodedata.normalize("NFD", "Maceió")
+    assert nfd_response != "Maceió"
+    assert nfc_pattern.matches(nfd_response, diacritics="keep") is True
+
+    nfd_pattern = models.AnswerPattern(pattern=unicodedata.normalize("NFD", "Maceió"))
+    assert nfd_pattern.matches("Maceió", diacritics="keep") is True
+
+
+@pytest.mark.parametrize("diacritics", ["fold", "keep"])
+def test_regex_pattern_ignores_diacritics_and_follows_its_own_n_flag(
+    diacritics: models.Diacritics,
+) -> None:
+    without_n = models.AnswerPattern(pattern="/Maceió/")
+    assert without_n.matches("Maceió", diacritics=diacritics) is True
+    assert without_n.matches("Maceio", diacritics=diacritics) is False
+
+    with_n = models.AnswerPattern(pattern="/Maceio/n")
+    assert with_n.matches("Maceió", diacritics=diacritics) is True
+    assert with_n.matches("Maceio", diacritics=diacritics) is True
+
+
+@pytest.mark.parametrize("diacritics", ["fold", "keep"])
+def test_backtick_exact_pattern_ignores_diacritics(diacritics: models.Diacritics) -> None:
+    pattern = models.AnswerPattern(pattern="`Maceió`")
+    assert pattern.matches("Maceió", diacritics=diacritics) is True
+    assert pattern.matches("Maceio", diacritics=diacritics) is False
+    assert pattern.matches("maceió", diacritics=diacritics) is False
+
+
+@pytest.mark.parametrize("diacritics", ["fold", "keep"])
+def test_wildcard_pattern_ignores_diacritics(diacritics: models.Diacritics) -> None:
+    pattern = models.AnswerPattern(pattern="*")
+    assert pattern.matches("anything at all", diacritics=diacritics) is True
+
+
+def test_short_answer_question_keeps_diacritics_when_scoring() -> None:
+    question = models.ShortAnswerQuestion(
+        stem="Name a state in the Brazilian Northeast.",
+        accept=["Ceará"],
+        diacritics="keep",
+    )
+    assert question.score_response("Ceará").score == 1.0
+    assert question.score_response(" ceará ").score == 1.0
+    assert question.score_response("Ceara").score == 0.0
+
+
+def test_short_answer_question_folds_diacritics_by_default() -> None:
+    question = models.ShortAnswerQuestion(
+        stem="Name a state in the Brazilian Northeast.", accept=["Ceará"]
+    )
+    assert question.score_response("Ceara").score == 1.0
+
+
+def test_short_answer_reject_feedback_uses_the_questions_diacritics_value() -> None:
+    """Mirrors the doc's example (accept `Brasília` / reject `Brasilia`),
+    but under `keep` the accept rule no longer swallows the unaccented
+    response, so the reject rule's feedback surfaces instead of being a
+    no-op."""
+    question = models.ShortAnswerQuestion(
+        stem="What is the capital of Brazil?",
+        accept=["Brasília"],
+        diacritics="keep",
+        reject=[
+            models.AnswerPattern(
+                pattern="Brasilia", feedback="You forgot the accent on the i."
+            ),
+            models.AnswerPattern(pattern="*", feedback="Sorry, that is not correct."),
+        ],
+    )
+    result = question.score_response("Brasilia")
+    assert result.score == 0.0
+    assert result.feedback == ["You forgot the accent on the i."]
+
+
+def test_first_feedback_honours_the_diacritics_keyword() -> None:
+    patterns = [
+        models.AnswerPattern(pattern="Maceió", feedback="Exact match."),
+        models.AnswerPattern(pattern="*", feedback="Fallback."),
+    ]
+    assert models.first_feedback(patterns, "Maceio", diacritics="keep") == ["Fallback."]
+    assert models.first_feedback(patterns, "Maceio", diacritics="fold") == ["Exact match."]
+
+
+@given(
+    st.text(
+        alphabet=st.sampled_from("aeiouAEIOU áéíóúâêôãõàÁÉÍÓÚÂÊÔÃÕÀ "),
+        min_size=1,
+        max_size=15,
+    ).filter(lambda s: s.strip())
+)
+def test_fold_always_matches_a_patterns_accent_stripped_form(word: str) -> None:
+    """Property from the handoff: under `fold`, a pattern and its
+    accent-stripped form always match."""
+    stripped = unicodedata.normalize("NFKD", word)
+    stripped = "".join(ch for ch in stripped if not unicodedata.combining(ch))
+    pattern = models.AnswerPattern(pattern=word)
+    assert pattern.matches(stripped, diacritics="fold") is True

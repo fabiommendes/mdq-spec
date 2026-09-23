@@ -14,7 +14,7 @@ import yaml
 from jsonschema.exceptions import SchemaError
 from jsonschema.validators import validator_for
 
-SCHEMA_DIR = Path(__file__).resolve().parent.parent / "schema"
+SCHEMA_DIR = Path(__file__).resolve().parent.parent.parent / "schema"
 SCHEMA_FILES = sorted(SCHEMA_DIR.glob("*.yaml"))
 SCHEMA_FILE_IDS = [path.name for path in SCHEMA_FILES]
 

@@ -19,6 +19,16 @@ Rules are split across two verification levels:
 * ``strict`` -- everything in ``default``, plus advisory/stylistic rules
   where the specification says an implementation MAY complain: redundant
   regex anchors, no-op fields, locale mismatches.
+
+One ``default``-level rule, ``unknown-frontmatter-key``, is not implemented
+here: an already-parsed document has no way to see a frontmatter key the
+parser dropped while building it. It is instead emitted by
+``mdq.parser`` (``parse_question``/``parse_exam``/``parse_any``, via an
+optional ``warnings`` sink) for every frontmatter key it does not
+recognize -- a typo like ``auther:``, or a field that never existed --
+and merged into ``ValidationResult.warnings`` by
+``mdq.validator.validate_file`` for ``.mdq.md`` sources, alongside the
+warnings ``lint_document`` produces here.
 """
 
 from __future__ import annotations

@@ -35,14 +35,23 @@ from __future__ import annotations
 import re
 import unicodedata
 import weakref
+from datetime import date, datetime, timedelta
 from fractions import Fraction
 from typing import Annotated, Any, Iterable, Literal, Mapping, Self
 
 import opt
-from pydantic import BaseModel, ConfigDict, Field, RootModel, model_validator
+from pydantic import (
+    BaseModel,
+    BeforeValidator,
+    ConfigDict,
+    Field,
+    PlainSerializer,
+    RootModel,
+    model_validator,
+)
 from pydantic.alias_generators import to_camel
 
-from . import parser, render
+from . import parser, render, schedule
 from . import types as t
 from .errors import NotAutoGradable, ResponseError
 from .regex import RegexPattern
@@ -78,7 +87,10 @@ __all__ = [
     "GradingStrategy",
     "GradedQuestionType",
     "ExamGrading",
+    "Diacritics",
     "PenaltyPolicy",
+    "ExamStart",
+    "ExamDuration",
     "NumericDomain",
     "EssayInput",
     "OrderingContent",
@@ -127,9 +139,12 @@ class MdqModel(BaseModel):
             exclude_defaults=True,
         )
         # `type` is a defaulted Literal on every discriminated model, so
-        # `exclude_defaults` drops it. It is the one default worth keeping:
-        # without it the dict no longer says which schema it validates
-        # against, and no discriminated union can read it back.
+        # `exclude_defaults` drops it -- on `self` and on every nested
+        # model `model_dump` recurses into (a question inside an exam,
+        # say). It is the one default worth keeping: without it the dict
+        # no longer says which schema it validates against, and no
+        # discriminated union can read it back.
+        _reinject_type_discriminators(self, data)
         if "type" in type(self).model_fields:
             data = {"type": getattr(self, "type"), **data}
         return data
@@ -165,7 +180,10 @@ class MdqModel(BaseModel):
 GradingStrategy = Literal["symmetric", "partial", "all-or-nothing"]
 
 #: The question types that choose a grading strategy. The other types
-#: grade by a fixed rule and take no `grading` field.
+#: grade by a fixed rule and take no `grading` field. On these types,
+#: `grading` is `None` when the question declares none, so the exam's
+#: `grading` applies to it, and `symmetric` applies when neither does.
+#: An explicit `symmetric` is kept, since the exam cannot override it.
 GradedQuestionType = Literal[
     "multiple-choice",
     "multiple-selection",
@@ -179,11 +197,31 @@ GradedQuestionType = Literal[
 #: the exam's.
 ExamGrading = GradingStrategy | dict[GradedQuestionType, GradingStrategy]
 
+#: How inexact literals treat diacritics: `fold` strips them before
+#: comparing, `keep` preserves them. Regexes, exact literals and the `*`
+#: wildcard ignore it (docs/question-types/short-answer.md § Diacritics).
+Diacritics = Literal["fold", "keep"]
+
 #: An exam's policy for whether a negative question score survives.
 #: Questions never clamp their own score -- this is the only place
 #: clamping happens (see
 #: docs/adr/0001-score-scale-and-exam-level-clamping.md).
 PenaltyPolicy = Literal["none", "capped", "full"]
+
+#: When an exam begins: a date, or a date-time that may carry a UTC
+#: offset. Serialized in canonical ISO 8601 form.
+ExamStart = Annotated[
+    datetime | date,
+    BeforeValidator(schedule.parse_start),
+    PlainSerializer(schedule.format_start),
+]
+
+#: How long an exam lasts. Serialized as a canonical ISO 8601 duration.
+ExamDuration = Annotated[
+    timedelta,
+    BeforeValidator(schedule.parse_duration),
+    PlainSerializer(schedule.format_duration),
+]
 
 NumericDomain = Literal["integer", "decimal", "fraction"]
 
@@ -292,6 +330,15 @@ class BaseQuestion[R](MdqModel):
         copy._exam = None  # unbind the copy from the exam.
         return copy
 
+    def __eq__(self, other: object) -> bool:
+        # `_exam` is a back-reference, not part of the question's value.
+        # Pydantic compares private attributes, and a weakref compares its
+        # referents, so including it would compare the owning exams, whose
+        # questions point back to them -- infinite recursion.
+        if not isinstance(other, BaseQuestion):
+            return NotImplemented
+        return type(self) is type(other) and self.__dict__ == other.__dict__
+
     #: How much this question counts towards its exam. An exam entry may
     #: override it, and resolution applies that override here, so the
     #: value on a resolved question is always the winning one.
@@ -388,13 +435,13 @@ class MultipleChoiceQuestion(BaseQuestion[t.MultipleChoiceResponse]):
     choices: list[ScoredChoice]
     type: Literal["multiple-choice"] = "multiple-choice"
     shuffle: bool | None = None
-    grading: GradingStrategy = "symmetric"
+    grading: GradingStrategy | None = None
 
     def frontmatter(self, skip_defaults: bool = False) -> dict[str, Any]:
         data = super().frontmatter(skip_defaults=skip_defaults)
         if self.shuffle is not None:
             data["shuffle"] = self.shuffle
-        if self.grading != "symmetric":
+        if self.grading is not None:
             data["grading"] = self.grading
         return data
 
@@ -435,7 +482,7 @@ class MultipleChoiceQuestion(BaseQuestion[t.MultipleChoiceResponse]):
         that declare none, so picking at random averages zero, then clamps
         the result to [-1, 0].
         """
-        if self.grading != "symmetric":
+        if self.grading not in (None, "symmetric"):
             return 0.0
 
         declared = [c.score for c in self.choices if c.score is not None]
@@ -449,13 +496,13 @@ class MultipleSelectionQuestion(BaseQuestion[t.MultipleSelectionResponse]):
     choices: Annotated[list[BooleanChoice], Field(min_length=2)]
     type: Literal["multiple-selection"] = "multiple-selection"
     shuffle: bool | None = None
-    grading: GradingStrategy = "symmetric"
+    grading: GradingStrategy | None = None
 
     def frontmatter(self, skip_defaults: bool = False) -> dict[str, Any]:
         data = super().frontmatter(skip_defaults=skip_defaults)
         if self.shuffle is not None:
             data["shuffle"] = self.shuffle
-        if self.grading != "symmetric":
+        if self.grading is not None:
             data["grading"] = self.grading
         return data
 
@@ -499,13 +546,13 @@ class TrueFalseQuestion(BaseQuestion[t.TrueFalseResponse]):
     choices: Annotated[list[Statement], Field(min_length=2)]
     type: Literal["true-false"] = "true-false"
     shuffle: bool | None = None
-    grading: GradingStrategy = "symmetric"
+    grading: GradingStrategy | None = None
 
     def frontmatter(self, skip_defaults: bool = False) -> dict[str, Any]:
         data = super().frontmatter(skip_defaults=skip_defaults)
         if self.shuffle is not None:
             data["shuffle"] = self.shuffle
-        if self.grading != "symmetric":
+        if self.grading is not None:
             data["grading"] = self.grading
         return data
 
@@ -613,14 +660,17 @@ class AnswerPattern(MdqModel):
         """Expand the bare-string shorthand into the object form."""
         return {"pattern": value} if isinstance(value, str) else value
 
-    def matches(self, response: str) -> bool:
+    def matches(self, response: str, *, diacritics: Diacritics = "fold") -> bool:
         """
         Report whether `response` satisfies this pattern.
 
         A backtick-enclosed literal is compared verbatim (only its ends
-        trimmed); a bare literal is compared after normalization; a
-        regex sees the raw response and lets its own flags decide --
-        normalizing first would make a case-sensitive regex impossible.
+        trimmed); a bare literal is compared after normalization, which
+        `diacritics` tunes: `"fold"` strips diacritics as it always did,
+        `"keep"` leaves them so `Maceió` rejects `Maceio`; a regex sees
+        the raw response and lets its own flags decide -- normalizing
+        first would make a case-sensitive regex impossible, and neither
+        it nor the backtick/`*` forms consult `diacritics` at all.
         """
         pattern = self.pattern.strip()
         if pattern == "*":
@@ -629,7 +679,9 @@ class AnswerPattern(MdqModel):
             return RegexPattern(pattern).match(response)
         if pattern.startswith("`") and pattern.endswith("`") and len(pattern) >= 2:
             return response.strip() == pattern[1:-1].strip()
-        return normalize_text(response) == normalize_text(pattern)
+        return normalize_text(response, diacritics=diacritics) == normalize_text(
+            pattern, diacritics=diacritics
+        )
 
 
 class ShortAnswerQuestion(BaseQuestion[t.TextResponse]):
@@ -653,10 +705,15 @@ class ShortAnswerQuestion(BaseQuestion[t.TextResponse]):
     #: absent.
     open_ended: bool = False
 
+    #: How inexact literals treat diacritics, in every pattern list.
+    diacritics: Diacritics = "fold"
+
     def frontmatter(self, skip_defaults: bool = False) -> dict[str, Any]:
         data = super().frontmatter(skip_defaults=skip_defaults)
         if self.open_ended:
             data["openEnded"] = True
+        if self.diacritics != "fold":
+            data["diacritics"] = self.diacritics
         return data
 
     def _render_body(self) -> Iterable[str]:
@@ -703,11 +760,13 @@ class ShortAnswerQuestion(BaseQuestion[t.TextResponse]):
             raise NotAutoGradable(
                 "short-answer question has no machine-checkable answer key"
             )
-        correct = any(rule.matches(response) for rule in accept)
+        correct = any(
+            rule.matches(response, diacritics=self.diacritics) for rule in accept
+        )
         deciding = accept if correct else (self.reject or [])
         return QuestionScore(
             score=1.0 if correct else 0.0,
-            feedback=first_feedback(deciding, response),
+            feedback=first_feedback(deciding, response, diacritics=self.diacritics),
         )
 
 
@@ -787,14 +846,19 @@ class FillInQuestion(BaseQuestion[t.FillInResponse]):
     blanks: list[Blank]
     type: Literal["fill-in"] = "fill-in"
     shuffle: bool | None = None
-    grading: GradingStrategy = "symmetric"
+    grading: GradingStrategy | None = None
+
+    #: How inexact literals treat diacritics, in every short answer blank.
+    diacritics: Diacritics = "fold"
 
     def frontmatter(self, skip_defaults: bool = False) -> dict[str, Any]:
         data = super().frontmatter(skip_defaults=skip_defaults)
         if self.shuffle is not None:
             data["shuffle"] = self.shuffle
-        if self.grading != "symmetric":
+        if self.grading is not None:
             data["grading"] = self.grading
+        if self.diacritics != "fold":
+            data["diacritics"] = self.diacritics
         return data
 
     def _render_body(self) -> Iterable[str]:
@@ -867,6 +931,7 @@ class FillInQuestion(BaseQuestion[t.FillInResponse]):
                     one_of=blank.one_of,
                     regex=blank.regex,
                     accept=blank.accept,
+                    diacritics=self.diacritics,
                 )
                 scores.append(1.0 if correct else 0.0)
             else:
@@ -1076,6 +1141,7 @@ class Exam(MdqModel):
     id: str | None = None
     uuid: str | None = None
     title: str | None = None
+    description: str | None = None
     course: str | None = None
     author: str | None = None
     locale: str | None = None
@@ -1084,6 +1150,8 @@ class Exam(MdqModel):
     meta: dict[str, object] | None = None
     penalty: PenaltyPolicy = "none"
     grading: ExamGrading = "symmetric"
+    start: ExamStart | None = None
+    duration: ExamDuration | None = None
     questions: list[Question]
 
     def model_post_init(self, __ctx):
@@ -1161,6 +1229,36 @@ class ExamScore(MdqModel):
 #
 # Utilities
 #
+def _reinject_type_discriminators(model: BaseModel, data: dict[str, Any]) -> None:
+    """
+    Walk `model` and its already-dumped `data` in lockstep, re-adding the
+    `type` discriminator `exclude_defaults` stripped from any nested
+    `MdqModel` (a question inside an exam, a blank inside a fill-in).
+
+    `model_dump`'s recursion applies `exclude_defaults` at every level, not
+    just the top one `MdqModel.to_dict` patches up by hand, so a nested
+    discriminated model loses `type` the same way the top-level one would
+    without that patch. Mutates `data` in place; `model` itself is read-only.
+    """
+    for name, field in type(model).model_fields.items():
+        value = getattr(model, name)
+        key = field.alias or name
+        if key not in data:
+            continue
+        if isinstance(value, MdqModel):
+            nested_data = data[key]
+            _reinject_type_discriminators(value, nested_data)
+            if "type" in type(value).model_fields and "type" not in nested_data:
+                nested_data["type"] = getattr(value, "type")
+        elif isinstance(value, list):
+            for item, nested_data in zip(value, data[key], strict=False):
+                if not isinstance(item, MdqModel):
+                    continue
+                _reinject_type_discriminators(item, nested_data)
+                if "type" in type(item).model_fields and "type" not in nested_data:
+                    nested_data["type"] = getattr(item, "type")
+
+
 def clear_nones(d: dict[str, Any]) -> dict[str, Any]:
     """
     Return a copy of `d` with all `None` values removed.
@@ -1220,9 +1318,18 @@ def numeric_matches(
     return False
 
 
-def normalize_text(value: str) -> str:
-    """Fold case, strip accents, and collapse whitespace to single spaces."""
-    value = strip_accents(unicodedata.normalize("NFKC", value))
+def normalize_text(value: str, *, diacritics: Diacritics = "fold") -> str:
+    """
+    Fold case and collapse whitespace to single spaces, for the plain
+    literal comparison in `AnswerPattern.matches`.
+
+    `diacritics="fold"` also strips diacritics (NFKC then accent
+    stripping); `"keep"` only applies NFKC, so an NFD and an NFC
+    spelling of the same accented text still compare equal.
+    """
+    value = unicodedata.normalize("NFKC", value)
+    if diacritics == "fold":
+        value = strip_accents(value)
     return re.sub(r"\s+", " ", value).casefold().strip()
 
 
@@ -1268,15 +1375,18 @@ def coerce_ordering_lines(lines: t.OrderingResponse) -> list[OrderingLine]:
     return result
 
 
-def first_feedback(patterns: list[AnswerPattern], response: str) -> list[str]:
+def first_feedback(
+    patterns: list[AnswerPattern], response: str, *, diacritics: Diacritics = "fold"
+) -> list[str]:
     """
     Return the feedback of the first matching pattern that defines one.
 
     "First that matches AND carries feedback" is not the same as "first
     that matches": an earlier match with no message is passed over.
+    `diacritics` is forwarded to each pattern's `matches`.
     """
     for rule in patterns:
-        if rule.feedback is not None and rule.matches(response):
+        if rule.feedback is not None and rule.matches(response, diacritics=diacritics):
             return [rule.feedback]
     return []
 
@@ -1287,19 +1397,21 @@ def short_answer_matches(
     one_of: list[str] | None,
     regex: str | None,
     accept: list[AnswerPattern] | None = None,
+    diacritics: Diacritics = "fold",
 ) -> bool:
     """
     Report whether `response` matches `accept`, `regex` or `one_of`.
 
     `accept` wins over both legacy fields, and `regex` over `one_of`.
-    Matching is always a full match, never a search.
+    Matching is always a full match, never a search. `diacritics`
+    applies to the plain-literal patterns in `accept`/`one_of`.
     """
     if accept is None:
         if regex is not None:
             accept = [AnswerPattern(pattern=f"/{regex}/")]
         else:
             accept = [AnswerPattern(pattern=answer) for answer in one_of or []]
-    return any(rule.matches(response) for rule in accept)
+    return any(rule.matches(response, diacritics=diacritics) for rule in accept)
 
 
 def render_numeric_tag(

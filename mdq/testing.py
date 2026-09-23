@@ -11,8 +11,9 @@ or CLI code.
 
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-EXAMPLES_ROOT = ROOT / "examples"
+PY_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+MDQ_ROOT = PY_PROJECT_ROOT.parent
+EXAMPLES_ROOT = MDQ_ROOT / "examples"
 INVALID_DIR = EXAMPLES_ROOT / "invalid"
 VALID_DIR = EXAMPLES_ROOT / "valid"
 WARNINGS_DIR = EXAMPLES_ROOT / "warnings"

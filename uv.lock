@@ -428,7 +428,6 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "jsonschema" },
-    { name = "lark-parser" },
     { name = "linkify-it-py" },
     { name = "markdown-it-py" },
     { name = "optionz" },
@@ -448,6 +447,7 @@ test = [
 [package.dev-dependencies]
 dev = [
     { name = "hypothesis" },
+    { name = "lark-parser" },
     { name = "lark-run" },
     { name = "mypy" },
     { name = "pytest" },
@@ -459,7 +459,6 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "jsonschema", specifier = ">=4.18" },
-    { name = "lark-parser", specifier = ">=0.12.0" },
     { name = "linkify-it-py", specifier = ">=2.2.0" },
     { name = "markdown-it-py", specifier = ">=4.2.0" },
     { name = "optionz", specifier = ">=0.2.0" },
@@ -476,6 +475,7 @@ provides-extras = ["test"]
 [package.metadata.requires-dev]
 dev = [
     { name = "hypothesis", specifier = ">=6.167.1" },
+    { name = "lark-parser", specifier = ">=0.12.0" },
     { name = "lark-run", specifier = ">=0.1.1" },
     { name = "mypy", specifier = ">=2.3.1" },
     { name = "pytest", specifier = ">=8.4.2" },

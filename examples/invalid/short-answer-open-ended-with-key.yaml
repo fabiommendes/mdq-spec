@@ -1,7 +1,0 @@
-# An open-ended question is graded by hand, so it must not also carry an
-# answer key.
-type: short-answer
-stem: In one sentence, summarise the argument.
-openEnded: true
-oneOf:
-  - "a summary"

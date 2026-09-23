@@ -19,6 +19,7 @@ import pytest
 from mdq.testing import (
     INVALID_PARSED,
     VALID_DIR,
+    VALID_SOURCES,
     VALID_PARSED,
     WARNING_PARSED,
     WARNINGS_DIR,
@@ -94,3 +95,12 @@ def test_warning_fixture_actually_warns(path: Path) -> None:
         f"{relative_id(path)} lives under examples/warnings/ but the linter "
         f"reported nothing"
     )
+
+
+@pytest.mark.parametrize(
+    "path", VALID_SOURCES, ids=[relative_id(p) for p in VALID_SOURCES]
+)
+def test_example_source_validates_from_markdown(path: Path) -> None:
+    """Regression: `.mdq.md` sources used to be read as YAML and fail."""
+    result = validate_file(path)
+    assert result.valid, [err.message for err in result.errors]

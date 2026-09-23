@@ -397,3 +397,45 @@ def test_fill_in_unknown_choice_response_raises() -> None:
     question = _capital_and_pi("symmetric")
     with pytest.raises(ResponseError):
         question.score_response({"capital": "lisbon", "pi": 3.14})
+
+
+#
+# Fill in: diacritics applies to short answer blanks
+# (docs/question-types/fill-in.md § Frontmatter, footnote 2)
+#
+def _state_capital_blank(diacritics: models.Diacritics) -> models.FillInQuestion:
+    return models.FillInQuestion(
+        stem="The capital of Ceará is [^capital].",
+        diacritics=diacritics,
+        blanks=[
+            models.ShortAnswerBlank(id="capital", accept=["Fortaleza"]),
+        ],
+    )
+
+
+def test_fill_in_short_answer_blank_folds_diacritics_by_default() -> None:
+    question = _state_capital_blank("fold")
+    assert question.score_response({"capital": "fortaleza"}).score == 1.0
+
+
+def test_fill_in_short_answer_blank_keeps_diacritics_when_configured() -> None:
+    question = models.FillInQuestion(
+        stem="Name a Brazilian state in the Northeast: [^state].",
+        diacritics="keep",
+        blanks=[models.ShortAnswerBlank(id="state", accept=["Ceará"])],
+    )
+    assert question.score_response({"state": "Ceará"}).score == 1.0
+    assert question.score_response({"state": " ceará "}).score == 1.0
+    assert question.score_response({"state": "Ceara"}).score == 0.0
+
+
+def test_fill_in_short_answer_blank_diacritics_applies_to_legacy_one_of() -> None:
+    """`diacritics` applies to every pattern list, including the legacy
+    `oneOf` desugaring used by a blank with no explicit `accept`."""
+    question = models.FillInQuestion(
+        stem="Name a Brazilian state in the Northeast: [^state].",
+        diacritics="keep",
+        blanks=[models.ShortAnswerBlank(id="state", one_of=["Ceará"])],
+    )
+    assert question.score_response({"state": "Ceará"}).score == 1.0
+    assert question.score_response({"state": "Ceara"}).score == 0.0

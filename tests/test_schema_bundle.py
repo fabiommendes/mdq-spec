@@ -16,17 +16,17 @@ from jsonschema import Draft202012Validator
 from jsonschema.exceptions import SchemaError as JsonSchemaError
 from jsonschema.validators import validator_for
 
-from mdq.schema_bundle import bundle_schemas, main, write_bundle
+from mdq.scripts.schema_bundle import bundle_schemas, main, write_bundle
 from mdq.testing import INVALID_PARSED, VALID_PARSED, relative_id
-from mdq.validator import SchemaError, TYPE_SCHEMAS
+from mdq.validator import TYPE_SCHEMAS, SchemaError
 
 BUNDLE = bundle_schemas()
 
 
 def test_bundle_has_one_def_per_schema_file() -> None:
-    schema_dir = Path(__file__).resolve().parent.parent / "schema"
+    schema_dir = Path(__file__).resolve().parent.parent.parent / "schema"
     expected = {p.stem for p in schema_dir.glob("*.yaml")}
-    assert set(BUNDLE["$defs"]) == expected
+    assert set(bundle_schemas()["$defs"]) == expected
 
 
 def test_bundle_is_compliant_jsonschema() -> None:
@@ -77,10 +77,10 @@ def test_main_reports_a_bad_schema_dir(
 
 
 def test_module_is_runnable_as_a_script(tmp_path: Path) -> None:
-    """`python -m mdq.schema_bundle` must actually dispatch to `main`."""
+    """`python -m mdq.scripts.schema_bundle` must actually dispatch to `main`."""
     output = tmp_path / "mdq.schema.json"
     result = subprocess.run(
-        [sys.executable, "-m", "mdq.schema_bundle", str(output)],
+        [sys.executable, "-m", "mdq.scripts.schema_bundle", str(output)],
         capture_output=True,
         text=True,
     )

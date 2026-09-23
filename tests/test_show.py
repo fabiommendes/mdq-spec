@@ -237,6 +237,16 @@ Explique.
     assert "A [/] B" in shown
 
 
+def test_show_exam_renders_description_row() -> None:
+    src = (
+        "---\ndescription: A midterm covering functions and recursion.\n---\n\n"
+        "# Exam\n\n===\n\nExplain X.\n\n[essay]\n"
+    )
+    shown = render_source(src)
+    assert "Description" in shown
+    assert "A midterm covering functions and recursion." in shown
+
+
 def test_show_exam() -> None:
     path = next(p for p in VALID_EXAMS if p.name == "midterm.mdq.md")
     shown = render(path)

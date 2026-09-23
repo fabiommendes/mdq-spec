@@ -34,6 +34,10 @@ GradedQuestionType = Literal[
 
 ExamGradingType = GradingType | dict[GradedQuestionType, GradingType]
 
+#: How inexact literals treat diacritics: `fold` strips them, `keep`
+#: preserves them (docs/question-types/short-answer.md § Diacritics).
+DiacriticsType = Literal["fold", "keep"]
+
 
 QUESTION_TYPES = set(get_args(QuestionType))
 
@@ -65,6 +69,7 @@ class ExamDict(TypedDict, total=False):
     id: str
     uuid: str
     title: str
+    description: str
     course: str
     author: str
     locale: str
@@ -73,6 +78,8 @@ class ExamDict(TypedDict, total=False):
     meta: dict[str, Any]
     penalty: PenaltyPolicy
     grading: ExamGradingType
+    start: str
+    duration: str
     questions: Required[list[ExamEntryDict]]
 
 
@@ -180,6 +187,7 @@ class ShortAnswerQuestionDict(QuestionBaseDict, total=False):
     reject: list[PatternEntry]
     preAccept: list[PatternEntry]
     preReject: list[PatternEntry]
+    diacritics: DiacriticsType
 
 
 class EssayQuestionDict(QuestionBaseDict, total=False):
@@ -198,6 +206,7 @@ class FillInQuestionDict(QuestionBaseDict, total=False):
     blanks: Required[list[BlankDict]]
     shuffle: bool
     grading: GradingType
+    diacritics: DiacriticsType
 
 
 #: schema/fill-in.yaml#/$defs/Blank -- discriminated by `type`.

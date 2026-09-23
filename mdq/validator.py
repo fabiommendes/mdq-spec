@@ -15,7 +15,9 @@ from jsonschema.exceptions import ValidationError
 from referencing import Registry, Resource
 from referencing.jsonschema import DRAFT202012
 
+from .errors import MdqError
 from .linter import LEVELS, LintWarning, lint_document
+from .parser import parse_any
 
 __all__ = [
     "SchemaError",
@@ -25,9 +27,8 @@ __all__ = [
     "load_document",
 ]
 
-# The schema/ directory lives at the root of the mdq.spec repo, one level
-# above this package.
-DEFAULT_SCHEMA_DIR = Path(__file__).resolve().parent.parent / "schema"
+# A copy of the json schema is shipped with the package source code.
+DEFAULT_SCHEMA_DIR = Path(__file__).resolve().parent.parent.parent / "schema"
 
 # Maps the `type` discriminator used in question documents to the schema
 # file (relative to a schema directory) that defines that question type.
@@ -65,9 +66,14 @@ class ValidationResult:
     warnings: list[LintWarning] = field(default_factory=list)
 
 
-def load_document(path: Path) -> Any:
+def load_document(path: Path, *, warnings: list[LintWarning] | None = None) -> Any:
     """
-    Load a JSON or YAML question document from disk.
+    Load a JSON or YAML question document from disk, or parse an MDQ
+    Markdown source (`*.mdq.md`) into one. An exam's `include:` entries
+    are left unresolved.
+
+    When `warnings` is given, the parser's `unknown-frontmatter-key`
+    warnings for a Markdown source are appended to it (see `mdq.parser`).
     """
 
     path = Path(path)
@@ -76,6 +82,12 @@ def load_document(path: Path) -> Any:
 
     text = path.read_text(encoding="utf-8")
     suffix = path.suffix.lower()
+
+    if path.name.lower().endswith(".mdq.md"):
+        try:
+            return parse_any(text, warnings=warnings)
+        except MdqError as exc:
+            raise SchemaError(f"could not parse {path} as MDQ: {exc}") from exc
 
     if suffix == ".json":
         try:
@@ -194,13 +206,21 @@ def validate_file(
     level: str = "default",
 ) -> ValidationResult:
     """
-    Load a JSON/YAML question file from disk and validate it.
+    Load a JSON/YAML question file, or an MDQ Markdown source, from disk
+    and validate it.
+
+    For an MDQ Markdown source, the parser's `unknown-frontmatter-key`
+    warnings come first in `result.warnings`, ahead of `lint_document`'s.
     """
 
-    document = load_document(Path(path))
-    return validate_document(
+    frontmatter_warnings: list[LintWarning] = []
+    document = load_document(Path(path), warnings=frontmatter_warnings)
+
+    result = validate_document(
         document,
         question_type=question_type,
         schema_dir=schema_dir,
         level=level,
     )
+    result.warnings = frontmatter_warnings + result.warnings
+    return result

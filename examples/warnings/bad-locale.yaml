@@ -1,4 +1,0 @@
-# `locale` must be a BCP 47 language tag, not a language name.
-type: essay
-stem: Explain the difference between a list and a tuple.
-locale: Portuguese

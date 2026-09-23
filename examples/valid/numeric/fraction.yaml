@@ -1,8 +1,0 @@
-# `domain: fraction` records how the answer was written; `answer` is
-# always the numeric value it denotes.
-id: num-fraction
-title: Three quarters
-type: numeric
-stem: What is 3 divided by 4?
-answer: 0.75
-domain: fraction

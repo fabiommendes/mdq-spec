@@ -29,7 +29,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
-from . import models, render
+from . import models, render, schedule
 from . import parse_exam, parse_question
 from .loaders import QuestionLoader
 from .parser import is_exam
@@ -157,6 +157,8 @@ def _exam_metadata(exam: models.Exam) -> list[tuple[str, str]]:
     rows: list[tuple[str, str]] = []
     if exam.id:
         rows.append(("ID", exam.id))
+    if exam.description:
+        rows.append(("Description", exam.description))
     if exam.course:
         rows.append(("Course", exam.course))
     if exam.author:
@@ -165,6 +167,10 @@ def _exam_metadata(exam: models.Exam) -> list[tuple[str, str]]:
         rows.append(("Locale", exam.locale))
     if exam.tags:
         rows.append(("Tags", ", ".join(exam.tags)))
+    if exam.start is not None:
+        rows.append(("Start", schedule.format_start(exam.start)))
+    if exam.duration is not None:
+        rows.append(("Duration", schedule.format_duration(exam.duration)))
     rows.append(("Penalty policy", exam.penalty))
     rows.append(("Questions", str(len(exam.questions))))
     return rows

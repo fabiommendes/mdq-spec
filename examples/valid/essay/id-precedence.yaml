@@ -1,7 +1,0 @@
-# The document carries a slug in both places. When they collide the
-# frontmatter wins, so `inline-slug` is discarded -- but it is still
-# stripped from the stem, which starts at "Explain".
-id: frontmatter-wins
-type: essay
-stem: >-
-  Explain why the frontmatter takes precedence over an inline slug.

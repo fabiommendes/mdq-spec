@@ -1,6 +1,0 @@
-# A choice list needs at least two entries.
-type: multiple-choice
-stem: What is the capital of France?
-choices:
-  - text: Paris
-    score: 1

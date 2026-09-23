@@ -174,6 +174,22 @@ def test_course_is_not_inherited() -> None:
     assert "course" not in doc["questions"][0]
 
 
+def test_description_lands_on_the_exam_and_is_not_inherited() -> None:
+    """The exam's frontmatter `description` is copied verbatim onto the
+    parsed exam, never onto its questions -- including a question that
+    declares its own frontmatter block. `description` is not a question
+    field, so the question's block is left exactly as it would be without
+    this change: `description` absent from it either way."""
+    doc = parse_any(
+        "---\ndescription: A midterm covering functions and recursion.\n"
+        "---\n\n# Exam\n\n"
+        "---\ndescription: Some question-level note.\n---\n\n"
+        "Explain X.\n\n[essay]\n"
+    )
+    assert doc["description"] == "A midterm covering functions and recursion."
+    assert "description" not in doc["questions"][0]
+
+
 # ---------------------------------------------------------------------
 # include resolution
 # ---------------------------------------------------------------------
@@ -234,3 +250,18 @@ def test_any_object_with_load_is_a_loader() -> None:
     assert isinstance(Bank(), QuestionLoader)
     doc = parse_file(MIDTERM, loader=Bank())
     assert doc["questions"][0]["stem"] == "Question recursion-01."
+
+
+def test_equal_exams_compare_equal_without_recursing() -> None:
+    """
+    Regression: each question holds a weakref back to its exam, and a
+    weakref compares its referents, so `==` used to recurse forever.
+    """
+    from mdq.models import EssayQuestion, Exam
+
+    first = Exam(questions=[EssayQuestion(stem="Explain photosynthesis.")])
+    second = Exam(questions=[EssayQuestion(stem="Explain photosynthesis.")])
+    other = Exam(questions=[EssayQuestion(stem="Explain plate tectonics.")])
+
+    assert first == second
+    assert first != other
