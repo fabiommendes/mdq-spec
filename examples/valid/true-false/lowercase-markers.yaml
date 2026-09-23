@@ -1,0 +1,14 @@
+# Markers are case-insensitive for *meaning* but are stored verbatim, so a
+# document that wrote `t` reads back as `t`, not `T`.
+id: tf-lowercase
+type: true-false
+stem: Judge the alternatives.
+choices:
+  - id: markdown-is-a-lightweight-markup-language
+    text: Markdown is a lightweight markup language.
+    correct: true
+    marker: t
+  - id: markdown-is-a-programming-language
+    text: Markdown is a programming language.
+    correct: false
+    marker: f

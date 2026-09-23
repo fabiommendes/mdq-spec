@@ -1,0 +1,17 @@
+# An explicit `symmetric` is kept, even though it is the fallback. It is
+# not the same as an omitted `grading`: the exam's `grading` field does
+# not override it.
+id: tf-grading
+title: Climate claims
+type: true-false
+grading: symmetric
+stem: Judge the statements.
+choices:
+  - id: deforestation-in-the-amazon-reduces-regional-rainfall
+    text: Deforestation in the Amazon reduces regional rainfall.
+    correct: true
+    marker: T
+  - id: carbon-dioxide-does-not-absorb-infrared-radiation
+    text: Carbon dioxide does not absorb infrared radiation.
+    correct: false
+    marker: F

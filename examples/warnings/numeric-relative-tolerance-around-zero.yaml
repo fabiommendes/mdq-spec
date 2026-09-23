@@ -1,0 +1,8 @@
+# `answer x relative` is 0 when the answer is 0, so this tolerance can
+# never widen the accepted range: only an exact 0 passes.
+type: numeric
+stem: What is the net force on a book resting on a table, in newtons?
+answer: 0
+unit: N
+tolerance:
+  relative: 0.05

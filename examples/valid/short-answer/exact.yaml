@@ -1,0 +1,10 @@
+# Backtick-enclosed content is compared verbatim, so capitalization
+# matters: `true` and `TRUE` are both rejected here.
+id: sa-exact
+title: Python truthiness
+type: short-answer
+stem: >-
+  Write the Python literal for boolean truth, exactly as the interpreter
+  spells it.
+oneOf:
+  - "`True`"

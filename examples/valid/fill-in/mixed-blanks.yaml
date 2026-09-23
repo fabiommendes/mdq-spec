@@ -1,0 +1,30 @@
+# All three blank kinds in one question. Blanks appear in the order their
+# definitions appear in the document, which need not match the order the
+# stem references them.
+id: fill-in-mixed
+title: Solar system
+type: fill-in
+stem: >-
+  The [^planet] is the largest planet in the Solar System, and it has
+  approximately [^moons] known moons. Its Great Red Spot is a [^feature].
+blanks:
+  - id: planet
+    type: short-answer
+    oneOf:
+      - Jupiter
+  - id: moons
+    type: numeric
+    answer: 95
+    domain: integer
+    tolerance:
+      absolute: 5
+  - id: feature
+    type: multiple-choice
+    choices:
+      - id: mountain
+        text: mountain
+      - id: storm
+        text: storm
+        score: 1
+      - id: crater
+        text: crater

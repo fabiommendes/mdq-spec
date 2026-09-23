@@ -1,0 +1,10 @@
+# `tags` accepts a single comma-delimited string as shorthand for the
+# list form; it is split (and each entry trimmed) at parse time. Compare
+# essay/tags.yaml, which is the same value written out as a list.
+id: essay-tags-string
+type: essay
+stem: Explain why binary search needs a sorted input.
+tags:
+  - algorithms
+  - complexity
+  - theory

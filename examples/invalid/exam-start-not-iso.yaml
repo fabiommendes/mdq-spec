@@ -1,0 +1,5 @@
+# `start` must be ISO 8601, not a locale-specific date.
+type: exam
+title: Start not in ISO 8601
+start: 10/03/2026
+questions: []

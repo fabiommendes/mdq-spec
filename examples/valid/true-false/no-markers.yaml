@@ -1,0 +1,15 @@
+# `marker` is OPTIONAL, so this is a well-formed true-false document even
+# though it records only the boolean meaning. It has no .mdq.md pair on
+# purpose: parsing `[T]`/`[F]` always recovers the letter, so no source
+# document produces this. It stands for what a *different* producer -- a
+# question bank export, say -- may legitimately emit.
+id: tf-no-markers
+type: true-false
+stem: Judge the alternatives.
+choices:
+  - id: water-boils-at-100-c-at-sea-level
+    text: Water boils at 100 °C at sea level.
+    correct: true
+  - id: water-boils-at-50-c-at-sea-level
+    text: Water boils at 50 °C at sea level.
+    correct: false

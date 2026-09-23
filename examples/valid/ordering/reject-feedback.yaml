@@ -1,0 +1,31 @@
+# A `## [reject]` section is an ordering known to be wrong: it scores 0 and
+# exists to attach feedback to a mistake the author expects.
+#
+# Its observations hold both a `>` feedback block, shown to the student
+# whose response matched, and a `!` comment block, which is author-facing
+# and never shown. The two may appear in either order but must not
+# interleave.
+id: ordering-natural-selection
+title: Seleção natural
+type: ordering
+stem: Order the steps of natural selection as Darwin described them.
+content: text
+lines:
+  - [0, "Individuals in a population vary in the traits they inherit."]
+  - [0, "More offspring are born than the environment can support."]
+  - [0, "Individuals whose traits suit that environment survive and reproduce more often."]
+  - [0, "Those traits become more common in the next generation."]
+reject:
+  - lines:
+      - [0, "Individuals in a population vary in the traits they inherit."]
+      - [0, "More offspring are born than the environment can support."]
+      - [0, "Those traits become more common in the next generation."]
+      - [0, "Individuals whose traits suit that environment survive and reproduce more often."]
+    feedback: >-
+      A trait does not spread first and pay off later. It becomes more common
+      *because* the individuals carrying it left more descendants, so the
+      differential survival must come first.
+    comment: >-
+      Inverting the last two steps is the most common mistake here: students
+      read the spread of a trait as the cause of survival rather than as its
+      consequence.

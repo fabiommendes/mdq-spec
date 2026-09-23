@@ -1,0 +1,11 @@
+# `N` (for "no", or "não") is a PROVISIONAL letter: it reads as true
+# today, which is almost certainly not what the author meant.
+type: true-false
+stem: Judge the alternatives.
+choices:
+  - text: The Earth is flat.
+    correct: true
+    marker: N
+  - text: The Earth is round.
+    correct: true
+    marker: T

@@ -1,0 +1,15 @@
+.coverage
+.rtk/
+.ruff_cache/
+.mypy_cache/
+.venv/
+.pytest_cache/
+.hypothesis/
+__pycache__/
+private/
+handoff*
+prompt.md
+prompt/
+.venv
+.base-ast/
+.base-ast-cache/

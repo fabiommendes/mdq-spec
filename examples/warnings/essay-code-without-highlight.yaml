@@ -1,0 +1,5 @@
+# `input: code` with no `highlight` language: valid, but the editor has
+# nothing to highlight the answer with.
+type: essay
+stem: Write a function that reverses a string.
+input: code

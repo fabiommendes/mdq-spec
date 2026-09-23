@@ -1,0 +1,12 @@
+# An answer of exactly zero: only an ABSOLUTE tolerance is usable here,
+# since a relative one is computed as `answer x relative` and collapses
+# to zero.
+id: num-zero
+title: Net force
+type: numeric
+stem: A book rests on a table. What is the net force on it, in newtons?
+answer: 0
+unit: N
+domain: integer
+tolerance:
+  absolute: 0.01

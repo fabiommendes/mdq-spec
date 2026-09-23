@@ -1,0 +1,7 @@
+# No tolerance at all: only an exact 366 is accepted.
+id: num-integer
+title: Days in a leap year
+type: numeric
+stem: How many days are there in a leap year?
+answer: 366
+domain: integer

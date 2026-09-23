@@ -1,0 +1,9 @@
+# Every blank needs an `id` matching its `[^id]` marker in the stem.
+type: fill-in
+stem: The capital of Brazil is [^capital].
+blanks:
+  - type: multiple-choice
+    choices:
+      - text: Lisbon
+      - text: Brasília
+        score: 1

@@ -1,0 +1,15 @@
+type: fill-in
+stem: >-
+  The [^animal] is a giant rodent native to South America and is the
+  largest living rodent in the world.
+blanks:
+  - id: animal
+    type: short-answer
+    oneOf:
+      - capybara
+epilogue: |-
+    * Common mistakes
+      * Some students answer "capivara" (the Portuguese name) -- accept it too.
+      * Do not accept "rat" or "beaver" as synonyms.
+    * Follow-up
+      * Consider asking about its semi-aquatic habitat next.

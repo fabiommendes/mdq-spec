@@ -1,0 +1,13 @@
+# A date-only `start` stays a date: no time of day is assumed. Weeks are
+# folded into days in the canonical duration, so `P2W` becomes `P14D`.
+type: exam
+id: evolution-take-home
+title: Evolution Take-Home Exam
+course: BIO210
+start: "2026-06-05"
+duration: P14D
+instructions: The exam opens on June 5th and stays open for two weeks.
+questions:
+  - id: q1
+    type: essay
+    stem: Explain how Darwin's finches in the Galápagos illustrate natural selection.

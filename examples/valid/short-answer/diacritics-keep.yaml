@@ -1,0 +1,13 @@
+# `diacritics: keep` makes the inexact literal `Maceió` reject `Maceio`.
+# Case and whitespace are still normalized, so `maceió` is accepted.
+id: sa-diacritics-keep
+title: Grafia de Maceió
+type: short-answer
+diacritics: keep
+locale: pt-BR
+stem: Escreva o nome da capital de Alagoas, com a acentuação correta.
+accept:
+  - Maceió
+reject:
+  - pattern: Maceio
+    feedback: Falta o acento agudo no "o".

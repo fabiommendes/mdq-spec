@@ -1,0 +1,9 @@
+# `input: plain` asks for a plain text box rather than the default rich
+# text editor. `highlight` is not applicable and must be omitted.
+id: essay-plain
+title: Regular expression
+type: essay
+stem: >-
+  Write a regular expression that matches a Brazilian CEP (postal code) in
+  the `00000-000` format. Do not use any Markdown formatting.
+input: plain

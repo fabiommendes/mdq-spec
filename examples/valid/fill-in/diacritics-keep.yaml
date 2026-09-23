@@ -1,0 +1,13 @@
+# `diacritics` is a question-level field. It applies to every short
+# answer blank, so `Sao Francisco` is not accepted here.
+id: fill-in-diacritics-keep
+title: Rios do Nordeste
+type: fill-in
+diacritics: keep
+locale: pt-BR
+stem: O rio [^river] nasce na Serra da Canastra e deságua entre Alagoas e Sergipe.
+blanks:
+  - id: river
+    type: short-answer
+    oneOf:
+      - São Francisco

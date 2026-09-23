@@ -1,0 +1,18 @@
+id: ms-grading
+title: Brazilian biomes
+type: multiple-selection
+grading: partial
+shuffle: true
+stem: Which of these are Brazilian biomes?
+choices:
+  - id: cerrado
+    text: Cerrado
+    correct: true
+  - id: caatinga
+    text: Caatinga
+    correct: true
+  - id: tundra
+    text: Tundra
+  - id: pantanal
+    text: Pantanal
+    correct: true

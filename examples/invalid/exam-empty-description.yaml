@@ -1,0 +1,5 @@
+# A `description` exists to add detail to listings; an empty one adds none.
+type: exam
+title: Empty description
+description: ""
+questions: []

@@ -1,0 +1,28 @@
+# `indentation: strict` lets the student change each line's indentation and
+# compares it like the rest of the line -- the whole point of the question
+# here, since the branches are only distinguishable by their nesting.
+#
+# The indentation unit is the greatest common divisor of the leading
+# whitespace of every indented line: 4 and 8 spaces give a unit of 4, so
+# the bodies of the branches sit at level 2. Levels, not raw spaces, are
+# what a response carries and what `strict` compares.
+id: ordering-fizzbuzz
+title: FizzBuzz
+type: ordering
+stem: >-
+  Sort the lines below into a program that prints the numbers from 1 to 100,
+  replacing multiples of three with `Fizz`, multiples of five with `Buzz` and
+  multiples of both with `FizzBuzz`. You must also indent each line correctly.
+content: code
+highlight: python
+indentation: strict
+lines:
+  - [0, "for i in range(1, 101):"]
+  - [1, "if i % 15 == 0:"]
+  - [2, 'print("FizzBuzz")']
+  - [1, "elif i % 3 == 0:"]
+  - [2, 'print("Fizz")']
+  - [1, "elif i % 5 == 0:"]
+  - [2, 'print("Buzz")']
+  - [1, "else:"]
+  - [2, "print(i)"]

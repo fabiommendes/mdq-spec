@@ -1,0 +1,5 @@
+# Months have no fixed length, so an exam cannot last `P1M`.
+type: exam
+title: Duration in months
+duration: P1M
+questions: []
