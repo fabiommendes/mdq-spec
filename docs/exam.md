@@ -119,29 +119,30 @@ separator is optional.
 
 ## Question ids
 
-Questions are numbered by the order their blocks appear in the document, and a
-question that does not declare an `id` is given an implicit one: `q1` for the
-first block, `q2` for the second, and so on.
+Questions are numbered by the order their blocks appear in the document. A
+question that does not declare an `id` keeps none as parsed -- these ids are
+only derived when a consumer needs an addressable exam (grading, say): `q1`
+for the first block, `q2` for the second, and so on.
 
 Every block occupies a position, including an `include`. So in an exam whose
 first block is an `include` and whose second is an inline question, the inline
-question is `q2` -- the implicit id always matches the position the student
+question's derived id is `q2` -- it always matches the position the student
 sees, never a separate count of inline questions only.
 
 An `include` is a reference to a question that already has an identity of its
 own, so it is never renamed by this rule.
 
 Question ids MUST be unique within the exam. The rule applies after includes
-resolve and after implicit ids are assigned, so all of these make the exam
-malformed:
+resolve, and accounts for the derived id a question with no declared `id`
+would get, so all of these make the exam malformed:
 
 * Two inline questions that declare the same `id`.
 * Two `include` entries that reference the same question.
 * An inline question whose `id` is the same as the id of an included question.
-* A declared `id` that is the same as an implicit one. For example, if the
-  first block declares `id: q2`, the second block cannot receive its implicit
-  id `q2`. Implicit ids always match the position, so they are never renamed
-  to avoid a collision.
+* A declared `id` that is the same as the derived id of another question. For
+  example, if the first block declares `id: q2`, the second block cannot use
+  its derived id `q2`. A derived id always matches the position, so it is
+  never renamed to avoid a collision.
 
 
 ## Inheritance

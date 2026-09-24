@@ -10,11 +10,9 @@ preamble: |-
       * Rio de Janeiro
 stem: Judge the statements about these regions.
 choices:
-  - id: the-north-region-has-a-larger-area-than-the-southeast-region
-    text: The North region has a larger area than the Southeast region.
+  - text: The North region has a larger area than the Southeast region.
     correct: true
     marker: V
-  - id: sao-paulo-is-located-in-the-north-region
-    text: São Paulo is located in the North region.
+  - text: São Paulo is located in the North region.
     correct: false
     marker: F

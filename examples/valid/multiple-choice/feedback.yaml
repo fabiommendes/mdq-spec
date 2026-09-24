@@ -9,19 +9,15 @@ title: Largest river
 type: multiple-choice
 stem: Which one is the largest river in the world?
 choices:
-  - id: amazon
-    text: Amazon
+  - text: Amazon
     score: 1
-  - id: nile
-    text: Nile
+  - text: Nile
     score: 0
     feedback: >-
       The Amazon is much larger by volume of water, and recent surveys put
       it ahead by length too.
-  - id: mississippi
-    text: Mississippi
+  - text: Mississippi
     score: 0
     feedback: Not even close!
-  - id: yellow-river
-    text: Yellow River
+  - text: Yellow River
     score: 0

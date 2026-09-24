@@ -8,8 +8,7 @@
 type: multiple-choice
 stem: Which snippet correctly computes the nth Fibonacci number recursively?
 choices:
-  - id: python-def-fib-n-if-n-2-return-n-return-fib-n-1-fib-n-2
-    text: |-
+  - text: |-
       ```python
       def fib(n):
           if n < 2:
@@ -17,8 +16,7 @@ choices:
           return fib(n - 1) + fib(n - 2)
       ```
     score: 1
-  - id: python-def-fib-n-return-fib-n-1-fib-n-2
-    text: |-
+  - text: |-
       ```python
       def fib(n):
           return fib(n - 1) + fib(n - 2)

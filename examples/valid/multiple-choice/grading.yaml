@@ -6,15 +6,11 @@ type: multiple-choice
 grading: all-or-nothing
 stem: Which river carries the largest volume of water in the world?
 choices:
-  - id: amazon
-    text: Amazon
+  - text: Amazon
     score: 1
-  - id: congo
-    text: Congo
+  - text: Congo
     score: 0.5
-  - id: sao-francisco
-    text: São Francisco
+  - text: São Francisco
     score: 0
-  - id: parana
-    text: Paraná
+  - text: Paraná
     score: 0

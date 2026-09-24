@@ -5,14 +5,10 @@ grading: partial
 shuffle: true
 stem: Which of these are Brazilian biomes?
 choices:
-  - id: cerrado
-    text: Cerrado
+  - text: Cerrado
     correct: true
-  - id: caatinga
-    text: Caatinga
+  - text: Caatinga
     correct: true
-  - id: tundra
-    text: Tundra
-  - id: pantanal
-    text: Pantanal
+  - text: Tundra
+  - text: Pantanal
     correct: true

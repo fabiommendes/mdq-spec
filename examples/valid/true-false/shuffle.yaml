@@ -4,11 +4,9 @@ type: true-false
 shuffle: false
 stem: Judge the statements.
 choices:
-  - id: natural-selection-acts-on-heritable-variation
-    text: Natural selection acts on heritable variation.
+  - text: Natural selection acts on heritable variation.
     correct: true
     marker: T
-  - id: individual-organisms-evolve-during-their-own-lifetime
-    text: Individual organisms evolve during their own lifetime.
+  - text: Individual organisms evolve during their own lifetime.
     correct: false
     marker: F

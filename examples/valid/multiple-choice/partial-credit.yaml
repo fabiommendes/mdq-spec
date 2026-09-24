@@ -6,15 +6,11 @@ title: Largest ocean
 type: multiple-choice
 stem: Which is the largest ocean on Earth?
 choices:
-  - id: pacific
-    text: Pacific
+  - text: Pacific
     score: 1
-  - id: atlantic
-    text: Atlantic
+  - text: Atlantic
     score: 0.5
-  - id: indian
-    text: Indian
+  - text: Indian
     score: 0
-  - id: the-moon-has-no-ocean
-    text: The Moon has no ocean.
+  - text: The Moon has no ocean.
     score: -0.25

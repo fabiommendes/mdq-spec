@@ -21,10 +21,7 @@ blanks:
   - id: feature
     type: multiple-choice
     choices:
-      - id: mountain
-        text: mountain
-      - id: storm
-        text: storm
+      - text: mountain
+      - text: storm
         score: 1
-      - id: crater
-        text: crater
+      - text: crater

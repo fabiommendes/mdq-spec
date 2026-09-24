@@ -58,7 +58,7 @@ _Avoid_: invalid answer, bad input
 ### Addressable
 A document in which every question and every choice carries an id, so a
 response can name what it refers to. Parsing never requires it; grading always
-does.
+does. `with_ids()` (mdq-py) makes a document addressable.
 _Avoid_: gradable, identified, id-complete
 
 ### Derived id

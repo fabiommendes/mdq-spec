@@ -54,7 +54,7 @@ document that triggers one fails to load at all (`document` is `None`):
 | `duplicate-blank-id` | fill-in | Two blanks declare the same `id`. |
 | `duplicate-choice-id` | multiple-choice, multiple-selection, true-false, fill-in | Two choices (or one choice blank's choices) declare the same `id`. |
 | `duplicate-choice-text` | multiple-choice, multiple-selection, true-false, fill-in | Two choices' texts are the same once whitespace is normalized outside code spans. |
-| `duplicate-question-id` | exam | Two entries of `questions` -- inline or `include`, before or after implicit ids (`q1`, `q2`, ...) are assigned -- resolve to the same id. |
+| `duplicate-question-id` | exam | Two entries of `questions` -- inline or `include` -- resolve to the same id, a declared one or the derived id (`q1`, `q2`, ...) a question with none would get. |
 
 `visually-identical-choice-text` is removed: `duplicate-choice-text`
 compares texts the same way it did (normalized whitespace outside code

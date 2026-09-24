@@ -7,13 +7,10 @@ blanks:
   - id: country
     type: multiple-choice
     choices:
-      - id: argentina
-        text: Argentina
+      - text: Argentina
         score: 1
-      - id: bolivia
-        text: Bolivia
-      - id: uruguay
-        text: Uruguay
+      - text: Bolivia
+      - text: Uruguay
   - id: width
     type: numeric
     answer: 2.7

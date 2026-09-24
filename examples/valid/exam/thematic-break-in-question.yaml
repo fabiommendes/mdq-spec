@@ -22,20 +22,16 @@ questions:
       Which country contains the largest share of the Amazon rainforest?
     oneOf:
       - Brazil
-  - id: q2
-    type: true-false
+  - type: true-false
     stem: Judge the statements about the Amazon basin.
     choices:
-      - id: the-amazon-river-discharges-more-fresh-water-into-the-ocean-than-any-other-river
-        text: The Amazon River discharges more fresh water into the ocean than any other river.
+      - text: The Amazon River discharges more fresh water into the ocean than any other river.
         correct: true
         marker: V
-      - id: the-amazon-rainforest-is-the-coldest-biome-in-south-america
-        text: The Amazon rainforest is the coldest biome in South America.
+      - text: The Amazon rainforest is the coldest biome in South America.
         correct: false
         marker: F
-  - id: q3
-    type: numeric
+  - type: numeric
     stem: >-
       What is the approximate area of the Amazon rainforest, in million
       square kilometers?

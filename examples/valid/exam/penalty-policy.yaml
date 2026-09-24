@@ -11,19 +11,14 @@ course: GEO201
 penalty: capped
 instructions: Answer every question. Wrong guesses cost you here.
 questions:
-  - id: q1
-    type: multiple-choice
+  - type: multiple-choice
     stem: Which is Brazil's largest biome by area?
     choices:
-      - id: amazon-rainforest
-        text: Amazon rainforest
+      - text: Amazon rainforest
         score: 1
-      - id: cerrado
-        text: Cerrado
+      - text: Cerrado
         score: -0.5
-      - id: atlantic-forest
-        text: Atlantic Forest
+      - text: Atlantic Forest
         score: 0
-      - id: caatinga
-        text: Caatinga
+      - text: Caatinga
         score: 0

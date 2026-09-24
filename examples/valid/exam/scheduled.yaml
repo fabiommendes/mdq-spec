@@ -12,17 +12,13 @@ start: "2026-03-10T09:00:00-03:00"
 duration: PT2H30M
 instructions: A prova começa às 9h, horário de Brasília, e dura duas horas e meia.
 questions:
-  - id: q1
-    type: multiple-choice
+  - type: multiple-choice
     stem: Qual ciclo econômico dominou o Brasil no século XVIII?
     locale: pt-BR
     choices:
-      - id: ciclo-do-ouro
-        text: Ciclo do ouro
+      - text: Ciclo do ouro
         score: 1
-      - id: ciclo-do-cafe
-        text: Ciclo do café
+      - text: Ciclo do café
         score: 0
-      - id: ciclo-da-borracha
-        text: Ciclo da borracha
+      - text: Ciclo da borracha
         score: 0

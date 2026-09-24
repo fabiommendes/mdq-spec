@@ -8,6 +8,5 @@ start: "2026-06-05"
 duration: P14D
 instructions: The exam opens on June 5th and stays open for two weeks.
 questions:
-  - id: q1
-    type: essay
+  - type: essay
     stem: Explain how Darwin's finches in the Galápagos illustrate natural selection.

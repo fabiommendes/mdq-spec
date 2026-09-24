@@ -3,12 +3,9 @@ id: ms-all-correct
 type: multiple-selection
 stem: Which of these are valid Markdown unordered list markers?
 choices:
-  - id: hyphen
-    text: "`-`"
+  - text: "`-`"
     correct: true
-  - id: asterisk
-    text: "`*`"
+  - text: "`*`"
     correct: true
-  - id: plus
-    text: "`+`"
+  - text: "`+`"
     correct: true

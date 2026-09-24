@@ -4,8 +4,9 @@
 #
 # `include` is left unresolved here -- resolution is a loader's job, and a
 # document that has not been resolved is still well-formed. The third
-# question gets the implicit id `q3` because blocks are numbered by
-# position and the `include` occupies position 1.
+# question has no id here: its derived id, `q3`, is only assigned once a
+# consumer needs an addressable exam (`with_ids()`), counting position 1
+# for the `include`.
 #
 # Both inline questions inherit `author` and `locale` from the exam; the
 # exam's `course` is not inherited.
@@ -23,17 +24,14 @@ questions:
     stem: Converta este algoritmo iterativo em um recursivo.
     author: Fábio Macêdo Mendes
     locale: pt-BR
-  - id: q3
-    type: true-false
+  - type: true-false
     stem: Julgue as afirmações.
     author: Fábio Macêdo Mendes
     locale: pt-BR
     choices:
-      - id: todo-algoritmo-iterativo-pode-ser-implementado-recursivamente
-        text: Todo algoritmo iterativo pode ser implementado recursivamente.
+      - text: Todo algoritmo iterativo pode ser implementado recursivamente.
         correct: true
         marker: V
-      - id: recursao-tende-a-ser-mais-eficiente-em-memoria-que-iteracao
-        text: Recursão tende a ser mais eficiente em memória que iteração.
+      - text: Recursão tende a ser mais eficiente em memória que iteração.
         correct: false
         marker: F

@@ -5,9 +5,7 @@ id: mc-ellipsis
 type: multiple-choice
 stem: "..."
 choices:
-  - id: earth-is-flat
-    text: Earth is flat.
+  - text: Earth is flat.
     score: 0
-  - id: markdown-is-cool
-    text: Markdown is cool.
+  - text: Markdown is cool.
     score: 1

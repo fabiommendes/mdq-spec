@@ -10,13 +10,9 @@ preamble: |-
     * Pampa
 stem: Select every biome below that is actually found in Brazil.
 choices:
-  - id: amazon-rainforest
-    text: Amazon rainforest
+  - text: Amazon rainforest
     correct: true
-  - id: cerrado
-    text: Cerrado
+  - text: Cerrado
     correct: true
-  - id: sahara
-    text: Sahara
-  - id: tundra
-    text: Tundra
+  - text: Sahara
+  - text: Tundra

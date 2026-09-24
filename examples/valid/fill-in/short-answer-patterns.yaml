@@ -27,10 +27,7 @@ blanks:
   - id: feature
     type: multiple-choice
     choices:
-      - id: an-impact-crater
-        text: an impact crater
-      - id: a-storm
-        text: a storm
+      - text: an impact crater
+      - text: a storm
         score: 1
-      - id: a-volcano
-        text: a volcano
+      - text: a volcano

@@ -110,10 +110,12 @@ The choice id is a slugfied identifier for the choice so we can refer it by
 content, and not by position. It follows the same rules for slugs mentioned
 before. If given, the choice ids for each choice MUST be unique.
 
-If omitted, implementations MAY provide url-safe identifiers derived from the
-text content. This transformation SHOULD be stable in practical applications. A
-stable assignment should preserve the choice id assignments for the following
-operations:
+If omitted, the parsed document carries no id for that choice: parsing never
+derives one. An implementation MAY derive url-safe identifiers from the text
+content when it needs an addressable document (mdq-py: `with_ids()`); it is
+never part of the parse step itself. This transformation SHOULD be stable in
+practical applications. A stable assignment should preserve the choice id
+assignments for the following operations:
 
 * Reordering of choices - each choice preserves its original id.
 * Addition of new choices - existing choices preserve their original ids.

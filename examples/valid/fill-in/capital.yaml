@@ -6,15 +6,11 @@ blanks:
   - id: capital
     type: multiple-choice
     choices:
-      - id: lisbon
-        text: Lisbon
-      - id: brasilia
-        text: Brasília
+      - text: Lisbon
+      - text: Brasília
         score: 1
-      - id: sao-paulo
-        text: São Paulo
-      - id: rio-de-janeiro
-        text: Rio de Janeiro
+      - text: São Paulo
+      - text: Rio de Janeiro
   - id: size
     type: numeric
     answer: 2800000
