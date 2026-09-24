@@ -19,6 +19,11 @@ An entry in an exam that references a question defined elsewhere, rather than
 carrying it inline.
 _Avoid_: reference, link, import
 
+### Diagnostic
+A problem found while loading a document, with a severity (error, warning,
+info), a code and a location. An error means no document was built.
+_Avoid_: lint warning, validation error
+
 
 ## Answering
 

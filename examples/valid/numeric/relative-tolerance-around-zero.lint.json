@@ -1,0 +1,10 @@
+[
+  {
+    "code": "relative-tolerance-around-zero",
+    "severity": "warning",
+    "path": [
+      "tolerance",
+      "relative"
+    ]
+  }
+]

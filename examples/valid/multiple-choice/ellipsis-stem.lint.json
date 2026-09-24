@@ -1,0 +1,9 @@
+[
+  {
+    "code": "unexpanded-stem-ellipsis",
+    "severity": "info",
+    "path": [
+      "stem"
+    ]
+  }
+]

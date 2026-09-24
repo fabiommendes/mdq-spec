@@ -1,0 +1,9 @@
+[
+  {
+    "code": "multiple-choice-no-correct-choice",
+    "severity": "warning",
+    "path": [
+      "choices"
+    ]
+  }
+]

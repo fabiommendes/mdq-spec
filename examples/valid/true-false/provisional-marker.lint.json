@@ -1,0 +1,11 @@
+[
+  {
+    "code": "provisional-true-false-marker",
+    "severity": "warning",
+    "path": [
+      "choices",
+      0,
+      "marker"
+    ]
+  }
+]

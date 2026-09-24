@@ -1,0 +1,9 @@
+[
+  {
+    "code": "code-input-without-highlight",
+    "severity": "warning",
+    "path": [
+      "input"
+    ]
+  }
+]

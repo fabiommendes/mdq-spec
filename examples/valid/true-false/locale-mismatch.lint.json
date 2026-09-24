@@ -1,0 +1,11 @@
+[
+  {
+    "code": "locale-mismatched-true-false-marker",
+    "severity": "info",
+    "path": [
+      "choices",
+      0,
+      "marker"
+    ]
+  }
+]

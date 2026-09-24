@@ -13,6 +13,14 @@
 
 Those need discussion and design.
 
+* [ ] Line numbers in diagnostics. The parser records a `path -> line` source
+  map as it builds a document from Markdown (`node.map`), so any diagnostic
+  with a path (model or lint) gets a line. For YAML input, walk the node tree
+  from `yaml.compose()` (`start_mark.line`). Investigate first: corner cases of
+  PyYAML reading JSON (JSON is not a strict YAML subset), and existing JSON
+  parsers that already track positions. Writing our own JSON parser is
+  acceptable; writing a YAML parser is not.
+
 * [x] Representation of marked student responses for all question types. 
 * [x] Basic grading support for auto-gradable questions.
 * [x] Add the grading option for the relevant question types.

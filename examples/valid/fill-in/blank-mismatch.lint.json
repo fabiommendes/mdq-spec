@@ -1,0 +1,18 @@
+[
+  {
+    "code": "undefined-blank",
+    "severity": "warning",
+    "path": [
+      "stem"
+    ]
+  },
+  {
+    "code": "unreferenced-blank",
+    "severity": "warning",
+    "path": [
+      "blanks",
+      1,
+      "id"
+    ]
+  }
+]

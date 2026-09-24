@@ -1,0 +1,9 @@
+[
+  {
+    "code": "shadowed-answers",
+    "severity": "warning",
+    "path": [
+      "oneOf"
+    ]
+  }
+]
