@@ -17,10 +17,6 @@ This is the reference list `mdq-js` mirrors; keep the two in sync.
 | `blank-tag` | warning | any | A `tags` entry is empty or whitespace only. |
 | `blank-text-field` | warning | any | A free-text field (`title`, `author`, `preamble`, `stem`, `epilogue`, `comment`, `answerKey`) is defined but has no visible character. |
 | `code-input-without-highlight` | warning | essay | `input: code` is set but no `highlight` language is given. |
-| `duplicate-blank-id` | warning | fill-in | Two blanks declare the same `id`. |
-| `duplicate-choice-id` | warning | multiple-choice, multiple-selection, true-false, fill-in | Two choices (or one choice blank's choices) declare the same `id`. |
-| `duplicate-choice-text` | warning | multiple-choice, multiple-selection, true-false, fill-in | Two choices declare the same `text`. |
-| `duplicate-question-id` | warning | exam | Two entries of `questions` (inline or `include`) resolve to the same id. |
 | `exam-without-questions` | warning | exam | The exam has no questions, so it cannot be answered. |
 | `false-friend-true-false-marker` | warning | true-false | Marker `S` under `locale: id` reads as true, but is the initial letter of Indonesian "salah" (false). |
 | `ignored-decimal-places` | info | numeric | `decimalPlaces` is ignored when `domain` is `integer` or `fraction`. |
@@ -46,4 +42,20 @@ This is the reference list `mdq-js` mirrors; keep the two in sync.
 | `unsplit-tag-list` | warning | any | A `tags` entry contains a comma; comma-splitting only applies when `tags` is written as a single string. |
 | `uuid-unknown-variant` | warning | any | The UUID's variant nibble is not one of `8`, `9`, `a`, `b`. |
 | `uuid-unknown-version` | warning | any | The UUID's version nibble is not one of `1`-`8`. |
-| `visually-identical-choice-text` | info | multiple-choice, multiple-selection, true-false, fill-in | Two choices' texts differ only in whitespace, so they render identically. |
+
+## Errors
+
+These four codes used to be lint warnings. They are `error` diagnostics
+raised by the pydantic models now (dev/specs/to-do/unique-ids.md), so a
+document that triggers one fails to load at all (`document` is `None`):
+
+| Code | Question types | Description |
+| --- | --- | --- |
+| `duplicate-blank-id` | fill-in | Two blanks declare the same `id`. |
+| `duplicate-choice-id` | multiple-choice, multiple-selection, true-false, fill-in | Two choices (or one choice blank's choices) declare the same `id`. |
+| `duplicate-choice-text` | multiple-choice, multiple-selection, true-false, fill-in | Two choices' texts are the same once whitespace is normalized outside code spans. |
+| `duplicate-question-id` | exam | Two entries of `questions` -- inline or `include`, before or after implicit ids (`q1`, `q2`, ...) are assigned -- resolve to the same id. |
+
+`visually-identical-choice-text` is removed: `duplicate-choice-text`
+compares texts the same way it did (normalized whitespace outside code
+spans), so every document it used to flag now fails to load instead.

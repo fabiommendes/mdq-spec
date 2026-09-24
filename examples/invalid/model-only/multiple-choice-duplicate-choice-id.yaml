@@ -1,0 +1,12 @@
+# Two choices declare the same `id`. JSON Schema cannot express
+# "unique by field", so this passes the schema and is only rejected by
+# the `duplicate-choice-id` model validator (dev/specs/to-do/unique-ids.md).
+type: multiple-choice
+stem: Qual é a capital do Brasil?
+choices:
+  - id: capital
+    text: Rio de Janeiro
+    score: 0
+  - id: capital
+    text: Brasília
+    score: 1

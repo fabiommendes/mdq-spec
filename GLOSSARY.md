@@ -61,6 +61,11 @@ response can name what it refers to. Parsing never requires it; grading always
 does.
 _Avoid_: gradable, identified, id-complete
 
+### Derived id
+An id that the author did not write, given to a choice (from its text) or to
+a question in an exam (`q<position>`) to make the document addressable.
+_Avoid_: implicit id, generated id, auto id
+
 ### Resolved
 An exam whose every entry is a question rather than an `include` still pointing
 elsewhere. Includes resolve before a document becomes a model, so grading

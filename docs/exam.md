@@ -131,6 +131,18 @@ sees, never a separate count of inline questions only.
 An `include` is a reference to a question that already has an identity of its
 own, so it is never renamed by this rule.
 
+Question ids MUST be unique within the exam. The rule applies after includes
+resolve and after implicit ids are assigned, so all of these make the exam
+malformed:
+
+* Two inline questions that declare the same `id`.
+* Two `include` entries that reference the same question.
+* An inline question whose `id` is the same as the id of an included question.
+* A declared `id` that is the same as an implicit one. For example, if the
+  first block declares `id: q2`, the second block cannot receive its implicit
+  id `q2`. Implicit ids always match the position, so they are never renamed
+  to avoid a collision.
+
 
 ## Inheritance
 

@@ -1,0 +1,13 @@
+# Two inline questions resolve to the same id. JSON Schema cannot
+# express "unique by field", so this passes the schema and is only
+# rejected by the `duplicate-question-id` model validator
+# (dev/specs/to-do/unique-ids.md).
+type: exam
+title: Prova de Geografia do Brasil
+questions:
+  - id: capital
+    type: essay
+    stem: Qual é a capital do Brasil?
+  - id: capital
+    type: essay
+    stem: Onde fica a capital do Brasil?

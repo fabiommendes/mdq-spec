@@ -1,0 +1,16 @@
+# Two blanks declare the same `id`. JSON Schema cannot express "unique
+# by field", so this passes the schema and is only rejected by the
+# `duplicate-blank-id` model validator (dev/specs/to-do/unique-ids.md).
+type: fill-in
+stem: >-
+  O Brasil foi colonizado por [^colonizador], e sua capital atual é
+  [^colonizador].
+blanks:
+  - id: colonizador
+    type: short-answer
+    oneOf:
+      - Portugal
+  - id: colonizador
+    type: short-answer
+    oneOf:
+      - Brasília

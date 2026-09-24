@@ -1,0 +1,15 @@
+# Two choices declare the same `text`. JSON Schema cannot express
+# "unique by field", so this passes the schema and is only rejected by
+# the `duplicate-choice-text` model validator (dev/specs/to-do/unique-ids.md).
+type: multiple-selection
+stem: Quais destes são biomas brasileiros?
+choices:
+  - id: cerrado
+    text: Cerrado
+    correct: true
+  - id: pantanal
+    text: Pantanal
+    correct: true
+  - id: pantanal-2
+    text: Pantanal
+    correct: false
