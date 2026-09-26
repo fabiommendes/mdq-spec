@@ -35,7 +35,8 @@ jobs:
       - run: uv sync --locked
       - run: uv run pytest
       - run: uv run mypy mdq
-      - run: uv run --with ruff ruff check
+      # Same version as the local tools: ruff 0.16 enables more rules by default.
+      - run: uv run --with ruff==0.15.18 ruff check
 
   typescript:
     name: mdq-js
