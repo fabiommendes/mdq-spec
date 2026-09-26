@@ -1,183 +1,133 @@
-# MDQ - Markdown Questions
+# mdq-js
 
-## Basic usage
+[![CI](https://github.com/fabiommendes/mdq-spec/actions/workflows/ci.yml/badge.svg)](https://github.com/fabiommendes/mdq-spec/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-MDQ is a lightweight question format based on markdown. It allows you to write
-questions in a simple, intuitive, and AI-friendly way, using markdown syntax.
+> [!WARNING]
+> This is a work in progress. The MDQ specification is not stable yet, and this
+> port does not implement every feature of the Python reference implementation.
 
-Example:
+TypeScript implementation of [MDQ](https://github.com/fabiommendes/mdq-spec), a
+file format to write questions and exams in plain Markdown:
 
 ```md
-## Question 1
+What is the capital of Brazil?
 
-What is the capital of France?
-
-- [ ] Berlin
-- [*] Paris
-- [ ] Madrid
-``` 
-
-This library parses this markdown text and extracts the question structure as a
-JSON object. You can interact with MDQ either by using the command line
-interface (CLI) or by importing the library in your Typescript or Python code.
-
-The CLI can validate and parse MDQ files as JSON or YAML:
-
-```bash
-$ mdq parse questions.md
-questions:
-  - title: Question 1
-    type: multiple-choice
-    stem: What is the capital of France?
-    options:
-      - text: Berlin
-        id: berlin
-        value: 0
-      - text: Paris
-        id: paris
-        value: 1
-      - text: Madrid
-        id: madrid
-        value: 0
+* [ ] Rio de Janeiro
+  > It was the capital until 1960.
+* [*] Brasília
+* [ ] São Paulo
 ```
 
-And the same functionality (and more) is available in the library, either using
-Python or Typescript.
+`mdq-js` provides:
 
-```python
-import { parse_question } from 'mdq'; 
+* A parser from MDQ Markdown to plain objects.
+* [Zod](https://zod.dev) schemas that validate parsed questions and exams.
+* Types for student responses.
 
-const md = `... your question ...`;  
-const [ data, error ] = parse_question(md);
-print(data, error);
-```
+The syntax of each question type is in the
+[specification](https://github.com/fabiommendes/mdq-spec/tree/main/docs).
 
-```ts
-import { parseQuestion } from 'mdq'; 
+This package is a port of [mdq-py](https://github.com/fabiommendes/mdq-py),
+which is the reference for correct behavior. It is not a line-by-line
+translation: documents are plain objects validated by Zod, not model classes.
 
-const md = `... your question ...`;  
-const { data, error } = parseQuestion(md);
-console.log(data, error);
-```
+Status compared to mdq-py:
+
+| Feature                         | Status    |
+| ------------------------------- | --------- |
+| Question parser                 | Available |
+| Question and exam validation    | Available |
+| Exam parser                     | Planned   |
+| Linter                          | Planned   |
+| Scoring                         | Planned   |
+| SolidJS components              | Planned   |
+| CLI                             | Not planned, use mdq-py |
 
 
 ## Installation
 
-Mdq is available both as a pip and npm packages. Use pip/npm (or the package manager of your
-choice) to install it:
+The package is not on npm yet. Install it from the repository:
 
 ```bash
-# Python
-pip install mdq
-
-# Typescript
-npm install mdq
+pnpm add github:fabiommendes/mdq-js
 ```
 
-If you just want to use the CLI, I recommend using uvx to run mdq. The easier
-way is to create a new bash alias:
+`solid-js` is an optional peer dependency, reserved for the planned components.
+
+
+## Usage
+
+`parseQuestion()` parses and validates a question. It throws `ParseError` if the
+source is not a valid MDQ question:
+
+```ts
+import { parseQuestion } from "mdq";
+
+const question = parseQuestion(`
+What is the capital of Brazil?
+
+* [ ] Rio de Janeiro
+* [*] Brasília
+`);
+
+console.log(question.type); // "multiple-choice"
+console.log(question.choices);
+// [
+//   { id: "rio-de-janeiro", text: "Rio de Janeiro", score: 0 },
+//   { id: "brasilia", text: "Brasília", score: 1 },
+// ]
+```
+
+To validate separately, parse into an unvalidated object and pass it to a
+validator. Validators return a result instead of throwing:
+
+```ts
+import { parseQuestionDocument, validateDocument } from "mdq";
+
+const raw = parseQuestionDocument(source);
+const result = validateDocument(raw);
+if (result.success) {
+	console.log(result.data);
+} else {
+	console.error(result.error.issues);
+}
+```
+
+Other exports:
+
+* `validateQuestion()` and `validateExam()` validate one kind of document.
+* `isExam(source)` checks if a source is an exam (it has an H1 title).
+* The Zod schemas (`Question`, `Exam`, one per question type) and the
+  TypeScript types inferred from them.
+* Response types, such as `MultipleChoiceResponse` and `ExamResponses`.
+
+
+## Development
+
+The test suite reads the schema and the shared examples from the parent
+[mdq-spec](https://github.com/fabiommendes/mdq-spec) repository, where this
+package lives in the `mdq-js/` directory. Clone that repository to run the
+tests; a standalone clone of `mdq-js` cannot run them.
 
 ```bash
-alias mdq="uvx run mdq --"
+git clone https://github.com/fabiommendes/mdq-spec
+cd mdq-spec/mdq-js
+pnpm install
+pnpm test        # Vitest
+pnpm typecheck
+pnpm lint        # Biome
+pnpm docs        # API docs with TypeDoc
 ```
 
-## Question types and formats
+New features are implemented in mdq-py first and then ported here.
+[docs/sync](docs/sync/README.md) describes how the Python modules and types map
+to TypeScript.
 
-The generic structure of an MDQ question consists of a title, some optional YAML
-metadata a few introductory paragraphs and the main question body, which varies
-based on the question type.
+See the [changelog](CHANGELOG.md) and the
+[contributing guide](https://github.com/fabiommendes/mdq-spec/blob/main/CONTRIBUTING.md).
 
-```md 
-## [id] Question title
 
-    # Yaml configuration section
-    # This is an indented block of code interpreted as YAML and is used to
-    # specify advanced options. The first block of comments in this section is
-    # stored in the `comment` attribute for the question.
-    type: multiple-choice  # (usually can be inferred from the body)
-    format: md
-    shuffle: true
+## License
 
-One or more descriptive paragraphs. Any inline **markdown** *markup* is ~~valid~~.
-Those optional paragraphs are stored in the `preamble` attribute of the question.
-
-The `stem` is the last paragraph before the question body. It usually commands the 
-student to do some action (e.g., "Select all correct answers", "Write a program 
-that..."). This paragraph is the `stem` of the example. Use an ellipsis (`...`) 
-if you want to use the default stem for the question type (e.g., "Select the 
-correct answer(s)", "Write an essay answer", etc.).
-
-Any text after the body, like this one, is stored in the `epilogue` attribute 
-of the question.
-```
-
-### Multiple Choice Questions
-
-The body of a multiple choice question consists of a list of options, each starting with
-a checkbox. The correct answer(s) are marked with an asterisk (`[*]`):
-
-```md
-## Question 1
-What is the capital of France?
-- [ ] Berlin
-- [*] Paris
-- [ ] Madrid
-```
-
-### Multiple Selection Questions
-
-The body of a multiple selection question is similar to a multiple choice
-question, but it allows for multiple correct answers. Each option is marked with
-a checkbox, and the correct answers are indicated with x's (`[x]`), like 
-task lists in GitHub-flavored markdown:
-
-```md
-## Question 2
-Which of the following are turing complete programming languages?
-- [x] Python
-- [x] JavaScript
-- [ ] HTML
-```
-
-### True/False Questions
-
-True or false questions are represented as a list of options that are marked with
-either the true `[T]` or false `[F]` checkboxes:`
-
-```md
-## Question 3
-Judge the statements.
-* [T] Markdown is a lightweight markup.
-* [F] I'd rather be writing XML.
-* [T] MDQ accepts True/False questions.
-* [F] The Earth is flat.
-```     
-
-### Essay Questions
-
-Essay questions consist of a question stem followed by a blank space for the
-student to write their answer. The correct answer can be specified as any number
-of paragraphs after the `[answer]` tag:
-
-```md
-## Question 4
-Describe the process of photosynthesis.
-
-[answer]: Photosynthesis is the process by which green plants and some other 
-organisms use sunlight to synthesize foods with the help of chlorophyll. It 
-involves the conversion of carbon dioxide and water into glucose and oxygen, 
-using light energy.
-```
-
-### Numeric Questions
-
-Numeric questions require the student to provide a numerical answer. The correct
-answer is specified after the `[value]` tag, and an optional tolerance can be
-provided to allow for a range of acceptable answers:
-
-```md
-## Question 3
-What is the value of Pi?
-
-[value]: 3.141 +/- 0.001
-```
+[MIT](LICENSE)

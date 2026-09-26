@@ -6,7 +6,7 @@
 		"useIgnoreFile": true
 	},
 	"files": {
-		"includes": ["**", "!**/dist", "!**/coverage"]
+		"includes": ["**", "!**/dist", "!**/coverage", "!src/mdq.schema.json"]
 	},
 	"formatter": {
 		"enabled": true,

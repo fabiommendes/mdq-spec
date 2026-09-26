@@ -1,6 +1,6 @@
 {
 	"name": "mdq",
-	"version": "1.0.0",
+	"version": "0.1.0",
 	"description": "A parser for Markdown-based quizzes. It supports various question types and integrates with SolidJS for rendering.",
 	"type": "module",
 	"main": "dist/index.js",
@@ -20,8 +20,8 @@
 		"prepare": "pnpm run build"
 	},
 	"keywords": [],
-	"author": "",
-	"license": "ISC",
+	"author": "Fábio Macêdo Mendes",
+	"license": "MIT",
 	"packageManager": "pnpm@10.15.1",
 	"dependencies": {
 		"js-yaml": "^4.1.1",
