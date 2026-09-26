@@ -1,5 +1,5 @@
 "$schema": "https://json-schema.org/draft/2020-12/schema"
-"$id": "https://raw.githubusercontent.com/codehood-lms/mdq.spec/master/schema/question-base.yaml"
+"$id": "https://raw.githubusercontent.com/fabiommendes/mdq-spec/main/schema/question-base.yaml"
 title: Question (base)
 description: >-
   Common properties shared by every MDQ question type. Question-type

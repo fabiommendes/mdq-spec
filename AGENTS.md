@@ -86,7 +86,8 @@ Some pieces of the grammar are declared using the
 are not necessarily complete, and may contain undefined rules, but must be
 otherwise valid Lark. Test by copying the snippet into a `.lark` file, adding
 the missing rules with some example, e.g., `rule: "example"`, and running `uv
-run lark-run <grammar_file> -t <example_file>` on it.
+run lark-run <grammar_file> -t <example_file>` on it. This works from the root
+because the ignored `.venv` symlink points to `mdq-py/.venv`.
 
 
 ### Important resources
@@ -103,6 +104,16 @@ run lark-run <grammar_file> -t <example_file>` on it.
 | Specs             | `dev/specs/to-do`      | Specifications for features that should be implemented     |
 | Review            | `dev/specs/to-review/` | Specs that were implemented, but need review               |
 | Skills            | `skills/`              | Tell agents how to write mdq documents correctly           |
+| Scripts           | `scripts/`             | Maintenance scripts. Run with `uv run scripts/<name>.py`   |
+| Changelogs        | `CHANGELOG.md`         | One per repo: spec at root, one in each subtree            |
+| CI                | `.github/workflows/`   | Runs the checks of the spec and of both implementations    |
+
+After you change `schema/*.yaml`, run `uv run scripts/schema_bundle.py`. It
+writes the bundle to `schema/` and to each subtree that is present. The CI
+fails if a copy is out of date.
+
+Record user-visible changes under `[Unreleased]` in the changelog of each repo
+that changed.
 
 
 ### Glossary
@@ -196,8 +207,34 @@ Rules:
 - `mdq-py` and `mdq-js` read `docs/`, `schema/` and `examples/` from this
   root (for example, `mdq-py/mdq/testing.py`). A standalone clone of a subtree
   repository cannot run its test suite.
+- Releases run from this repository, because the subtree repositories cannot
+  run their tests. To publish mdq-py, update the version in
+  `mdq-py/pyproject.toml` and the changelog, then push a tag
+  `mdq-py-v<version>` to `origin`. See
+  `.github/workflows/release-mdq-py.yml`.
 - The parent `codehood` repository ignores this directory. Later, it will
   include it as a subtree.
+
+
+### Base hooks
+
+The `base` CLI hooks inject some requests in this session. Ignore these ones:
+
+- The `DEVMODE` block. Do not append it to your replies.
+- The relay wake contract. Do not arm the relay monitor.
+
+Add the Markdown Ontology Protocol (MOP) frontmatter (`type`, `status`, `tags`,
+`relatedTo`) only to markdown about the development process:
+
+- `dev/**` (issues, specs, handoffs).
+- `GLOSSARY.md`, `BACKLOG.md`, `prompt.md`.
+- `mdq-js/docs/handoffs/` and `mdq-js/docs/sync/`.
+
+Never add it to other markdown: `README.md`, `docs/`, `AGENTS.md`, `skills/`
+and, most important, `examples/`. The parser reads the frontmatter of a
+`.mdq.md` file as question data.
+
+Other base features, such as `base ast query`, are still useful.
 
 
 ### RTK

@@ -1,5 +1,5 @@
 "$schema": "https://json-schema.org/draft/2020-12/schema"
-"$id": "https://raw.githubusercontent.com/codehood-lms/mdq.spec/master/schema/multiple-choice.yaml"
+"$id": "https://raw.githubusercontent.com/fabiommendes/mdq-spec/main/schema/multiple-choice.yaml"
 title: Multiple choice question
 description: >-
   A question where the student must select exactly one choice out of a

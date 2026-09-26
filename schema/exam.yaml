@@ -1,5 +1,5 @@
 "$schema": "https://json-schema.org/draft/2020-12/schema"
-"$id": "https://raw.githubusercontent.com/codehood-lms/mdq.spec/master/schema/exam.yaml"
+"$id": "https://raw.githubusercontent.com/fabiommendes/mdq-spec/main/schema/exam.yaml"
 title: Exam
 description: >-
   A set of questions gathered for assessment. An exam is recognized by its

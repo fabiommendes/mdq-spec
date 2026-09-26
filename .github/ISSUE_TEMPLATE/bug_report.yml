@@ -1,0 +1,40 @@
+name: Bug report
+description: An implementation does not behave as the specification says.
+labels: [bug]
+body:
+  - type: dropdown
+    id: package
+    attributes:
+      label: Package
+      options:
+        - mdq-py
+        - mdq-js
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: 0.1.0
+  - type: textarea
+    id: document
+    attributes:
+      label: MDQ document
+      description: The smallest document that shows the problem.
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened
+      description: The output, error or diagnostics you got.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+      description: If possible, refer to the section of the specification.
+    validations:
+      required: true

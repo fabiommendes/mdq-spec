@@ -1,5 +1,5 @@
 "$schema": "https://json-schema.org/draft/2020-12/schema"
-"$id": "https://raw.githubusercontent.com/codehood-lms/mdq.spec/master/schema/ordering.yaml"
+"$id": "https://raw.githubusercontent.com/fabiommendes/mdq-spec/main/schema/ordering.yaml"
 title: Ordering question
 description: >-
   A question where the student sorts a list of lines into the correct

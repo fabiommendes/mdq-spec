@@ -1,0 +1,59 @@
+# The subtree repositories (mdq-py, mdq-js) cannot run their tests on their
+# own: they read docs/, schema/ and examples/ from this repository. So the
+# tests of both implementations run here.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  schema:
+    name: Schema bundle
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Check that every copy of the bundle is up to date
+        run: uv run scripts/schema_bundle.py --check
+      - name: Test the bundle script
+        run: uv run --no-project --with pytest --with PyYAML --with jsonschema pytest scripts
+
+  python:
+    name: mdq-py
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mdq-py
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --locked
+      - run: uv run pytest
+      - run: uv run mypy mdq
+      - run: uv run --with ruff ruff check
+
+  typescript:
+    name: mdq-js
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mdq-js
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: mdq-js/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: mdq-js/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      - run: pnpm typecheck
+      - run: pnpm lint

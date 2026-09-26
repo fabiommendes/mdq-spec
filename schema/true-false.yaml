@@ -1,5 +1,5 @@
 "$schema": "https://json-schema.org/draft/2020-12/schema"
-"$id": "https://raw.githubusercontent.com/codehood-lms/mdq.spec/master/schema/true-false.yaml"
+"$id": "https://raw.githubusercontent.com/fabiommendes/mdq-spec/main/schema/true-false.yaml"
 title: True/False question
 description: >-
   A question where the student must judge each statement in a list as

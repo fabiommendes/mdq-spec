@@ -1,0 +1,54 @@
+# Publish mdq-py to PyPI. Push a tag like `mdq-py-v0.1.0` from this
+# repository. The subtree repository cannot run the tests, so the release runs
+# here, after the tests pass.
+#
+# PyPI uses trusted publishing: the "mdq" project must list this repository,
+# this workflow file and the "pypi" environment as a trusted publisher.
+name: Release mdq-py
+
+on:
+  push:
+    tags:
+      - "mdq-py-v*.*.*"
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mdq-py
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Check that the tag matches the package version
+        run: |
+          version="$(uv version --short)"
+          if [ "${GITHUB_REF_NAME}" != "mdq-py-v${version}" ]; then
+            echo "tag ${GITHUB_REF_NAME} does not match version ${version}" >&2
+            exit 1
+          fi
+      - name: Check that the bundled schema is up to date
+        working-directory: .
+        run: uv run scripts/schema_bundle.py --check
+      - run: uv sync --locked
+      - run: uv run pytest
+      - run: uv run mypy mdq
+
+  publish:
+    name: Publish to PyPI
+    needs: test
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    defaults:
+      run:
+        working-directory: mdq-py
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv build
+      - run: uv publish

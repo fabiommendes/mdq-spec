@@ -1,0 +1,23 @@
+name: Specification change
+description: Propose new syntax, a new question type or a change to the format.
+labels: [spec]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What can you not express with MDQ today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: The syntax you propose, with an example document and its parsed result.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: Other syntaxes you considered, and how GIFT, Aiken or other formats handle this.

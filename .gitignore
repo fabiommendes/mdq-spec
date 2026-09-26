@@ -1,16 +1,16 @@
-.coverage
-.rtk/
-.ruff_cache/
-.mypy_cache/
-.venv/
-.pytest_cache/
-.hypothesis/
-__pycache__/
+# Local development files
+dev/
 private/
-handoff*
 prompt.md
 prompt/
+handoff*
+
+# Tools
 .venv
+.rtk/
 .base-ast/
 .base-ast-cache/
-dev/
+
+# Python caches of scripts/
+__pycache__/
+.pytest_cache/
