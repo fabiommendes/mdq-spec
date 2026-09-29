@@ -118,11 +118,11 @@ Below is the list of invalid elements.
 
 * Unordered lists if all elements start with optional whitespace + `[`.
 * Paragraph that starts with optional whitespace + `[`, except the first paragraph, or
-  if the `[` character is immediately followed by a `^` character[^5].
+  if the `[` character is immediately followed by a `^` character[^6].
 * H1 headings.
 * Heading starting with optional whitespace + `[`.
 
-[^5]: This exception is for the reference-style syntax used to represent the
+[^6]: This exception is for the reference-style syntax used to represent the
 blanks of a fill-in question. Without it, a fill-in question could not have a
 paragraph starting with a blank.
 
@@ -199,8 +199,8 @@ Also, we define some optional rules that are desired for a well formed
 documents, but are not strictly required. Implementations SHOULD provide
 validations for those optional rules in the form of linting or warnings.
 
-This section documents the 
-
+This section documents how a question maps to its AST and the rules an AST
+must follow beyond its JSON Schema.
 
 ### Markdown to AST mapping
 
@@ -247,7 +247,7 @@ is assigned a strictness level of "critical", "warning", "info".
 | Field                    | Level    | Rule                                                        |
 | ------------------------ | -------- | ------------------------------------------------------------ |
 | preamble, epilogue, stem | critical | must have at least one visisible character                 |
-| preamble, epilogue, stem | critical | cannot have explicitly forbidden block elements[^6]         |
+| preamble, epilogue, stem | critical | cannot have explicitly forbidden block elements[^7]         |
 | locale                   | critical | must be a valid IETF BCP 47 tag[^4]                         |
 | id                       | warning  | should be url-safe[^2]                                      |
 | stem                     | warning  | must be a markdown `p` block element                        |
@@ -257,10 +257,10 @@ is assigned a strictness level of "critical", "warning", "info".
 | uuid                     | critical | must be a well-formed UUID[^3]                              |
 | uuid                     | warning  | the version and variant nibbles should correspond to an existing standard[^3] |
 | id, title                | info     | field must be defined in the document                       |
-| locale                   | info     | the language subtag SHOULD NOT look like a country code[^7] |
+| locale                   | info     | the language subtag SHOULD NOT look like a country code[^8] |
 | stem                     | info     | a bare ellipsis (`...`) SHOULD be replaced by a real statement instead of left unexpanded |
 
-[^6]: Those elements are described in the section [forbidden elements](#forbidden-elements)
-[^7]: For example `cn` (a country code) instead of `zh` (the language). The
+[^7]: Those elements are described in the section [forbidden elements](#forbidden-elements)
+[^8]: For example `cn` (a country code) instead of `zh` (the language). The
 `locale` pattern in [Frontmatter](#frontmatter) only checks the tag's shape,
 not whether the subtag names a real language.

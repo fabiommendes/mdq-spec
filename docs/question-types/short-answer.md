@@ -95,7 +95,7 @@ and `[short-answer/reject]` blocks -- writing the block and writing the
 frontmatter field are two spellings of the same thing, and a document MUST NOT
 use both spellings for the same list. A document that does anyway is not
 undefined, merely invalid: implementations that choose to accept it MUST follow
-the general rule of [generic.md](generic.md#frontmatter) and let the
+the general rule of [base.md](base.md#frontmatter) and let the
 frontmatter win.
 
 [^1]: A response is correct if it matches any `accept` pattern.
