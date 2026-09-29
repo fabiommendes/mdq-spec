@@ -1,0 +1,10 @@
+# A decimal with more significant digits than a float holds stays a
+# string, since the float would lose precision (numeric.md, "Answer
+# representation").
+id: num-pi-twenty
+title: Pi to twenty decimal places
+type: numeric
+stem: What is the value of pi, to twenty decimal places?
+answer: "3.14159265358979323846"
+domain: decimal
+decimalPlaces: 20

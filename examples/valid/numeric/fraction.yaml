@@ -1,8 +1,9 @@
-# `domain: fraction` records how the answer was written; `answer` is
-# always the numeric value it denotes.
+# A fraction stays a string, even when a float could hold it exactly
+# (numeric.md, "Answer representation"). `domain: fraction` records how
+# the answer was written.
 id: num-fraction
 title: Three quarters
 type: numeric
 stem: What is 3 divided by 4?
-answer: 0.75
+answer: "3/4"
 domain: fraction

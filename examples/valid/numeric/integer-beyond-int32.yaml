@@ -1,0 +1,10 @@
+# An integer outside the 32-bit signed range stays a string (numeric.md,
+# "Answer representation"). Its domain is still `integer`.
+id: num-amazon-trees
+title: Trees in the Amazon
+type: numeric
+stem: Approximately how many trees grow in the Amazon rainforest?
+answer: "390000000000"
+domain: integer
+tolerance:
+  relative: 0.1

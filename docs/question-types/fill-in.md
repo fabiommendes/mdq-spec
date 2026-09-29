@@ -135,7 +135,9 @@ numeric_def : "[^" SLUG "/" "numeric" unit? "]:" ws? numeric_body
 The `numeric_body` and `unit` non-terminals represent, respectively, a numeric
 value with tolerance and an optional unit of measurement. Both are defined in
 the [body](numeric.md#body) section of the numeric question type. The `blank`
-slug MUST be present in the stem.
+slug MUST be present in the stem. The blank's `answer` follows the same
+[answer representation](numeric.md#answer-representation) as a numeric
+question: a fraction such as `1/3` is a string.
 
 The unit is written inside the tag, before the closing bracket, exactly as it
 is in a standalone numeric question:

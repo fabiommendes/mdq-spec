@@ -1,0 +1,13 @@
+# A numeric blank follows the same answer representation as a numeric
+# question: a fraction stays a string.
+id: fill-in-northeast-share
+title: The Northeast region
+type: fill-in
+stem: >-
+  The nine states of the Northeast region are [^share] of Brazil's 27
+  federative units.
+blanks:
+  - id: share
+    type: numeric
+    answer: "1/3"
+    domain: fraction

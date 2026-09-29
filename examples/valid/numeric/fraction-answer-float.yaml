@@ -1,0 +1,10 @@
+# A document written directly as YAML/JSON may also give a fraction as a
+# number (numeric.md, "Answer representation"). A float does not show
+# how the value was written, so `domain: fraction` does not contradict
+# it.
+id: moeda-25-centavos
+title: A 25-centavo coin
+type: numeric
+stem: What fraction of one real is a 25-centavo coin worth?
+answer: 0.25
+domain: fraction

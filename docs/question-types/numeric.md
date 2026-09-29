@@ -79,21 +79,36 @@ DECIMAL      : /([1-9][0-9]*|0)[.][0-9]+/
 
 ## Answer representation
 
-The Markdown surface syntax above always yields a JSON number: a body
-fraction like `[numeric]: 1/3` becomes its floating-point value, and
-`domain: fraction` records how it was written (see
-[number type/domain](#number-typedomain)) -- a `float` cannot represent
-a fraction exactly.
+The Markdown surface syntax above produces a value that MAY be represented
+as a JSON number: a body fraction like `[numeric]: 1/3` is represented in
+JSON as a string because there is no safe floating-point representation. A
+value like `0.25` MAY be converted to a floating point number or kept as
+a decimal. Numeric conversions SHOULD NOT be attempted when there is loss
+of precision.
+
+A conversion loses precision when the shortest decimal form of the
+nearest floating-point number differs from the digits as written. `0.1`
+and `0.25` convert; `2.50` (the trailing zero is a significant digit)
+and `3.14159265358979323846` (more digits than a float holds) stay
+strings. A fraction always stays a string, even one with an exact
+floating-point value such as `3/4`.
+
+An integer number like `42` or `-1` SHOULD be coerced to an integral value.
+It SHOULD be kept as a string if it is not representable in the 32-bit signed
+integer range.
+
+The [number type/domain](#number-typedomain) field is unaffected by the
+decision to coerce the string representation to a number or not.
 
 A document written directly as JSON/YAML/dict, rather than parsed from
-Markdown, MAY instead give `answer` as a string to keep that precision,
-e.g. `"1/3"` or `"-0.25"`. The string MUST match the `sign? value`
-grammar above, and a fraction's denominator MUST NOT be zero.
+Markdown, can choose freely between numeric and string representations.
+A string answer MUST match the `sign? value` grammar above, and a
+fraction's denominator MUST NOT be zero.
 
 ## Number type/domain
 
-If not given in the frontmatter, the domain is inferred from the representation
-of the value and of the absolute tolerance, using coercion rules similar to C's:
+If not given in the frontmatter, the domain is inferred from how the value and
+the absolute tolerance are written, using coercion rules similar to C's:
 the wider of the two wins. C has no fractions, so we place `fraction` between
 `integer` and `decimal`.
 
@@ -164,7 +179,7 @@ tolerance test.
 
 | Field              | Level    | Rule                                                       |
 | ------------------ | -------- | ---------------------------------------------------------- |
-| answer             | warning  | must be a whole number when `domain` is "integer"          |
+| answer             | warning  | must be a whole number when `domain` is "integer"[^6]      |
 | tolerance.relative | warning  | must not be given when `answer` is zero[^2]                |
 | domain             | info     | should agree with the domain inferred from the document[^3]|
 | tolerance.relative | info     | is a fraction, so a value above 1 is likely a mistake[^4]  |
@@ -174,7 +189,11 @@ tolerance test.
 [^2]: The relative tolerance is `|answer| ⨉ relative`, which is 0 for a zero
 answer, so only an exact 0 would be accepted.
 [^3]: See [number type/domain](#number-typedomain). A declared domain never widens
-the value written in the body -- it only contradicts it.
+the value written in the body -- it only contradicts it. A string answer shows
+how it was written. A number does not, since a JSON/YAML/dict document can
+write a fraction as one, so a number that is not whole agrees with both
+`fraction` and `decimal`.
 [^4]: `0.05` is 5%, not 0.05%; `5` would accept a response 500% off.
 [^5]: An exact comparison of a non-integer response is rarely what the author
 means, since the number of digits the student types decides the outcome.
+[^6]: A string answer is judged by its value: `"7/2"` is not whole, `"4/2"` is.

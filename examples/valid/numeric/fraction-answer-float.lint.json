@@ -1,0 +1,9 @@
+[
+  {
+    "code": "missing-tolerance",
+    "severity": "info",
+    "path": [
+      "tolerance"
+    ]
+  }
+]

@@ -1,0 +1,11 @@
+[
+  {
+    "code": "missing-tolerance",
+    "severity": "info",
+    "path": [
+      "blanks",
+      0,
+      "tolerance"
+    ]
+  }
+]

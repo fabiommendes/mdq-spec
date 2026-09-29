@@ -1,0 +1,12 @@
+# A decimal that ends in a zero stays a string: the float 2.5 would drop
+# the last significant digit (numeric.md, "Answer representation").
+id: num-coins
+title: Coins in reais
+type: numeric
+stem: How much, in reais, are two 1-real coins and one 50-centavo coin worth?
+answer: "2.50"
+unit: R$
+domain: decimal
+decimalPlaces: 2
+tolerance:
+  absolute: 0.01

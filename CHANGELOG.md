@@ -78,3 +78,17 @@ First version of the specification.
 - `docs/lint-codes.md`: `domain-mismatch` infers the domain from the answer
   and the absolute tolerance, as numeric.md says. The `numeric/zero-answer`
   example now derives `domain: decimal`.
+- numeric.md, "Answer representation": a numeric body's value is no
+  longer always a JSON number. A fraction stays a string (`1/3` is
+  `"1/3"`), an integer outside the 32-bit signed range stays a string, and
+  a decimal becomes a number only if the number gives back the digits as
+  written (`0.25` converts; `2.50` and `3.14159265358979323846` stay
+  strings). `domain` does not depend on this choice. A document written
+  directly as JSON/YAML/dict may use either form. The `numeric/fraction`
+  example now holds `answer: "3/4"`, and new examples cover a large
+  integer, a trailing zero, a long decimal, a fraction blank and a
+  fraction written as a float.
+- `docs/lint-codes.md`: `answer-outside-domain` and
+  `relative-tolerance-around-zero` judge a string answer by its value, and
+  `domain-mismatch` accepts `fraction` or `decimal` for a number that is
+  not whole.
