@@ -50,9 +50,10 @@ it:
 
 ## File format
 
-MDQ files use the `.mdq.md` or `.mdq` extension. Prefer `.mdq.md`: editors and
-forges that key off `.md` then treat the file as Markdown. A file holds either
-one question or one exam, and the parser tells them apart by content.
+MDQ files use the `.mdq.md`, `.md` or `.mdq` extension. Prefer `.mdq.md`: it
+tells MDQ files apart from other Markdown, and editors and forges that key off
+`.md` still treat the file as Markdown. A file holds either one question or one
+exam, and the parser tells them apart by content.
 
 A question has up to four parts, in this order:
 

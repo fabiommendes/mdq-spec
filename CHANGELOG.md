@@ -15,6 +15,7 @@ First version of the specification.
 
 ### Added
 
+- File extensions `.mdq.md`, `.md` and `.mdq`.
 - Question types: multiple choice, multiple selection, true/false, short
   answer, numeric, fill in the blanks, essay and ordering.
 - Exams: several questions in one file, includes from a question bank,

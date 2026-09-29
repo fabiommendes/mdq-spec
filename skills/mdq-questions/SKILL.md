@@ -8,9 +8,9 @@ description: Write questions and exams in MDQ, a markdown format for quizzes and
 MDQ writes a question as a markdown file. The question type is **inferred from
 the body**, so in most cases you write plain markdown and nothing else.
 
-Files use the `.mdq.md` (or `.mdq`) extension; a single file holds one question,
-or one exam with many. Validate with `mdq validate <file>` when the reference
-implementation is available.
+Files use the `.mdq.md` extension (`.md` and `.mdq` also work); a single file
+holds one question, or one exam with many. Validate with `mdq validate <file>`
+when the reference implementation is available.
 
 Spec: https://github.com/fabiommendes/mdq-spec (`docs/question-types/`,
 `docs/exam.md`, plus worked pairs of markdown + expected YAML in `examples/`).
