@@ -1,0 +1,8 @@
+# The exam `id`, `include` and `include-all` take only a YAML string. A
+# number or a boolean (`yes`) is not converted to a string.
+type: exam
+id: 2024
+title: Prova de Geografia
+questions:
+  - include: true
+  - include-all: 7

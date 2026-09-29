@@ -56,7 +56,7 @@ Exams accept the following arguments in the frontmatter
 | type        | "exam"                     | The type discriminator[^1]                                                    |
 | title       | string                     | The exam title. Usually written as the H1 instead.                            |
 | description | string                     | Can be used in listings to provide a little more detail than the title alone. |
-| id          | string or number           | Slug identifier. Usually written in the H1 instead.[^2]                       |
+| id          | string                     | Slug identifier. Usually written in the H1 instead.[^2]                       |
 | uuid        | string                     | A universally unique identifier.[^3]                                          |
 | course      | string                     | The course code for the exam                                                  |
 | author      | string                     | Exam author. Inherited by the questions.                                      |
@@ -83,6 +83,9 @@ Exams accept the following arguments in the frontmatter
 All properties in the frontmatter are optional. `title` and `id` may be given
 either in the frontmatter or in the H1 heading; if both are set, the
 frontmatter takes precedence, consistently with the rule for questions.
+As for a question, a value keeps its YAML type and is never converted: `id`,
+and the `include` and `include-all` of a block, MUST be YAML strings
+(`id: "2024"`, not `id: 2024`; `include: "yes"`, not `include: yes`).
 
 
 ## The title

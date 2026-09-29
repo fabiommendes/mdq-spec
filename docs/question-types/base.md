@@ -64,7 +64,7 @@ questions. All fields are optional.
 | ------ | ------------------ | -------------------------------------------------------------------- |
 | type   | string             | Force a question type (instead of inferring it)[^1]                  |
 | title  | string             | A human-readable title.                                              |
-| id     | string or number   | Slug identifier. Unique in the context of a single question set.[^2] |
+| id     | string             | Slug identifier. Unique in the context of a single question set.[^2] |
 | uuid   | string             | A universally unique identifier.[^3]                                 |
 | tags   | string[] or string | A list of strings or a single comma delimited strings.               |
 | author | string             | Question author                                                      |
@@ -77,6 +77,11 @@ questions. All fields are optional.
 [^3]: Must be a valid UUID, ``xxxxxxxx-xxxx-Mxxx-Nxxx-xxxxxxxxxxxx`` where `M` is the version and `N` is the variant. `M` and `N` SHOULD correspond to a existing standard.
 [^4]: MUST be a valid [IETF BCP 47](https://developer.mozilla.org/en-US/docs/Glossary/BCP_47_language_tag) language tag.
 [^5]: MUST NOT be negative. The exam score is the weighted mean of its question scores, so a weight of 0 keeps the question in the exam without counting towards the score.
+
+A value keeps its YAML type and is never converted. A field of type string
+MUST hold a YAML string: `id: 2024` is a number and is an error, so a
+numeric-looking id is quoted (`id: "2024"`). A null value (`id:` with nothing
+after it) is the same as an absent field.
 
 If there is a collision of a field that is specified both in the frontmatter and
 elsewhere, the frontmatter takes precedence.

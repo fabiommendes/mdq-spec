@@ -1,0 +1,5 @@
+# `id` takes only a YAML string: `2024` is a number, and is not converted
+# to "2024". Quote it (`id: "2024"`) for a numeric-looking id.
+type: essay
+id: 2024
+stem: Descreva o bioma Cerrado.

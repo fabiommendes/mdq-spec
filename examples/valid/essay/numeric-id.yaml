@@ -1,5 +1,0 @@
-# `id` may be written as a YAML number; it is read as its decimal string
-# form, so `42` and `"42"` are the same identifier.
-id: "42"
-type: essay
-stem: Explain what makes a number "interesting".

@@ -122,6 +122,14 @@ First version of the specification.
   not ISO 8601) and `malformed-true-false-marker` (a marker that is not a
   single letter). New examples `invalid/model-only/exam-zero-duration` and
   `invalid/model-only/true-false-non-letter-marker`.
+- A frontmatter value keeps its YAML type (base.md, exam.md): `id`, and an
+  exam block's `include`/`include-all`, MUST be YAML strings. `id: 2024` or
+  `include: yes` is an error (`schema-error`), not the string `"2024"` or
+  `"True"`. A null `id` is absent. The `essay/numeric-id` example is gone;
+  new invalid examples `question-id-not-string` and `exam-ids-not-strings`.
+- `examples/invalid/` may hold `.mdq.md` documents. Each has a `.lint.json`
+  with every diagnostic `load` reports, errors included, and a `.yaml`
+  sibling, if present, reports the same ones.
 - `skills/mdq-questions`: the numeric reference states the current unit rule
   (any character except whitespace and `(`, `)`, `[`, `]`) and the answer
   representation.

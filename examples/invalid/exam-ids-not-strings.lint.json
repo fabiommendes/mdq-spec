@@ -1,0 +1,27 @@
+[
+  {
+    "code": "schema-error",
+    "severity": "error",
+    "path": [
+      "id"
+    ]
+  },
+  {
+    "code": "schema-error",
+    "severity": "error",
+    "path": [
+      "questions",
+      0,
+      "include"
+    ]
+  },
+  {
+    "code": "schema-error",
+    "severity": "error",
+    "path": [
+      "questions",
+      1,
+      "include-all"
+    ]
+  }
+]
