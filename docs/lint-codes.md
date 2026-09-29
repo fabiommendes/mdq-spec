@@ -14,8 +14,8 @@ types" column, "any" includes exams.
 | `accept-wildcard`                      | warning  | short-answer, fill-in                                    | An `accept` pattern is the `*` wildcard, which accepts every response.                                                                                                                                |
 | `all-choices-correct`                  | info     | multiple-choice, multiple-selection, fill-in             | Every choice is correct (or has a `score >= 1`), so the question has no wrong answer.                                                                                                                 |
 | `answer-outside-domain`                | warning  | numeric, fill-in                                         | The declared `domain` contradicts the answer's own representation (e.g. `domain: integer` with a fractional answer).                                                                                  |
-| `blank-choice-comment`                 | warning  | multiple-choice, multiple-selection, true-false          | A choice's `comment` has no visible (non-whitespace) character.                                                                                                                                       |
-| `blank-choice-feedback`                | warning  | multiple-choice, multiple-selection, true-false          | A choice's `feedback` has no visible (non-whitespace) character.                                                                                                                                      |
+| `blank-choice-comment`                 | warning  | multiple-choice, multiple-selection, true-false, fill-in | A choice's `comment` has no visible (non-whitespace) character.                                                                                                                                       |
+| `blank-choice-feedback`                | warning  | multiple-choice, multiple-selection, true-false, fill-in | A choice's `feedback` has no visible (non-whitespace) character.                                                                                                                                      |
 | `blank-ordering-line`                  | info     | ordering                                                 | A `lines`/`extra` entry is blank, and `skip-blanks` is not normalized, so it counts when comparing a response.                                                                                        |
 | `blank-tag`                            | warning  | any                                                      | A `tags` entry is empty or whitespace only.                                                                                                                                                           |
 | `blank-text-field`                     | warning  | any                                                      | A free-text metadata field (`title`, `author`, `comment`, `answerKey`) is defined but has no visible character. `preamble`/`epilogue`/`stem` use the same code as an `error` instead -- see "Errors". |
@@ -31,7 +31,7 @@ types" column, "any" includes exams.
 | `locale-lookalike-language`            | info     | any                                                      | `locale`'s language subtag is a two-letter code that looks like a country code rather than a language (e.g. `cn` instead of `zh`).                                                                    |
 | `locale-mismatched-true-false-marker`  | warning  | true-false                                               | A marker is unusual for the question's `locale`, which normally writes a different letter.                                                                                                            |
 | `missing-answer-key`                   | info     | essay                                                    | `answerKey` is not defined.                                                                                                                                                                           |
-| `missing-choice-id`                    | info     | multiple-choice, multiple-selection, true-false          | A choice declares no `id` of its own; one will be derived from its text.                                                                                                                              |
+| `missing-choice-id`                    | info     | multiple-choice, multiple-selection, true-false, fill-in | A choice declares no `id` of its own; one will be derived from its text.                                                                                                                              |
 | `missing-id`                           | info     | any                                                      | `id` is not defined.                                                                                                                                                                                  |
 | `missing-title`                        | info     | any                                                      | `title` is not defined.                                                                                                                                                                               |
 | `missing-tolerance`                    | info     | numeric, fill-in                                         | No `tolerance` is given for a `decimal`/`fraction` answer, so only an exact match is accepted.                                                                                                        |
@@ -60,7 +60,7 @@ types" column, "any" includes exams.
 | `unsplit-tag-list`                     | warning  | any                                                      | A `tags` entry contains a comma; comma-splitting only applies when `tags` is written as a single string.                                                                                              |
 | `uuid-unknown-variant`                 | warning  | any                                                      | The UUID's variant nibble is not one of `8`, `9`, `a`, `b`.                                                                                                                                           |
 | `uuid-unknown-version`                 | warning  | any                                                      | The UUID's version nibble is not one of `1`-`8`.                                                                                                                                                      |
-| `visually-identical-choices`           | info     | multiple-choice, multiple-selection, true-false          | A choice's text renders the same as another's but is written differently in source.                                                                                                                   |
+| `visually-identical-choices`           | info     | multiple-choice, multiple-selection, true-false, fill-in | A choice's text renders the same as another's but is written differently in source.                                                                                                                   |
 | `visually-identical-lines`             | info     | ordering                                                 | Two `lines`/`extra` entries render alike but differ in raw source; a student ordering the rendered text cannot tell them apart.                                                                       |
 
 ## Errors
@@ -89,6 +89,21 @@ some post-processing stage) or by the model validator (pydantic or zod).
 | `undefined-blank`                          | fill-in                                                  | The stem references a `[^id]` marker that names no declared blank.                                                                                                                                                                                                                                                                 |
 | `unknown-include-field`                    | exam                                                     | An `include`/`include-all` block declares a field other than `include`, or `include-all`/`max` -- exam.md, "Question and include blocks": "No other field is allowed."                                                                                                                                                           |
 | `unreferenced-blank`                       | fill-in                                                  | A declared blank is never referenced by a `[^id]` marker in the stem.                                                                                                                                                                                                                                                              |
+
+## Load errors
+
+These codes are not rules about the document content. `load` reports them
+when it cannot read the input or cannot build a model at all.
+
+- `yaml-syntax-error`, `json-syntax-error`: the input is not valid YAML or JSON.
+- `parse-error`: the Markdown source does not follow the MDQ grammar.
+- `conflicting-accept`: `accept`/`reject` (or `preAccept`/`preReject`) is
+  declared both in the frontmatter and as a body block (short-answer.md).
+- `invalid-document`: the top level of the document is not a mapping.
+- `wrong-kind`: the caller asked for a question and got an exam, or the
+  reverse.
+- `unresolved-include-all`: ids were requested for an exam that still holds an
+  `include-all` block, which only `Exam.resolve` can expand.
 
 [exam.md]: exam.md
 [question-types]: question-types/

@@ -62,3 +62,9 @@ First version of the specification.
 - Numeric units are now any character except whitespace and the brackets
   `(`, `)`, `[`, `]` (`^[^\s()\[\]]+$`), not the ASCII-only `\w` class,
   admitting units like `µm`, `°C`, `km/h`, and `Ω`.
+- `docs/lint-codes.md`: `blank-choice-feedback`, `blank-choice-comment`,
+  `missing-choice-id` and `visually-identical-choices` also apply to a
+  fill-in choice blank. A new "Load errors" section lists the codes `load`
+  reports when it cannot read a document or build a model.
+- Snapshots of the expected lint results for the fill-in examples with
+  choice blanks.
