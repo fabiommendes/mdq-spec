@@ -1,0 +1,6 @@
+# Matching is always a full match, so a leading `^` is redundant.
+id: independencia-ano
+title: Ano da independência
+type: short-answer
+stem: Em que ano o Brasil declarou independência de Portugal?
+regex: "^18(2[0-9])"

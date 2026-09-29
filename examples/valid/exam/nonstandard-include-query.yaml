@@ -1,0 +1,13 @@
+# The query language's keywords are uppercase only (docs/exam.md,
+# "Include all"): lowercase `and` is an ordinary tag, not the `AND`
+# operator, so this query does not parse as the recommended grammar.
+type: exam
+id: nonstandard-query-quiz
+title: Nonstandard query quiz
+instructions: Answer every question.
+questions:
+- include-all: recursion and draft
+- stem: Qual é a capital do Brasil?
+  oneOf:
+  - Brasília
+  type: short-answer

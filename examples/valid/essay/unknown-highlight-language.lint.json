@@ -1,0 +1,9 @@
+[
+  {
+    "code": "unknown-highlight-language",
+    "severity": "info",
+    "path": [
+      "highlight"
+    ]
+  }
+]

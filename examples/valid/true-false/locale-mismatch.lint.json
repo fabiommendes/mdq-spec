@@ -1,7 +1,39 @@
 [
   {
-    "code": "locale-mismatched-true-false-marker",
+    "code": "missing-id",
     "severity": "info",
+    "path": [
+      "id"
+    ]
+  },
+  {
+    "code": "missing-title",
+    "severity": "info",
+    "path": [
+      "title"
+    ]
+  },
+  {
+    "code": "missing-choice-id",
+    "severity": "info",
+    "path": [
+      "choices",
+      0,
+      "id"
+    ]
+  },
+  {
+    "code": "missing-choice-id",
+    "severity": "info",
+    "path": [
+      "choices",
+      1,
+      "id"
+    ]
+  },
+  {
+    "code": "locale-mismatched-true-false-marker",
+    "severity": "warning",
     "path": [
       "choices",
       0,

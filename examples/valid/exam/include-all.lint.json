@@ -1,0 +1,28 @@
+[
+  {
+    "code": "undeclared-id-after-include-all",
+    "severity": "warning",
+    "path": [
+      "questions",
+      3
+    ]
+  },
+  {
+    "code": "missing-id",
+    "severity": "info",
+    "path": [
+      "questions",
+      3,
+      "id"
+    ]
+  },
+  {
+    "code": "missing-title",
+    "severity": "info",
+    "path": [
+      "questions",
+      3,
+      "title"
+    ]
+  }
+]

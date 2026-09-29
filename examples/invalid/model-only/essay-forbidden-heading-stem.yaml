@@ -1,0 +1,6 @@
+# base.md, "Forbidden elements": an H1 heading in the stem could be
+# mistaken for an exam title marker -- schema-valid (`stem` is just a
+# non-empty string), but rejected at the model level.
+type: essay
+stem: "# Bioma predominante no Nordeste"
+input: text

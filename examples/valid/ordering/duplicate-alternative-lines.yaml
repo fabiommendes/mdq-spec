@@ -1,0 +1,30 @@
+# Two `## [reject]` sections declare the exact same lines. Repeated
+# sections are allowed, but two sections holding the same lines once
+# fully normalized is a warning (`duplicate-alternative-lines`), pointing
+# at the later one.
+id: ordering-duplicate-alternative-lines
+title: Cheia sazonal do Pantanal
+type: ordering
+stem: >-
+  Order the steps that describe the seasonal flooding cycle of the
+  Pantanal.
+content: text
+lines:
+  - [0, "O nível dos rios sobe durante a estação chuvosa."]
+  - [0, "A planície é gradualmente inundada."]
+  - [0, "A fauna aquática se espalha pelas áreas alagadas."]
+  - [0, "As águas recuam na estação seca."]
+reject:
+  - lines:
+      - [0, "A planície é gradualmente inundada."]
+      - [0, "O nível dos rios sobe durante a estação chuvosa."]
+      - [0, "A fauna aquática se espalha pelas áreas alagadas."]
+      - [0, "As águas recuam na estação seca."]
+    comment: "Primeira tentativa: inverte as duas primeiras etapas."
+  - lines:
+      - [0, "A planície é gradualmente inundada."]
+      - [0, "O nível dos rios sobe durante a estação chuvosa."]
+      - [0, "A fauna aquática se espalha pelas áreas alagadas."]
+      - [0, "As águas recuam na estação seca."]
+    comment: >-
+      Segunda tentativa: repete a rejeição anterior sem perceber.

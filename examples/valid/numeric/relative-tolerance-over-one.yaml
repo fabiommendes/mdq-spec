@@ -1,0 +1,9 @@
+# `relative` is a fraction (0.05 means 5%); a value of 5 means 500%,
+# almost certainly a units mistake.
+id: populacao-brasil
+title: População do Brasil
+type: numeric
+stem: Quantos habitantes, aproximadamente, tem o Brasil (em milhões)?
+answer: 203
+tolerance:
+  relative: 5

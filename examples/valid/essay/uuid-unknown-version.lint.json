@@ -1,0 +1,9 @@
+[
+  {
+    "code": "uuid-unknown-version",
+    "severity": "warning",
+    "path": [
+      "uuid"
+    ]
+  }
+]

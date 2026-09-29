@@ -1,0 +1,12 @@
+# The stem references `[^bioma]`, but no blank named `bioma` is
+# declared -- only `rio`. JSON Schema cannot cross-check the stem's
+# markers against `blanks`, so this passes the schema and is only
+# rejected by the `undefined-blank` model validator (fill-in.md,
+# "Additional Rules").
+type: fill-in
+stem: O bioma [^bioma] abriga o maior rio do mundo em volume de água, o [^rio].
+blanks:
+  - id: rio
+    type: short-answer
+    oneOf:
+      - Amazonas

@@ -1,0 +1,9 @@
+# Pygments lexer aliases are the reference list of recognized languages
+# (see essay.md, "Additional Rules"). "cobol85dialect" is not one.
+id: mdc-function
+title: MDC function
+type: essay
+stem: Escreva uma função que calcule o MDC de dois números inteiros.
+input: code
+highlight: cobol85dialect
+answerKey: Qualquer implementação correta do algoritmo de Euclides é aceitável.

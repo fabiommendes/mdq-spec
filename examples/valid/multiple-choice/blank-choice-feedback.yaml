@@ -1,0 +1,14 @@
+# A choice's `feedback`, if given, must have a visible character -- an
+# empty one is dead weight in the document.
+id: capital-blank-feedback
+title: Capital blank feedback
+type: multiple-choice
+stem: Qual é a capital do Brasil?
+choices:
+  - id: rio
+    text: Rio de Janeiro
+    score: 0
+    feedback: "   "
+  - id: brasilia
+    text: Brasília
+    score: 1

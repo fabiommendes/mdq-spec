@@ -1,0 +1,14 @@
+# A choice's `comment`, if given, must have a visible character -- an
+# empty one is dead weight in the document.
+id: capital-blank-comment
+title: Capital blank comment
+type: multiple-choice
+stem: Qual é a capital do Brasil?
+choices:
+  - id: rio
+    text: Rio de Janeiro
+    score: 0
+    comment: "\t "
+  - id: brasilia
+    text: Brasília
+    score: 1

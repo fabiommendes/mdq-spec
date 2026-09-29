@@ -1,0 +1,16 @@
+# `X` marks a selected multiple-selection choice and has no true/false
+# meaning; a true-false marker must never be `X` or `x`. JSON Schema
+# only checks that `marker` is a single letter, so this passes the
+# schema and is only rejected by the `reserved-true-false-marker` model
+# validator (true-false.md, "Additional Rules").
+type: true-false
+stem: Julgue as afirmações sobre a fauna brasileira.
+choices:
+  - id: onca
+    text: A onça-pintada é o maior felino das Américas.
+    correct: true
+    marker: X
+  - id: capivara
+    text: A capivara é o maior roedor do mundo.
+    correct: true
+    marker: T

@@ -1,0 +1,10 @@
+[
+  {
+    "code": "accept-wildcard",
+    "severity": "warning",
+    "path": [
+      "accept",
+      1
+    ]
+  }
+]

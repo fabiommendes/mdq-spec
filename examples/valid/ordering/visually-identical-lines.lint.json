@@ -1,0 +1,10 @@
+[
+  {
+    "code": "visually-identical-lines",
+    "severity": "info",
+    "path": [
+      "lines",
+      2
+    ]
+  }
+]

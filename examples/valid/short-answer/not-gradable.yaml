@@ -1,0 +1,6 @@
+# No `accept`/`oneOf`/`regex` is given, and the question is not marked
+# `openEnded` -- nothing can grade it either way.
+id: opiniao-cerrado
+title: Opinião sobre o Cerrado
+type: short-answer
+stem: O que você achou mais interessante sobre o bioma Cerrado?

@@ -1,0 +1,11 @@
+[
+  {
+    "code": "accept-repeats-answer-key",
+    "severity": "warning",
+    "path": [
+      "accept",
+      0,
+      "lines"
+    ]
+  }
+]

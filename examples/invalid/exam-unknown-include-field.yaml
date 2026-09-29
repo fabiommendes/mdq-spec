@@ -1,0 +1,10 @@
+# exam.md, "Question and include blocks": "No other field is allowed."
+# `notes` is not `include`, so this fails the schema's own
+# `additionalProperties: false` on Include, and `load` rejects it with
+# `unknown-include-field` (mdq.models.Include).
+type: exam
+id: cerrado-quiz
+title: Cerrado quiz
+questions:
+  - include: cerrado-01
+    notes: revisar depois

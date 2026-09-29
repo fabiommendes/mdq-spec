@@ -1,0 +1,10 @@
+[
+  {
+    "code": "relative-tolerance-over-one",
+    "severity": "info",
+    "path": [
+      "tolerance",
+      "relative"
+    ]
+  }
+]

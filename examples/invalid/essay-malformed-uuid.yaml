@@ -1,0 +1,12 @@
+# base.md, "Additional Rules": `uuid`, if present, MUST be well-formed.
+# `nope` also fails the schema's own `uuid` pattern (schema/
+# question-base.yaml), so this belongs here rather than under
+# `model-only/`; `load` rejects it with `malformed-uuid`
+# (mdq.models._base) regardless of any schema check.
+type: essay
+id: q
+title: Q
+input: text
+stem: Descreva as características do bioma Cerrado.
+answerKey: Vegetação rala, solo ácido e estação seca bem definida.
+uuid: nope

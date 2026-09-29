@@ -1,0 +1,43 @@
+[
+  {
+    "code": "missing-title",
+    "severity": "info",
+    "path": [
+      "title"
+    ]
+  },
+  {
+    "code": "missing-choice-id",
+    "severity": "info",
+    "path": [
+      "choices",
+      0,
+      "id"
+    ]
+  },
+  {
+    "code": "missing-choice-id",
+    "severity": "info",
+    "path": [
+      "choices",
+      1,
+      "id"
+    ]
+  },
+  {
+    "code": "missing-choice-id",
+    "severity": "info",
+    "path": [
+      "choices",
+      2,
+      "id"
+    ]
+  },
+  {
+    "code": "all-choices-correct",
+    "severity": "info",
+    "path": [
+      "choices"
+    ]
+  }
+]

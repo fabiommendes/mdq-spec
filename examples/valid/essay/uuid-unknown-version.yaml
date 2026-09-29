@@ -1,0 +1,8 @@
+# The 13th character is the version nibble; `9` is not one of `1`-`8`.
+id: iguacu-falls
+title: Iguaçu Falls
+type: essay
+stem: Explain why the Iguaçu Falls are wider than Niagara Falls.
+input: text
+answerKey: The Iguaçu River spreads across a broad basalt plateau before the drop.
+uuid: 123e4567-e89b-92d3-a456-426614174000

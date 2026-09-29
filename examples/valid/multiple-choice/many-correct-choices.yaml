@@ -1,0 +1,16 @@
+# Two choices both carry a score >= 1, but only one can be selected --
+# use multiple-selection instead.
+id: brasil-fatos-mc
+title: Fatos sobre o Brasil
+type: multiple-choice
+stem: Qual destas afirmações é verdadeira?
+choices:
+  - id: a
+    text: O Brasil fica na América do Sul.
+    score: 1
+  - id: b
+    text: O Amazonas é um rio.
+    score: 1
+  - id: c
+    text: O Brasil fica na Europa.
+    score: 0

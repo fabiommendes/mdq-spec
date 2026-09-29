@@ -1,0 +1,7 @@
+# An exam MAY contain zero questions -- useful for a draft -- but SHOULD
+# warn, since it cannot be answered yet.
+type: exam
+id: draft-quiz
+title: Draft quiz
+instructions: This quiz is still being written.
+questions: []

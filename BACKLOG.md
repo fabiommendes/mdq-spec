@@ -33,9 +33,10 @@ Those need discussion and design.
 * [ ] mdq-js: move id derivation from the parser to the models, as in mdq-py
   (dev/specs/to-do/derived-ids.md): the parser keeps only explicit ids, and a
   `withIds()` on every question model and the exam derives the rest.
-* [ ] Grading entry points (`mdq/grading.py`, still stubs) must require an
-  addressable document and raise `MissingIdError` otherwise. `with_ids()`
-  makes a document addressable.
+* [ ] Scoring on the models (`score_response`, and exam scoring) must require
+  an addressable document and raise `MissingIdError` otherwise, and raise
+  `UnresolvedInclude` on an exam that still holds an `include` entry
+  (docs/responses.md). `with_ids()` makes a document addressable.
 * [ ] Per-blank weights in fill-in questions.
 * [ ] Per-blank feedback placement for fill-in questions. Feedback is currently a
   flat list, which a UI cannot position next to the blank it belongs to.

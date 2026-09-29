@@ -1,0 +1,9 @@
+# `domain: integer` contradicts an answer with a fractional part.
+id: pi-two-decimals
+title: Pi to two decimals
+type: numeric
+stem: Qual é o valor de pi, com duas casas decimais?
+answer: 3.14
+domain: integer
+tolerance:
+  absolute: 0.01

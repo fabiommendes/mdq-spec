@@ -1,0 +1,17 @@
+# `*Rio de Janeiro*` and `_Rio de Janeiro_` render identically, but are
+# written differently in source -- a student reading the rendered text
+# cannot tell them apart.
+id: capital-visual-twins
+title: Capital visual twins
+type: multiple-choice
+stem: Qual cidade é a capital do Brasil?
+choices:
+  - id: a
+    text: "*Rio de Janeiro*"
+    score: 0
+  - id: b
+    text: "_Rio de Janeiro_"
+    score: 0
+  - id: c
+    text: Brasília
+    score: 1

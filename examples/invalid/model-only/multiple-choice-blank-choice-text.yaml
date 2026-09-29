@@ -1,0 +1,15 @@
+# A choice's `text` has no visible character. JSON Schema's `minLength: 1`
+# on `text` accepts a whitespace-only string, so this passes the schema
+# and is only rejected by the `blank-choice-text` model validator
+# (multiple-choice.md, "Choices": "The choice text MUST NOT be empty").
+id: capital-blank-text
+title: Capital blank text
+type: multiple-choice
+stem: Qual é a capital do Brasil?
+choices:
+  - id: a
+    text: "   "
+    score: 0
+  - id: brasilia
+    text: Brasília
+    score: 1

@@ -1,0 +1,10 @@
+[
+  {
+    "code": "blank-ordering-line",
+    "severity": "info",
+    "path": [
+      "lines",
+      2
+    ]
+  }
+]

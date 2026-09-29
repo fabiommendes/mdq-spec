@@ -1,0 +1,9 @@
+[
+  {
+    "code": "multiple-choice-many-correct-choices",
+    "severity": "info",
+    "path": [
+      "choices"
+    ]
+  }
+]

@@ -1,0 +1,8 @@
+# The stem SHOULD be a paragraph of text; this one opens with a
+# blockquote instead.
+id: baia-guanabara
+title: Baía de Guanabara
+type: essay
+stem: "> Descreva a formação geológica da Baía de Guanabara."
+input: text
+answerKey: Uma baía formada por um antigo vale afogado pela subida do nível do mar.

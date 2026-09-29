@@ -1,0 +1,14 @@
+id: pantanal-01
+title: Pantanal
+tags:
+- biome
+- wetland
+stem: The Pantanal is the largest tropical wetland in the world.
+choices:
+- text: Most of the Pantanal floods during the rainy season.
+  correct: true
+  marker: V
+- text: The Pantanal lies mostly in the state of Amazonas.
+  correct: false
+  marker: F
+type: true-false

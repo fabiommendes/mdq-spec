@@ -1,0 +1,14 @@
+# `highlight` is only meaningful when `content` is "code". Here the body
+# is a `ul` list, which infers `content: "text"`, so the declared
+# `highlight: python` is dead and the linter flags it (`ignored-highlight`).
+id: ordering-ignored-highlight
+title: Biomas brasileiros em ordem alfabética
+type: ordering
+stem: Order the names of these Brazilian biomes alphabetically.
+content: text
+highlight: python
+lines:
+  - [0, "Amazônia"]
+  - [0, "Caatinga"]
+  - [0, "Cerrado"]
+  - [0, "Mata Atlântica"]

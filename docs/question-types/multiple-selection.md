@@ -114,6 +114,7 @@ is no way to explicitly leave it unmarked. If that is necessary, prefer using
 
 | Field              | Level    | Rule                                                      |
 | ------------------ | -------- | --------------------------------------------------------- |
+| choices[].text     | critical | must not be empty                                         |
 | choices[].text     | critical | must be unique among the choices of the question          |
 | choices[].id       | critical | must be unique among the choices of the question          |
 | choices[].feedback | warning  | must have at least one visible character                  |

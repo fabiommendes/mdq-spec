@@ -1,0 +1,21 @@
+# The `## [reject]` section carries only an instructor-facing `!` comment,
+# never shown to the student, and no `>` feedback. A rejected answer's
+# whole purpose is telling the student what they got wrong, so the linter
+# flags the missing feedback (`reject-without-feedback`).
+id: ordering-reject-without-feedback
+title: Fases da mitose
+type: ordering
+stem: Order the phases of mitosis.
+content: text
+lines:
+  - [0, "Prófase"]
+  - [0, "Metáfase"]
+  - [0, "Anáfase"]
+  - [0, "Telófase"]
+reject:
+  - lines:
+      - [0, "Prófase"]
+      - [0, "Anáfase"]
+      - [0, "Metáfase"]
+      - [0, "Telófase"]
+    comment: "Troca as duas fases centrais, um engano comum."

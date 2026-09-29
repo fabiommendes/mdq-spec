@@ -1,0 +1,17 @@
+# The blank line between the two statements is a line of the answer key
+# like any other. With no `skip-blanks` normalization it counts when
+# comparing a response, so the linter flags it (`blank-ordering-line`) as
+# likely unintentional.
+id: ordering-blank-line
+title: Média aritmética
+type: ordering
+stem: >-
+  Order the lines of this function that computes the arithmetic mean of a
+  list of numbers.
+content: code
+highlight: python
+lines:
+  - [0, "def mean(values):"]
+  - [1, "total = sum(values)"]
+  - [0, ""]
+  - [1, "return total / len(values)"]

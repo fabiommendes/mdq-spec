@@ -1,0 +1,9 @@
+[
+  {
+    "code": "stem-not-a-paragraph",
+    "severity": "warning",
+    "path": [
+      "stem"
+    ]
+  }
+]

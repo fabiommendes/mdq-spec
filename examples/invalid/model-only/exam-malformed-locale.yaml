@@ -1,0 +1,13 @@
+# exam.md, "Additional Rules" imports base.md's `locale` rule: `locale`
+# MUST be a well-formed BCP 47 language tag. JSON Schema's `locale`
+# pattern is left to the implementation (schema/exam.yaml), so this
+# passes the schema and is only rejected by the `malformed-locale` model
+# validator on `Exam`.
+type: exam
+id: cerrado-quiz
+title: Cerrado quiz
+locale: xx-yy-zz
+questions:
+  - id: bark
+    type: essay
+    stem: Explique por que muitas árvores do Cerrado têm casca grossa e cortiçosa.

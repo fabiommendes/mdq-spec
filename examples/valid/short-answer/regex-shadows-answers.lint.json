@@ -1,5 +1,19 @@
 [
   {
+    "code": "missing-id",
+    "severity": "info",
+    "path": [
+      "id"
+    ]
+  },
+  {
+    "code": "missing-title",
+    "severity": "info",
+    "path": [
+      "title"
+    ]
+  },
+  {
     "code": "shadowed-answers",
     "severity": "warning",
     "path": [

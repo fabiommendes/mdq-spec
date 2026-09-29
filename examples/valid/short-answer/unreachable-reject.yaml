@@ -1,0 +1,11 @@
+# A `*` wildcard rejects every response, so nothing after it in `reject`
+# is ever reached.
+id: capital-unreachable-reject
+title: Capital unreachable reject
+type: short-answer
+stem: Qual é a capital do Brasil?
+accept:
+  - Brasília
+reject:
+  - "*"
+  - Rio de Janeiro

@@ -1,0 +1,9 @@
+id: amazonia-01
+title: Amazônia
+tags:
+- biome
+- forest
+stem: Which river drains most of the Amazon rainforest?
+oneOf:
+- Amazon
+type: short-answer

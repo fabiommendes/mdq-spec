@@ -1,0 +1,11 @@
+[
+  {
+    "code": "visually-identical-choices",
+    "severity": "info",
+    "path": [
+      "choices",
+      1,
+      "text"
+    ]
+  }
+]

@@ -1,0 +1,9 @@
+# `decimalPlaces` is ignored when `domain` is `integer` or `fraction` --
+# there is nothing to round.
+id: capital-population-order
+title: Order of magnitude
+type: numeric
+stem: Quantos habitantes tinha o Brasil, em milhões, no censo de 2022 (arredondado)?
+answer: 203
+domain: integer
+decimalPlaces: 2

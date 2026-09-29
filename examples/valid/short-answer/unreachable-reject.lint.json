@@ -1,0 +1,10 @@
+[
+  {
+    "code": "unreachable-reject",
+    "severity": "info",
+    "path": [
+      "reject",
+      0
+    ]
+  }
+]

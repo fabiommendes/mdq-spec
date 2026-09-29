@@ -1,0 +1,14 @@
+# The second and third lines render identically -- `*...*` and `_..._`
+# both render as emphasis -- but are written differently in source. Lines
+# are compared by raw source, so a student ordering the rendered text
+# cannot tell the two apart; the linter flags it (`visually-identical-lines`).
+id: ordering-visually-identical-lines
+title: Multiplicação distributiva
+type: ordering
+stem: Order the steps to compute 6 × 7 using distributive multiplication.
+content: text
+lines:
+  - [0, "Multiplique 6 por 5."]
+  - [0, "*Multiplique 6 por 2.*"]
+  - [0, "_Multiplique 6 por 2._"]
+  - [0, "Some os dois produtos parciais para obter 42."]

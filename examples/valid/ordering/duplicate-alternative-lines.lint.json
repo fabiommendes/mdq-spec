@@ -1,0 +1,27 @@
+[
+  {
+    "code": "duplicate-alternative-lines",
+    "severity": "warning",
+    "path": [
+      "reject",
+      1,
+      "lines"
+    ]
+  },
+  {
+    "code": "reject-without-feedback",
+    "severity": "info",
+    "path": [
+      "reject",
+      0
+    ]
+  },
+  {
+    "code": "reject-without-feedback",
+    "severity": "info",
+    "path": [
+      "reject",
+      1
+    ]
+  }
+]

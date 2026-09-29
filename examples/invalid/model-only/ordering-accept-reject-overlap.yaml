@@ -1,0 +1,18 @@
+# The same lines are declared as both an accepted and a rejected
+# ordering. JSON Schema cannot express "these two lists must be
+# disjoint", so this passes the schema and is only rejected by
+# `OrderingQuestion.check_accept_and_reject_disjoint`
+# (ordering.md#additional-rules).
+type: ordering
+stem: Ordene as linhas do algoritmo de Euclides para o MDC.
+lines:
+  - [0, "a, b = b, a % b"]
+  - [0, "return a"]
+accept:
+  - lines:
+      - [0, "a, b = b, a % b"]
+      - [0, "return a"]
+reject:
+  - lines:
+      - [0, "a, b = b, a % b"]
+      - [0, "return a"]

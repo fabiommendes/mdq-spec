@@ -1,0 +1,7 @@
+# `m` is accepted for compatibility but has no effect: matching is
+# always a full match against the whole response, never per line.
+id: capital-regex-flag
+title: Capital regex flag
+type: short-answer
+stem: Qual é a capital do Brasil?
+regex: /Bras[íi]lia/m

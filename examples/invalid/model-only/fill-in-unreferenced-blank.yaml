@@ -1,0 +1,16 @@
+# The blank `regiao` is declared but never referenced by a `[^regiao]`
+# marker in the stem. JSON Schema cannot cross-check `blanks` against
+# the stem's markers, so this passes the schema and is only rejected by
+# the `unreferenced-blank` model validator (fill-in.md, "Additional
+# Rules").
+type: fill-in
+stem: O maior bioma brasileiro é a [^bioma].
+blanks:
+  - id: bioma
+    type: short-answer
+    oneOf:
+      - Amazônia
+  - id: regiao
+    type: short-answer
+    oneOf:
+      - Norte

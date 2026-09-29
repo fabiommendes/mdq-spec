@@ -1,0 +1,8 @@
+# An id SHOULD be url-safe. One with spaces and a slash is still valid, but
+# it gets the `unsafe-id` warning and cannot be written inline as `[id]`.
+id: Prova 1/Q2
+title: Biomas brasileiros
+type: essay
+input: text
+stem: Cite dois biomas brasileiros e uma característica de cada um.
+answerKey: A Caatinga tem vegetação adaptada à seca; a Mata Atlântica é uma floresta úmida costeira.

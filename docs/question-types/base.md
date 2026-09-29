@@ -244,14 +244,23 @@ is assigned a strictness level of "critical", "warning", "info".
   relevant to know for a user authoring a question, but still produces valid and
   usable documents.
 
-| Field                    | Level    | Rule                                                |
-| ------------------------ | -------- | --------------------------------------------------- |
-| preamble, epilogue, stem | critical | must have at least one visisible character          |
-| preamble, epilogue, stem | critical | cannot have explicitly forbidden block elements[^6] |
-| locale                   | critical | must be a valide IETF BCP 47 tag[^4]                |
-| id                       | warning  | must be url-safe[^2]                                |
-| stem                     | warning  | must be a markdown `p` block element                |
-| uuid                     | warning  | must be a valid UUID[^3]                            |
-| id, title                | info     | field must be defined in the document               |
+| Field                    | Level    | Rule                                                        |
+| ------------------------ | -------- | ------------------------------------------------------------ |
+| preamble, epilogue, stem | critical | must have at least one visisible character                 |
+| preamble, epilogue, stem | critical | cannot have explicitly forbidden block elements[^6]         |
+| locale                   | critical | must be a valid IETF BCP 47 tag[^4]                         |
+| id                       | warning  | should be url-safe[^2]                                      |
+| stem                     | warning  | must be a markdown `p` block element                        |
+| tags                     | warning  | each entry must have at least one visible character         |
+| tags                     | warning  | an entry containing a comma is only split when `tags` itself is a single string, not a list |
+| title, author, comment   | warning  | if defined, must have at least one visible character        |
+| uuid                     | critical | must be a well-formed UUID[^3]                              |
+| uuid                     | warning  | the version and variant nibbles should correspond to an existing standard[^3] |
+| id, title                | info     | field must be defined in the document                       |
+| locale                   | info     | the language subtag SHOULD NOT look like a country code[^7] |
+| stem                     | info     | a bare ellipsis (`...`) SHOULD be replaced by a real statement instead of left unexpanded |
 
 [^6]: Those elements are described in the section [forbidden elements](#forbidden-elements)
+[^7]: For example `cn` (a country code) instead of `zh` (the language). The
+`locale` pattern in [Frontmatter](#frontmatter) only checks the tag's shape,
+not whether the subtag names a real language.

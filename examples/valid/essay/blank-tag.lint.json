@@ -1,0 +1,10 @@
+[
+  {
+    "code": "blank-tag",
+    "severity": "warning",
+    "path": [
+      "tags",
+      1
+    ]
+  }
+]

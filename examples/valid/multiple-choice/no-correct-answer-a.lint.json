@@ -1,7 +1,14 @@
 [
   {
+    "code": "missing-id",
+    "severity": "info",
+    "path": [
+      "id"
+    ]
+  },
+  {
     "code": "multiple-choice-no-correct-choice",
-    "severity": "warning",
+    "severity": "info",
     "path": [
       "choices"
     ]

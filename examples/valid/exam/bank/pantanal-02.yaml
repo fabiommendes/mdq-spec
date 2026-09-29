@@ -1,0 +1,11 @@
+id: pantanal-02
+title: Pantanal area
+tags:
+- biome
+- wetland
+stem: What is the approximate area of the Pantanal, in thousand square kilometers?
+answer: 150
+domain: integer
+tolerance:
+  relative: 0.2
+type: numeric

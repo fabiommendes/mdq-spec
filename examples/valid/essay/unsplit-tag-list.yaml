@@ -1,0 +1,11 @@
+# A comma-delimited string is only split into tags when `tags` itself is
+# written as a single string, not as a list -- a comma surviving inside
+# one list entry means that never happened.
+id: pantanal-flooding
+title: Pantanal flooding cycle
+type: essay
+stem: Describe the annual flood pulse of the Pantanal wetland.
+input: text
+answerKey: Seasonal rains raise river levels, flooding the plains for months.
+tags:
+  - "wetlands, hydrology"

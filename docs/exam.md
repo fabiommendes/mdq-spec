@@ -2,9 +2,9 @@
 
 ## Example
 
-Exam are files that contain a set of questions, usually for assessment purposes. 
-They MAY start with a YAML frontmatter, similar to the one used in question 
-files, and immediately followed by a H1 heading with the exam title.
+Exams are files that contain a set of questions, usually for assessment
+purposes. They MAY start with a YAML frontmatter, similar to the one used in
+question files, immediately followed by a H1 heading with the exam title.
 
 ````md
 ---
@@ -19,9 +19,13 @@ One or more paragraphs of instructions for the exam.
 include: recursion-01
 ---
 
+---
+include-all: recursion AND NOT draft EXCEPT recursion-07
+max: 2
+---
 
 ---
-id: q2
+id: factorial
 ---
 Convert this iterative algorithm to a recursive one.
 
@@ -89,60 +93,143 @@ follows the frontmatter.
 The title identifies the exam and MAY include a slug id in square brackets. The
 usual format is `# [slug] Title`, where `slug` is a unique identifier for the exam and
 `Title` is the human-readable title of the exam. The slug is optional, but if
-present, it MUST be unique across all exams in the course. The slug is used to
-generate the exam URL and to reference the exam in other documents.
+present, the host system SHOULD keep it unique across the exams of a course.
+MDQ does not check this, since a single document cannot see the other exams.
+The slug is used to generate the exam URL and to reference the exam in other
+documents.
 
 
 ## Body
 
-Zero or more paragraphs of instructions followed by a block of questions. Any
-markdown block element is allowed except:
+Zero or more paragraphs of instructions followed by zero or more question
+blocks. Any markdown block element is allowed in the instructions except:
 
 - H1 headings
-- A fenced block between `---` (Like a YAML frontmatter)
-  
-## Question block
+- A fenced block between `---` (like a YAML frontmatter)
 
-Each question block consists of either a separator followed by the source code for
-a question, or a id frontmatter. The id frontmatter is a YAML block that 
-contains the property:
+## Question and include blocks
 
-| Field   | Type   | Description                            |
-| ------- | ------ | -------------------------------------- |
-| include | string | The unique identifier for the question |
+A question block is one of:
 
+- An inline question: the source of a question, with the same syntax as a
+  question file.
+- An include block: a YAML block between `---` lines that selects questions
+  stored outside the exam. See [Include](#include) and
+  [Include all](#include-all).
 
-The separator is a line with three equal signs `===` preceeded by a blank line and is used to separate
-questions in the exam. IF the question starts with a YAML frontmatter, the
-separator is optional.
+Any block MAY be preceded by a `===` separator, which is a line with three
+equal signs preceded by a blank line. An inline question that does not contain
+a frontmatter block MUST be preceded by a separator. If the inline question has
+a frontmatter block, the separator is optional. An include block SHOULD NOT be
+preceded by a separator, since its `---` lines already mark where it starts.
+This rule helps distinguish between the instructions and the first question,
+and between the epilogue of a question and the next one.
 
+Inside an exam, the epilogue of a question MUST NOT use `---` as a thematic
+break. Use `***` or `___` instead. After the body of a question, a `---` line
+starts the frontmatter of the next block, so a thematic break followed by text
+that YAML can read as a mapping (like `Nota: leia com atenção.`) would start a
+new question.
+
+An include block holds exactly one of the two forms below. No other field is
+allowed.
+
+### Include
+
+| Field   | Type   | Description                        |
+| ------- | ------ | ---------------------------------- |
+| include | string | The id of the question to include. |
+
+`include` adds a single question to the exam by its id.
+
+### Include all
+
+| Field       | Type    | Description                                              |
+| ----------- | ------- | -------------------------------------------------------- |
+| include-all | string  | A query. Adds all questions that match it.               |
+| max         | integer | Optional. The maximum number of questions to add. Min 1. |
+
+`include-all` adds every question that matches a query. MDQ does not enforce a
+query language, but it recommends the language below. A query that does not
+follow it is a warning, not an error. An implementation that cannot read the
+query adds no questions for that block.
+
+```lark
+query      : logic ("EXCEPT" slugs)?
+
+?logic     : logic "OR" logic_and
+           | logic_and
+?logic_and : logic_and "AND" logic_not
+           | logic_not
+?logic_not : "NOT" logic_not
+           | atom
+?atom      : TAG
+           | "(" logic ")"
+
+slugs      : SLUG ("," SLUG)*
+
+TAG        : /(?!(AND|OR|NOT|EXCEPT)(?![^\s(),]))[^\s(),]+/
+
+%import common.WS
+%ignore WS
+```
+
+A `TAG` matches a question when it is equal to one of the question's `tags`.
+The comparison is exact and case-sensitive. The keywords `AND`, `OR`, `NOT` and
+`EXCEPT` are uppercase only: `and` is an ordinary tag. `NOT` binds tighter than
+`AND`, and `AND` binds tighter than `OR`. `EXCEPT` removes the questions with
+the listed ids from the result. A `SLUG` has the same format as the value of
+`include`.
+
+Tags do not use a `#` prefix: YAML reads an unquoted value that starts with
+`#` as a comment. A tag that contains whitespace, a comma or a parenthesis
+cannot be written in a query.
+
+An `include-all` never adds a question that the exam already contains by
+other means: the target of an `include`, an inline question with the same
+declared `id`, or a question added by an earlier `include-all`. This lets an
+author include some questions explicitly and fill the remaining positions with
+a query. `max` applies after these questions are removed.
+
+The source of the questions (the question bank), the order of the matched
+questions, and which questions `max` keeps are implementation-defined. A host
+system MAY, for example, draw a different random subset for each student.
 
 ## Question ids
 
-Questions are numbered by the order their blocks appear in the document. A
-question that does not declare an `id` keeps none as parsed -- these ids are
-only derived when a consumer needs an addressable exam (grading, say): `q1`
-for the first block, `q2` for the second, and so on.
+Questions are numbered by the order they appear in the exam after includes
+resolve. A question that does not declare an `id` keeps none as parsed -- these
+ids are only derived when a consumer needs an addressable exam (grading, say):
+`q1` for the first question, `q2` for the second, and so on.
 
-Every block occupies a position, including an `include`. So in an exam whose
-first block is an `include` and whose second is an inline question, the inline
-question's derived id is `q2` -- it always matches the position the student
+Every question occupies a position, including an included one. An `include`
+occupies one position, and an `include-all` occupies one position for each
+question it adds. So in an exam whose first block is an `include-all` that adds
+three questions and whose second block is an inline question, the inline
+question's derived id is `q4` -- it always matches the position the student
 sees, never a separate count of inline questions only.
 
-An `include` is a reference to a question that already has an identity of its
-own, so it is never renamed by this rule.
+Since an `include-all` can add a different number of questions each time it
+resolves, the derived id of an inline question after it is not stable. Such a
+question SHOULD declare its own `id`.
+
+An included question already has an identity of its own, so it is never
+renamed by this rule.
 
 Question ids MUST be unique within the exam. The rule applies after includes
 resolve, and accounts for the derived id a question with no declared `id`
 would get, so all of these make the exam malformed:
 
 * Two inline questions that declare the same `id`.
-* Two `include` entries that reference the same question.
+* Two `include` blocks that reference the same question.
 * An inline question whose `id` is the same as the id of an included question.
 * A declared `id` that is the same as the derived id of another question. For
   example, if the first block declares `id: q2`, the second block cannot use
   its derived id `q2`. A derived id always matches the position, so it is
   never renamed to avoid a collision.
+
+The overlap of an `include-all` with other blocks is not an error: the
+`include-all` leaves out those questions, see [Include all](#include-all).
 
 
 ## Inheritance
@@ -243,4 +330,25 @@ omits zero components: `90m`, `1:30` and `PT90M` all become `PT1H30M`, and
 An exam MAY contain zero questions -- it is a well-formed document, and useful
 while an assessment is being drafted. Implementations SHOULD emit a warning for
 it, since an exam with no questions cannot be answered.
+
+## Additional Rules
+
+The rules for `id`, `uuid`, `locale` and `title` in
+[generic fields](question-types/base.md#additional-rules) also apply to the
+exam frontmatter.
+
+| Field          | Level    | Rule                                                         |
+| -------------- | -------- | ------------------------------------------------------------ |
+| questions[].id | critical | must be unique within the exam after includes resolve[^9]    |
+| duration       | critical | must be positive                                             |
+| epilogue       | critical | must not use `---` as a thematic break inside an exam        |
+| questions      | warning  | should contain at least one question[^10]                    |
+| include-all    | warning  | should add at least one question when it resolves            |
+| questions[].id | warning  | should be declared on an inline question after `include-all` |
+| questions[]    | warning  | an include block should not be preceded by `===`             |
+| include-all    | warning  | should follow the recommended query language                 |
+
+[^9]: See [Question ids](#question-ids). Overlap with an `include-all` is not
+    a violation, since the `include-all` leaves out the repeated questions.
+[^10]: See [Empty exams](#empty-exams).
 

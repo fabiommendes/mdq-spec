@@ -1,0 +1,18 @@
+# `S` reads as true globally, but is the initial letter of Indonesian
+# "salah" (false) -- an author writing in Indonesian risks silent
+# misgrading, so this gets an escalated warning beyond the usual
+# locale-mismatch notice.
+id: fatos-amazonia
+title: Fatos sobre a Amazônia
+type: true-false
+locale: id
+stem: Nilai pernyataan tentang hutan Amazon.
+choices:
+  - id: a
+    text: Hutan Amazon adalah hutan hujan tropis terbesar di dunia.
+    correct: true
+    marker: S
+  - id: b
+    text: Hutan Amazon terletak di Afrika.
+    correct: false
+    marker: F

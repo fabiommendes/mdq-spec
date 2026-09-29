@@ -1,0 +1,9 @@
+[
+  {
+    "code": "ignored-decimal-places",
+    "severity": "info",
+    "path": [
+      "decimalPlaces"
+    ]
+  }
+]

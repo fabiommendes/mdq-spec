@@ -1,0 +1,60 @@
+[
+  {
+    "code": "missing-title",
+    "severity": "info",
+    "path": [
+      "questions",
+      1,
+      "title"
+    ]
+  },
+  {
+    "code": "missing-answer-key",
+    "severity": "info",
+    "path": [
+      "questions",
+      1,
+      "answerKey"
+    ]
+  },
+  {
+    "code": "missing-id",
+    "severity": "info",
+    "path": [
+      "questions",
+      2,
+      "id"
+    ]
+  },
+  {
+    "code": "missing-title",
+    "severity": "info",
+    "path": [
+      "questions",
+      2,
+      "title"
+    ]
+  },
+  {
+    "code": "missing-choice-id",
+    "severity": "info",
+    "path": [
+      "questions",
+      2,
+      "choices",
+      0,
+      "id"
+    ]
+  },
+  {
+    "code": "missing-choice-id",
+    "severity": "info",
+    "path": [
+      "questions",
+      2,
+      "choices",
+      1,
+      "id"
+    ]
+  }
+]

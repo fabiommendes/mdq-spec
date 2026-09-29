@@ -1,0 +1,9 @@
+[
+  {
+    "code": "redundant-regex-anchor",
+    "severity": "info",
+    "path": [
+      "regex"
+    ]
+  }
+]

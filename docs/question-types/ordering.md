@@ -256,8 +256,7 @@ If no indented line exists, the unit is 4 spaces.
 
 A line's **indentation level** is its leading whitespace divided by that unit,
 and that level -- not the raw whitespace -- is what a response carries and
-what `"strict"` compares. A line whose indentation is not a whole multiple of
-the unit rounds down to the nearest level.
+what `"strict"` compares.
 
 
 ## Normalizations
@@ -336,14 +335,13 @@ submitted, in the order they submitted them, each written as an
 | extra                 | critical | at most one `## [extra]` section may be declared                 |
 | accept, reject        | critical | a section carries at most one feedback and one comment block[^7] |
 | highlight             | warning  | must be omitted unless `content` is "code"                       |
-| accept, reject        | warning  | two sections should not hold the same lines, fully normalized[^10] |
+| accept, reject        | warning  | two sections should not hold the same lines, fully normalized[^9] |
 | accept                | warning  | should not repeat the `[ordering]` block's own lines             |
 | indentation           | warning  | `"strict"` is pointless when `dedent` is normalized away[^8]     |
 | lines, extra          | info     | a line should not be blank unless `skip-blanks` is normalized    |
-| highlight             | info     | should be a recognized language identifier                       |
-| indentation           | info     | a line's indentation should be a whole multiple of the unit[^9]  |
+| highlight             | info     | should be a recognized language identifier[^11]                  |
 | reject                | info     | should declare feedback, which is its whole purpose              |
-| lines, extra          | info     | two lines should not render alike while differing in source[^11] |
+| lines, extra          | info     | two lines should not render alike while differing in source[^10] |
 
 [^6]: A code block and a `ul` list cannot be compared line for line.
 [^7]: They may appear in either order but MUST NOT interleave, see
@@ -351,9 +349,9 @@ submitted, in the order they submitted them, each written as an
 [^8]: `dedent` flattens every line to level 0, so nothing is left for
 `"strict"` to compare. `indentation: "lenient"` implies `dedent` and therefore
 never combines with `"strict"` in the first place.
-[^9]: Otherwise it rounds down to the nearest level, which silently changes
-the answer key.
-[^10]: All forms of normalization: every entry of `normalizations`, plus what
+[^9]: All forms of normalization: every entry of `normalizations`, plus what
 the `indentation` field implies.
-[^11]: Lines are compared by their raw markdown source, so a student ordering
+[^10]: Lines are compared by their raw markdown source, so a student ordering
 the rendered text cannot tell such a pair apart.
+[^11]: Any alias of a [Pygments](https://pygments.org/) lexer is a recognized
+language identifier -- Pygments' own lexer aliases are the reference list.

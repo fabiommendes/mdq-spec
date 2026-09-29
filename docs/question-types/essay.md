@@ -86,6 +86,10 @@ Essay questions are graded manually.
 | Field      | Level   | Rule                                               |
 | ---------- | ------- | -------------------------------------------------- |
 | highlight  | warning | must be omitted unless `input` is "code"           |
-| highlight  | info    | should be a recognized language identifier         |
+| answerKey  | warning | if defined, must have at least one visible character |
+| highlight  | info    | should be a recognized language identifier[^2]     |
 | highlight  | info    | should be defined when `input` is "code"           |
 | answerKey  | info    | should be defined in the document                  |
+
+[^2]: Any alias of a [Pygments](https://pygments.org/) lexer is a recognized
+language identifier -- Pygments' own lexer aliases are the reference list.

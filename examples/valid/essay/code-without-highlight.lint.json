@@ -1,9 +1,30 @@
 [
   {
+    "code": "missing-id",
+    "severity": "info",
+    "path": [
+      "id"
+    ]
+  },
+  {
+    "code": "missing-title",
+    "severity": "info",
+    "path": [
+      "title"
+    ]
+  },
+  {
     "code": "code-input-without-highlight",
-    "severity": "warning",
+    "severity": "info",
     "path": [
       "input"
+    ]
+  },
+  {
+    "code": "missing-answer-key",
+    "severity": "info",
+    "path": [
+      "answerKey"
     ]
   }
 ]

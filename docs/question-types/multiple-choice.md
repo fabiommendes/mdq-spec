@@ -110,12 +110,12 @@ The choice id is a slugfied identifier for the choice so we can refer it by
 content, and not by position. It follows the same rules for slugs mentioned
 before. If given, the choice ids for each choice MUST be unique.
 
-If omitted, the parsed document carries no id for that choice: parsing never
-derives one. An implementation MAY derive url-safe identifiers from the text
-content when it needs an addressable document (mdq-py: `with_ids()`); it is
-never part of the parse step itself. This transformation SHOULD be stable in
-practical applications. A stable assignment should preserve the choice id
-assignments for the following operations:
+The id is not mandatory nor derived for each choice. An implementation MAY
+derive url-safe identifiers from the text content when it needs an addressable
+document (e.g., mdq-py: `with_ids()`); but it is not part of the parse step
+itself. This transformation SHOULD be stable in practical applications. A stable
+assignment should preserve the choice id assignments for the following
+operations:
 
 * Reordering of choices - each choice preserves its original id.
 * Addition of new choices - existing choices preserve their original ids.
@@ -206,16 +206,17 @@ compatibility reasons with the other question types.
 
 ## Additional Rules
 
-| Field              | Level    | Rule                                                        |
-| ------------------ | -------- | ----------------------------------------------------------- |
-| choices[].text     | critical | must be unique among the choices of the question            |
-| choices[].id       | critical | must be unique among the choices of the question            |
-| choices[].feedback | warning  | must have at least one visible character                    |
-| choices[].comment  | warning  | must have at least one visible character                    |
-| choices[].text     | info     | should not be visually equivalent to another choice[^3]     |
-| choices[].score    | info     | at least one choice should have a score of 1                |
-| choices[].score    | info     | not every choice should be correct                          |
-| choices[].id       | info     | should be defined in the document, instead of derived[^4]   |
+| Field              | Level    | Rule                                                      |
+| ------------------ | -------- | --------------------------------------------------------- |
+| choices[].text     | critical | must not be empty                                         |
+| choices[].text     | critical | must be unique among the choices of the question          |
+| choices[].id       | critical | must be unique among the choices of the question          |
+| choices[].feedback | warning  | must have at least one visible character                  |
+| choices[].comment  | warning  | must have at least one visible character                  |
+| choices[].text     | info     | should not be visually equivalent to another choice[^3]   |
+| choices[].score    | info     | at least one choice should have a score of 1              |
+| choices[].score    | info     | not every choice should be correct                        |
+| choices[].id       | info     | should be defined in the document, instead of derived[^4] |
 
 [^3]: Visual equivalence is not defined by this spec, see [choices](#choices).
 [^4]: Derived ids are only as stable as the slugifier that produced them.

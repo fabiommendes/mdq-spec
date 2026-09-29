@@ -1,0 +1,13 @@
+# true-false.md:210: the marker's category must agree with `correct` --
+# `F` is a FALSE-category marker, paired here with `correct: true`.
+type: true-false
+stem: Julgue as afirmações sobre o Brasil.
+choices:
+  - id: a
+    text: O Brasil faz fronteira com todos os países da América do Sul, exceto Chile e Equador.
+    correct: true
+    marker: F
+  - id: b
+    text: A Lua é feita de queijo.
+    correct: false
+    marker: F

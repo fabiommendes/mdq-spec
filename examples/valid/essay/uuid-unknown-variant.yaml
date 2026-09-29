@@ -1,0 +1,9 @@
+# The 17th character is the variant nibble; `c` is not one of `8`, `9`,
+# `a`, `b`.
+id: sao-francisco-river
+title: São Francisco River
+type: essay
+stem: Explain why the São Francisco is called "the river of national integration".
+input: text
+answerKey: It flows through several states, linking the semi-arid Northeast to the coast.
+uuid: 123e4567-e89b-12d3-c456-426614174000

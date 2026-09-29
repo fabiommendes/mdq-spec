@@ -1,0 +1,10 @@
+# base.md [^4]: BCP 47 is case-insensitive -- `pt-br` and `pt-BR` are
+# the same tag. `malformed-locale`'s regex used to require an uppercase
+# region subtag, so a lowercase one like this failed to load.
+id: locale-case-insensitive
+title: Locale em minúsculas
+type: essay
+input: text
+locale: pt-br
+stem: Explique por que o Pantanal é considerada a maior planície alagável do mundo.
+answerKey: O relevo baixo e plano da bacia do rio Paraguai favorece o alagamento sazonal.

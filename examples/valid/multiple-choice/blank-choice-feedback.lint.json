@@ -1,0 +1,11 @@
+[
+  {
+    "code": "blank-choice-feedback",
+    "severity": "warning",
+    "path": [
+      "choices",
+      0,
+      "feedback"
+    ]
+  }
+]

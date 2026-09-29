@@ -1,0 +1,9 @@
+[
+  {
+    "code": "locale-lookalike-language",
+    "severity": "info",
+    "path": [
+      "locale"
+    ]
+  }
+]

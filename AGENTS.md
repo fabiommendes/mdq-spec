@@ -60,6 +60,18 @@ Avoid these expressions and reword with more specific alternatives:
 
 - "load bearing", "gate" (as a a verb), "pivotal". 
 
+## Idiom
+
+The human may talk to you in English or another language. Keep your responses in
+the same language as the human's input. Files in `dev/*/` should also follow
+this idiom since they are not public facing. Public facing strings are always
+in english. This includes:
+
+- Public facing strings in the code and documentation.
+- User-facing messages and prompts in the application.
+- Documentation intended for public consumption.
+- Identifiers and code comments.
+
 
 ## The project
 
@@ -172,11 +184,11 @@ This directory is one git repository that contains two
 [git subtrees](https://git-scm.com/book/en/v2/Git-Tools-Advanced-Merging#_subtree_merge).
 Every repository uses the `main` branch.
 
-| Directory | Git remote | GitHub repository        |
-| --------- | ---------- | ------------------------ |
-| `/`       | `origin`   | `fabiommendes/mdq-spec`  |
-| `mdq-py/` | `mdq-py`   | `fabiommendes/mdq-py`    |
-| `mdq-js/` | `mdq-js`   | `fabiommendes/mdq-js`    |
+| Directory | Git remote | GitHub repository       |
+| --------- | ---------- | ----------------------- |
+| `/`       | `origin`   | `fabiommendes/mdq-spec` |
+| `mdq-py/` | `mdq-py`   | `fabiommendes/mdq-py`   |
+| `mdq-js/` | `mdq-js`   | `fabiommendes/mdq-js`   |
 
 Rules:
 

@@ -1,0 +1,16 @@
+# U+212B (ANGSTROM SIGN) is one code point, but NFC normalizes it to
+# U+00C5 (LATIN CAPITAL LETTER A WITH RING ABOVE) -- easy to type by
+# mistake, and it renders differently than intended.
+id: brasil-fatos
+title: Fatos sobre o Brasil
+type: true-false
+stem: Julgue as afirmações sobre o Brasil.
+choices:
+  - id: amazonas
+    text: O Amazonas é o maior rio do mundo em volume de água.
+    correct: true
+    marker: "Å"
+  - id: brasilia
+    text: Brasília fica no litoral.
+    correct: false
+    marker: F

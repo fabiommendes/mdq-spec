@@ -1,0 +1,20 @@
+[
+  {
+    "code": "provisional-true-false-marker",
+    "severity": "warning",
+    "path": [
+      "choices",
+      0,
+      "marker"
+    ]
+  },
+  {
+    "code": "non-nfc-true-false-marker",
+    "severity": "info",
+    "path": [
+      "choices",
+      0,
+      "marker"
+    ]
+  }
+]

@@ -11,10 +11,11 @@ properties:
   id:
     type: string
     description: >-
-      Url-friendly identifier for the question. Used to reference the
-      question from exams, results, and cross-links. When omitted, an id
-      may be derived from the question's position or title.
-    pattern: "^[a-zA-Z0-9]+(?:[-_][a-zA-Z0-9]+)*$"
+      Identifier for the question. Used to reference the question from
+      exams, results, and cross-links. It SHOULD be url-safe; an id that
+      is not gets the `unsafe-id` lint warning. When omitted, an id may be
+      derived from the question's position or title.
+    minLength: 1
     examples:
       - q1
       - rgb-question

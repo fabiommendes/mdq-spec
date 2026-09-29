@@ -1,9 +1,30 @@
 [
   {
+    "code": "missing-id",
+    "severity": "info",
+    "path": [
+      "id"
+    ]
+  },
+  {
+    "code": "missing-title",
+    "severity": "info",
+    "path": [
+      "title"
+    ]
+  },
+  {
     "code": "ignored-highlight",
     "severity": "warning",
     "path": [
       "highlight"
+    ]
+  },
+  {
+    "code": "missing-answer-key",
+    "severity": "info",
+    "path": [
+      "answerKey"
     ]
   }
 ]

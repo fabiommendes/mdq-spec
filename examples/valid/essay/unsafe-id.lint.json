@@ -1,0 +1,9 @@
+[
+  {
+    "code": "unsafe-id",
+    "severity": "warning",
+    "path": [
+      "id"
+    ]
+  }
+]

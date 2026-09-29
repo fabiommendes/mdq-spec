@@ -1,0 +1,10 @@
+[
+  {
+    "code": "reject-without-feedback",
+    "severity": "info",
+    "path": [
+      "reject",
+      0
+    ]
+  }
+]

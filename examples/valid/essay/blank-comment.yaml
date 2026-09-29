@@ -1,0 +1,10 @@
+# `comment` is a free-text metadata field: if defined it must have at
+# least one visible character, unlike `preamble`/`stem`/`epilogue`
+# (which raise the same code as an error instead).
+id: amazon-river
+title: Amazon river discharge
+type: essay
+stem: Explain why the Amazon River has the greatest discharge of any river.
+input: text
+answerKey: Its vast drainage basin spans a region of exceptionally heavy rainfall.
+comment: "   "

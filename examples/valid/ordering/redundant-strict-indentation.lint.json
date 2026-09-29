@@ -1,0 +1,9 @@
+[
+  {
+    "code": "redundant-strict-indentation",
+    "severity": "warning",
+    "path": [
+      "indentation"
+    ]
+  }
+]

@@ -1,0 +1,11 @@
+[
+  {
+    "code": "blank-choice-comment",
+    "severity": "warning",
+    "path": [
+      "choices",
+      0,
+      "comment"
+    ]
+  }
+]

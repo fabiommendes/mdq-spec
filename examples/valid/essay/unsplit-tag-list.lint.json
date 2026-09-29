@@ -1,9 +1,10 @@
 [
   {
-    "code": "malformed-locale",
+    "code": "unsplit-tag-list",
     "severity": "warning",
     "path": [
-      "locale"
+      "tags",
+      0
     ]
   }
 ]

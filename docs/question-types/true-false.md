@@ -208,6 +208,7 @@ of student markings and the resulting score for each grading strategy.
 | ------------------ | -------- | ----------------------------------------------------------- |
 | choices[].marker   | critical | must be a single letter, and never `X` or `x`[^2]           |
 | choices[].marker   | critical | must agree with `correct` according to its category[^3]     |
+| choices[].text     | critical | must not be empty                                            |
 | choices[].text     | critical | must be unique among the statements of the question         |
 | choices[].id       | critical | must be unique among the statements of the question         |
 | choices[].marker   | warning  | should not be a PROVISIONAL letter[^3]                      |

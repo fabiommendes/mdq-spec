@@ -1,0 +1,22 @@
+# The `## [accept]` section repeats the `[ordering]` block's own lines
+# verbatim. Matching the answer key already scores 1 regardless of
+# `accept`, so this declaration is redundant -- the linter flags it
+# (`accept-repeats-answer-key`).
+id: ordering-accept-repeats-answer-key
+title: Ciclo da água
+type: ordering
+stem: Order the steps of the water cycle.
+content: text
+lines:
+  - [0, "Evaporação da água dos oceanos e rios."]
+  - [0, "Condensação do vapor em nuvens."]
+  - [0, "Precipitação em forma de chuva."]
+  - [0, "Escoamento da água de volta para os oceanos."]
+accept:
+  - lines:
+      - [0, "Evaporação da água dos oceanos e rios."]
+      - [0, "Condensação do vapor em nuvens."]
+      - [0, "Precipitação em forma de chuva."]
+      - [0, "Escoamento da água de volta para os oceanos."]
+    comment: >-
+      Aceita a mesma ordem do gabarito, sem qualquer alteração -- redundante.

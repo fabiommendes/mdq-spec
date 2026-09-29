@@ -1,0 +1,21 @@
+# `dedent` flattens every line to level 0 before comparing, so
+# `indentation: "strict"` has nothing left to compare -- the linter flags
+# it (`redundant-strict-indentation`). `indentation: "lenient"` implies
+# `dedent` on its own, so only an explicit `dedent` normalization can
+# combine with `"strict"` in the first place.
+id: ordering-redundant-strict-indentation
+title: Algoritmo de Euclides
+type: ordering
+stem: >-
+  Order the lines of this implementation of the Euclidean algorithm for the
+  greatest common divisor.
+content: code
+highlight: python
+indentation: strict
+normalizations:
+  - dedent
+lines:
+  - [0, "def mdc(a, b):"]
+  - [1, "while b:"]
+  - [2, "a, b = b, a % b"]
+  - [1, "return a"]
