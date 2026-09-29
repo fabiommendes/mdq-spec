@@ -92,3 +92,6 @@ First version of the specification.
   `relative-tolerance-around-zero` judge a string answer by its value, and
   `domain-mismatch` accepts `fraction` or `decimal` for a number that is
   not whole.
+- `skills/mdq-questions`: the numeric reference states the current unit rule
+  (any character except whitespace and `(`, `)`, `[`, `]`) and the answer
+  representation.

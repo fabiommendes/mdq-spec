@@ -20,8 +20,8 @@ How many grams of water are in a liter?
 [numeric(kg)]: 5.5 +- 0.1      # with a unit
 ```
 
-A unit is letters, digits, `.`, `-`, `_` — written inside the tag, never after
-the value.
+A unit is any text without whitespace or the brackets `(`, `)`, `[`, `]`, such
+as `kg`, `km/h`, `°C` or `µm`. Write it inside the tag, never after the value.
 
 ## Frontmatter
 
@@ -34,6 +34,24 @@ the value.
 The domain is inferred from how the value and absolute tolerance are written
 (the wider of the two wins: integer < fraction < decimal). A percentage
 tolerance does not change it.
+
+## Answer in YAML/JSON
+
+The parsed `answer` is a number, or a string in the body syntax when a number
+would lose information:
+
+| Body                     | `answer`                                           |
+| ------------------------ | -------------------------------------------------- |
+| `42`, `-1`               | `42`, `-1`                                         |
+| `390000000000`           | `"390000000000"` (outside the 32-bit range)        |
+| `1/3`, `3/4`             | `"1/3"`, `"3/4"` (a fraction is always a string)   |
+| `0.25`, `-273.15`        | `0.25`, `-273.15`                                  |
+| `2.50`, `2.0`            | `"2.50"`, `"2.0"` (a trailing zero is kept)        |
+| `3.14159265358979323846` | a string (more digits than a float holds)          |
+
+`domain` still records how the value is written. When you write YAML/JSON by
+hand, either form is valid, but a string must follow the body syntax
+(`sign? value`, no zero denominator).
 
 ## Grading
 
