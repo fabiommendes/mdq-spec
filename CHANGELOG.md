@@ -113,6 +113,15 @@ First version of the specification.
 - `ignored-decimal-places` uses the declared domain, or the one inferred
   from the answer and the absolute tolerance, and fires unless it is
   `decimal` (new `numeric/ignored-decimal-places-inferred`).
+- `docs/lint-codes.md`, "Load errors": `schema-error` covers every JSON
+  Schema rule without a code of its own (a missing or unknown field, a wrong
+  type, a value out of range, a pattern mismatch). Implementations no longer
+  report their validator's own error types.
+- New errors `invalid-duration` (an exam `duration` that is not positive
+  or not in an accepted form), `malformed-start` (an exam `start` that is
+  not ISO 8601) and `malformed-true-false-marker` (a marker that is not a
+  single letter). New examples `invalid/model-only/exam-zero-duration` and
+  `invalid/model-only/true-false-non-letter-marker`.
 - `skills/mdq-questions`: the numeric reference states the current unit rule
   (any character except whitespace and `(`, `)`, `[`, `]`) and the answer
   representation.

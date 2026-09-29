@@ -1,0 +1,14 @@
+# A true-false marker is a single letter (true-false.md, "Additional
+# Rules"). `1` is one character, so it passes the schema's length check,
+# and only the `malformed-true-false-marker` model validator rejects it.
+type: true-false
+stem: Julgue as afirmações sobre a fauna brasileira.
+choices:
+  - id: onca
+    text: A onça-pintada é o maior felino das Américas.
+    correct: true
+    marker: "1"
+  - id: capivara
+    text: A capivara é o maior roedor do mundo.
+    correct: true
+    marker: T
