@@ -1,0 +1,9 @@
+id: num-unit-non-ascii
+title: Amazon rainforest temperature
+type: numeric
+stem: What is the average annual temperature of the Amazon rainforest?
+answer: 26
+unit: °C
+domain: integer
+tolerance:
+  absolute: 2

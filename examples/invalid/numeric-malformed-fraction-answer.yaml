@@ -1,0 +1,7 @@
+# A string `answer` must match the numeric grammar's `sign? value`
+# (numeric.md, "Answer representation"), and a fraction's denominator
+# must not be zero -- "1/0" fails both the schema's `answer` pattern and
+# the `malformed-numeric-answer` model validator.
+type: numeric
+stem: What fraction of Brazil's territory lies within the Amazon biome?
+answer: "1/0"

@@ -1,0 +1,12 @@
+# `answer` as a string preserves an exact fraction a float would round --
+# "1/3" is 0.333... forever, unlike "3/4" (fraction.yaml), which happens
+# to be exact in binary too. Only a document written directly as
+# YAML/JSON can use this form; the Markdown surface syntax always turns
+# a body fraction into a float (numeric.md, "Answer representation").
+id: banco-imobiliario-triple
+title: Rolling a multiple of three
+type: numeric
+stem: >-
+  Playing Banco Imobiliário with a fair six-sided die, what is the
+  probability of rolling a number divisible by three?
+answer: "1/3"

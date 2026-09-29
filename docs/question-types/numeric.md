@@ -72,10 +72,23 @@ reltol       : "+-" ws? (INTEGER | DECIMAL) "%"
 unit         : "(" NAME ")"
 fraction     : INTEGER "/" INTEGER
 
-NAME         : /[\w.-]+/
+NAME         : /[^\s()\[\]]+/
 INTEGER      : /[1-9][0-9]*|0/
 DECIMAL      : /([1-9][0-9]*|0)[.][0-9]+/
 ```
+
+## Answer representation
+
+The Markdown surface syntax above always yields a JSON number: a body
+fraction like `[numeric]: 1/3` becomes its floating-point value, and
+`domain: fraction` records how it was written (see
+[number type/domain](#number-typedomain)) -- a `float` cannot represent
+a fraction exactly.
+
+A document written directly as JSON/YAML/dict, rather than parsed from
+Markdown, MAY instead give `answer` as a string to keep that precision,
+e.g. `"1/3"` or `"-0.25"`. The string MUST match the `sign? value`
+grammar above, and a fraction's denominator MUST NOT be zero.
 
 ## Number type/domain
 
@@ -123,12 +136,15 @@ perform the correct transformations (e.g., if the student respond 1kg in an
 answer that expects g, it could treat it as 1000g), or use it just as a visual
 cue in the response input field.
 
-Units are non-empty strings composed of letters, numbers, `.`, `-`, and `_`,
-i.e., the Regex
+Units are non-empty strings that may hold any character except
+whitespace and the brackets `(`, `)`, `[`, `]`, i.e., the Regex
 
 ```regex
-^[\w._-]+$
+^[^\s()\[\]]+$
 ```
+
+This admits units an ASCII-only class would reject, such as `µm`, `°C`,
+`km/h`, and `Ω`.
 
 
 ## Grading

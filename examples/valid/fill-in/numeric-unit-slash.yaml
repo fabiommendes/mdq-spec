@@ -1,0 +1,15 @@
+# A unit may itself contain `/` (`km/h`) without breaking the blank
+# tag's own `id/type` separator: `[^speed/numeric(km/h)]` splits on the
+# first `/` only, so the unit's `/` stays inside the parenthesized part.
+id: fill-in-jaguar-speed
+title: Fastest cat in the Americas
+type: fill-in
+stem: The jaguar (*Panthera onca*) can sprint at up to [^speed] in short bursts.
+blanks:
+  - id: speed
+    type: numeric
+    answer: 80
+    unit: km/h
+    domain: integer
+    tolerance:
+      absolute: 5

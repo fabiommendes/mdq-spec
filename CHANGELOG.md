@@ -53,3 +53,12 @@ First version of the specification.
   exceptions, `misplaced-blank`'s image-alt-text case, and added `fill-in`
   to the question-types column of the choice/numeric/short-answer rules a
   fill-in blank inherits from the question type it declares.
+- A numeric question's/blank's `answer` MAY now be a string, for a document
+  written directly as JSON/YAML/dict that needs an exact fraction or
+  decimal a `float` cannot represent (e.g. `"1/3"`). It MUST follow the
+  same `sign? value` grammar as a numeric body's value, and a fraction's
+  denominator MUST NOT be zero; a malformed one is the new
+  `malformed-numeric-answer` error (numeric.md, "Answer representation").
+- Numeric units are now any character except whitespace and the brackets
+  `(`, `)`, `[`, `]` (`^[^\s()\[\]]+$`), not the ASCII-only `\w` class,
+  admitting units like `µm`, `°C`, `km/h`, and `Ω`.
