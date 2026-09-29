@@ -1,5 +1,12 @@
 [
   {
+    "code": "domain-mismatch",
+    "severity": "info",
+    "path": [
+      "domain"
+    ]
+  },
+  {
     "code": "missing-tolerance",
     "severity": "info",
     "path": [

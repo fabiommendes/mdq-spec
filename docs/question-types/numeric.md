@@ -103,6 +103,9 @@ A document written directly as JSON/YAML/dict, rather than parsed from
 Markdown, can choose freely between numeric and string representations.
 A string answer MUST match the `sign? value` grammar above, and a
 fraction's denominator MUST NOT be zero.
+When `domain` is `fraction`, such a document SHOULD give `answer` as a
+fraction string (`"3/4"`) or as an integer (`2` or `"2"`). A number that is
+not whole, such as `0.75`, is a decimal and contradicts the domain.
 
 ## Number type/domain
 
@@ -179,17 +182,19 @@ tolerance test.
 | tolerance.relative | warning  | must not be given when `answer` is zero[^2]                |
 | domain             | info     | should agree with the domain inferred from the document[^3]|
 | tolerance.relative | info     | is a fraction, so a value above 1 is likely a mistake[^4]  |
-| decimalPlaces      | info     | is ignored unless `domain` is "decimal"                    |
+| decimalPlaces      | info     | is ignored unless `domain` is "decimal"[^7]                |
 | tolerance          | info     | should be defined for a `decimal` or `fraction` answer[^5] |
 
 [^2]: The relative tolerance is `|answer| ⨉ relative`, which is 0 for a zero
 answer, so only an exact 0 would be accepted.
 [^3]: See [number type/domain](#number-typedomain). A declared domain never widens
-the value written in the body -- it only contradicts it. A string answer shows
-how it was written. A number does not, since a JSON/YAML/dict document can
-write a fraction as one, so a number that is not whole agrees with both
-`fraction` and `decimal`.
+the value written in the body -- it only contradicts it. The one exception is
+an integer, which also agrees with `fraction` (see
+[answer representation](#answer-representation)). A number that is not whole
+is a decimal, so it contradicts `fraction`.
 [^4]: `0.05` is 5%, not 0.05%; `5` would accept a response 500% off.
 [^5]: An exact comparison of a non-integer response is rarely what the author
 means, since the number of digits the student types decides the outcome.
 [^6]: A string answer is judged by its value: `"7/2"` is not whole, `"4/2"` is.
+[^7]: The declared domain, or the one inferred from the answer and the absolute
+tolerance when `domain` is not given.

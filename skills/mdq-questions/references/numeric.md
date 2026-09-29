@@ -51,7 +51,9 @@ would lose information:
 
 `domain` still records how the value is written. When you write YAML/JSON by
 hand, either form is valid, but a string must follow the body syntax
-(`sign? value`, no zero denominator).
+(`sign? value`, no zero denominator). With `domain: fraction`, write the
+answer as a fraction string (`"3/4"`) or an integer, never as a decimal such as
+`0.75`.
 
 ## Grading
 

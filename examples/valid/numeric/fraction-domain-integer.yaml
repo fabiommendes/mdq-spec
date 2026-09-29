@@ -1,0 +1,9 @@
+# An integer answer agrees with `domain: fraction`: students answer with
+# fractions, and this one happens to be whole (numeric.md, "Answer
+# representation").
+id: quatro-moedas
+title: Four 25-centavo coins
+type: numeric
+stem: How many reais are four 25-centavo coins worth?
+answer: 1
+domain: fraction

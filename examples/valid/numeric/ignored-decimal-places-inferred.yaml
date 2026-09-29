@@ -1,0 +1,8 @@
+# With no `domain`, the domain is inferred from the answer: `27` is an
+# integer, so `decimalPlaces` is ignored.
+id: unidades-federativas
+title: Federative units
+type: numeric
+stem: How many federative units does Brazil have?
+answer: 27
+decimalPlaces: 1

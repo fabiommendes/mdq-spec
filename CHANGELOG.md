@@ -104,9 +104,15 @@ First version of the specification.
   integer, a trailing zero, a long decimal, a fraction blank and a
   fraction written as a float.
 - `docs/lint-codes.md`: `answer-outside-domain` and
-  `relative-tolerance-around-zero` judge a string answer by its value, and
-  `domain-mismatch` accepts `fraction` or `decimal` for a number that is
-  not whole.
+  `relative-tolerance-around-zero` judge a string answer by its value.
+- numeric.md: with `domain: fraction`, a JSON/YAML/dict answer SHOULD be a
+  fraction string or an integer. An integer answer agrees with `fraction`,
+  and a number that is not whole is a decimal only, so `answer: 0.75` with
+  `domain: fraction` gets `domain-mismatch` (`numeric/fraction-answer-float`,
+  new `numeric/fraction-domain-integer`).
+- `ignored-decimal-places` uses the declared domain, or the one inferred
+  from the answer and the absolute tolerance, and fires unless it is
+  `decimal` (new `numeric/ignored-decimal-places-inferred`).
 - `skills/mdq-questions`: the numeric reference states the current unit rule
   (any character except whitespace and `(`, `)`, `[`, `]`) and the answer
   representation.
