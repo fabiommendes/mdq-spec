@@ -78,10 +78,14 @@ questions. All fields are optional.
 [^4]: MUST be a valid [IETF BCP 47](https://developer.mozilla.org/en-US/docs/Glossary/BCP_47_language_tag) language tag.
 [^5]: MUST NOT be negative. The exam score is the weighted mean of its question scores, so a weight of 0 keeps the question in the exam without counting towards the score.
 
+A mapping MUST NOT repeat a key. A repeated key is an error
+(`yaml-syntax-error`), not a value that replaces the first one, since it is
+almost always a mistake.
+
 A value keeps its YAML type and is never converted. A field of type string
 MUST hold a YAML string: `id: 2024` is a number and is an error, so a
-numeric-looking id is quoted (`id: "2024"`). A null value (`id:` with nothing
-after it) is the same as an absent field.
+numeric-looking id is quoted (`id: "2024"`). A null `id` or `tags` (the key
+with nothing after it) is the same as an absent field.
 
 If there is a collision of a field that is specified both in the frontmatter and
 elsewhere, the frontmatter takes precedence.

@@ -99,7 +99,9 @@ some post-processing stage) or by the model validator (pydantic or zod).
 These codes are not rules about the document content. `load` reports them
 when it cannot read the input or cannot build a model at all.
 
-- `yaml-syntax-error`, `json-syntax-error`: the input is not valid YAML or JSON.
+- `yaml-syntax-error`, `json-syntax-error`: the input is not valid YAML or JSON,
+  or a mapping repeats a key. `yaml-syntax-error` also covers the frontmatter
+  of a Markdown document or of an exam block.
 - `parse-error`: the Markdown source does not follow the MDQ grammar.
 - `conflicting-accept`: `accept`/`reject` (or `preAccept`/`preReject`) is
   declared both in the frontmatter and as a body block (short-answer.md).

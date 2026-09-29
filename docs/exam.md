@@ -83,9 +83,12 @@ Exams accept the following arguments in the frontmatter
 All properties in the frontmatter are optional. `title` and `id` may be given
 either in the frontmatter or in the H1 heading; if both are set, the
 frontmatter takes precedence, consistently with the rule for questions.
-As for a question, a value keeps its YAML type and is never converted: `id`,
-and the `include` and `include-all` of a block, MUST be YAML strings
-(`id: "2024"`, not `id: 2024`; `include: "yes"`, not `include: yes`).
+
+As for a question, a mapping MUST NOT repeat a key, in the exam frontmatter
+and in the frontmatter of every block (`yaml-syntax-error`). A value keeps its
+YAML type and is never converted: `id`, and the `include` and `include-all` of
+a block, MUST be YAML strings (`id: "2024"`, not `id: 2024`; `include: "yes"`,
+not `include: yes`).
 
 
 ## The title

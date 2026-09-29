@@ -130,6 +130,12 @@ First version of the specification.
 - `examples/invalid/` may hold `.mdq.md` documents. Each has a `.lint.json`
   with every diagnostic `load` reports, errors included, and a `.yaml`
   sibling, if present, reports the same ones.
+- A YAML mapping MUST NOT repeat a key (base.md, exam.md): in a question or
+  exam frontmatter, in an exam block's frontmatter, and in a YAML document.
+  It is `yaml-syntax-error`, not last-value-wins. A JSON object that repeats
+  a key is `json-syntax-error`. New invalid examples
+  `question-duplicate-key` and `exam-block-duplicate-key`.
+- base.md: a null `id` or `tags` is the same as an absent field.
 - `skills/mdq-questions`: the numeric reference states the current unit rule
   (any character except whitespace and `(`, `)`, `[`, `]`) and the answer
   representation.
