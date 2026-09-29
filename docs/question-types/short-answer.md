@@ -161,8 +161,10 @@ exact        : "`" EXACT_TEXT "`" ws?
 inexact      : PLAIN_TEXT
 
 EXACT_TEXT   : /[^`\n\r]+/
-PLAIN_TEXT   : /[^`\s][^\n\r]*/
+PLAIN_TEXT   : /[^` \t\r\n][^\r\n]*/
 ```
+
+The rule `ws` is defined in [Common grammar rules](../references/grammar.md).
 
 The content is interpreted as a plain text string (never markdown). Backticks
 around it choose the comparison:
@@ -227,7 +229,7 @@ keeping its backticks, and so its exactness, if it had any.
 ### Pattern lines
 
 The pattern line of `accept/reject` items is interpreted as a regex string if it
-starts with a `/` after stripping whitespace. A regex line must be closed
+starts with a `/` after stripping spaces and tabs. A regex line must be closed
 by a `/` as well, and may include optional flags after the closing `/`. 
 
 The details of the regex syntax are described in the [Regex](#regex) section.

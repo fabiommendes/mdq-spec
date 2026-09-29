@@ -38,6 +38,7 @@ types" column, "any" includes exams.
 | `multiple-choice-many-correct-choices` | info     | multiple-choice, fill-in                                 | More than one choice has a `score >= 1`. A question MAY mark any number of choices as correct; this only flags the unusual case.                                                                     |
 | `multiple-choice-no-correct-choice`    | info     | multiple-choice, fill-in                                 | No choice has a `score >= 1`.                                                                                                                                                                         |
 | `no-correct-choice`                    | info     | multiple-selection                                       | No choice is correct, so the question has nothing to select.                                                                                                                                          |
+| `non-ascii-whitespace`                 | warning  | any                                                      | A Unicode space (a `White_Space` character outside ASCII, or U+FEFF after the start of the file) outside code. `info` inside prose; see [grammar.md] for the positions that report `warning`.         |
 | `non-nfc-true-false-marker`            | info     | true-false                                               | The marker is one code point, but not its own NFC form.                                                                                                                                               |
 | `nonstandard-include-query`            | warning  | exam                                                     | An `include-all` query does not follow the query language docs/exam.md recommends. `Exam.resolve` adds no questions for it.                                                                           |
 | `provisional-true-false-marker`        | warning  | true-false                                               | The marker is a PROVISIONAL letter: true today, but a future spec revision may reassign it.                                                                                                           |
@@ -107,3 +108,4 @@ when it cannot read the input or cannot build a model at all.
 
 [exam.md]: exam.md
 [question-types]: question-types/
+[grammar.md]: references/grammar.md#the-non-ascii-whitespace-lint

@@ -40,7 +40,8 @@ value : ws
       | ws? ("x" | "X") ws?
 ```
 
-`markdown` represent any markdown element nested inside the item.
+`markdown` represent any markdown element nested inside the item. The rule
+`ws` is defined in [Common grammar rules](../references/grammar.md).
 
 
 ## Choices

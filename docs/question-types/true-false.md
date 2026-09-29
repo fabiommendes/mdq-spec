@@ -38,7 +38,8 @@ item  : ws? "[" value "]" markdown+
 value : ws? (true | false) ws?
 ```
 
-`markdown` represent any markdown element nested inside the item. `true` and
+`markdown` represent any markdown element nested inside the item. The rule
+`ws` is defined in [Common grammar rules](../references/grammar.md). `true` and
 `false` are single characters (case-insensitive) that represent each case. The
 most common choices are `T` and `F`, respectively. However all other letters
 except `X`, which is used to represent multiple-selection items, have one

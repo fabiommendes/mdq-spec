@@ -39,7 +39,7 @@ item          : ws? "[" value "]" md_inline+ nl extra_lines? (feedback? comments
 value         : ws
               | ws? "*" ws?
               | ws? percent ws?
-percent       : /[+-]?\d+(\.\d+)?%/
+percent       : /[+-]?[0-9]+([.][0-9]+)?%/
 
 extra_lines   : (md_inline* nl)+
 feedback      : feedback_line+
@@ -49,7 +49,8 @@ comment_line  : "!" md_inline+ nl extra_lines?
 ```
 
 `md_inline` represent any markdown inline element except new lines (which are 
-represented explicitly by `nl`).
+represented explicitly by `nl`). The rules `ws` and `nl` are defined in
+[Common grammar rules](../references/grammar.md).
 
 
 ## Choices

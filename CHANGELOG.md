@@ -26,9 +26,23 @@ First version of the specification.
   `schema/mdq.schema.json`.
 - Shared corpus of valid and invalid examples, with the expected parse and
   lint results.
+- Common grammar rules (`docs/references/grammar.md`): the terminals that
+  several documents share (`ws`, `nl`, `SLUG`, `INTEGER`, `DECIMAL`, `UNIT`,
+  `COMMENT_LINE`, `UNICODE_SPACE`) and a regex dialect that matches the same
+  characters in Python, JavaScript and JSON Schema.
+- Lint code `non-ascii-whitespace`: a Unicode space outside code is a
+  `warning` in a syntax position and an `info` inside prose.
 
 ### Changed
 
+- The grammar whitespace `ws` is only spaces and tabs, and `nl` is only
+  `\r\n`, `\r` and `\n`. Other Unicode spaces and line separators are
+  text. A paragraph that starts with U+00A0 before a tag is text, not a tag.
+- A byte order mark at the start of a file is removed before parsing.
+- The `unit` pattern excludes `UNICODE_SPACE` instead of `\s`. The schema
+  `unit` pattern changed to match.
+- The exam query `TAG` excludes `UNICODE_SPACE` instead of `\s`. The
+  duration terminal `DECIMAL` is now `SECONDS`.
 - `blank-choice-text` (a choice's `text` with no visible character) is an
   `error` now, not a `warning`.
 - `multiple-choice-many-correct-choices` is an `info` now, not a `warning`:

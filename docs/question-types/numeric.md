@@ -69,13 +69,12 @@ value        : INTEGER
 sign         : "+" | "-"
 abstol       : "+-" ws? (INTEGER | DECIMAL)
 reltol       : "+-" ws? (INTEGER | DECIMAL) "%"
-unit         : "(" NAME ")"
+unit         : "(" UNIT ")"
 fraction     : INTEGER "/" INTEGER
-
-NAME         : /[^\s()\[\]]+/
-INTEGER      : /[1-9][0-9]*|0/
-DECIMAL      : /([1-9][0-9]*|0)[.][0-9]+/
 ```
+
+The rule `ws` and the terminals `INTEGER`, `DECIMAL` and `UNIT` are defined in
+[Common grammar rules](../references/grammar.md).
 
 ## Answer representation
 
@@ -151,12 +150,9 @@ perform the correct transformations (e.g., if the student respond 1kg in an
 answer that expects g, it could treat it as 1000g), or use it just as a visual
 cue in the response input field.
 
-Units are non-empty strings that may hold any character except
-whitespace and the brackets `(`, `)`, `[`, `]`, i.e., the Regex
-
-```regex
-^[^\s()\[\]]+$
-```
+Units are non-empty strings that may hold any character except a
+`UNICODE_SPACE` and the brackets `(`, `)`, `[`, `]`. This is the `UNIT`
+terminal of [Common grammar rules](../references/grammar.md).
 
 This admits units an ASCII-only class would reject, such as `µm`, `°C`,
 `km/h`, and `Ω`.

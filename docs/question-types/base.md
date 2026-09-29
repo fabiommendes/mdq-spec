@@ -35,14 +35,15 @@ string** does not include the `#` and first space, if present.
 
 The grammar for the frontmatter is:
 
-```
-frontmatter : separator ws? comment_string? yaml separator
-separator   : "---"
-ws          : /\s+/
-
+```lark
+frontmatter    : separator nl blank_line* comment_string? yaml separator nl
+separator      : "---"
+blank_line     : ws? nl
 comment_string : COMMENT_LINE+
-COMMENT_LINE   : /#[^\n]*\n/
 ```
+
+The terminals `ws`, `nl` and `COMMENT_LINE` are defined in
+[Common grammar rules](../references/grammar.md).
 
 WARNING: a blank line (without `#`) breaks the comment string, as in the example:
 
@@ -116,11 +117,11 @@ starting with the `[ ]` checkmarks.
 
 Below is the list of invalid elements.
 
-* Unordered lists if all elements start with optional whitespace + `[`.
-* Paragraph that starts with optional whitespace + `[`, except the first paragraph, or
+* Unordered lists if all elements start with optional `ws` + `[`.
+* Paragraph that starts with optional `ws` + `[`, except the first paragraph, or
   if the `[` character is immediately followed by a `^` character[^6].
 * H1 headings.
-* Heading starting with optional whitespace + `[`.
+* Heading starting with optional `ws` + `[`.
 
 [^6]: This exception is for the reference-style syntax used to represent the
 blanks of a fill-in question. Without it, a fill-in question could not have a
@@ -151,6 +152,8 @@ The slug SHOULD obey the regex:
 [a-zA-Z0-9]+(?:[-_][a-zA-Z0-9]+)*
 ```
 
+This is the `SLUG` terminal of [Common grammar rules](../references/grammar.md).
+
 Implementations MAY widen the allowed characters under an option flag.
 
 
@@ -166,6 +169,8 @@ whitespace at every position.
 
 Whitespace outside the brackets is unaffected: a tag may be indented, and a
 tag followed by `:` may have spaces around the colon and before the value.
+Here, whitespace means only spaces and tabs, the `ws` rule of
+[Common grammar rules](../references/grammar.md).
 
 
 ## Body
@@ -173,7 +178,7 @@ tag followed by `:` may have spaces around the colon and before the value.
 The body is one or more block-level markdown elements that are specific to each
 question type. Multiple choice, for instance, requires the block to be an 
 unordered list with every item starting with `[value]`, and value is either
-whitespace, the character `*`, or a percentage like in `[50%]`.
+spaces and tabs, the character `*`, or a percentage like in `[50%]`.
 
 Each question type defines their body elements. For all questions the body is 
 REQUIRED.

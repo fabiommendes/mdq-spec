@@ -47,8 +47,8 @@ blank : "[^" SLUG "]"
 ```
 
 `inline_md` represent any valid inline markdown element nested inside the stem
-and `blank` represent a reference to a blank. The terminal SLUG is defined in the
-base question type [slug](base.md#slug) section. `inline_md` must be a
+and `blank` represent a reference to a blank. The terminal `SLUG` is defined in
+[Common grammar rules](../references/grammar.md). `inline_md` must be a
 well defined markdown inline element that do not contain blanks.
 
 ### Where blanks may appear
@@ -96,6 +96,9 @@ short_answer_def : "[^" SLUG "/short-answer" "]:" ws? answer
 
 list_kind        : "accept" | "reject"
 ```
+
+The rules `ws` and `nl` and the terminal `SLUG` are defined in
+[Common grammar rules](../references/grammar.md).
 
 The kind suffix is what tells the three apart. A bare `[^slug]:` is a choice
 blank; anything else states its kind explicitly. Note that `unit` attaches to

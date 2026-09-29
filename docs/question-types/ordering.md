@@ -155,7 +155,8 @@ comment  : (ws? "!" ws? md_inline* nl)+
 ```
 
 `md_code_block`, `md_ul` and `md_inline` are respectively markdown
-representations of fenced code blocks, unordered lists and inline markdown.
+representations of fenced code blocks, unordered lists and inline markdown. The
+rules `ws` and `nl` are defined in [Common grammar rules](../references/grammar.md).
 
 If the block following the `[ordering]` tag is a fenced code block, the
 question infers `content: "code"`, and the fence's language, if any, becomes

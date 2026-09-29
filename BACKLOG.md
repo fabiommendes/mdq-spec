@@ -72,6 +72,18 @@ Those need discussion and design.
 ## Specification
 
 * [ ] Write the section "AST representation" in the spec document for all question types.
+* [ ] Define the whitespace of answer matching without `\s`. The short-answer
+  normalization (`short-answer.md`, `/\s+/`), the trim of exact answers and
+  responses, and the `\S` "visible character" patterns in `schema/essay.yaml`
+  and `schema/short-answer.yaml` give different results in Python and
+  JavaScript (U+FEFF, U+0085, U+001C to U+001F). Candidate: `UNICODE_SPACE`
+  from `docs/references/grammar.md`.
+* [ ] A choice value that the grammar does not allow (`[?]`, `[#]`, `[ ]`
+  with U+00A0) is read as an unmarked choice. Decide if it is an error.
+* [ ] The example corpus cannot pin a code that only the Markdown parser
+  reports (`non-ascii-whitespace`, `unknown-frontmatter-key`), because the
+  `.mdq.md` and `.yaml` pair share one `.lint.json`. Add a lint file for
+  the Markdown side only, so mdq-js can reuse the cases.
 
 
 ## Uncategorized issues

@@ -168,7 +168,7 @@ query      : logic ("EXCEPT" slugs)?
 
 slugs      : SLUG ("," SLUG)*
 
-TAG        : /(?!(AND|OR|NOT|EXCEPT)(?![^\s(),]))[^\s(),]+/
+TAG        : /(?!(AND|OR|NOT|EXCEPT)(?![^(),\t\n\v\f\r \x85\xa0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]))[^(),\t\n\v\f\r \x85\xa0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+/
 
 %import common.WS
 %ignore WS
@@ -181,9 +181,15 @@ The comparison is exact and case-sensitive. The keywords `AND`, `OR`, `NOT` and
 the listed ids from the result. A `SLUG` has the same format as the value of
 `include`.
 
+`SLUG` and `UNICODE_SPACE` are defined in
+[Common grammar rules](references/grammar.md). A `TAG` holds no parenthesis,
+no comma and no `UNICODE_SPACE`. The query ignores only the Lark `WS`: space,
+tab, form feed, carriage return and line feed. A query with any other
+`UNICODE_SPACE` does not follow the language.
+
 Tags do not use a `#` prefix: YAML reads an unquoted value that starts with
-`#` as a comment. A tag that contains whitespace, a comma or a parenthesis
-cannot be written in a query.
+`#` as a comment. A tag that contains a `UNICODE_SPACE`, a comma or a
+parenthesis cannot be written in a query.
 
 An `include-all` never adds a question that the exam already contains by
 other means: the target of an `include`, an inline question with the same
@@ -309,11 +315,11 @@ The exact grammar is shown below.
 
 ```lark
 duration: iso_duration | hh_mm | xd_yh_zm
-iso_duration: "P" (INT "W")? (INT "D")? ("T" (INT "H")? (INT "M")? (DECIMAL "S")?)?
+iso_duration: "P" (INT "W")? (INT "D")? ("T" (INT "H")? (INT "M")? (SECONDS "S")?)?
 hh_mm: /[0-9]{1,2}/ ":" /[0-5][0-9]/
 xd_yh_zm: (INT "d")? " "* (INT "h")? " "* (INT "m")?
 INT: /[0-9]+/
-DECIMAL: /[0-9]+(\.[0-9]+)?/
+SECONDS: /[0-9]+([.][0-9]+)?/
 ```
 
 MDQ reads `1:30` as the string `"1:30"`, not as the YAML 1.1 base-60 integer
