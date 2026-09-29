@@ -68,3 +68,13 @@ First version of the specification.
   reports when it cannot read a document or build a model.
 - Snapshots of the expected lint results for the fill-in examples with
   choice blanks.
+- true-false.md: implementations SHOULD warn about `S` under `locale: id`
+  with a dedicated warning, instead of "escalating" the mismatch warning.
+- ordering.md: an accepted and a rejected section MUST NOT hold the same
+  lines after all forms of normalization, not only the same raw lines.
+- short-answer.md: `redundant-regex-anchor` covers only an anchor that is
+  already implicit given the `f`/`b` flags, in `regex` and in delimited
+  `accept`/`reject` entries.
+- `docs/lint-codes.md`: `domain-mismatch` infers the domain from the answer
+  and the absolute tolerance, as numeric.md says. The `numeric/zero-answer`
+  example now derives `domain: decimal`.

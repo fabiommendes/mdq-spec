@@ -151,9 +151,9 @@ records which letter was written; it never changes what that letter means.
 This matters most for `locale: id` (Indonesian): "salah" (false) starts with
 `S`, but `S` is globally assigned to TRUE (see [Body](#body)). A document with
 `locale: id` using `[S]` to mean false is silently graded as true, not just
-mismatched -- implementations SHOULD escalate the locale warning for `S` under
-`id` beyond the usual mismatch notice, and Indonesian documents should use `F`
-for false instead.
+mismatched -- implementations SHOULD warn about `S` under `id` with a
+dedicated warning, not only the usual mismatch notice, and Indonesian documents
+should use `F` for false instead.
 
 ## Feedback
 

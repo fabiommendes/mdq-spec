@@ -381,7 +381,7 @@ reject rule, and so takes the accept rule's feedback.
 | openEnded                          | warning  | must be set when no `accept`, `oneOf` or `regex` is given[^8]    |
 | oneOf                              | warning  | is never consulted when `regex` is given                         |
 | accept                             | warning  | should not hold a `*` wildcard, which accepts every response     |
-| regex                              | info     | a leading `^` or trailing `$` is redundant[^9]                   |
+| regex, accept, reject              | info     | an anchor that is already implicit is redundant[^9]              |
 | regex                              | info     | should not carry a flag that is accepted but ignored[^10]        |
 | reject                             | info     | a `*` wildcard should be the last item of the list               |
 
@@ -392,6 +392,7 @@ list. A document that uses both is invalid; an implementation that accepts it
 anyway MUST let the frontmatter win.
 [^8]: Nothing can grade such a question, and it is not marked for manual
 grading either.
-[^9]: Matching is a full match, so both anchors are implicit.
+[^9]: Without the `f` flag, a leading `^` is implicit. Without the `f` or `b`
+flag, a trailing `$` is implicit. See [regex flags](#regex-flags).
 [^10]: `m`, `g`, `s`, `u`, `v`, `y` and `d` are accepted for compatibility and
 have no effect, see [regex flags](#regex-flags).

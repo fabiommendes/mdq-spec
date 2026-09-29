@@ -201,8 +201,8 @@ block must be of the same type as the main `[ordering]` block, but repeated
 sections are allowed. A question SHOULD NOT declare two sections whose content
 blocks hold the same lines once **all forms of normalization** have been
 applied -- every entry of `normalizations`, plus whatever the `indentation`
-field implies -- and MUST NOT declare the same lines as both accepted and
-rejected.
+field implies -- and MUST NOT declare an accepted and a rejected section whose
+content blocks hold the same lines after that same normalization.
 
 The optional feedback message is provided in a markdown blockquote. The
 observation part MAY also contain instructor comments. It uses a syntax similar
@@ -330,7 +330,7 @@ submitted, in the order they submitted them, each written as an
 
 | Field                 | Level    | Rule                                                             |
 | --------------------- | -------- | ---------------------------------------------------------------- |
-| accept, reject        | critical | the same lines must not be both accepted and rejected            |
+| accept, reject        | critical | the same lines must not be both accepted and rejected[^9]        |
 | extra, accept, reject | critical | must use the same content block type as `[ordering]`[^6]         |
 | extra                 | critical | at most one `## [extra]` section may be declared                 |
 | accept, reject        | critical | a section carries at most one feedback and one comment block[^7] |
