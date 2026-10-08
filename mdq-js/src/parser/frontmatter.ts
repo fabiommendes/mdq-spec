@@ -140,8 +140,9 @@ function stripEol(line: string): string {
  * (with no leading `#`) breaks it; blank lines before the first `#` line are
  * skipped.
  *
- * Returns `undefined` when the frontmatter opens with no comment at all. A
- * lone `#` is an empty comment, `""`.
+ * Returns `undefined` when the frontmatter opens with no comment at all, or
+ * with a comment string of no character (a lone `#`). A comment string of
+ * only whitespace is returned as it is.
  */
 export function extractComment(frontmatterText: string): string | undefined {
 	const lines = splitLines(frontmatterText);
@@ -165,7 +166,7 @@ export function extractComment(frontmatterText: string): string | undefined {
 		i++;
 	}
 
-	return commentLines.length > 0 ? commentLines.join(" ") : undefined;
+	return commentLines.join(" ") || undefined;
 }
 
 /**

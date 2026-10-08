@@ -97,7 +97,7 @@ export const ShortAnswerQuestion = z.strictObject({
 	type: z.literal("short-answer"),
 	diacritics: DiacriticsType.optional(),
 	unmatched: Unmatched.optional(),
-	incorrectFeedback: z.string().optional(),
+	incorrectFeedback: z.string().min(1).optional(),
 });
 export type ShortAnswerQuestion = z.infer<typeof ShortAnswerQuestion>;
 
@@ -107,7 +107,7 @@ export const EssayQuestion = z.strictObject({
 	type: z.literal("essay"),
 	input: EssayInput.optional(),
 	highlight: z.string().min(1).optional(),
-	answerKey: z.string().optional(),
+	answerKey: z.string().min(1).optional(),
 });
 export type EssayQuestion = z.infer<typeof EssayQuestion>;
 

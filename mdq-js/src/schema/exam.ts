@@ -87,7 +87,7 @@ export const Exam = z.strictObject({
 	course: z.string().min(1).optional(),
 	author: z.string().min(1).optional(),
 	locale: z.string().optional(),
-	instructions: z.string().optional(),
+	instructions: z.string().min(1).optional(),
 	tags: uniqueArray(z.string()).optional(),
 	meta: z.record(z.string(), z.unknown()).optional(),
 	grading: ExamGradingType.optional(),

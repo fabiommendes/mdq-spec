@@ -207,9 +207,9 @@ export const questionBaseShape = {
 	title: z.string().min(1).optional(),
 	author: z.string().min(1).optional(),
 	stem: z.string().min(1),
-	preamble: z.string().optional(),
-	epilogue: z.string().optional(),
-	comment: z.string().optional(),
+	preamble: z.string().min(1).optional(),
+	epilogue: z.string().min(1).optional(),
+	comment: z.string().min(1).optional(),
 	locale: z.string().optional(),
 	tags: uniqueArray(z.string()).optional(),
 	weight: z.number().min(0).optional(),
@@ -227,8 +227,8 @@ export const ScoredChoice = z.strictObject({
 	id: Slug.optional(),
 	text: z.string().min(1),
 	score: z.number().min(-1).max(1).optional(),
-	feedback: z.string().optional(),
-	comment: z.string().optional(),
+	feedback: z.string().min(1).optional(),
+	comment: z.string().min(1).optional(),
 });
 export type ScoredChoice = z.infer<typeof ScoredChoice>;
 
@@ -241,8 +241,8 @@ export const BooleanChoice = z.strictObject({
 	id: Slug.optional(),
 	text: z.string().min(1),
 	correct: z.boolean(),
-	feedback: z.string().optional(),
-	comment: z.string().optional(),
+	feedback: z.string().min(1).optional(),
+	comment: z.string().min(1).optional(),
 });
 export type BooleanChoice = z.infer<typeof BooleanChoice>;
 
@@ -260,8 +260,8 @@ export const Statement = z.strictObject({
 	text: z.string().min(1),
 	correct: z.boolean(),
 	marker: z.string().regex(/^.$/su).optional(),
-	feedback: z.string().optional(),
-	comment: z.string().optional(),
+	feedback: z.string().min(1).optional(),
+	comment: z.string().min(1).optional(),
 });
 export type Statement = z.infer<typeof Statement>;
 
@@ -287,8 +287,8 @@ export const PatternString = z.string().min(1).regex(PATTERN_STRING_PATTERN);
 /** The object form of a pattern -- `schema/short-answer.yaml#/$defs/pattern`. */
 export const Pattern = z.strictObject({
 	pattern: PatternString,
-	feedback: z.string().optional(),
-	comment: z.string().optional(),
+	feedback: z.string().min(1).optional(),
+	comment: z.string().min(1).optional(),
 });
 export type Pattern = z.infer<typeof Pattern>;
 

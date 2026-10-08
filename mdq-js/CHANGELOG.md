@@ -12,6 +12,11 @@ that it implements.
 
 Implements part of the unreleased MDQ specification.
 
+### Changed
+
+- Empty free-text fields (`comment`, `preamble`, `epilogue`, `answerKey`, `instructions`, feedback) are now schema errors, and an empty frontmatter comment string is not stored.
+- Refreshed the bundled schema (description text only).
+
 ### Added
 
 - Parser for multiple-choice, multiple-selection, true-false, essay,
