@@ -59,6 +59,7 @@ import {
 	OrderingQuestion,
 	Pattern,
 	PenaltyPolicy,
+	QuestionGrading,
 	QuestionType,
 	questionBaseShape,
 	ScoredChoice,
@@ -326,24 +327,24 @@ describe("zod-json-schema agreement", () => {
 	describe("enum and const literals agree", () => {
 		const pairs: Array<[string, readonly unknown[], readonly unknown[]]> = [
 			[
-				"multiple-choice.grading (GradingType)",
+				"multiple-choice.grading (QuestionGrading)",
 				def("multiple-choice").allOf[1].properties.grading.enum,
-				GradingType.options,
+				QuestionGrading.options,
 			],
 			[
-				"multiple-selection.grading (GradingType)",
+				"multiple-selection.grading (QuestionGrading)",
 				def("multiple-selection").allOf[1].properties.grading.enum,
-				GradingType.options,
+				QuestionGrading.options,
 			],
 			[
-				"true-false.grading (GradingType)",
+				"true-false.grading (QuestionGrading)",
 				def("true-false").allOf[1].properties.grading.enum,
-				GradingType.options,
+				QuestionGrading.options,
 			],
 			[
-				"fill-in.grading (GradingType)",
+				"fill-in.grading (QuestionGrading)",
 				def("fill-in").allOf[1].properties.grading.enum,
-				GradingType.options,
+				QuestionGrading.options,
 			],
 			[
 				"exam#/$defs/GradingStrategy (GradingType)",
@@ -389,6 +390,11 @@ describe("zod-json-schema agreement", () => {
 				"short-answer#/$defs/diacritics (DiacriticsType)",
 				def("short-answer").$defs.diacritics.enum,
 				DiacriticsType.options,
+			],
+			[
+				"short-answer#/$defs/unmatched (Unmatched)",
+				def("short-answer").$defs.unmatched.enum,
+				Unmatched.options,
 			],
 		];
 
@@ -503,6 +509,7 @@ describe("zod-json-schema agreement", () => {
 		/** Enum-typed `$defs` entries checked against a Zod enum's `.options` above. */
 		const ENUM_DEFS_TESTED = new Set([
 			"short-answer#/$defs/diacritics",
+			"short-answer#/$defs/unmatched",
 			"exam#/$defs/GradingStrategy",
 		]);
 
@@ -592,8 +599,6 @@ describe("zod-json-schema agreement", () => {
 			"/$defs/question-base/properties/tags",
 			"/$defs/exam/properties/tags",
 			"/$defs/ordering/allOf[1]/properties/normalizations",
-			"/$defs/short-answer/allOf[1]/properties/oneOf",
-			"/$defs/fill-in/$defs/ShortAnswerBlank/properties/oneOf",
 		]);
 
 		/** `uniqueItems` paths deliberately left untested, with why. */
@@ -673,37 +678,6 @@ describe("zod-json-schema agreement", () => {
 			expect(
 				result.success,
 				"an ordering question with a duplicate normalization was accepted, but normalizations must be unique",
-			).toBe(false);
-		});
-
-		it("/$defs/short-answer/allOf[1]/properties/oneOf -- duplicating an accepted answer is rejected", () => {
-			const document = loadValidExample("short-answer", "list.yaml") as {
-				oneOf: string[];
-			};
-			document.oneOf = withFirstDuplicated(document.oneOf);
-
-			const result = validateDocument(document);
-
-			expect(
-				result.success,
-				"a short-answer question with a duplicate oneOf entry was accepted, but oneOf must be unique",
-			).toBe(false);
-		});
-
-		it("/$defs/fill-in/$defs/ShortAnswerBlank/properties/oneOf -- duplicating a blank's accepted answer is rejected", () => {
-			const document = loadValidExample("fill-in", "mixed-blanks.yaml") as {
-				blanks: Array<{ id: string; oneOf?: string[] }>;
-			};
-			const blank = document.blanks.find((b) => b.id === "planet");
-			if (!blank?.oneOf)
-				throw new Error("fixture no longer has a 'planet' blank with oneOf");
-			blank.oneOf = withFirstDuplicated(blank.oneOf);
-
-			const result = validateDocument(document);
-
-			expect(
-				result.success,
-				"a fill-in blank with a duplicate oneOf entry was accepted, but oneOf must be unique",
 			).toBe(false);
 		});
 	});

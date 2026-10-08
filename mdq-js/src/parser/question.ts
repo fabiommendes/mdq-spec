@@ -18,32 +18,33 @@
  * `src/parser/exam.ts`.
  */
 
+import { type Diagnostic, diagnostic } from "../diagnostics.js";
 import {
 	ConflictingAnswerKeyError,
 	MissingFieldError,
 	ParseError,
+	UndefinedBlankError,
 } from "../errors.js";
 import type { Question } from "../schema/questions.js";
 import { validateQuestion } from "../validate.js";
 import {
-	assignChoiceIds,
 	BRACKET_ITEM_RE,
 	buildChoices,
 	inferChoiceType,
+	type PatternEntry,
 	parseItem,
 	parsePlainItem,
 	patternEntry,
 	SLUG_BODY_RE,
 	SLUG_PREFIX_RE,
-	scoreFromValue,
 	splitListItems,
-	stripListMarker,
 } from "./choices.js";
 import {
 	copyPatternLists,
 	extractComment,
 	loadFrontmatterYaml,
 	normalizeTags,
+	questionFrontmatterWarnings,
 	splitFrontmatter,
 } from "./frontmatter.js";
 import { md } from "./markdown.js";
@@ -105,7 +106,7 @@ const SHORT_ANSWER_RE =
  */
 const UNIT_CLASS = `[^()\\[\\]${UNICODE_SPACE}]+`;
 const NUMERIC_TAG_RE = new RegExp(
-	`^\\[numeric(?:\\((?<unit>${UNIT_CLASS})\\))?\\]:[ \\t]*(?<rest>[^\\n]*)$`,
+	`^\\[numeric(?:\\((?<unit>${UNIT_CLASS})\\))?\\][ \\t]*:[ \\t]*(?<rest>[^\\n]*)$`,
 	"u",
 );
 /**
@@ -115,7 +116,7 @@ const NUMERIC_TAG_RE = new RegExp(
  * `BLANK_RE`. `[^\n]` stands for `.`.
  */
 const BLANK_RE = new RegExp(
-	`^\\[\\^(?<id>${SLUG_BODY_RE})(?:/(?<kind>[^\\]]+))?\\]:[ \\t]*(?<rest>[^\\n]*)$`,
+	`^\\[\\^(?<id>${SLUG_BODY_RE})(?:/(?<kind>[^\\]]+))?\\][ \\t]*:[ \\t]*(?<rest>[^\\n]*)$`,
 	"u",
 );
 /**
@@ -212,6 +213,47 @@ function addBlank(
 	}
 }
 
+/**
+ * Move the frontmatter `preAccept`/`preReject` maps onto the blanks they
+ * key (fill-in.md, "Frontmatter"), a port of
+ * `distribute_blank_pattern_lists`. Each map goes from a blank id to a
+ * pattern list; the list becomes the field of the same name of that blank,
+ * whatever its kind -- the schema rejects it on a choice or numeric blank.
+ *
+ * @throws {UndefinedBlankError} A key is not the id of a blank in `blanks`.
+ * @throws {ParseError} A map is not a mapping of lists.
+ */
+function distributeBlankPatternLists(
+	front: Readonly<Record<string, unknown>>,
+	blanks: Map<string, Record<string, unknown>>,
+): void {
+	for (const key of ["preAccept", "preReject"]) {
+		if (!Object.hasOwn(front, key)) continue;
+		const mapping = front[key];
+		if (
+			typeof mapping !== "object" ||
+			mapping === null ||
+			Array.isArray(mapping)
+		) {
+			throw new ParseError(
+				`frontmatter ${repr(key)} of a fill-in question must map blank ids to pattern lists`,
+			);
+		}
+		for (const [blankId, patterns] of Object.entries(mapping)) {
+			if (!Array.isArray(patterns)) {
+				throw new ParseError(
+					`frontmatter ${repr(key)} entry ${repr(blankId)} must be a list of patterns`,
+				);
+			}
+			const blank = blanks.get(blankId);
+			if (blank === undefined) {
+				throw new UndefinedBlankError(blankId, key);
+			}
+			blank[key] = patterns;
+		}
+	}
+}
+
 /** The stem/preamble/inline-slug a question's intro blocks split into. */
 interface Intro {
 	readonly stem: string;
@@ -227,13 +269,15 @@ interface Intro {
  * up (`state`). A port of `mdq-py`'s `MDQParser`, scoped to what this cycle
  * implements.
  */
-class QuestionParser {
+export class QuestionParser {
 	private pos = 0;
 	private readonly state: RawDocument = {};
-	private readonly frontmatter: Record<string, unknown>;
+	readonly frontmatter: Record<string, unknown>;
 	private readonly comment: string | undefined;
-	private readonly children: readonly Node[];
+	readonly children: readonly Node[];
 	private readonly lines: readonly string[];
+	/** Warnings the parser found in the source layout. */
+	readonly diagnostics: Diagnostic[] = [];
 
 	constructor(source: string) {
 		const [frontmatterText, bodyText] = splitFrontmatter(source);
@@ -297,7 +341,7 @@ class QuestionParser {
 	 * only spaces and tabs are dropped: CommonMark treats only those as blank,
 	 * so a code line of other Unicode whitespace (NBSP) is kept.
 	 */
-	private rawText(node: Node): string {
+	rawText(node: Node): string {
 		const inline = node.children[0];
 		if (inline !== undefined && inline.type === "inline") {
 			let content = inline.content ?? "";
@@ -315,11 +359,25 @@ class QuestionParser {
 		return lines.join("\n");
 	}
 
+	/**
+	 * A block's text as it reads in a `preamble`, `stem`, `epilogue` or
+	 * `answerKey` field: `rawText`, plus the `#` markers of an ATX heading,
+	 * which stay part of the field so a heading is still a heading when the
+	 * field is parsed again.
+	 */
+	blockText(node: Node): string {
+		const text = this.rawText(node);
+		if (node.type === "heading" && node.markup.startsWith("#")) {
+			return `${node.markup} ${text}`;
+		}
+		return text;
+	}
+
 	private joinBlocks(nodes: readonly Node[]): string | undefined {
 		if (nodes.length === 0) {
 			return undefined;
 		}
-		return nodes.map((node) => this.rawText(node)).join("\n\n");
+		return nodes.map((node) => this.blockText(node)).join("\n\n");
 	}
 
 	//
@@ -365,7 +423,7 @@ class QuestionParser {
 	//
 	// Body-start detection
 	//
-	private isBracketList(node: Node): boolean {
+	isBracketList(node: Node): boolean {
 		if (node.type !== "bullet_list" || node.children.length === 0) {
 			return false;
 		}
@@ -421,15 +479,17 @@ class QuestionParser {
 			inlineSlug = slugMatch.groups.slug;
 			const strippedFirstText = firstText.slice(slugMatch[0].length);
 			stemText =
-				firstNode === stemNode ? strippedFirstText : this.rawText(stemNode);
+				firstNode === stemNode ? strippedFirstText : this.blockText(stemNode);
 		} else {
-			stemText = this.rawText(stemNode);
+			stemText = this.blockText(stemNode);
 		}
 
 		let preambleText: string | undefined;
 		if (preambleBlocks.length > 0) {
 			if (slugMatch !== null && preambleBlocks[0] === firstNode) {
-				const rest = preambleBlocks.slice(1).map((node) => this.rawText(node));
+				const rest = preambleBlocks
+					.slice(1)
+					.map((node) => this.blockText(node));
 				preambleText = [firstText.slice(slugMatch[0].length), ...rest].join(
 					"\n\n",
 				);
@@ -516,6 +576,19 @@ class QuestionParser {
 			}
 		}
 
+		for (const node of this.children.slice(this.pos)) {
+			if (
+				node.type === "heading" &&
+				node.tag === "h2" &&
+				ORDERING_SECTION_RE.test(this.rawText(node))
+			) {
+				throw new ParseError(
+					"the epilogue comes after the [extra], [accept] and [reject] " +
+						"sections; a block between the content and a section is not allowed",
+				);
+			}
+		}
+
 		const unit = orderingUnit([
 			...main.raw.map(([indent]) => indent),
 			...(extraRaw ?? []).map(([indent]) => indent),
@@ -595,6 +668,12 @@ class QuestionParser {
 	 * Consume an accept/reject section's optional feedback (`>`) and comment
 	 * (`!`) blocks, in either order, a port of `parse_ordering_observations`.
 	 *
+	 * The blocks are read from the raw lines, not from the markdown nodes:
+	 * with no blank line between them, CommonMark folds a `!` line into the
+	 * blockquote before it as a lazy continuation, which the grammar does not
+	 * do. A line keeps the block its prefix starts; a line with neither
+	 * prefix continues the current block.
+	 *
 	 * @throws {ParseError} If a section carries more than one feedback or
 	 * comment block, or the two interleave.
 	 */
@@ -602,225 +681,169 @@ class QuestionParser {
 		feedback: string | undefined;
 		comment: string | undefined;
 	} {
-		let feedback: string | undefined;
-		let comment: string | undefined;
-		for (let i = 0; i < 2; i++) {
+		const lines: string[] = [];
+		for (;;) {
 			const node = this.seek();
+			if (node === undefined) break;
+			const raw = this.rawLines(node);
 			if (
-				node !== undefined &&
-				node.type === "blockquote" &&
-				feedback === undefined
+				node.type === "blockquote" ||
+				(node.type === "paragraph" && isCommentBlock(raw.slice(0, 1)))
 			) {
-				feedback = joinPrefixedLines(this.rawLines(node), ">");
-				this.read();
-			} else if (
-				node !== undefined &&
-				node.type === "paragraph" &&
-				comment === undefined &&
-				isCommentBlock(this.rawLines(node))
-			) {
-				comment = joinPrefixedLines(this.rawLines(node), "!");
+				lines.push(...raw, "");
 				this.read();
 			} else {
 				break;
 			}
 		}
 
-		const node = this.seek();
-		if (
-			node !== undefined &&
-			(node.type === "blockquote" ||
-				(node.type === "paragraph" && isCommentBlock(this.rawLines(node))))
-		) {
+		// `[prefix, lines]` per block. A block starts at a line whose prefix
+		// differs from the open block's, or at any prefixed line after a
+		// blank line, which closes the open block.
+		const blocks: [string, string[]][] = [];
+		let openBlock = false;
+		for (const line of lines) {
+			const stripped = strip(line, " \t");
+			if (!stripped) {
+				openBlock = false;
+				continue;
+			}
+			const first = stripped[0] ?? "";
+			const prefix = first === ">" || first === "!" ? first : "";
+			const last = blocks[blocks.length - 1];
+			if (openBlock && last !== undefined && (!prefix || last[0] === prefix)) {
+				last[1].push(line);
+			} else {
+				blocks.push([prefix, [line]]);
+				openBlock = true;
+			}
+		}
+
+		const kinds = blocks.map(([kind]) => kind);
+		if (new Set(kinds).size !== kinds.length || kinds.includes("")) {
 			throw new ParseError(
 				"an accept/reject section carries at most one feedback and one " +
 					"comment block, and they must not interleave",
 			);
 		}
+		let feedback: string | undefined;
+		let comment: string | undefined;
+		for (const [kind, blockLines] of blocks) {
+			const text = joinPrefixedLines(blockLines, kind);
+			if (kind === ">") feedback = text;
+			else comment = text;
+		}
 		return { feedback, comment };
 	}
 
 	/**
-	 * Fill `oneOf`/`regex`/`accept`/`reject`/`openEnded`/`diacritics` from a
-	 * `[short-answer]:` body (or delegate to {@link parseShortAnswerPatternBlocks}
-	 * for a `[short-answer/accept]:`/`[short-answer/reject]:` one), a port of
-	 * `parse_short_answer_body`. `tagText` is the body paragraph's raw text,
-	 * already known to match `SHORT_ANSWER_RE`.
+	 * Fill the short-answer fields from a run of `[short-answer...]` blocks,
+	 * a port of `parse_short_answer_body`. `tagText` is the body paragraph's
+	 * raw text, already known to match `SHORT_ANSWER_RE`, and `tagNode` the
+	 * paragraph itself.
 	 *
-	 * @throws {ParseError} If a second `[short-answer]` block follows, or a
-	 * trailing pattern block's list is missing or malformed.
-	 * @throws {ConflictingAnswerKeyError} If `accept` or `reject` is declared
-	 * both in the frontmatter and as a body block.
+	 * `[short-answer]` (alias `[short-answer/accept]`) gives `accept` and
+	 * `[short-answer/reject]` gives `reject`, in any order and at most once
+	 * each. An answer list detached from its tag by a blank line is left to
+	 * the epilogue (warning `detached-answer-list`).
+	 *
+	 * @throws {ParseError} A block is repeated (the two accept spellings
+	 * count as one block), or a block has a pattern and a list.
+	 * @throws {ConflictingAnswerKeyError} `accept`/`reject` is declared both
+	 * in the frontmatter and in the body.
 	 */
-	private parseShortAnswerBody(tagText: string): void {
-		const match = SHORT_ANSWER_RE.exec(tagText);
-		if (!match?.groups) {
-			throw new ParseError(
-				`malformed short-answer body: ${JSON.stringify(tagText)}`,
-			);
-		}
-		const variant = match.groups.variant;
+	private parseShortAnswerBody(tagText: string, tagNode: Node): void {
 		const front = this.frontmatter;
 		const doc = this.state;
-
-		if (Object.hasOwn(front, "diacritics")) {
-			doc.diacritics = front.diacritics;
+		for (const key of ["diacritics", "unmatched", "incorrectFeedback"]) {
+			if (Object.hasOwn(front, key)) doc[key] = front[key];
 		}
 
-		if (variant === "accept" || variant === "reject") {
-			this.parseShortAnswerPatternBlocks(tagText);
-			return;
-		}
-
-		const rest = strip(match.groups.rest ?? "", " \t");
-
-		let value: string | undefined;
-		let values: string[] | undefined;
-		if (rest) {
-			value = rest;
-		} else {
-			const node = this.seek();
-			if (node !== undefined && node.type === "bullet_list") {
-				this.read();
-				values = splitListItems(this.rawLines(node)).map((item) =>
-					item.map((line) => stripListMarker(line)).join(" "),
-				);
-			}
-		}
-
-		if (Object.hasOwn(front, "openEnded")) {
-			doc.openEnded = front.openEnded;
-		}
-		copyPatternLists(front, doc);
-
-		let regex = Object.hasOwn(front, "regex")
-			? (front.regex as string)
-			: undefined;
-		if (
-			regex === undefined &&
-			value !== undefined &&
-			value.startsWith("/") &&
-			value.endsWith("/") &&
-			value.length >= 2
-		) {
-			regex = value.slice(1, -1);
-			value = undefined;
-		}
-
-		if (regex !== undefined) {
-			doc.regex = regex;
-		} else if (values !== undefined) {
-			doc.oneOf = values;
-		} else if (value !== undefined) {
-			doc.oneOf = [value];
-		}
-
-		this.parseTrailingPatternBlocks();
-
-		// A bare block is open-ended only when nothing grades it: no
-		// pattern in the body, in a trailing block or in the frontmatter
-		// (short-answer.md, "Fully manual"). preAccept/preReject only
-		// validate the form of a response, so they do not count.
-		if (
-			!Object.hasOwn(doc, "oneOf") &&
-			!Object.hasOwn(doc, "regex") &&
-			!Object.hasOwn(doc, "accept") &&
-			!Object.hasOwn(doc, "reject") &&
-			!Object.hasOwn(doc, "openEnded")
-		) {
-			doc.openEnded = true;
-		}
-	}
-
-	/**
-	 * Consume `[short-answer/accept]:`/`[short-answer/reject]:` blocks
-	 * following a simple `[short-answer]:` block, a port of
-	 * `parse_trailing_pattern_blocks`.
-	 *
-	 * @throws {ParseError} If the following block is another bare
-	 * `[short-answer]:` block, which the simple block already is.
-	 */
-	private parseTrailingPatternBlocks(): void {
-		const node = this.seek();
-		if (node === undefined || node.type !== "paragraph") {
-			return;
-		}
-		const text = this.rawText(node);
-		const match = SHORT_ANSWER_RE.exec(text);
-		if (!match?.groups) {
-			return;
-		}
-		const variant = match.groups.variant;
-		if (variant !== "accept" && variant !== "reject") {
-			throw new ParseError(
-				"a question defines at most one [short-answer] block",
-			);
-		}
-		this.read();
-		this.parseShortAnswerPatternBlocks(text);
-	}
-
-	/**
-	 * Fill `accept`/`reject` from a run of `[short-answer/<variant>]:`
-	 * blocks, a port of `parse_short_answer_pattern_blocks`.
-	 *
-	 * @throws {ParseError} If a variant is declared twice, a bare
-	 * `[short-answer]:` block follows one of these, or a block is not
-	 * followed by the bullet list holding its patterns.
-	 * @throws {ConflictingAnswerKeyError} If a variant is declared both in
-	 * the frontmatter and as a body block.
-	 */
-	private parseShortAnswerPatternBlocks(tagText: string): void {
 		let text = tagText;
+		let node = tagNode;
+		const seen = new Set<string>();
 		for (;;) {
 			const match = SHORT_ANSWER_RE.exec(text);
-			if (!match?.groups) {
-				break;
+			if (!match?.groups) break;
+			const variant = match.groups.variant === "reject" ? "reject" : "accept";
+			if (Object.hasOwn(doc, variant) || seen.has(variant)) {
+				throw new ParseError(`repeated [short-answer] ${variant} block`);
 			}
-			const variant = match.groups.variant;
-			if (variant !== "accept" && variant !== "reject") {
-				throw new ParseError(
-					`a [short-answer] block cannot follow [short-answer/${variant ?? "accept"}]`,
-				);
-			}
-			if (Object.hasOwn(this.state, variant)) {
-				throw new ParseError(`repeated [short-answer/${variant}] block`);
-			}
-			if (Object.hasOwn(this.frontmatter, variant)) {
-				throw new ConflictingAnswerKeyError(
-					`'${variant}' is declared both in the frontmatter and as a [short-answer/${variant}] body block`,
-				);
-			}
-			if (strip(match.groups.rest ?? "", " \t")) {
-				throw new ParseError(
-					`[short-answer/${variant}] takes a list, not inline text`,
-				);
-			}
-
-			const node = this.seek();
-			if (node === undefined || node.type !== "bullet_list") {
-				throw new ParseError(
-					`[short-answer/${variant}] must be followed by a list`,
-				);
-			}
-			this.read();
-			this.state[variant] = splitListItems(this.rawLines(node)).map((item) =>
-				patternEntry(parsePlainItem(item)),
+			seen.add(variant);
+			const patterns = this.parseAnswerBlock(
+				node,
+				match.groups.rest ?? "",
+				variant === "reject",
 			);
+			if (patterns.length > 0) {
+				if (Object.hasOwn(front, variant)) {
+					throw new ConflictingAnswerKeyError(
+						`'${variant}' is declared both in the frontmatter and in a [short-answer] body block`,
+					);
+				}
+				doc[variant] = patterns;
+			}
 
 			const next = this.seek();
-			if (next === undefined || next.type !== "paragraph") {
-				break;
-			}
-			const nextText = this.rawText(next);
-			if (!SHORT_ANSWER_RE.test(nextText)) {
-				break;
-			}
-			this.read();
-			text = nextText;
+			if (next === undefined || next.type !== "paragraph") break;
+			text = this.rawText(next);
+			if (!SHORT_ANSWER_RE.test(text)) break;
+			node = this.read();
 		}
 
-		copyPatternLists(this.frontmatter, this.state);
+		copyPatternLists(front, doc);
+	}
+
+	/**
+	 * Read the patterns of one short-answer tag: the text on its line, or the
+	 * list on the lines right after it. Empty when it has none. A port of
+	 * `parse_answer_block`.
+	 *
+	 * @throws {ParseError} The tag has text and an attached list, or a reject
+	 * tag has no pattern but is followed by a detached list.
+	 */
+	private parseAnswerBlock(
+		tagNode: Node,
+		restText: string,
+		reject: boolean,
+	): PatternEntry[] {
+		const rest = strip(restText, " \t");
+		const node = this.seek();
+		if (node === undefined || node.type !== "bullet_list") {
+			if (reject && !rest) {
+				throw new ParseError("a [short-answer/reject] block has no pattern");
+			}
+			return rest ? [rest] : [];
+		}
+		if (
+			node.map !== null &&
+			tagNode.map !== null &&
+			node.map[0] === tagNode.map[1]
+		) {
+			if (rest) {
+				throw new ParseError(
+					"a [short-answer] tag with a pattern on its line cannot be " +
+						"followed by a list",
+				);
+			}
+			this.read();
+			return splitListItems(this.rawLines(node)).map((item) =>
+				patternEntry(parsePlainItem(item)),
+			);
+		}
+		if (reject && !rest) {
+			throw new ParseError("a [short-answer/reject] block has no pattern");
+		}
+		this.diagnostics.push(
+			diagnostic(
+				"warning",
+				"detached-answer-list",
+				"a blank line separates the list from its [short-answer] " +
+					"tag, so the list is part of the epilogue",
+				["epilogue"],
+			),
+		);
+		return rest ? [rest] : [];
 	}
 
 	/**
@@ -850,12 +873,15 @@ class QuestionParser {
 		}
 		if (Object.hasOwn(front, "domain")) {
 			doc.domain = front.domain;
-		} else if (parsed.domain !== undefined) {
+		} else {
 			doc.domain = parsed.domain;
 		}
+		// numeric.md, "Decimal places": inferred from the body when the
+		// domain, declared or inferred, is decimal and the frontmatter gives
+		// none.
 		if (Object.hasOwn(front, "decimalPlaces")) {
 			doc.decimalPlaces = front.decimalPlaces;
-		} else if (parsed.decimalPlaces !== undefined) {
+		} else if (doc.domain === "decimal") {
 			doc.decimalPlaces = parsed.decimalPlaces;
 		}
 		if (Object.hasOwn(front, "unit")) {
@@ -868,25 +894,30 @@ class QuestionParser {
 
 	/**
 	 * Fill `blanks` from a run of `[^id...]:` definitions, a port of
-	 * `parse_fill_in_body`. A slug may be defined more than once, so
-	 * definitions accumulate into one blank per slug, in the order the slug
-	 * is first seen. `tagText` is the first definition's raw text.
+	 * `parse_fill_in_body`. A slug may be defined more than once -- a short
+	 * answer blank spreads its accept block and its reject block over
+	 * separate definitions -- so definitions accumulate into one blank per
+	 * slug, in the order the slug is first seen. `tagText` is the first
+	 * definition's raw text and `tagNode` its paragraph.
 	 *
 	 * @throws {ParseError} If a tag suffix is unrecognized or misplaced, a
 	 * slug's definitions disagree about the blank's kind, or a definition
 	 * of the same form is repeated.
 	 */
-	private parseFillInBody(tagText: string): void {
+	private parseFillInBody(tagText: string, tagNode: Node): void {
 		const front = this.frontmatter;
 		if (Object.hasOwn(front, "shuffle")) {
 			this.state.shuffle = front.shuffle;
 		}
-		if (Object.hasOwn(front, "diacritics")) {
-			this.state.diacritics = front.diacritics;
+		for (const key of ["diacritics", "unmatched"]) {
+			if (Object.hasOwn(front, key)) this.state[key] = front[key];
 		}
 
 		const blanks = new Map<string, Record<string, unknown>>();
+		// The (blank id, `accept`/`reject`) short-answer definitions seen.
+		const defined = new Set<string>();
 		let text = tagText;
+		let node = tagNode;
 		for (;;) {
 			const match = BLANK_RE.exec(text);
 			if (!match?.groups) {
@@ -916,21 +947,27 @@ class QuestionParser {
 				nextNode !== undefined &&
 				nextNode.type === "bullet_list"
 			) {
+				if (
+					nextNode.map !== null &&
+					node.map !== null &&
+					nextNode.map[0] !== node.map[1]
+				) {
+					throw new ParseError(
+						`the choice list of [^${blankId}] must start on the line right after its tag, with no blank line in between`,
+					);
+				}
 				this.read();
 				const rawChoices = splitListItems(this.rawLines(nextNode)).map((item) =>
 					parseItem(item),
 				);
-				const ids = assignChoiceIds(rawChoices);
-				const choices = rawChoices.map((choice, index) => {
-					const entry: Record<string, unknown> = { text: choice.text };
-					const id = ids[index];
-					if (id !== undefined) entry.id = id;
-					const score = scoreFromValue(choice.value);
-					if (score) entry.score = score;
-					if (choice.feedback) entry.feedback = choice.feedback;
-					if (choice.comment) entry.comment = choice.comment;
-					return entry;
-				});
+				const existing = blanks.has(blankId)
+					? [...blanks.keys()].indexOf(blankId)
+					: blanks.size;
+				const choices = buildChoices("multiple-choice", rawChoices, [
+					"blanks",
+					existing,
+					"choices",
+				]);
 				addBlank(blanks, {
 					id: blankId,
 					type: "multiple-choice",
@@ -946,65 +983,44 @@ class QuestionParser {
 					answer: parsed.answer,
 				};
 				if (unit) blank.unit = unit;
-				if (parsed.domain !== undefined) blank.domain = parsed.domain;
-				if (parsed.decimalPlaces !== undefined) {
+				blank.domain = parsed.domain;
+				if (parsed.domain === "decimal") {
 					blank.decimalPlaces = parsed.decimalPlaces;
 				}
 				if (parsed.tolerance !== undefined) blank.tolerance = parsed.tolerance;
 				addBlank(blanks, blank);
-			} else if (blankType === "short-answer" && variant !== undefined) {
-				if (rest) {
+			} else if (blankType === "short-answer") {
+				const role = variant === "reject" ? "reject" : "accept";
+				const key = `${blankId}\0${role}`;
+				if (defined.has(key)) {
 					throw new ParseError(
-						`[^${blankId}/short-answer/${variant}] takes a list, not inline text`,
+						`repeated [^${blankId}/short-answer] ${role} definition`,
 					);
 				}
-				const node = this.seek();
-				if (node === undefined || node.type !== "bullet_list") {
-					throw new ParseError(
-						`[^${blankId}/short-answer/${variant}] must be followed by a list`,
-					);
-				}
-				this.read();
-				const patterns = splitListItems(this.rawLines(node)).map((item) =>
-					patternEntry(parsePlainItem(item)),
-				);
-				addBlank(blanks, {
+				defined.add(key);
+				const patterns = this.parseAnswerBlock(node, rest, role === "reject");
+				const blank: Record<string, unknown> = {
 					id: blankId,
 					type: "short-answer",
-					[variant]: patterns,
-				});
-			} else if (blankType === "short-answer") {
-				// `/re/` with no trailing flags is the one form with a field of
-				// its own; everything else (a plain literal, a backtick-enclosed
-				// exact answer, a flagged regex) goes to `oneOf` verbatim.
-				if (rest.startsWith("/") && rest.endsWith("/") && rest.length >= 2) {
-					addBlank(blanks, {
-						id: blankId,
-						type: "short-answer",
-						regex: rest.slice(1, -1),
-					});
-				} else {
-					addBlank(blanks, {
-						id: blankId,
-						type: "short-answer",
-						oneOf: [rest],
-					});
-				}
+				};
+				if (patterns.length > 0) blank[role] = patterns;
+				addBlank(blanks, blank);
 			} else {
 				throw new ParseError(`unrecognized blank definition: ${repr(text)}`);
 			}
 
-			const node = this.seek();
-			if (node === undefined || node.type !== "paragraph") {
+			const next = this.seek();
+			if (next === undefined || next.type !== "paragraph") {
 				break;
 			}
-			text = this.rawText(node);
+			text = this.rawText(next);
 			if (!BLANK_RE.test(text)) {
 				break;
 			}
-			this.read();
+			node = this.read();
 		}
 
+		distributeBlankPatternLists(front, blanks);
 		this.state.blanks = [...blanks.values()];
 	}
 
@@ -1030,6 +1046,17 @@ class QuestionParser {
 				const text = this.rawText(node);
 				if (ANSWER_KEY_RE.test(text)) {
 					const answerBlocks = remaining.slice(i + 1);
+					for (const later of answerBlocks) {
+						if (
+							later.type === "heading" &&
+							later.tag === "h2" &&
+							ANSWER_KEY_RE.test(this.rawText(later))
+						) {
+							throw new ParseError(
+								"a question defines at most one [answer-key] section",
+							);
+						}
+					}
 					const answerText = this.joinBlocks(answerBlocks);
 					if (answerText) {
 						this.state.answerKey = answerText;
@@ -1045,7 +1072,7 @@ class QuestionParser {
 	// Main driver
 	//
 	parseQuestion(): RawDocument {
-		if (this.comment) {
+		if (this.comment !== undefined) {
 			this.state.comment = this.comment;
 		}
 		this.applyCommonFrontmatter();
@@ -1073,10 +1100,12 @@ class QuestionParser {
 		}
 		this.state.stem = stem;
 
+		// Unconverted: `type: true` is not a question type, and the schema
+		// reports it (base.md, "Frontmatter"). A null `type` is absent.
 		const frontmatterType =
-			typeof this.frontmatter.type === "string"
-				? this.frontmatter.type
-				: undefined;
+			this.frontmatter.type === undefined || this.frontmatter.type === null
+				? undefined
+				: (this.frontmatter.type as string);
 		let questionType: string;
 
 		const node = this.seek();
@@ -1109,7 +1138,7 @@ class QuestionParser {
 				this.parseEssayBody();
 			} else if (tag === "short-answer") {
 				questionType = frontmatterType ?? "short-answer";
-				this.parseShortAnswerBody(bodyText);
+				this.parseShortAnswerBody(bodyText, bodyNode);
 			} else if (tag === "numeric") {
 				questionType = frontmatterType ?? "numeric";
 				this.parseNumericBody(bodyText);
@@ -1118,7 +1147,7 @@ class QuestionParser {
 				this.parseOrderingBody();
 			} else if (tag === "blank") {
 				questionType = frontmatterType ?? "fill-in";
-				this.parseFillInBody(bodyText);
+				this.parseFillInBody(bodyText, bodyNode);
 			} else {
 				// `findBodyStart` only ever selects this node because it
 				// matched one of the five tags, so this is unreachable.
@@ -1152,10 +1181,25 @@ class QuestionParser {
  * `*.yaml` pairs specify, so it returns what those `.yaml` files hold rather
  * than a validated document.
  *
+ * @param warnings When given, an `unknown-frontmatter-key` diagnostic is
+ *   appended for every frontmatter key the parser does not consume, given
+ *   the question's own type, and the layout warnings the parser finds
+ *   (`detached-answer-list`). Parsing never fails because of them.
  * @throws {ParseError} If the source is not a well-formed MDQ question.
  */
-export function parseQuestionDocument(source: string): RawDocument {
-	return new QuestionParser(source).parseQuestion();
+export function parseQuestionDocument(
+	source: string,
+	warnings?: Diagnostic[],
+): RawDocument {
+	const parser = new QuestionParser(source);
+	const doc = parser.parseQuestion();
+	if (warnings !== undefined) {
+		warnings.push(
+			...questionFrontmatterWarnings(parser.frontmatter, String(doc.type)),
+			...parser.diagnostics,
+		);
+	}
+	return doc;
 }
 
 /**

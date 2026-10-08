@@ -27,7 +27,7 @@
  * `parse_answer_key`.
  */
 
-import { MissingFieldError, parseQuestionDocument } from "@mdq";
+import { MissingFieldError, ParseError, parseQuestionDocument } from "@mdq";
 import { describe, expect, it } from "vitest";
 
 describe("essay: error paths", () => {
@@ -84,19 +84,16 @@ describe("essay: non-error edge cases the corpus does not cover", () => {
 		});
 	});
 
-	it("absorbs everything after the first '## [answer-key]' heading into answerKey, including a second heading", () => {
-		// parse_answer_key stops at the *first* h2 matching ANSWER_KEY_RE
-		// and takes every remaining node as the key's content -- a second
-		// heading that happens to repeat the tag is not special-cased, it
-		// is just more prose inside the key.
+	it("rejects a second '## [answer-key]' heading", () => {
+		// A question defines at most one answer key (essay.md); a second
+		// heading that repeats the tag is a parse error, not more prose.
 		const source =
 			"What is DNA?\n\n[essay]\n\n## [answer-key]\n\nFirst key.\n\n" +
 			"## [answer-key]\n\nSecond key repeated as text.\n";
-		expect(parseQuestionDocument(source)).toEqual({
-			stem: "What is DNA?",
-			type: "essay",
-			answerKey: "First key.\n\n[answer-key]\n\nSecond key repeated as text.",
-		});
+		expect(() => parseQuestionDocument(source)).toThrow(ParseError);
+		expect(() => parseQuestionDocument(source)).toThrow(
+			"a question defines at most one [answer-key] section",
+		);
 	});
 
 	it("produces no answerKey field for an '## [answer-key]' section with no content", () => {

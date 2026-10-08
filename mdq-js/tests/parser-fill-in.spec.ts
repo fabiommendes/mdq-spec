@@ -18,7 +18,12 @@
  * `_add_blank`, `BLANK_RE`, `BLANK_KIND_RE`.
  */
 
-import { ParseError, parseQuestionDocument } from "@mdq";
+import {
+	ForeignChoiceMarkerError,
+	ParseError,
+	parseQuestionDocument,
+	UndefinedBlankError,
+} from "@mdq";
 import { describe, expect, it } from "vitest";
 
 const STEM = "O rio [^rio] passa por [^cidade] e mede [^km].";
@@ -62,7 +67,7 @@ describe("batch 1: fill-in definition forms", () => {
 						{ text: "Tietê" },
 					],
 				},
-				{ id: "cidade", type: "short-answer", oneOf: ["b"] },
+				{ id: "cidade", type: "short-answer", accept: ["b"] },
 				{ id: "km", type: "numeric", answer: 6400, domain: "integer" },
 			]);
 		});
@@ -91,20 +96,33 @@ describe("batch 1: fill-in definition forms", () => {
 			]);
 		});
 
-		it("a letter before the mark is not an id here", () => {
-			expect(
+		it("a letter before the mark is a foreign choice marker", () => {
+			// base.md, "Type inference": a choice blank takes the
+			// multiple-choice `value` rule; `[a*]` is outside it.
+			let error: unknown;
+			try {
 				blanksOf(
 					`[^rio]:\n* [a*] Amazonas\n* [b] Nilo\n\n[^cidade/short-answer]: x\n\n${KM}`,
-				),
-			).toEqual([
-				{
-					id: "rio",
-					type: "multiple-choice",
-					choices: [{ text: "Amazonas" }, { text: "Nilo" }],
-				},
-				{ id: "cidade", type: "short-answer", oneOf: ["x"] },
-				{ id: "km", type: "numeric", answer: 1, domain: "integer" },
+				);
+			} catch (e) {
+				error = e;
+			}
+			expect(error).toBeInstanceOf(ForeignChoiceMarkerError);
+			expect((error as ForeignChoiceMarkerError).path).toEqual([
+				"blanks",
+				0,
+				"choices",
+				0,
 			]);
+			expect((error as Error).message).toBe(
+				"[a*] is not a multiple-choice choice marker",
+			);
+		});
+
+		it("the list must start on the line right after the tag", () => {
+			expect(() => blanksOf("[^rio]:\n\n* [*] a\n* [ ] b\n")).toThrow(
+				"the choice list of [^rio] must start on the line right after its tag, with no blank line in between",
+			);
 		});
 	});
 
@@ -156,28 +174,39 @@ describe("batch 1: fill-in definition forms", () => {
 	});
 
 	describe("[^id/short-answer]", () => {
-		it("a /re/ without flags goes to regex", () => {
-			expect(blanksOf("[^rio/short-answer]: /Amaz.n/\n")).toEqual([
-				{ id: "rio", type: "short-answer", regex: "Amaz.n" },
-			]);
-		});
-
-		it("an empty // goes to an empty regex", () => {
-			expect(blanksOf("[^rio/short-answer]: //\n")).toEqual([
-				{ id: "rio", type: "short-answer", regex: "" },
-			]);
-		});
-
 		it.each([
 			["a plain literal", "Amazonas", "Amazonas"],
 			["a backtick-enclosed answer", "`Amazonas`", "`Amazonas`"],
+			["a regex keeps its delimiters", "/Amaz.n/", "/Amaz.n/"],
+			["an empty regex", "//", "//"],
 			["a regex with flags", "/Amaz/i", "/Amaz/i"],
 			["a single slash", "/", "/"],
 			["an unterminated regex", "/a", "/a"],
 			["surrounding spaces are stripped", "  Amazonas  ", "Amazonas"],
-		])("%s goes to oneOf", (_label, text, expected) => {
+		])("%s goes to accept", (_label, text, expected) => {
 			expect(blanksOf(`[^rio/short-answer]: ${text}\n`)).toEqual([
-				{ id: "rio", type: "short-answer", oneOf: [expected] },
+				{ id: "rio", type: "short-answer", accept: [expected] },
+			]);
+		});
+
+		it("an inline pattern on an accept or reject tag is that list", () => {
+			expect(
+				blanksOf(
+					"[^rio/short-answer/accept]: Amazonas\n\n[^rio/short-answer/reject]: Nilo\n",
+				),
+			).toEqual([
+				{
+					id: "rio",
+					type: "short-answer",
+					accept: ["Amazonas"],
+					reject: ["Nilo"],
+				},
+			]);
+		});
+
+		it("an empty tag leaves the blank without accept", () => {
+			expect(blanksOf("[^rio/short-answer]:\n")).toEqual([
+				{ id: "rio", type: "short-answer" },
 			]);
 		});
 	});
@@ -203,7 +232,7 @@ describe("batch 1: fill-in definition forms", () => {
 						{ pattern: "*", feedback: "Não é rio." },
 					],
 				},
-				{ id: "cidade", type: "short-answer", oneOf: ["b"] },
+				{ id: "cidade", type: "short-answer", accept: ["b"] },
 				{ id: "km", type: "numeric", answer: 1, domain: "integer" },
 			]);
 		});
@@ -222,19 +251,24 @@ describe("batch 1: fill-in definition forms", () => {
 					reject: ["Nilo"],
 					accept: ["Amazonas"],
 				},
-				{ id: "cidade", type: "short-answer", oneOf: ["b"] },
+				{ id: "cidade", type: "short-answer", accept: ["b"] },
 				{ id: "km", type: "numeric", answer: 1, domain: "integer" },
 			]);
 		});
 
-		it("a regex definition merges with a later reject list", () => {
+		it("an inline accept merges with a later reject list", () => {
 			expect(
 				blanksOf(
 					`[^rio/short-answer]: /A.*/\n\n${CIDADE}${KM}\n[^rio/short-answer/reject]:\n* Nilo\n`,
 				),
 			).toEqual([
-				{ id: "rio", type: "short-answer", regex: "A.*", reject: ["Nilo"] },
-				{ id: "cidade", type: "short-answer", oneOf: ["b"] },
+				{
+					id: "rio",
+					type: "short-answer",
+					accept: ["/A.*/"],
+					reject: ["Nilo"],
+				},
+				{ id: "cidade", type: "short-answer", accept: ["b"] },
 				{ id: "km", type: "numeric", answer: 1, domain: "integer" },
 			]);
 		});
@@ -242,25 +276,17 @@ describe("batch 1: fill-in definition forms", () => {
 		it("the blank keeps the position where its slug is first seen", () => {
 			expect(
 				blanksOf(
-					`${CIDADE}[^rio/short-answer/accept]:\n* Amazonas\n\n${KM}\n[^rio/short-answer]: x\n`,
+					`${CIDADE}[^rio/short-answer/reject]:\n* Nilo\n\n${KM}\n[^rio/short-answer]: x\n`,
 				),
 			).toEqual([
-				{ id: "cidade", type: "short-answer", oneOf: ["b"] },
+				{ id: "cidade", type: "short-answer", accept: ["b"] },
 				{
 					id: "rio",
 					type: "short-answer",
-					accept: ["Amazonas"],
-					oneOf: ["x"],
+					reject: ["Nilo"],
+					accept: ["x"],
 				},
 				{ id: "km", type: "numeric", answer: 1, domain: "integer" },
-			]);
-		});
-
-		it("a regex and a oneOf definition of one slug merge (different keys)", () => {
-			expect(
-				blanksOf("[^rio/short-answer]: /a/\n\n[^rio/short-answer]: b\n"),
-			).toEqual([
-				{ id: "rio", type: "short-answer", regex: "a", oneOf: ["b"] },
 			]);
 		});
 	});
@@ -275,7 +301,7 @@ describe("batch 1: fill-in definition forms", () => {
 				stem: STEM,
 				type: "fill-in",
 				blanks: [
-					{ id: "rio", type: "short-answer", oneOf: ["a"] },
+					{ id: "rio", type: "short-answer", accept: ["a"] },
 					{ id: "km", type: "numeric", answer: 1, domain: "integer" },
 				],
 				epilogue: "Epílogo.",
@@ -284,7 +310,7 @@ describe("batch 1: fill-in definition forms", () => {
 
 		it("a definition on the next line joins the previous paragraph", () => {
 			expect(blanksOf("[^rio/short-answer]: a\n[^km/numeric]: 1\n")).toEqual([
-				{ id: "rio", type: "short-answer", oneOf: ["a [^km/numeric]: 1"] },
+				{ id: "rio", type: "short-answer", accept: ["a [^km/numeric]: 1"] },
 			]);
 		});
 	});
@@ -297,7 +323,7 @@ describe("batch 1: fill-in definition forms", () => {
 describe("batch 1: fill-in frontmatter", () => {
 	const body = `${STEM_TEXT}[^rio/short-answer]: a\n\n[^km/numeric]: 1\n`;
 	const blanks = [
-		{ id: "rio", type: "short-answer", oneOf: ["a"] },
+		{ id: "rio", type: "short-answer", accept: ["a"] },
 		{ id: "km", type: "numeric", answer: 1, domain: "integer" },
 	];
 
@@ -346,6 +372,73 @@ describe("batch 1: fill-in frontmatter", () => {
 			type: "fill-in",
 			diacritics: "ignore",
 			blanks,
+		});
+	});
+
+	it("unmatched is copied", () => {
+		expect(
+			parseQuestionDocument(`---\nunmatched: manual\n---\n\n${body}`),
+		).toEqual({
+			stem: STEM,
+			type: "fill-in",
+			unmatched: "manual",
+			blanks,
+		});
+	});
+
+	describe("preAccept/preReject map blank ids to pattern lists", () => {
+		it("each list lands on its blank", () => {
+			expect(
+				parseQuestionDocument(
+					`---\npreAccept:\n  rio: ["/^[A-Z]/"]\npreReject:\n  rio:\n    - pattern: /\\d/\n      feedback: No digits.\n---\n\n${body}`,
+				),
+			).toEqual({
+				stem: STEM,
+				type: "fill-in",
+				blanks: [
+					{
+						id: "rio",
+						type: "short-answer",
+						accept: ["a"],
+						preAccept: ["/^[A-Z]/"],
+						preReject: [{ pattern: "/\\d/", feedback: "No digits." }],
+					},
+					{ id: "km", type: "numeric", answer: 1, domain: "integer" },
+				],
+			});
+		});
+
+		it("a key that is not a blank is an UndefinedBlankError", () => {
+			let error: unknown;
+			try {
+				parseQuestionDocument(
+					`---\npreReject:\n  foo: ["/x/"]\n---\n\n${body}`,
+				);
+			} catch (e) {
+				error = e;
+			}
+			expect(error).toBeInstanceOf(UndefinedBlankError);
+			expect((error as UndefinedBlankError).code).toBe("undefined-blank");
+			expect((error as UndefinedBlankError).path).toEqual(["preReject", "foo"]);
+			expect((error as Error).message).toBe(
+				"preReject has a key 'foo' but no blank with that id is defined",
+			);
+		});
+
+		it.each([
+			[
+				"a map whose entry is not a list",
+				`---\npreAccept:\n  rio: /x/\n---\n\n${body}`,
+				"frontmatter 'preAccept' entry 'rio' must be a list of patterns",
+			],
+			[
+				"a list instead of a map",
+				`---\npreAccept: ["/x/"]\n---\n\n${body}`,
+				"frontmatter 'preAccept' of a fill-in question must map blank ids to pattern lists",
+			],
+		])("%s is a ParseError", (_label, source, message) => {
+			expect(() => parseQuestionDocument(source)).toThrow(ParseError);
+			expect(() => parseQuestionDocument(source)).toThrow(message);
 		});
 	});
 });
@@ -453,33 +546,20 @@ describe("batch 2: fill-in errors", () => {
 		});
 	});
 
-	describe("accept/reject definitions", () => {
-		it.each(["accept", "reject"])("%s with inline text", (variant) => {
-			expectParseError(
-				`[^rio/short-answer/${variant}]: inline\n`,
-				`[^rio/short-answer/${variant}] takes a list, not inline text`,
-			);
-		});
-
-		it.each(["accept", "reject"])("%s with nothing after it", (variant) => {
-			expectParseError(
-				`[^rio/short-answer/${variant}]:\n`,
-				`[^rio/short-answer/${variant}] must be followed by a list`,
-			);
-		});
-
-		it.each(["accept", "reject"])("%s followed by a paragraph", (variant) => {
-			expectParseError(
-				`[^rio/short-answer/${variant}]:\n\nParagraph.\n`,
-				`[^rio/short-answer/${variant}] must be followed by a list`,
-			);
-		});
-
-		it("reject followed by a code block", () => {
-			expectParseError(
+	describe("a reject definition with no pattern", () => {
+		it.each([
+			["nothing after it", "[^rio/short-answer/reject]:\n"],
+			[
+				"a paragraph after a blank line",
+				"[^rio/short-answer/reject]:\n\nParagraph.\n",
+			],
+			[
+				"a code block after a blank line",
 				"[^rio/short-answer/reject]:\n\n```\ncode\n```\n",
-				"[^rio/short-answer/reject] must be followed by a list",
-			);
+			],
+			["a list after a blank line", "[^rio/short-answer/reject]:\n\n* Nilo\n"],
+		])("%s", (_label, body) => {
+			expectParseError(body, "a [short-answer/reject] block has no pattern");
 		});
 	});
 
@@ -521,7 +601,7 @@ describe("batch 2: fill-in errors", () => {
 		});
 	});
 
-	describe("a repeated field of a short-answer blank", () => {
+	describe("a repeated accept or reject definition of a short-answer blank", () => {
 		it.each([
 			[
 				"accept",
@@ -531,16 +611,13 @@ describe("batch 2: fill-in errors", () => {
 				"reject",
 				"[^rio/short-answer/reject]:\n* a\n\n[^rio/short-answer/reject]:\n* b\n",
 			],
-			["oneOf", "[^rio/short-answer]: a\n\n[^rio/short-answer]: b\n"],
-		])("%s", (key, body) => {
-			expectParseError(body, `repeated '${key}' definition for blank 'rio'`);
-		});
-
-		it("the second accept is reported even after a oneOf definition", () => {
-			expectParseError(
-				"[^rio/short-answer]: a\n\n[^rio/short-answer/accept]:\n* b\n\n[^rio/short-answer/accept]:\n* c\n",
-				"repeated 'accept' definition for blank 'rio'",
-			);
+			["accept", "[^rio/short-answer]: a\n\n[^rio/short-answer]: b\n"],
+			[
+				"accept",
+				"[^rio/short-answer]: a\n\n[^rio/short-answer/accept]:\n* b\n",
+			],
+		])("%s", (role, body) => {
+			expectParseError(body, `repeated [^rio/short-answer] ${role} definition`);
 		});
 	});
 

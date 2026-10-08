@@ -12,8 +12,13 @@ import { repr, strip } from "./text.js";
 export interface NumericExpression {
 	/** A number, or a string when a number would lose the written value. */
 	answer: number | string;
-	domain?: "integer" | "decimal" | "fraction";
-	decimalPlaces?: number;
+	domain: "integer" | "decimal" | "fraction";
+	/**
+	 * The decimal places written in the value and the absolute tolerance,
+	 * whichever is larger (numeric.md, "Decimal places"). Always present; the
+	 * caller keeps it only when the question's domain is `decimal`.
+	 */
+	decimalPlaces: number;
 	tolerance?: { absolute?: number; relative?: number };
 }
 
@@ -51,8 +56,8 @@ const TOL_TERM_RE = new RegExp(
  * Parse the text after a `[numeric]:` tag. A port of
  * `_parse_numeric_expression`.
  *
- * @throws {ParseError} If the text does not follow the grammar, or if it
- * writes a fraction with a zero denominator.
+ * @throws {ParseError} If the text does not follow the grammar, writes a
+ * fraction with a zero denominator, or writes a tolerance kind twice.
  */
 export function parseNumericExpression(expression: string): NumericExpression {
 	const match = NUM_VALUE_RE.exec(strip(expression, " \t"));
@@ -72,29 +77,35 @@ export function parseNumericExpression(expression: string): NumericExpression {
 				`zero denominator in numeric body: ${repr(expression)}`,
 			);
 		}
-		result = { answer, domain: "fraction" };
+		result = { answer, domain: "fraction", decimalPlaces: 0 };
 	} else if (value.includes(".")) {
-		const fractionalDigits = value.split(".", 2)[1] ?? "";
-		result = {
-			answer,
-			domain: "decimal",
-			decimalPlaces: fractionalDigits.length,
-		};
+		result = { answer, domain: "decimal", decimalPlaces: 0 };
 	} else {
-		result = { answer, domain: "integer" };
+		result = { answer, domain: "integer", decimalPlaces: 0 };
 	}
 
 	const tolerance: { absolute?: number; relative?: number } = {};
 	let absoluteIsDecimal = false;
+	let absolutePlaces = 0;
 	for (const tolMatch of (match.groups.tolerances ?? "").matchAll(
 		TOL_TERM_RE,
 	)) {
-		const num = Number(tolMatch.groups?.num);
-		if (tolMatch.groups?.pct) {
+		const numText = tolMatch.groups?.num ?? "";
+		const num = Number(numText);
+		const kind = tolMatch.groups?.pct ? "relative" : "absolute";
+		if (kind in tolerance) {
+			throw new ParseError(
+				`a numeric body takes one ${kind} tolerance: ${repr(expression)}`,
+			);
+		}
+		if (kind === "relative") {
 			tolerance.relative = num / 100;
 		} else {
 			tolerance.absolute = num;
-			absoluteIsDecimal = (tolMatch.groups?.num ?? "").includes(".");
+			absoluteIsDecimal = numText.includes(".");
+			absolutePlaces = absoluteIsDecimal
+				? (numText.split(".", 2)[1] ?? "").length
+				: 0;
 		}
 	}
 	if (Object.keys(tolerance).length > 0) {
@@ -105,6 +116,12 @@ export function parseNumericExpression(expression: string): NumericExpression {
 	if (absoluteIsDecimal) {
 		result.domain = "decimal";
 	}
+	// numeric.md, "Decimal places": the places written in the value and in
+	// the absolute tolerance, whichever is larger.
+	const valuePlaces = value.includes(".")
+		? (value.split(".", 2)[1] ?? "").length
+		: 0;
+	result.decimalPlaces = Math.max(valuePlaces, absolutePlaces);
 
 	return result;
 }

@@ -30,13 +30,15 @@ describe("string-only fields pass through unconverted", () => {
 	});
 
 	it("an exam id, include and include-all keep their YAML type", () => {
+		// `yes` is a string in the YAML 1.2 Core schema (base.md,
+		// "Frontmatter"); `true` and `7` keep their types.
 		const source =
-			"---\nid: 2024\n---\n# Prova\n\n===\n\n---\ninclude: yes\n---\n\n===\n\n---\ninclude-all: 7\n---\n";
+			"---\nid: 2024\n---\n# Prova\n\n===\n\n---\ninclude: true\n---\n\n===\n\n---\ninclude-all: 7\n---\n\n===\n\n---\ninclude: yes\n---\n";
 		expect(parseExamDocument(source)).toEqual({
 			type: "exam",
 			title: "Prova",
 			id: 2024,
-			questions: [{ include: true }, { "include-all": 7 }],
+			questions: [{ include: true }, { "include-all": 7 }, { include: "yes" }],
 		});
 	});
 

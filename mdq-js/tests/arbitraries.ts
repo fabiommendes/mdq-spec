@@ -189,14 +189,15 @@ function choiceLine(spec: ChoiceSpec): string {
 	return line;
 }
 
-function scoreFromMarker(marker: string): number {
+/** `[*]` is 1, `[50%]` is 0.5, and a blank `[ ]` omits the score. */
+function scoreFromMarker(marker: string): number | undefined {
 	if (marker === "*") {
 		return 1;
 	}
 	if (/^[+-]?\d+(?:\.\d+)?%$/.test(marker)) {
 		return Number.parseFloat(marker.slice(0, -1)) / 100;
 	}
-	return 0;
+	return undefined;
 }
 
 function choiceEntry(
@@ -211,11 +212,11 @@ function choiceEntry(
 		entry.id = spec.explicitId;
 	}
 	if (kind === "multiple-choice") {
-		entry.score = scoreFromMarker(spec.marker);
+		const score = scoreFromMarker(spec.marker);
+		if (score !== undefined) entry.score = score;
 	} else if (kind === "multiple-selection") {
-		if (spec.marker.toLowerCase() === "x") {
-			entry.correct = true;
-		}
+		// `correct` is required: a blank `[ ]` is an explicit false.
+		entry.correct = spec.marker.toLowerCase() === "x";
 	} else {
 		entry.correct = !FALSE_LETTERS.has(spec.marker.toLowerCase());
 		entry.marker = spec.marker;

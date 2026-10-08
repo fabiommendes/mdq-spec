@@ -13,11 +13,12 @@ import {
 	BooleanChoice,
 	DiacriticsType,
 	EssayInput,
-	GradingType,
 	Indentation,
 	Normalization,
 	numericAnswerShape,
 	OrderingContent,
+	QuestionGrading,
+	QuestionShuffle,
 	questionBaseShape,
 	ScoredChoice,
 	Slug,
@@ -50,8 +51,8 @@ export const MultipleChoiceQuestion = z.strictObject({
 	...questionBaseShape,
 	type: z.literal("multiple-choice"),
 	choices: z.array(ScoredChoice).min(2),
-	grading: GradingType.optional(),
-	shuffle: z.boolean().optional(),
+	grading: QuestionGrading.optional(),
+	shuffle: QuestionShuffle.optional(),
 });
 export type MultipleChoiceQuestion = z.infer<typeof MultipleChoiceQuestion>;
 
@@ -60,8 +61,8 @@ export const MultipleSelectionQuestion = z.strictObject({
 	...questionBaseShape,
 	type: z.literal("multiple-selection"),
 	choices: z.array(BooleanChoice).min(2),
-	grading: GradingType.optional(),
-	shuffle: z.boolean().optional(),
+	grading: QuestionGrading.optional(),
+	shuffle: QuestionShuffle.optional(),
 });
 export type MultipleSelectionQuestion = z.infer<
 	typeof MultipleSelectionQuestion
@@ -72,8 +73,8 @@ export const TrueFalseQuestion = z.strictObject({
 	...questionBaseShape,
 	type: z.literal("true-false"),
 	choices: z.array(Statement).min(2),
-	grading: GradingType.optional(),
-	shuffle: z.boolean().optional(),
+	grading: QuestionGrading.optional(),
+	shuffle: QuestionShuffle.optional(),
 });
 export type TrueFalseQuestion = z.infer<typeof TrueFalseQuestion>;
 
@@ -86,33 +87,18 @@ export const NumericQuestion = z.strictObject({
 export type NumericQuestion = z.infer<typeof NumericQuestion>;
 
 /**
- * `schema/short-answer.yaml` -- a short piece of free text, graded against an
- * answer key or a regular expression.
- *
- * The `if`/`then` in the YAML forbids an answer key on an `openEnded`
- * question: there would be nothing to grade it against. `preAccept` and
- * `preReject` stay allowed -- they validate a submission, never score it.
+ * `schema/short-answer.yaml` -- a short piece of free text, graded against
+ * `accept`/`reject` pattern lists. A question with no `accept` is graded by
+ * hand (`unmatched` defaults to `manual` then).
  */
-export const ShortAnswerQuestion = z
-	.strictObject({
-		...questionBaseShape,
-		...shortAnswerKeyShape,
-		type: z.literal("short-answer"),
-		diacritics: DiacriticsType.optional(),
-		openEnded: z.boolean().optional(),
-	})
-	.refine(
-		(question) =>
-			!question.openEnded ||
-			(question.oneOf === undefined &&
-				question.regex === undefined &&
-				question.accept === undefined &&
-				question.reject === undefined),
-		{
-			error:
-				"an openEnded question is graded by hand and must not carry an answer key (oneOf, regex, accept or reject)",
-		},
-	);
+export const ShortAnswerQuestion = z.strictObject({
+	...questionBaseShape,
+	...shortAnswerKeyShape,
+	type: z.literal("short-answer"),
+	diacritics: DiacriticsType.optional(),
+	unmatched: Unmatched.optional(),
+	incorrectFeedback: z.string().optional(),
+});
 export type ShortAnswerQuestion = z.infer<typeof ShortAnswerQuestion>;
 
 /** `schema/essay.yaml` -- a free-form written answer. */
@@ -121,7 +107,7 @@ export const EssayQuestion = z.strictObject({
 	type: z.literal("essay"),
 	input: EssayInput.optional(),
 	highlight: z.string().min(1).optional(),
-	answerKey: z.string().min(1).regex(/\S/).optional(),
+	answerKey: z.string().optional(),
 });
 export type EssayQuestion = z.infer<typeof EssayQuestion>;
 
@@ -168,9 +154,10 @@ export const FillInQuestion = z.strictObject({
 	...questionBaseShape,
 	type: z.literal("fill-in"),
 	blanks: z.array(Blank).min(1),
-	grading: GradingType.optional(),
-	shuffle: z.boolean().optional(),
+	grading: QuestionGrading.optional(),
+	shuffle: QuestionShuffle.optional(),
 	diacritics: DiacriticsType.optional(),
+	unmatched: Unmatched.optional(),
 });
 export type FillInQuestion = z.infer<typeof FillInQuestion>;
 
@@ -210,14 +197,8 @@ export const OrderingQuestion = z.strictObject({
 });
 export type OrderingQuestion = z.infer<typeof OrderingQuestion>;
 
-/**
- * Any question document, discriminated by `type`.
- *
- * `ShortAnswerQuestion` carries a `.refine()`, so it is not a bare object
- * schema and cannot join a `discriminatedUnion`; the plain union costs a
- * little error-message precision and buys the conditional constraint.
- */
-export const Question = z.union([
+/** Any question document, discriminated by `type`. */
+export const Question = z.discriminatedUnion("type", [
 	MultipleChoiceQuestion,
 	MultipleSelectionQuestion,
 	TrueFalseQuestion,

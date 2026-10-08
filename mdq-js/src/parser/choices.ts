@@ -8,21 +8,32 @@
  * `parse_choice_body`.
  */
 
-import { ParseError } from "../errors.js";
+import { ForeignChoiceMarkerError, ParseError } from "../errors.js";
 import { repr, strip } from "./text.js";
+
+// The grammar's `ws` is only spaces and tabs (docs/references/grammar.md):
+// every `[ \t]` below is `ws`, and every `strip(..., " \t")` trims `ws`. Any
+// other Unicode space is text.
 
 /** A slug's body, shared by choice ids and the inline `[slug]` prefix. */
 export const SLUG_BODY_RE = "[a-zA-Z0-9]+(?:[-_][a-zA-Z0-9]+)*";
 
+/**
+ * A bracket followed by `(` or `[` opens a markdown link (`[text](url)`,
+ * `[text][ref]`), so it is never a slug or a choice id (base.md, "Slug";
+ * multiple-choice.md, "Body").
+ */
+const NOT_A_LINK = "(?![(\\[])";
+
 /** `[slug]` at the very start of a line, e.g. the inline id/title prefix. */
 export const SLUG_PREFIX_RE = new RegExp(
-	`^\\[(?<slug>${SLUG_BODY_RE})\\][ \\t]*`,
+	`^\\[(?<slug>${SLUG_BODY_RE})\\]${NOT_A_LINK}[ \\t]*`,
 	"u",
 );
 
 /** An explicit choice id written right after a choice's marker. */
 export const CHOICE_ID_PREFIX_RE = new RegExp(
-	`^\\[(?<id>${SLUG_BODY_RE})\\][ \\t]*`,
+	`^\\[(?<id>${SLUG_BODY_RE})\\]${NOT_A_LINK}[ \\t]*`,
 	"u",
 );
 
@@ -36,8 +47,16 @@ export const ITEM_MARKER_RE =
 /** A partial-credit marker, e.g. `50%` or `-25%`. */
 export const PERCENT_RE = /^[+-]?\d+(?:\.\d+)?%$/u;
 
-/** A plain (non-bracket) list item, e.g. a short-answer pattern line. */
-export const PLAIN_ITEM_RE = /^[*+-][ \t]+(?<rest>[^\n]*)$/u;
+/**
+ * A list item with no `[value]` marker, e.g. a pattern line. A bare marker
+ * (`*` alone on its line) is an item with no text, so an empty pattern line
+ * is reported as such instead of being read as a continuation of the item
+ * before it.
+ */
+export const PLAIN_ITEM_RE = /^[*+-](?:[ \t]+(?<rest>[^\n]*)|[ \t]*)$/u;
+
+/** The first line of a list item: a marker followed by `ws` or the line end. */
+export const LIST_ITEM_START_RE = /^[*+-](?:[ \t]|[ \t]*$)/u;
 
 /**
  * True/false letters that mean false -- `docs/question-types/true-false.md`.
@@ -74,8 +93,13 @@ export function parseMarker(line: string): ParsedMarker {
 	if (!match?.groups) {
 		throw new ParseError(`malformed choice item: ${repr(line)}`);
 	}
+	if (!match.groups.value) {
+		throw new ParseError(
+			`empty choice marker \`[]\` (use \`[ ]\` for blank): ${repr(line)}`,
+		);
+	}
 
-	const value = strip(match.groups.value ?? "", " \t");
+	const value = strip(match.groups.value, " \t");
 	let rest = match.groups.rest ?? "";
 
 	let id: string | undefined;
@@ -105,7 +129,7 @@ export function splitListItems(lines: readonly string[]): string[][] {
 	const items: string[][] = [];
 	let current: string[] = [];
 	for (const line of lines) {
-		if (/^[*+-][ \t]/u.test(line)) {
+		if (LIST_ITEM_START_RE.test(line)) {
 			current = [line];
 			items.push(current);
 		} else {
@@ -115,15 +139,23 @@ export function splitListItems(lines: readonly string[]): string[][] {
 	return items;
 }
 
+const INTERLEAVED =
+	"a pattern item carries at most one feedback and one comment block, and " +
+	"they must not interleave";
+
 /**
  * Split an item's continuation lines into its text, `>` feedback and `!`
  * comment, and assemble the `RawChoice`.
+ *
+ * @throws {ParseError} `strictObservations` is set and the feedback and
+ *   comment lines interleave.
  */
 export function collectItem(
 	itemLines: readonly string[],
 	value: string,
 	explicitId: string | undefined,
 	rest: string,
+	strictObservations = false,
 ): RawChoice {
 	const textLines: string[] = strip(rest, " \t") ? [rest] : [];
 	const feedbackLines: string[] = [];
@@ -133,9 +165,15 @@ export function collectItem(
 	for (const line of itemLines.slice(1)) {
 		const stripped = strip(line, " \t");
 		if (stripped.startsWith(">")) {
+			if (strictObservations && mode === "comment" && feedbackLines.length) {
+				throw new ParseError(INTERLEAVED);
+			}
 			mode = "feedback";
 			feedbackLines.push(strip(stripped.slice(1), " \t"));
 		} else if (stripped.startsWith("!")) {
+			if (strictObservations && mode === "feedback" && commentLines.length) {
+				throw new ParseError(INTERLEAVED);
+			}
 			mode = "comment";
 			commentLines.push(strip(stripped.slice(1), " \t"));
 		} else if (mode === "text") {
@@ -182,7 +220,7 @@ export function parsePlainItem(itemLines: readonly string[]): RawChoice {
 	if (!match?.groups) {
 		throw new ParseError(`malformed list item: ${repr(first ?? "")}`);
 	}
-	return collectItem(itemLines, "", undefined, match.groups.rest ?? "");
+	return collectItem(itemLines, "", undefined, match.groups.rest ?? "", true);
 }
 
 /** One accept/reject pattern entry: a bare string, or the `{pattern, feedback?, comment?}` object form. */
@@ -263,25 +301,76 @@ export function inferChoiceType(
 	return "multiple-selection";
 }
 
-/** The score a `multiple-choice` marker records: `[*]` is 1, `[50%]` is 0.5. */
-export function scoreFromValue(value: string): number {
+/**
+ * The index of the first value that is not in the `value` rule of
+ * `questionType` (base.md, "Type inference"), or `undefined` when every
+ * value belongs to it. `values` are the bracket values stripped of spaces
+ * and tabs, as `RawChoice.value` holds them: multiple-choice takes `""`, `*`
+ * or a percentage; multiple-selection `""`, `x` or `X`; true-false one
+ * letter (`\p{L}`) other than `x`/`X`.
+ */
+export function foreignChoiceIndex(
+	questionType: string,
+	values: readonly string[],
+): number | undefined {
+	for (const [index, value] of values.entries()) {
+		let ok: boolean;
+		if (questionType === "multiple-choice") {
+			ok = value === "" || value === "*" || PERCENT_RE.test(value);
+		} else if (questionType === "multiple-selection") {
+			ok = value === "" || value === "x" || value === "X";
+		} else if (questionType === "true-false") {
+			ok = /^\p{L}$/u.test(value) && value.toLowerCase() !== "x";
+		} else {
+			continue;
+		}
+		if (!ok) return index;
+	}
+	return undefined;
+}
+
+/**
+ * The `score` of a choice `value` (multiple-choice.md, "Choices"): `*` is
+ * 1, a percentage is its fraction, and a blank omits the score -- the
+ * grading strategy decides what it is worth. Any other value is read as a
+ * blank too.
+ */
+export function scoreFromValue(value: string): number | undefined {
 	if (value === "*") {
 		return 1;
 	}
 	if (PERCENT_RE.test(value)) {
 		return Number.parseFloat(value.slice(0, -1)) / 100;
 	}
-	return 0;
+	return undefined;
 }
 
 /**
  * Build the final `choices` entries for a bracket-list body, per
  * `docs/question-types/{multiple-choice,multiple-selection,true-false}.md`.
+ * A port of `parse_choice_body`. `pathPrefix` locates the list for a
+ * `ForeignChoiceMarkerError`: `["choices"]` for a question, `["blanks", b,
+ * "choices"]` for a fill-in choice blank.
+ *
+ * @throws {ForeignChoiceMarkerError} A value is not in the `value` rule of
+ *   `questionType`.
  */
 export function buildChoices(
 	questionType: string,
 	rawChoices: readonly RawChoice[],
+	pathPrefix: readonly (string | number)[] = ["choices"],
 ): Record<string, unknown>[] {
+	const foreign = foreignChoiceIndex(
+		questionType,
+		rawChoices.map((choice) => choice.value),
+	);
+	if (foreign !== undefined) {
+		throw new ForeignChoiceMarkerError(
+			rawChoices[foreign]?.value ?? "",
+			questionType,
+			[...pathPrefix, foreign],
+		);
+	}
 	const ids = assignChoiceIds(rawChoices);
 	return rawChoices.map((choice, index) => {
 		const entry: Record<string, unknown> = { text: choice.text };
@@ -291,13 +380,13 @@ export function buildChoices(
 		}
 
 		if (questionType === "multiple-choice") {
-			// Always explicit: score is emitted even when 0, not just for
-			// correct/partial choices.
-			entry.score = scoreFromValue(choice.value);
+			// `[ ]` omits the score; `[0%]` is an explicit zero
+			// (multiple-choice.md, "Choices").
+			const score = scoreFromValue(choice.value);
+			if (score !== undefined) entry.score = score;
 		} else if (questionType === "multiple-selection") {
-			if (choice.value.toLowerCase() === "x") {
-				entry.correct = true;
-			}
+			// `correct` is required: a blank `[ ]` is an explicit false.
+			entry.correct = choice.value.toLowerCase() === "x";
 		} else if (questionType === "true-false") {
 			const letter = choice.value;
 			entry.correct = !FALSE_LETTERS.has(letter.toLowerCase());

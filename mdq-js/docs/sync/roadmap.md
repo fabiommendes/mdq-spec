@@ -66,7 +66,8 @@ per-feature status is [`tests/not-ported.ts`](../../tests/not-ported.ts).
 | F1 | Zod schemas equal to the JSON Schema | done |
 | F2 | Parser: bracket lists aligned with Python (no derived ids; `grading`, `weight`, `shuffle`) | done |
 | F3 | Parser: essay, numeric, short-answer, ordering, fill-in bodies | done |
-| F4 | Parser: exams, `include`, `include-all`, question bank | to do |
+| F4 | Parser: exams, `include`, `include-all`; the spec audit (`dev/audit/plan.md`) | done |
+| F4.1 | `resolveExam`, the question bank and the `include-all` query language (`banks.ts`, `query.ts` are stubs); `.resolved.yaml` corpus | to do |
 | F5 | Model layer: `withIds`, model rules as Zod refinements, `load()` with diagnostics | to do |
 | F6 | Linter, checked against the `.lint.json` files | to do |
 | F7 | Scoring, checked against `examples/grading/` | to do |
@@ -96,16 +97,30 @@ and the file-system question bank stay in Python.
 Final changes in mdq-py that belong to a later phase. Remove an entry when
 its phase ports it.
 
-* F4: the exam scanners skip code lines (mdq-py `15b9014`): the H1 title
-  search and `_split_exam_blocks` (`===`, the `---` fence with its closing
-  fence search and the "epilogue cannot use '---'" error, body-tag
-  detection) ignore every line of a `fence` or `code_block` token. Use
-  `codeLineIndices` in `parser/index`, which `isExam` already uses. Tests:
-  `mdq-py/tests/test_code_blocks_in_structure.py`.
 * F5: `docs/lint-codes.md`, "Load errors", lists the codes that `load()`
   reports: `yaml-syntax-error`, `json-syntax-error`, `parse-error`,
   `conflicting-accept`, `invalid-document`, `wrong-kind`,
-  `unresolved-include-all` (root `811553e`).
+  `unresolved-include-all` (root `811553e`). The parser side is ported:
+  `ParseError.code`/`path`, `YamlSyntaxError`, `ForeignChoiceMarkerError`,
+  `UndefinedBlankError`, and the `warnings` list of `parseDocument`.
+  `load` merges the parser warnings with the model and lint diagnostics.
+* F5: the model rules of the audit (`dev/audit/plan.md`, every section
+  that says "Falta mdq-js"): `with_ids`; `SlugId` on choices and blanks;
+  `locale` well-formed by RFC 5646 (`malformed-locale`); `malformed-start`
+  and `invalid-duration` with paths `["start"]`/`["duration"]` (the Zod
+  `duration` pattern already rejects most cases as `schema-error`);
+  `unknown-include-field`; `duplicate-question-id`; `forbidden-block-element`
+  (`find_forbidden_elements`, `block_text`); `misplaced-blank` and
+  `unreferenced-blank`/`undefined-blank` from the stem; `invalid-regex`;
+  union labels stripped from error paths and one diagnostic per
+  `(code, path)`. The corpus suite `tests/invalid-sources.spec.ts` lists the
+  codes in `LOAD_CODES` of `tests/not-ported.ts`.
+* F5: null in any optional field is absent (base.md), nested fields
+  included; `meta` keeps null values. The parser drops nulls from the
+  frontmatter; the YAML/JSON path needs the same before validation.
+* F5: `effective_grading`/`effective_shuffle` (`inherit`), `Exam.grading_for`,
+  `shuffle_for` and `resolve_question` (`tests/test_inherited_grading.py`,
+  `test_null_fields.py`).
 * F6: a fill-in choice blank runs the per-choice checks of multiple choice,
   after `check_multiple_choice_answers` and in this order:
   `blank-choice-feedback`, `blank-choice-comment`, `missing-choice-id`,
@@ -141,11 +156,12 @@ its phase ports it.
 * Rule changes P4, Q5-Q8 (root `5f023cf`, `c77c289`; mdq-py `744d82d`,
   `b972609`; tests in `mdq-py/tests/test_numeric_domain_rules.py` and
   `test_named_load_errors.py`):
-  * F4.1 batch 2: `malformed-start` and `invalid-duration` (errors, paths
+  * F5: `malformed-start` and `invalid-duration` (errors, paths
     `["start"]`, `["duration"]`), from `_validate_start` and
     `_validate_duration` in `models/_exam.py`. PT0S, P0D, P1M, P1Y, `""` and
     a non-string are invalid durations. Example
-    `invalid/model-only/exam-zero-duration.yaml`.
+    `invalid/model-only/exam-zero-duration.yaml`. The parser keeps a value
+    that does not parse as written (`canonicalOrAsWritten`).
   * F5: `schema-error` for every generic Zod issue; named refinements keep
     their code (`docs/lint-codes.md`, "Load errors").
     `malformed-true-false-marker`: the marker is exactly one code point in
@@ -161,22 +177,11 @@ its phase ports it.
     `["id"]`, `["questions", N, "id"]`, `["questions", N, "include"]`,
     `["questions", N, "include-all"]`;
   * error paths inside an exam's `questions` have no union tag
-    (`questions.0.stem`, not `questions.0.question.essay.stem`);
-  * new corpus kind: `examples/invalid/*.mdq.md` with a `.lint.json` that
-    lists every diagnostic of `load` (errors included); a `.yaml` sibling
-    must give the same diagnostics. Add it to `tests/corpus.ts` and the
-    manifest.
+    (`questions.0.stem`, not `questions.0.question.essay.stem`).
 * Duplicate keys and exam tags (J1, J3; root `78b4bd2`, mdq-py `2bfeaae`;
-  tests in `mdq-py/tests/test_duplicate_keys.py`):
-  * Parser (next): a repeated key in any YAML mapping (question, exam and
-    exam block frontmatter, nested mappings) is `YamlSyntaxError`
-    (`ParseError`, `code = "yaml-syntax-error"`), also for any malformed
-    frontmatter YAML. In the exam splitter (`_looks_like_frontmatter`), a
-    block with a repeated key still counts as frontmatter. A null `tags` in
-    an exam is absent; `normalizeTags` returns a value that is neither a
-    list nor a string unchanged (the schema rejects it). The
-    duplicate-key `it.todo` in `tests/parser-exam.spec.ts` becomes a test.
-  * F5: `load` reports `yaml-syntax-error` (path `[]`) for YAML documents,
+  tests in `mdq-py/tests/test_duplicate_keys.py`). The parser part is
+  ported (`YamlSyntaxError`). For F5:
+  * `load` reports `yaml-syntax-error` (path `[]`) for YAML documents,
     and `json-syntax-error` for a JSON object that repeats a key
     (`JSON.parse` keeps the last value, so it needs its own check). YAML
     documents use the frontmatter loader (`duration: 1:30` is a string).
@@ -185,9 +190,32 @@ its phase ports it.
 * F5/F6: the `non-ascii-whitespace` lint (mdq-py `ac13b51`,
   `mdq-py/mdq/_parser/_spaces.py`, tests in `mdq-py/tests/test_whitespace.py`).
   `load` runs it before parsing and keeps it when parsing fails.
-* F4.2: the exam query tokens (`models/_query.py`, `_TOKEN_RE`): a tag
+* F4.1: the exam query tokens (`models/_query.py`, `_TOKEN_RE`): a tag
   excludes `UNICODE_SPACE`, commas and parentheses; only `[ \t\f\r\n]` is
-  skipped between tokens.
+  skipped between tokens. `Exam.resolve` with `max` keeps the first
+  candidates; `examples/valid/exam/<exam>.resolved.yaml` pins the ids and
+  the diagnostics of each exam with `include`/`include-all`
+  (`mdq-py/tests/test_exam_resolution_corpus.py`).
+* F6, from the audit: `unsafe-thematic-break` (a `-` thematic break in
+  instructions/preamble/stem/epilogue), `setext-heading` on the model side
+  for `instructions`, `unlisted-true-false-marker` (was
+  `provisional-true-false-marker`), `blank-text-field` for a blank
+  `answerKey`; `unexpanded-stem-ellipsis` and `shadowed-answers` are gone;
+  `domain-mismatch` judges by value and only when the declared domain is
+  narrower; the pre-validation lints of `dev/specs/to-review/pre-validation-lints.md`.
+  Every `examples/valid/**/*.lint.json` exists, `[]` for a clean document,
+  and the `.yaml` side of a pair ignores `PARSER_ONLY_CODES`
+  (`mdq-py/tests/_corpus.py`).
+* F7, from the audit: `examples/grading/{multiple-choice,multiple-selection,
+  true-false,numeric,short-answer}.yaml` (`mdq-py/tests/test_grading_examples.py`,
+  205 cases; `"malformed"` is a `ResponseError`, `"pending"` a
+  `NotAutoGradable`); the exam score (`Exam.score_responses`, `ExamScore`,
+  exam.md "Exam score"); `decimalPlaces` as the comparison precision
+  (`tests/test_decimal_places.py`); ordering `grades_indentation`
+  (`tests/test_ordering_scoring.py`); the inexact comparison of
+  `dev/specs/to-review/inexact-comparison.md` (`src/inexact-tables.json`
+  is in place); the omitted `[ ]` score through `grading`; the NFC rule
+  for exact literals.
 
 ## Known gaps in the reference
 

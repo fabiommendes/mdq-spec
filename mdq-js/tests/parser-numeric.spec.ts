@@ -57,8 +57,22 @@ describe("numeric body: malformed input raises ParseError", () => {
 		["tolerance written as a fraction", "What is x?\n\n[numeric]: 3 +- 1/2\n"],
 		["two numbers with no operator", "What is x?\n\n[numeric]: 3+3\n"],
 		["unit given as an empty parenthesis", "What is x?\n\n[numeric()]: 5\n"],
+		[
+			"two absolute tolerances",
+			"What is x?\n\n[numeric]: 3.14 +- 0.1 +- 0.2\n",
+		],
+		["two relative tolerances", "What is x?\n\n[numeric]: 3.14 +- 5% +- 10%\n"],
 	])("%s", (_label, source) => {
 		expect(() => parseQuestionDocument(source)).toThrow(ParseError);
+	});
+
+	it.each([
+		["absolute", "3.14 +- 0.1 +- 0.2"],
+		["relative", "3.14 +- 5% +- 10%"],
+	])("a repeated %s tolerance names its kind", (kind, expr) => {
+		expect(() => parseNumericExpression(expr)).toThrow(
+			`a numeric body takes one ${kind} tolerance: '${expr}'`,
+		);
 	});
 
 	// A zero-denominator fraction (`1/0`) is covered by its own describe
@@ -118,10 +132,22 @@ describe("numeric body: a leading zero is a parse error", () => {
 
 describe("parseNumericExpression: value grammar", () => {
 	it.each([
-		["plain integer", "42", { answer: 42, domain: "integer" }],
-		["explicit plus sign", "+42", { answer: 42, domain: "integer" }],
-		["negative integer", "-42", { answer: -42, domain: "integer" }],
-		["zero", "0", { answer: 0, domain: "integer" }],
+		[
+			"plain integer",
+			"42",
+			{ answer: 42, domain: "integer", decimalPlaces: 0 },
+		],
+		[
+			"explicit plus sign",
+			"+42",
+			{ answer: 42, domain: "integer", decimalPlaces: 0 },
+		],
+		[
+			"negative integer",
+			"-42",
+			{ answer: -42, domain: "integer", decimalPlaces: 0 },
+		],
+		["zero", "0", { answer: 0, domain: "integer", decimalPlaces: 0 }],
 		[
 			"decimal value records its written decimal places",
 			"3.14",
@@ -140,13 +166,17 @@ describe("parseNumericExpression: value grammar", () => {
 		[
 			"a positive fraction stays a string",
 			"1/3",
-			{ answer: "1/3", domain: "fraction" },
+			{ answer: "1/3", domain: "fraction", decimalPlaces: 0 },
 		],
-		["negative fraction", "-1/3", { answer: "-1/3", domain: "fraction" }],
+		[
+			"negative fraction",
+			"-1/3",
+			{ answer: "-1/3", domain: "fraction", decimalPlaces: 0 },
+		],
 		[
 			"a zero numerator fraction is still domain fraction",
 			"0/5",
-			{ answer: "0/5", domain: "fraction" },
+			{ answer: "0/5", domain: "fraction", decimalPlaces: 0 },
 		],
 	])("%s: %j", (_label, expr, expected) => {
 		expect(parseNumericExpression(expr)).toEqual(expected);
@@ -214,22 +244,23 @@ describe("parseNumericExpression: value grammar", () => {
 			},
 		],
 		[
-			"a repeated tolerance term keeps only the last one of its kind",
-			"3.14 +- 0.1 +- 0.2",
-			{
-				answer: 3.14,
-				domain: "decimal",
-				decimalPlaces: 2,
-				tolerance: { absolute: 0.2 },
-			},
-		],
-		[
-			"a decimal absolute tolerance makes an integer answer's domain decimal",
+			"a decimal absolute tolerance makes an integer answer's domain decimal, with its places",
 			"42 +- 3.5",
 			{
 				answer: 42,
 				domain: "decimal",
+				decimalPlaces: 1,
 				tolerance: { absolute: 3.5 },
+			},
+		],
+		[
+			"the absolute tolerance's places win when they are more than the value's",
+			"3.1 +- 0.25",
+			{
+				answer: 3.1,
+				domain: "decimal",
+				decimalPlaces: 2,
+				tolerance: { absolute: 0.25 },
 			},
 		],
 		[
@@ -238,6 +269,7 @@ describe("parseNumericExpression: value grammar", () => {
 			{
 				answer: 42,
 				domain: "integer",
+				decimalPlaces: 0,
 				tolerance: { relative: 0.05 },
 			},
 		],
@@ -332,7 +364,7 @@ interface GeneratedExpr {
 	expected: {
 		answer: number | string;
 		domain: "integer" | "decimal" | "fraction";
-		decimalPlaces?: number;
+		decimalPlaces: number;
 		tolerance?: { absolute?: number; relative?: number };
 	};
 }
@@ -413,13 +445,13 @@ const generatedExprArb: fc.Arbitrary<GeneratedExpr> = fc
 			cfg.value.text +
 			ordered.map((t) => cfg.gapSpace + t.text).join("");
 
+		// The tolerance terms are integers, so the places come from the
+		// value alone: 0 for an integer or a fraction.
 		const expected: GeneratedExpr["expected"] = {
 			answer: cfg.value.answer(cfg.sign),
 			domain: cfg.value.domain,
+			decimalPlaces: cfg.value.decimalPlaces ?? 0,
 		};
-		if (cfg.value.decimalPlaces !== undefined) {
-			expected.decimalPlaces = cfg.value.decimalPlaces;
-		}
 		const tolerance: { absolute?: number; relative?: number } = {};
 		if (cfg.abstol) tolerance.absolute = cfg.abstol.value;
 		if (cfg.reltol) tolerance.relative = cfg.reltol.value;
@@ -482,7 +514,7 @@ describe("multiple-choice score: a leading zero in a percentage still parses", (
 			choices: [
 				{ text: "Pacific", score: 1 },
 				{ text: "Atlantic", score: 0.05 },
-				{ text: "Indian", score: 0 },
+				{ text: "Indian" },
 			],
 		});
 	});
@@ -496,15 +528,30 @@ describe("parseNumericExpression: domain from the absolute tolerance", () => {
 	it.each([
 		[
 			"0 +- 0.01",
-			{ answer: 0, domain: "decimal", tolerance: { absolute: 0.01 } },
+			{
+				answer: 0,
+				domain: "decimal",
+				decimalPlaces: 2,
+				tolerance: { absolute: 0.01 },
+			},
 		],
 		[
 			"1/3 +- 1",
-			{ answer: "1/3", domain: "fraction", tolerance: { absolute: 1 } },
+			{
+				answer: "1/3",
+				domain: "fraction",
+				decimalPlaces: 0,
+				tolerance: { absolute: 1 },
+			},
 		],
 		[
 			"1/3 +- 0.5",
-			{ answer: "1/3", domain: "decimal", tolerance: { absolute: 0.5 } },
+			{
+				answer: "1/3",
+				domain: "decimal",
+				decimalPlaces: 1,
+				tolerance: { absolute: 0.5 },
+			},
 		],
 		[
 			"2.50 +- 1",
@@ -516,18 +563,23 @@ describe("parseNumericExpression: domain from the absolute tolerance", () => {
 			},
 		],
 		[
-			"7 +- 0.5 +- 1",
-			{ answer: 7, domain: "integer", tolerance: { absolute: 1 } },
-		],
-		[
-			"7 +- 1 +- 0.5",
-			{ answer: 7, domain: "decimal", tolerance: { absolute: 0.5 } },
-		],
-		[
 			"7 +- 0.5%",
-			{ answer: 7, domain: "integer", tolerance: { relative: 0.005 } },
+			{
+				answer: 7,
+				domain: "integer",
+				decimalPlaces: 0,
+				tolerance: { relative: 0.005 },
+			},
 		],
-		["7 +- 1.0", { answer: 7, domain: "decimal", tolerance: { absolute: 1 } }],
+		[
+			"7 +- 1.0",
+			{
+				answer: 7,
+				domain: "decimal",
+				decimalPlaces: 1,
+				tolerance: { absolute: 1 },
+			},
+		],
 	])("%s", (expression, expected) => {
 		expect(parseNumericExpression(expression)).toEqual(expected);
 	});
@@ -540,19 +592,31 @@ describe("parseNumericExpression: domain from the absolute tolerance", () => {
 // `_parse_numeric_expression`.
 describe("parseNumericExpression: answer representation", () => {
 	it.each([
-		["42", { answer: 42, domain: "integer" }],
-		["-1", { answer: -1, domain: "integer" }],
-		["+7", { answer: 7, domain: "integer" }],
-		["-0", { answer: 0, domain: "integer" }],
-		["2147483647", { answer: 2147483647, domain: "integer" }],
-		["-2147483648", { answer: -2147483648, domain: "integer" }],
-		["2147483648", { answer: "2147483648", domain: "integer" }],
-		["-2147483649", { answer: "-2147483649", domain: "integer" }],
-		["+390000000000", { answer: "390000000000", domain: "integer" }],
-		["1/3", { answer: "1/3", domain: "fraction" }],
-		["-1/3", { answer: "-1/3", domain: "fraction" }],
-		["+3/4", { answer: "3/4", domain: "fraction" }],
-		["4/2", { answer: "4/2", domain: "fraction" }],
+		["42", { answer: 42, domain: "integer", decimalPlaces: 0 }],
+		["-1", { answer: -1, domain: "integer", decimalPlaces: 0 }],
+		["+7", { answer: 7, domain: "integer", decimalPlaces: 0 }],
+		["-0", { answer: 0, domain: "integer", decimalPlaces: 0 }],
+		["2147483647", { answer: 2147483647, domain: "integer", decimalPlaces: 0 }],
+		[
+			"-2147483648",
+			{ answer: -2147483648, domain: "integer", decimalPlaces: 0 },
+		],
+		[
+			"2147483648",
+			{ answer: "2147483648", domain: "integer", decimalPlaces: 0 },
+		],
+		[
+			"-2147483649",
+			{ answer: "-2147483649", domain: "integer", decimalPlaces: 0 },
+		],
+		[
+			"+390000000000",
+			{ answer: "390000000000", domain: "integer", decimalPlaces: 0 },
+		],
+		["1/3", { answer: "1/3", domain: "fraction", decimalPlaces: 0 }],
+		["-1/3", { answer: "-1/3", domain: "fraction", decimalPlaces: 0 }],
+		["+3/4", { answer: "3/4", domain: "fraction", decimalPlaces: 0 }],
+		["4/2", { answer: "4/2", domain: "fraction", decimalPlaces: 0 }],
 		["0.25", { answer: 0.25, domain: "decimal", decimalPlaces: 2 }],
 		["-273.15", { answer: -273.15, domain: "decimal", decimalPlaces: 2 }],
 		["+3.14", { answer: 3.14, domain: "decimal", decimalPlaces: 2 }],
@@ -587,7 +651,12 @@ describe("parseNumericExpression: answer representation", () => {
 		["-0.5", { answer: -0.5, domain: "decimal", decimalPlaces: 1 }],
 		[
 			"1/3 +- 0.01",
-			{ answer: "1/3", domain: "decimal", tolerance: { absolute: 0.01 } },
+			{
+				answer: "1/3",
+				domain: "decimal",
+				decimalPlaces: 2,
+				tolerance: { absolute: 0.01 },
+			},
 		],
 	] as const)("%s", (expression, expected) => {
 		expect(parseNumericExpression(expression)).toEqual(expected);

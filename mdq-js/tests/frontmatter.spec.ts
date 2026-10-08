@@ -1,73 +1,37 @@
 /**
- * Tests for `loadFrontmatterYaml` (`src/parser/frontmatter.ts`) --
- * `docs/handoffs/02-parser-bracket-lists-parity.md`, acceptance criterion 4.
+ * Tests for `loadYaml` and `loadFrontmatterYaml` (`src/parser/frontmatter.ts`).
  *
- * `loadFrontmatterYaml` must return the same value as Python's
- * `_load_frontmatter_yaml` (`mdq-py/mdq/_parser/_frontmatter.py`) for every YAML
- * 1.1 scalar: a `yaml.SafeLoader` with the sexagesimal (base-60) int/float
- * alternative removed, everything else -- including every other resolver --
- * left at `SafeLoader`'s defaults.
- *
- * Every expected value below was captured by running the Python function
- * directly (`uv run python`, `mdq.parser._load_frontmatter_yaml`), not by
- * reading its source and guessing. Mapping from a Python value to the JS
- * value asserted here:
- *
- *  - `bool` -> `boolean`, `int`/`float` -> `number`, `str` -> `string`,
- *    `None` -> `null`. Direct, no ambiguity.
- *  - `datetime.date` / `datetime.datetime` -> JS `Date`. `js-yaml`'s
- *    timestamp resolver is untouched by the custom loader (the Python
- *    docstring: "keeps every other implicit resolver... timestamps
- *    included"), so this is the one type `loadFrontmatterYaml` does not have
- *    to special-case -- whatever `js-yaml`'s own default timestamp handling
- *    produces is already the answer, and it agrees with Python instant for
- *    instant (verified below by comparing both sides' UTC instant, since a
- *    naive Python `datetime` and a JS `Date` don't share a "no timezone"
- *    concept). Downstream, exam-only code (`format_start` in
- *    `mdq-py/mdq/_schedule.py`, called from `mdq-py/mdq/_parser/_exam.py`) turns a date/datetime frontmatter value into an ISO string before
- *    it reaches a document -- but that is exam-specific normalization one
- *    layer above this function, out of scope for F2, and a generic
- *    frontmatter key (not `start`) reaches its document with no such
- *    conversion at all (`apply_common_frontmatter` copies `title`/`author`/
- *    `locale`/... verbatim). So a `Date` is the correct return value for
- *    `loadFrontmatterYaml` itself.
+ * MDQ frontmatter follows the YAML 1.2 Core schema (base.md,
+ * "Frontmatter"): `_FrontmatterLoader` in
+ * `mdq-py/mdq/_parser/_frontmatter.py` replaces PyYAML's YAML 1.1 resolvers
+ * with `_CORE_RESOLVERS`, and `loadYaml` registers the same patterns on
+ * js-yaml. Every expected value below was captured by running the Python
+ * loader (`uv run python -c "from mdq._parser import load_yaml; ..."`).
+ * A `null` value is a `null` for `loadYaml`; `loadFrontmatterYaml` drops
+ * the key, since a null field is an absent field.
  */
 
-import { loadFrontmatterYaml } from "@mdq/parser/frontmatter.js";
+import { YamlSyntaxError } from "@mdq";
+import { loadFrontmatterYaml, loadYaml } from "@mdq/parser/frontmatter.js";
 import fc from "fast-check";
 import { dump } from "js-yaml";
 import { describe, expect, it } from "vitest";
 
-describe("loadFrontmatterYaml -- YAML 1.1 scalars", () => {
+describe("loadYaml -- YAML 1.2 Core scalars", () => {
 	it.each([
 		//
-		// yes/no/on/off -- every case is a bool, per PyYAML's bool resolver.
+		// yes/no/on/off are strings: the Core schema has no such booleans.
 		//
-		["yes", "value: yes", true],
-		["Yes", "value: Yes", true],
-		["YES", "value: YES", true],
-		["no", "value: no", false],
-		["No", "value: No", false],
-		["NO", "value: NO", false],
-		["on", "value: on", true],
-		["On", "value: On", true],
-		["ON", "value: ON", true],
-		["off", "value: off", false],
-		["Off", "value: Off", false],
-		["OFF", "value: OFF", false],
-
-		//
-		// y/Y/n/N -- *not* recognized as bool by PyYAML's SafeLoader, unlike
-		// the full YAML 1.1 spec: its bool regex lists only the full words
-		// above plus true/false, no single letters. So these stay strings.
-		//
+		["yes", "value: yes", "yes"],
+		["Yes", "value: Yes", "Yes"],
+		["NO", "value: NO", "NO"],
+		["on", "value: on", "on"],
+		["Off", "value: Off", "Off"],
 		["y", "value: y", "y"],
-		["Y", "value: Y", "Y"],
 		["n", "value: n", "n"],
-		["N", "value: N", "N"],
 
 		//
-		// true/false -- every case is a bool.
+		// true/false, three spellings each.
 		//
 		["true", "value: true", true],
 		["True", "value: True", true],
@@ -75,27 +39,39 @@ describe("loadFrontmatterYaml -- YAML 1.1 scalars", () => {
 		["false", "value: false", false],
 		["False", "value: False", false],
 		["FALSE", "value: FALSE", false],
+		["tRUE (mixed case, stays a string)", "value: tRUE", "tRUE"],
 
 		//
-		// Octal -- old-style `0NNN` only. `0o...` (the YAML-1.2/Python-3
-		// spelling) is not in the int resolver's pattern at all, so it stays
-		// a string.
+		// Integers: decimal (a leading zero is not octal), `0o` octal, `0x`
+		// hex. No `0b`, no `_` separators, no base-60.
 		//
-		["0777 (old-style octal)", "value: 0777", 511],
-		["0o777 (not recognized, stays a string)", "value: 0o777", "0o777"],
-
-		//
-		// Hex / binary.
-		//
+		["010 (decimal, not octal)", "value: 010", 10],
+		["0777 (decimal)", "value: 0777", 777],
+		["0o777 (octal)", "value: 0o777", 511],
+		["0o10", "value: 0o10", 8],
 		["0x1A (hex)", "value: 0x1A", 26],
-		["0b101 (binary)", "value: 0b101", 5],
+		["-7", "value: -7", -7],
+		["+7", "value: +7", 7],
+		["0b101 (stays a string)", "value: 0b101", "0b101"],
+		["1_000 (stays a string)", "value: 1_000", "1_000"],
+		["1:30 (stays a string)", "value: 1:30", "1:30"],
+		["1:30:00 (stays a string)", "value: 1:30:00", "1:30:00"],
 
 		//
-		// `H:MM[:SS]` -- the sexagesimal alternative this loader removes, so
-		// these stay strings (MDQ needs this for unquoted `HH:MM` durations).
+		// Floats, with an optional sign on the exponent.
 		//
-		["1:30 (not base-60, stays a string)", "value: 1:30", "1:30"],
-		["1:30:00 (not base-60, stays a string)", "value: 1:30:00", "1:30:00"],
+		["3.14", "value: 3.14", 3.14],
+		["3. (trailing dot)", "value: 3.", 3],
+		[".5", "value: .5", 0.5],
+		["1e3", "value: 1e3", 1000],
+		["1.5e3", "value: 1.5e3", 1500],
+		["1.5e+3", "value: 1.5e+3", 1500],
+		["1E-2", "value: 1E-2", 0.01],
+		["1_000.5 (stays a string)", "value: 1_000.5", "1_000.5"],
+		[".inf", "value: .inf", Number.POSITIVE_INFINITY],
+		["-.inf", "value: -.inf", Number.NEGATIVE_INFINITY],
+		[".nan", "value: .nan", Number.NaN],
+		[".Inf", "value: .Inf", Number.POSITIVE_INFINITY],
 
 		//
 		// null forms.
@@ -107,72 +83,76 @@ describe("loadFrontmatterYaml -- YAML 1.1 scalars", () => {
 		["empty value", "value:", null],
 
 		//
-		// Floats: `.inf`/`.nan` forms.
+		// Dates and timestamps are strings.
 		//
-		[".inf", "value: .inf", Number.POSITIVE_INFINITY],
-		["-.inf", "value: -.inf", Number.NEGATIVE_INFINITY],
-		[".nan", "value: .nan", Number.NaN],
-
-		//
-		// Exponent quirk: the custom float regex requires an explicit sign
-		// after `e`/`E` (`[eE][-+][0-9]+`), so a bare `1e3` matches neither
-		// the float pattern (no sign) nor the int pattern (no `e` at all) and
-		// falls through to a string -- even `1.5e3`, which has the decimal
-		// point a float needs but still lacks the mandatory sign.
-		//
-		["1e3 (no sign on exponent, stays a string)", "value: 1e3", "1e3"],
-		["1.5e3 (no sign on exponent, stays a string)", "value: 1.5e3", "1.5e3"],
-		["1.5e+3 (signed exponent parses as a float)", "value: 1.5e+3", 1500],
-
-		//
-		// Underscore-grouped numbers.
-		//
-		["1_000 (int)", "value: 1_000", 1000],
-		["1_000.5 (float)", "value: 1_000.5", 1000.5],
+		["date", "value: 2026-03-10", "2026-03-10"],
+		["timestamp", "value: 2026-03-10T09:00:00", "2026-03-10T09:00:00"],
+		[
+			"timestamp with offset",
+			"value: 2026-03-10 09:00:00 -03:00",
+			"2026-03-10 09:00:00 -03:00",
+		],
 
 		//
 		// Quoting overrides every implicit resolver above.
 		//
-		["'yes' (quoted, stays a string)", "value: 'yes'", "yes"],
-		['"yes" (quoted, stays a string)', 'value: "yes"', "yes"],
-		["'0777' (quoted, stays a string)", "value: '0777'", "0777"],
+		["'true' (quoted, stays a string)", "value: 'true'", "true"],
+		['"0o10" (quoted, stays a string)', 'value: "0o10"', "0o10"],
 		["'1e3' (quoted, stays a string)", "value: '1e3'", "1e3"],
+		["'010' (quoted, stays a string)", "value: '010'", "010"],
 	])("%s", (_description, snippet, expected) => {
-		expect(loadFrontmatterYaml(snippet)).toEqual({ value: expected });
+		expect(loadYaml(snippet)).toEqual({ value: expected });
 	});
 
-	//
-	// Dates and timestamps: compared as UTC instants, per the module
-	// docstring above.
-	//
+	it("a repeated key is an error", () => {
+		expect(() => loadYaml("a: 1\na: 2\n")).toThrow();
+	});
+});
+
+describe("loadFrontmatterYaml", () => {
+	it("drops a key with a null value", () => {
+		expect(loadFrontmatterYaml("title:\nid: q1\nauthor: ~\n")).toEqual({
+			id: "q1",
+		});
+	});
+
+	it("keeps a null value for the keys in keepNull", () => {
+		expect(loadFrontmatterYaml("title:\nid:\n", ["title"])).toEqual({
+			title: null,
+		});
+	});
+
+	it("gives an empty mapping for a document that is not a mapping", () => {
+		expect(loadFrontmatterYaml("")).toEqual({});
+		expect(loadFrontmatterYaml("- a\n- b\n")).toEqual({});
+		expect(loadFrontmatterYaml("just text\n")).toEqual({});
+	});
+
 	it.each([
-		["date only", "value: 2024-01-15", "2024-01-15T00:00:00.000Z"],
-		[
-			"timestamp, no offset",
-			"value: 2024-01-15T10:30:00",
-			"2024-01-15T10:30:00.000Z",
-		],
-		["timestamp, Z", "value: 2024-01-15T10:30:00Z", "2024-01-15T10:30:00.000Z"],
-		[
-			"timestamp, +02:00 offset",
-			"value: 2024-01-15T10:30:00+02:00",
-			"2024-01-15T08:30:00.000Z",
-		],
-	])("%s", (_description, snippet, isoInstant) => {
-		const result = loadFrontmatterYaml(snippet);
-		expect(result.value).toBeInstanceOf(Date);
-		expect((result.value as Date).toISOString()).toBe(isoInstant);
+		["a repeated key", "id: a\nid: b\n"],
+		["broken YAML", "id: [\n"],
+		["a repeated key in a nested mapping", "meta:\n  a: 1\n  a: 2\n"],
+	])("raises YamlSyntaxError for %s", (_label, text) => {
+		let error: unknown;
+		try {
+			loadFrontmatterYaml(text);
+		} catch (e) {
+			error = e;
+		}
+		expect(error).toBeInstanceOf(YamlSyntaxError);
+		expect((error as YamlSyntaxError).code).toBe("yaml-syntax-error");
+		expect((error as Error).message).toMatch(/^invalid YAML frontmatter: /);
 	});
 });
 
 //
 // Property: a JSON-safe value, dumped with `js-yaml`'s `forceQuotes` (every
 // string scalar quoted, so none of it is at the mercy of either loader's
-// implicit resolvers), round-trips through `loadFrontmatterYaml` unchanged.
-// Numbers and booleans are not strings, so `forceQuotes` leaves their plain
-// (unquoted) representation alone -- the property only relies on that
-// representation being one both loaders' int/float/bool resolvers agree on,
-// which the scalar table above pins down.
+// implicit resolvers), round-trips through `loadYaml` unchanged. Numbers
+// and booleans are not strings, so `forceQuotes` leaves their plain
+// representation alone -- the property only relies on that representation
+// being one the Core resolvers read back, which the scalar table above pins
+// down.
 //
 
 const jsonScalarArb = fc.oneof(
@@ -192,12 +172,12 @@ const jsonRecordArb = fc.dictionary(frontmatterKeyArb, jsonScalarArb, {
 	maxKeys: 6,
 });
 
-describe("loadFrontmatterYaml -- round-trip property", () => {
+describe("loadYaml -- round-trip property", () => {
 	it("recovers any JSON-safe record dumped with forced quoting", () => {
 		fc.assert(
 			fc.property(jsonRecordArb, (record) => {
 				const text = dump(record, { forceQuotes: true });
-				expect(loadFrontmatterYaml(text)).toEqual(record);
+				expect(loadYaml(text)).toEqual(record);
 			}),
 			{ numRuns: 200 },
 		);

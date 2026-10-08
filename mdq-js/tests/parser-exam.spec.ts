@@ -18,7 +18,7 @@
  * `_split_exam_blocks`, `_looks_like_frontmatter`, `_clean_block`.
  */
 
-import { MissingFieldError, ParseError } from "@mdq";
+import { MissingFieldError, ParseError, YamlSyntaxError } from "@mdq";
 import { describe, expect, it } from "vitest";
 import { parseExamDocument } from "../src/parser/index.js";
 
@@ -194,18 +194,22 @@ describe("batch 1: exam frontmatter", () => {
 		});
 	});
 
-	it("a key that is present with null is copied as null", () => {
+	it("a key that is present with null is absent (base.md, 'Frontmatter')", () => {
 		expect(
 			parseExamDocument(
-				"---\ncourse:\ndescription:\nlocale:\nmeta:\n---\n\n# Prova\n",
+				"---\ncourse:\ndescription:\nlocale:\nmeta:\ntags:\n---\n\n# Prova\n",
 			),
 		).toEqual({
 			type: "exam",
 			title: "Prova",
-			course: null,
-			description: null,
-			locale: null,
-			meta: null,
+			questions: [],
+		});
+	});
+
+	it("a null title is kept: it stands for the placeholder H1", () => {
+		expect(parseExamDocument("---\ntitle:\n---\n\n# Prova\n")).toEqual({
+			type: "exam",
+			title: null,
 			questions: [],
 		});
 	});
@@ -365,9 +369,41 @@ describe("batch 1: exam blocks", () => {
 		});
 	});
 
-	it.todo(
-		"line ends pending the spec decision (ws/grammar work): Python splitlines vs \\n, \\r\\n, \\r only",
-	);
+	it.each([
+		["CRLF", "\r\n"],
+		["CR", "\r"],
+	])("%s line ends parse like LF", (_label, eol) => {
+		const lines = [
+			"---",
+			"id: prova",
+			"---",
+			"",
+			"# Prova",
+			"",
+			"Leia com atenção.",
+			"",
+			"===",
+			"",
+			"---",
+			"id: q1",
+			"---",
+			"",
+			"Um.",
+			"",
+			"[essay]",
+			"",
+			"===",
+			"",
+			"Dois.",
+			"",
+			"* [*] A",
+			"* [ ] B",
+			"",
+		];
+		expect(parseExamDocument(lines.join(eol))).toEqual(
+			parseExamDocument(lines.join("\n")),
+		);
+	});
 
 	it("consecutive === blocks", () => {
 		expect(
@@ -504,7 +540,7 @@ describe("batch 1: exam blocks", () => {
 					preamble:
 						"Some background text.\n\n---\n\nMore background, after a thematic break.",
 					stem: "What is 2 + 2?",
-					oneOf: ["4"],
+					accept: ["4"],
 					type: "short-answer",
 				},
 				{
@@ -573,7 +609,6 @@ describe("batch 1: exam blocks", () => {
 					choices: [
 						{
 							text: "Lisboa",
-							score: 0,
 						},
 						{
 							text: "Brasília",
@@ -644,9 +679,33 @@ describe("batch 1: exam blocks", () => {
 		});
 	});
 
-	it.todo(
-		"duplicate YAML keys will become an error (dev/issues/yaml-duplicate-keys.md)",
-	);
+	it.each([
+		["the exam frontmatter", "---\nid: a\nid: b\n---\n\n# Prova\n"],
+		[
+			"a question block",
+			"# Prova\n\n===\n\n---\nid: a\nid: b\n---\n\nQ\n\n[essay]\n",
+		],
+		["an include block", "# Prova\n\n---\ninclude: a\ninclude: b\n---\n"],
+	])("a repeated YAML key in %s is a yaml-syntax-error", (_label, source) => {
+		let error: unknown;
+		try {
+			parseExamDocument(source);
+		} catch (e) {
+			error = e;
+		}
+		expect(error).toBeInstanceOf(YamlSyntaxError);
+		expect((error as YamlSyntaxError).code).toBe("yaml-syntax-error");
+	});
+
+	it("a block with a repeated key still counts as a block", () => {
+		// The splitter does not read the YAML: a `---` pair in block position
+		// is a block, and the loader reports the repeated key.
+		expect(() =>
+			parseExamDocument(
+				"# Prova\n\n===\n\nQ\n\n[essay]\n\n---\nid: a\nid: b\n---\n\nR\n\n[essay]\n",
+			),
+		).toThrow(YamlSyntaxError);
+	});
 
 	it("a non-mapping between two --- is not a fence (preamble stays)", () => {
 		expect(
@@ -798,13 +857,32 @@ describe("batch 1: exam blocks", () => {
 		);
 	});
 
-	it("a --- with a non-mapping enclosure after the body", () => {
+	it("a --- pair after the body is a block even when its text is not a mapping", () => {
+		// exam.md, "Questions": a `---` pair in block position opens a block
+		// whatever it encloses. A scalar is not a mapping, so the block has
+		// no frontmatter and, with no body either, no stem.
 		const source =
 			"# Exam\n\n===\n\nQual?\n\n[essay]\n\n---\n\ntexto solto\n\n---\n";
-		expect(() => parseExamDocument(source)).toThrow(ParseError);
-		expect(() => parseExamDocument(source)).toThrow(
-			"line 8: a question's epilogue cannot use '---' as a thematic break inside an exam; use '***' or '___'",
-		);
+		let error: unknown;
+		try {
+			parseExamDocument(source);
+		} catch (e) {
+			error = e;
+		}
+		expect(error).toBeInstanceOf(MissingFieldError);
+		expect((error as MissingFieldError).field).toBe("stem");
+	});
+
+	it("a --- pair after the body with broken YAML is a yaml-syntax-error", () => {
+		const source = "# Exam\n\n===\n\nQual?\n\n[essay]\n\n---\nid: [\n---\n";
+		let error: unknown;
+		try {
+			parseExamDocument(source);
+		} catch (e) {
+			error = e;
+		}
+		expect(error).toBeInstanceOf(YamlSyntaxError);
+		expect((error as YamlSyntaxError).code).toBe("yaml-syntax-error");
 	});
 
 	it("a body then a bare --- at the end of the text", () => {

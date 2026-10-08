@@ -16,21 +16,34 @@ and neither can quietly fall behind the other.
 | -------------------- | -------------------------------------------------------- |
 | `examples/valid/`    | Documents that must validate, by question type           |
 | `examples/valid/exam/` | Exams, plus the question bank an exam `include`s        |
-| `examples/invalid/`  | Documents that the schema must reject, one violation each |
+| `examples/invalid/`  | Documents that `load` must reject, one violation each    |
 | `examples/invalid/model-only/` | Documents that pass the schema but break a model rule |
-| `examples/grading/`  | Responses and the scores they must produce               |
+| `examples/invalid/syntax/` | YAML/JSON that is not a document at all (broken, repeated key, not a mapping); outside the schema suites |
+| `examples/grading/`  | Responses and the scores they must produce, one file per question type |
 
-Three file shapes appear under `valid/`:
+Four file shapes appear under `valid/`:
 
 * `<name>.mdq.md` -- the surface syntax, what an author writes.
 * `<name>.yaml` -- the document a conforming parser must produce from it.
-* `<name>.lint.json` -- the warnings and infos the linter must report for
-  the document, as a list of `{code, severity, path}`. A missing file means
-  no diagnostic. Python writes these files with its lint snapshot script
-  (see `mdq-py/AGENTS.md`); do not edit them by hand.
+* `<name>.lint.json` -- every diagnostic `load` must report for the
+  document, as a list of `{code, severity, path}`. Every valid example has
+  one; a clean document pins `[]`. The `.mdq.md` and the `.yaml` of a pair
+  share it, and the `.yaml` side ignores the codes only the Markdown
+  parser produces (`PARSER_ONLY_CODES` in `mdq-py/tests/_corpus.py`).
+  Python writes these files with its lint snapshot script (see
+  `mdq-py/AGENTS.md`); do not edit them by hand.
+* `exam/<name>.resolved.yaml` -- for an exam with `include`/`include-all`:
+  the ids of its questions after resolution against `examples/valid/exam/`
+  and `with_ids`, and the diagnostics of the resolution. Not a document;
+  `collectFiles` leaves it out.
 
 The pair is the specification of the parse. A `.mdq.md` with no `.yaml`
 sibling is an incomplete example and both suites fail on it.
+
+Under `invalid/`, a `.mdq.md` has a `.lint.json` with every diagnostic of
+`load`, errors included, and its `.yaml` sibling (when present) must report
+the same ones. A `.yaml`/`.json` with no `.mdq.md` sibling has its own
+`.lint.json`.
 
 Because the paths resolve relative to the repo root, they mean nothing in an
 installed package. Each side keeps the path logic in one development-only
@@ -43,18 +56,25 @@ The corpus is consumed at three levels, and an implementation picks up each
 one as it grows the machinery to run it:
 
 1. **Schema.** Every document under `valid/` validates; every document under
-   `invalid/` is rejected. Python checks `model-only/` in the models, while
-   TypeScript checks it with Zod refinements, so there `validateDocument`
-   rejects it too. This needs no parser, so it is the
+   `invalid/` (outside `syntax/`) is rejected. Python checks `model-only/`
+   in the models, while TypeScript checks it with Zod refinements, so there
+   `validateDocument` rejects it too. This needs no parser, so it is the
    first thing a port can run -- it is what pins the TypeScript Zod schemas to
    the JSON Schemas in `schema/` that Python validates with.
-2. **Parsing.** Each `<name>.mdq.md` parses into exactly its `<name>.yaml`.
-   This is the real parity test: the two parsers are separate code that must
-   agree, character for character, on the same input.
+2. **Parsing.** Each `<name>.mdq.md` under `valid/` parses into exactly its
+   `<name>.yaml` (`tests/parser.spec.ts`). This is the real parity test:
+   the two parsers are separate code that must agree, character for
+   character, on the same input. Each `.mdq.md` under `invalid/` is
+   rejected with an error code its `.lint.json` pins
+   (`tests/invalid-sources.spec.ts`): a parser code must come from
+   `parseDocument`, `schema-error` from `validateDocument`, and a code of a
+   layer not ported yet is listed in `LOAD_CODES` of `not-ported.ts`.
 3. **Linting.** Each document produces exactly the diagnostics in its
-   `.lint.json`.
-4. **Grading.** The response/score pairs in `examples/grading/` produce the
-   expected score under each implementation's own scorer.
+   `.lint.json` (F6).
+4. **Resolution.** Each exam with includes resolves to its
+   `.resolved.yaml` (F4.1).
+5. **Grading.** The response/score pairs in `examples/grading/` produce the
+   expected score under each implementation's own scorer (F7).
 
 A divergence at any layer is resolved in favour of Python, which
 [README.md](README.md) names the reference implementation.

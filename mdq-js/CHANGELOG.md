@@ -19,8 +19,8 @@ Implements part of the unreleased MDQ specification.
   `parseQuestionDocument`), including an essay's optional
   `## [answer-key]` epilogue section, a numeric body's
   `sign? value abstol? reltol?` expression grammar
-  (`parseNumericExpression`), and a short-answer body's `oneOf`/`regex`
-  value, `[short-answer/accept]`/`[short-answer/reject]` pattern blocks and
+  (`parseNumericExpression`), and a short-answer body's `[short-answer]`,
+  `[short-answer/accept]` and `[short-answer/reject]` blocks and
   frontmatter pattern lists, raising `ConflictingAnswerKeyError` when a
   list is declared both ways. Ordering questions are parsed too, with
   their `## [extra]`, `## [accept]` and `## [reject]` sections and the
@@ -28,7 +28,19 @@ Implements part of the unreleased MDQ specification.
   from their `[^id]:` definitions (choice list, numeric, short answer and
   its accept/reject lists), and the definitions of one blank merge. The
   parser keeps only the choice ids that the source declares, and reads the
-  frontmatter as YAML 1.1, like mdq-py.
+  frontmatter with the YAML 1.2 Core schema, like mdq-py.
+- Parser for exams (`parseExam`, `parseExamDocument`): the H1 title, the
+  instructions, `===` and `---` question blocks, `include` and
+  `include-all` entries, `locale`/`author` inheritance, and the canonical
+  `start` and `duration` (`canonicalStart`, `canonicalDuration`).
+  `parseDocument` tells an exam from a question (`isExam`) and parses it.
+- `Diagnostic` and the parser warnings: `parseDocument`,
+  `parseQuestionDocument` and `parseExamDocument` take a list to append
+  `unknown-frontmatter-key`, `detached-answer-list`, `setext-heading` and
+  `separator-before-include` to.
+- `ParseError.code` and `ParseError.path`, with `YamlSyntaxError`
+  (`yaml-syntax-error`), `ForeignChoiceMarkerError`
+  (`foreign-choice-marker`) and `UndefinedBlankError` (`undefined-blank`).
 - Zod schemas and validators for questions and exams.
 - Types for student responses.
 
@@ -59,6 +71,45 @@ Implements part of the unreleased MDQ specification.
   form of the value. A relative tolerance does not change the domain.
 - Parse error messages quote the source text as mdq-py does (Python
   `repr`), so both implementations give the same message.
+- The spec audit (mdq-spec `844dc01` and before):
+  - A short-answer body always gives `accept`; `oneOf`, `regex` and
+    `openEnded` are gone from the schema and the parser. A pattern on the
+    tag line is the one `accept` entry (`/re/` keeps its delimiters), and
+    the two accept spellings count as one block, declared at most once.
+    `unmatched` and `incorrectFeedback` are short-answer and fill-in
+    fields.
+  - A blank `[ ]` multiple-choice marker omits `score`; `correct` is
+    required in multiple-selection and true-false, so `[ ]` writes
+    `correct: false`. A marker outside the type's grammar is a
+    `ForeignChoiceMarkerError`, not an unmarked choice.
+  - `grading` and `shuffle` of a question accept `inherit`; an exam has
+    `shuffle`.
+  - The frontmatter follows the YAML 1.2 Core schema: `yes`, `no`,
+    `2026-03-10` and `1:30` are strings, `010` is 10, `0o10` is 8. A null
+    field is absent (an exam's null `title` is kept). A repeated key is a
+    `YamlSyntaxError`.
+  - An ATX heading keeps its `#` markers in `preamble`, `stem`, `epilogue`
+    and `answerKey`. A `[text](url)` or `[text][ref]` link is never a slug
+    or a choice id. A lone `#` in the frontmatter is `comment: ""`. A
+    second `## [answer-key]` is a parse error.
+  - A numeric question with `domain: decimal`, declared or inferred,
+    carries `decimalPlaces`: the places written in the value and in the
+    absolute tolerance, whichever is larger. A tolerance kind written twice
+    is a parse error.
+  - Fill-in `preAccept`/`preReject` map blank ids to pattern lists; a key
+    that is not a blank is an `UndefinedBlankError`. A choice blank's list
+    must start on the line after its tag. A numeric blank infers
+    `decimalPlaces` like a numeric question.
+  - Ordering observations (`>` feedback, `!` comment) are read from the raw
+    lines: adjacent blocks with different prefixes are separate, repeated
+    or interleaved prefixes are a parse error. An ordering `ul` item is one
+    line. A block between the content and a section is a parse error.
+  - An exam is an exam only when its first non-blank line after the
+    frontmatter is the H1. A `---` pair in block position opens a block
+    even when its YAML is broken. A blank `answerKey` passes the schema.
+  - `tags` must be unique; `weight` must be a number; a true-false marker
+    is one code point, also outside the BMP; `patternString` requires a
+    complete backtick span.
 
 ### Fixed
 
@@ -68,7 +119,5 @@ Implements part of the unreleased MDQ specification.
   reconstructed text. Only spaces and tabs count as blank, as in
   CommonMark.
 
-- A bare `[short-answer]:` block now only defaults to `openEnded: true`
-  after its trailing `[short-answer/accept]`/`[short-answer/reject]`
-  blocks are read, and only when none of `oneOf`, `regex`, `accept`,
-  `reject` or `openEnded` is present anywhere.
+- An `[essay]` tag followed by `## [answer-key]` with no blank line in
+  between is still an answer key.

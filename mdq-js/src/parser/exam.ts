@@ -7,8 +7,9 @@
  * frontmatter writes. `resolveExam` in `src/banks.ts` replaces them.
  */
 
-import { load } from "js-yaml";
+import { type Diagnostic, diagnostic, prefixPath } from "../diagnostics.js";
 import { MissingFieldError, ParseError } from "../errors.js";
+import { canonicalDuration, canonicalStart } from "../schedule.js";
 import type { Exam } from "../schema/exam.js";
 import { validateExam } from "../validate.js";
 import { BRACKET_ITEM_RE, SLUG_PREFIX_RE } from "./choices.js";
@@ -16,6 +17,7 @@ import {
 	loadFrontmatterYaml,
 	normalizeTags,
 	splitFrontmatter,
+	unknownFrontmatterWarnings,
 } from "./frontmatter.js";
 import { md } from "./markdown.js";
 import {
@@ -57,20 +59,36 @@ const EXAM_PASSTHROUGH_KEYS = [
 	"meta",
 	"penalty",
 	"grading",
+	"shuffle",
 ] as const;
+
+/**
+ * Every frontmatter key an exam accepts. `type` has no effect of its own --
+ * an exam is recognized by its H1 title, not by declaring `type: exam`
+ * (docs/exam.md) -- but is accepted, not flagged as a mistake.
+ */
+const EXAM_FRONTMATTER_KEYS: ReadonlySet<string> = new Set([
+	...EXAM_PASSTHROUGH_KEYS,
+	"tags",
+	"start",
+	"duration",
+	"type",
+]);
 
 /**
  * Whether the source is an exam rather than a single question.
  *
- * An exam is recognized by its H1 title, which a question document can
- * never carry -- a question's own title is an H2. A line inside a code block
- * is literal text and never counts.
+ * An exam is recognized by its H1 title, which starts the document or
+ * follows the frontmatter (exam.md, "The title"). An H1 anywhere else does
+ * not make an exam: it is one of the block elements a question's preamble
+ * rejects (base.md, "Forbidden elements").
  */
 export function isExam(source: string): boolean {
 	const [, body] = splitFrontmatter(source);
-	const lines = splitLines(body);
-	const codeLines = codeLineIndices(lines);
-	return lines.some((line, i) => !codeLines.has(i) && H1_RE.test(line));
+	for (const line of splitLines(body)) {
+		if (strip(line, " \t")) return H1_RE.test(line);
+	}
+	return false;
 }
 
 /**
@@ -97,19 +115,33 @@ export function codeLineIndices(lines: readonly string[]): Set<number> {
  * frontmatter. An inline question block is parsed with
  * `parseQuestionDocument` and takes `locale` and `author` from the exam.
  * A block with no declared `id` gets none. Lines inside a fenced or indented
- * code block are never structure (title, `===`, `---`, body tag).
+ * code block are never structure (title, `===`, `---`, body tag). A `start`
+ * or `duration` that does not parse is kept as written, for the model to
+ * report (`malformed-start`, `invalid-duration`).
  *
+ * @param warnings When given, an `unknown-frontmatter-key` diagnostic is
+ *   appended for every frontmatter key the parser does not consume -- at
+ *   the exam's own top level (`[key]`) and inside each question block
+ *   (`["questions", i, key]`) -- with the layout warnings the parser finds
+ *   (`setext-heading`, `separator-before-include`, and those of each
+ *   question). Parsing never fails because of them.
  * @throws {MissingFieldError} If no line outside a code block is an H1
  *   (`field` is `"title"`).
- * @throws {ParseError} If `start` or `duration` in the frontmatter is not
- *   valid (`exam start: ...`, `exam duration: ...`), if a question's
- *   epilogue uses `---` as a thematic break, or if a question block is not
- *   valid MDQ.
+ * @throws {ParseError} If a question's epilogue uses `---` as a thematic
+ *   break, or if a question block is not valid MDQ.
  */
-export function parseExamDocument(source: string): RawDocument {
+export function parseExamDocument(
+	source: string,
+	warnings?: Diagnostic[],
+): RawDocument {
 	const [frontmatterText, body] = splitFrontmatter(source);
+	// A null `title` is kept: the renderer writes it to keep a placeholder
+	// H1 out of the model.
 	const front =
-		frontmatterText === null ? {} : loadFrontmatterYaml(frontmatterText);
+		frontmatterText === null
+			? {}
+			: loadFrontmatterYaml(frontmatterText, ["title"]);
+	warnings?.push(...unknownFrontmatterWarnings(front, EXAM_FRONTMATTER_KEYS));
 
 	const doc: RawDocument = { type: "exam" };
 
@@ -145,17 +177,59 @@ export function parseExamDocument(source: string): RawDocument {
 			doc[key] = front[key];
 		}
 	}
-	if (Object.hasOwn(front, "tags")) {
+	// A null `tags` is absent, as in a question.
+	if (Object.hasOwn(front, "tags") && front.tags !== null) {
 		doc.tags = normalizeTags(front.tags);
 	}
+	if (Object.hasOwn(front, "start")) {
+		doc.start = canonicalOrAsWritten(canonicalStart, front.start);
+	}
+	if (Object.hasOwn(front, "duration")) {
+		doc.duration = canonicalOrAsWritten(canonicalDuration, front.duration);
+	}
 
-	const [instructions, blocks] = splitExamBlocks(lines.slice(titleIndex + 1));
+	const [instructions, blocks, glued] = splitExamBlocks(
+		lines.slice(titleIndex + 1),
+	);
 	if (instructions !== undefined) {
 		doc.instructions = instructions;
 	}
+	if (warnings !== undefined) {
+		for (const [blockIndex, field] of glued) {
+			warnings.push(
+				diagnostic(
+					"warning",
+					"setext-heading",
+					"a '---' line right after text is a setext heading, not a " +
+						"block boundary; put a blank line before the '---' that " +
+						"opens a block",
+					["questions", blockIndex, field],
+				),
+			);
+		}
+	}
 
-	doc.questions = blocks.map((block) => parseExamBlock(block, doc));
+	doc.questions = blocks.map((block, index) =>
+		parseExamBlock(block, doc, index, warnings),
+	);
 	return doc;
+}
+
+/**
+ * The canonical form of a schedule field, or the value as written when it
+ * does not parse: the model reports it (`malformed-start`,
+ * `invalid-duration`).
+ */
+function canonicalOrAsWritten(
+	canonical: (value: unknown) => string,
+	value: unknown,
+): unknown {
+	try {
+		return canonical(value);
+	} catch (error) {
+		if (error instanceof RangeError) return value;
+		throw error;
+	}
 }
 
 /**
@@ -177,8 +251,14 @@ export function parseExam(source: string): Exam {
 }
 
 /**
- * Split the text below the title into the instructions and the question
- * blocks. A port of `_split_exam_blocks`.
+ * Split the text below the title into the instructions, the question
+ * blocks and the glued fences. A port of `_split_exam_blocks`.
+ *
+ * The third item maps a block index to the field (`preamble` or
+ * `epilogue`) in which a `---` line sits right after a text line. Such a
+ * line is a setext heading underline in CommonMark, not a fence (exam.md,
+ * "Questions"), so the block it meant to open was swallowed;
+ * `parseExamDocument` reports it as a `setext-heading` warning.
  *
  * A block starts at a `===` separator, always, or at a bare `---` fence. A
  * bare `---` opens a new block only when its position allows it:
@@ -197,8 +277,9 @@ export function parseExam(source: string): Exam {
  */
 function splitExamBlocks(
 	lines: readonly string[],
-): [string | undefined, string[][]] {
+): [string | undefined, string[][], Map<number, string>] {
 	const starts: number[] = [];
+	const glued: [number, string][] = [];
 	const codeLines = codeLineIndices(lines);
 	let index = 0;
 	// Position right after the last accepted block boundary.
@@ -234,6 +315,14 @@ function splitExamBlocks(
 			continue;
 		}
 
+		if (
+			line === "---" &&
+			!blankBefore &&
+			strip(lines[index - 1] ?? "", " \t") !== ""
+		) {
+			glued.push([index, bodySeen ? "epilogue" : "preamble"]);
+		}
+
 		if (line === "---" && blankBefore) {
 			const adjacent = lines
 				.slice(boundary, index)
@@ -242,15 +331,12 @@ function splitExamBlocks(
 			const isNewStart =
 				!isOwnFrontmatter && (starts.length === 0 || adjacent || bodySeen);
 			if (isOwnFrontmatter || isNewStart) {
-				// Position allows a fence. Its text must also load as a YAML
-				// mapping (or nothing) before the parser commits to it.
+				// Position allows a fence: the next `---` outside a code block
+				// closes it, whatever the text between them (a block with
+				// broken YAML is still a block; the loader reports it).
 				let closing: number | undefined;
 				for (let j = index + 1; j < lines.length; j++) {
-					if (
-						!codeLines.has(j) &&
-						rstrip(lines[j] ?? "", " \t") === "---" &&
-						looksLikeFrontmatter(lines.slice(index + 1, j))
-					) {
+					if (!codeLines.has(j) && rstrip(lines[j] ?? "", " \t") === "---") {
 						closing = j;
 						break;
 					}
@@ -276,32 +362,25 @@ function splitExamBlocks(
 
 	const first = starts[0];
 	if (first === undefined) {
-		return [cleanBlock(lines.join("\n")), []];
+		return [cleanBlock(lines.join("\n")), [], new Map()];
 	}
 	const instructions = cleanBlock(lines.slice(0, first).join("\n"));
 	const bounds = [...starts, lines.length];
 	const blocks = starts.map((start, i) =>
 		lines.slice(start, bounds[i + 1] ?? lines.length),
 	);
-	return [instructions, blocks];
-}
-
-/**
- * Whether the lines between a candidate `---` pair load as a YAML mapping,
- * or as nothing (an empty frontmatter block). Any YAML error means no.
- */
-function looksLikeFrontmatter(lines: readonly string[]): boolean {
-	let loaded: unknown;
-	try {
-		loaded = load(lines.join("\n"));
-	} catch {
-		return false;
+	const gluedByBlock = new Map<number, string>();
+	for (const [lineIndex, field] of glued) {
+		for (let blockIndex = 0; blockIndex < starts.length; blockIndex++) {
+			const lower = bounds[blockIndex] ?? 0;
+			const upper = bounds[blockIndex + 1] ?? lines.length;
+			if (lower <= lineIndex && lineIndex < upper) {
+				if (!gluedByBlock.has(blockIndex)) gluedByBlock.set(blockIndex, field);
+				break;
+			}
+		}
 	}
-	return (
-		loaded === undefined ||
-		loaded === null ||
-		(typeof loaded === "object" && !Array.isArray(loaded))
-	);
+	return [instructions, blocks, gluedByBlock];
 }
 
 /** The stripped text, or `undefined` when it is empty. */
@@ -314,27 +393,55 @@ function cleanBlock(text: string): string | undefined {
  * Turn one block into an entry of `questions`. A block whose frontmatter has
  * `include-all` (checked first) or `include` is that mapping with the value
  * as a string. Any other block is a question that takes the exam's
- * `locale` and `author` when it has none.
+ * `locale` and `author` when it has none. `index` is the block's 0-based
+ * position, which prefixes the path of its warnings as `["questions",
+ * index, ...]`.
  */
 function parseExamBlock(
 	block: readonly string[],
 	exam: RawDocument,
+	index: number,
+	warnings?: Diagnostic[],
 ): RawDocument {
 	// Drop a leading `===`; what follows is ordinary question source.
 	let lines = block;
-	if (lines.length > 0 && rstrip(lines[0] ?? "", " \t") === SEPARATOR) {
+	const hasSeparator =
+		lines.length > 0 && rstrip(lines[0] ?? "", " \t") === SEPARATOR;
+	if (hasSeparator) {
 		lines = lines.slice(1);
 	}
 	const source = stripNewlines(lines.join("\n"));
 	const [frontmatterText] = splitFrontmatter(`${source}\n`);
 	const front = frontmatterText ? loadFrontmatterYaml(frontmatterText) : {};
 
-	// An include entry keeps its values unconverted; the schema checks them.
-	if (Object.hasOwn(front, "include-all") || Object.hasOwn(front, "include")) {
+	const isInclude =
+		Object.hasOwn(front, "include-all") || Object.hasOwn(front, "include");
+	if (hasSeparator && isInclude) {
+		warnings?.push(
+			diagnostic(
+				"warning",
+				"separator-before-include",
+				"an include block needs no '===' separator before it",
+				["questions", index],
+			),
+		);
+	}
+
+	// An include entry keeps every key of its frontmatter, unconverted: an
+	// extra field is a model error (`unknown-include-field`), and the schema
+	// checks the value.
+	if (isInclude) {
 		return { ...front };
 	}
 
-	const question = parseQuestionDocument(source);
+	const blockWarnings: Diagnostic[] | undefined =
+		warnings === undefined ? undefined : [];
+	const question = parseQuestionDocument(source, blockWarnings);
+	if (warnings !== undefined && blockWarnings !== undefined) {
+		warnings.push(
+			...blockWarnings.map((w) => prefixPath(w, ["questions", index])),
+		);
+	}
 	for (const field of INHERITED_FIELDS) {
 		if (!Object.hasOwn(question, field) && Object.hasOwn(exam, field)) {
 			question[field] = exam[field];

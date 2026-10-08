@@ -18,14 +18,7 @@ import { it } from "vitest";
 type Manifest = Record<string, string>;
 
 /** `.mdq.md` sources that do not parse into their `.yaml` sibling. */
-export const PARSE: Manifest = {
-	"exam.include-all.mdq.md": "exam parser not ported",
-	"exam.midterm.mdq.md": "exam parser not ported",
-	"exam.penalty-policy.mdq.md": "exam parser not ported",
-	"exam.scheduled.mdq.md": "exam parser not ported",
-	"exam.take-home.mdq.md": "exam parser not ported",
-	"exam.thematic-break-in-question.mdq.md": "exam parser not ported",
-};
+export const PARSE: Manifest = {};
 
 /** `valid/` documents that the Zod schemas reject. */
 export const SCHEMA: Manifest = {};
@@ -33,6 +26,31 @@ export const SCHEMA: Manifest = {};
 /** `invalid/model-only/` documents that `validateDocument` accepts. */
 export const MODEL_RULES: Manifest = {
 	"model-only.": "model rules not ported to Zod refinements",
+};
+
+/**
+ * Error codes of `examples/invalid/*.lint.json` that no ported layer
+ * produces yet. An invalid source whose expected errors include one of
+ * these runs as an expected failure in `tests/invalid-sources.spec.ts`;
+ * remove a code in the cycle that ports its check (F5: model rules, F6:
+ * lint errors).
+ */
+export const LOAD_CODES: Manifest = {
+	"duplicate-question-id": "model rule (F5)",
+	"forbidden-block-element": "model rule (F5)",
+	"invalid-regex": "model rule (F5)",
+	"malformed-start": "model rule (F5)",
+	"misplaced-blank": "model rule (F5)",
+	"unreferenced-blank": "model rule (F5)",
+};
+
+/**
+ * `invalid/*.mdq.md` sources that parse and pass the schema although their
+ * `.lint.json` pins an error the parser reports in other documents.
+ */
+export const LOAD: Manifest = {
+	"fill-in-undefined-blank.mdq.md":
+		"undefined-blank from a stem marker: model rule (F5)",
 };
 
 /** The reason `name` is not ported, or `undefined` if it is. */

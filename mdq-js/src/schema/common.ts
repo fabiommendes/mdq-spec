@@ -36,8 +36,14 @@ export const UNIT_PATTERN = new RegExp(`^[^()\\[\\]${UNICODE_SPACE}]+$`, "u");
 export const NUMERIC_STRING_ANSWER_PATTERN =
 	/^[+-]?(?:(?:0|[1-9][0-9]*)\/[1-9][0-9]*|(?:0|[1-9][0-9]*)\.[0-9]+|0|[1-9][0-9]*)$/;
 
-/** At least one non-space character, the `pattern: "\\S"` the schemas use. */
-export const NON_BLANK_PATTERN = /\S/;
+/**
+ * `schema/short-answer.yaml#/$defs/patternString`: a backtick literal is one
+ * complete span (`\`text\``, trailing blanks allowed), and any other pattern
+ * must not open with a backtick once leading whitespace is skipped. A
+ * pattern of only whitespace never matches.
+ */
+export const PATTERN_STRING_PATTERN =
+	/^(?:`[^`\n]+`[ \t]*|[^`\s][\s\S]*|\s+[^`\s][\s\S]*)$/u;
 
 export const Slug = z.string().regex(SLUG_PATTERN);
 
@@ -109,10 +115,27 @@ export function uniqueArray<Item extends z.ZodType>(item: Item) {
 
 /**
  * How a partially correct answer is scored. See the `Grading` section of the
- * matching document in `docs/question-types`.
+ * matching document in `docs/question-types`. This is the strategy itself,
+ * `schema/exam.yaml#/$defs/GradingStrategy`; a question may also write
+ * `inherit` (`QuestionGrading`).
  */
 export const GradingType = z.enum(["partial", "all-or-nothing", "symmetric"]);
 export type GradingType = z.infer<typeof GradingType>;
+
+/**
+ * The `grading` of a question: a strategy of its own, or `inherit` (the
+ * default) to take the exam's. Mirrors `mdq.types.QuestionGrading`.
+ */
+export const QuestionGrading = z.enum([...GradingType.options, "inherit"]);
+export type QuestionGrading = z.infer<typeof QuestionGrading>;
+
+/**
+ * The `shuffle` of a question: a value of its own, or `inherit` (the
+ * default) to take the exam's, which is false outside an exam. Mirrors
+ * `mdq.types.QuestionShuffle`.
+ */
+export const QuestionShuffle = z.union([z.boolean(), z.literal("inherit")]);
+export type QuestionShuffle = z.infer<typeof QuestionShuffle>;
 
 /** The question types an exam may assign a default grading strategy to. */
 export const GradedQuestionType = z.enum([
@@ -142,7 +165,11 @@ export type OrderingContent = z.infer<typeof OrderingContent>;
 export const Indentation = z.enum(["fixed", "lenient", "strict"]);
 export type Indentation = z.infer<typeof Indentation>;
 
-/** `schema/ordering.yaml` -- what becomes of a response no answer key matches. */
+/**
+ * What becomes of a response no answer key matches -- `schema/ordering.yaml`
+ * and `schema/short-answer.yaml#/$defs/unmatched`. `incorrect` scores it 0;
+ * `manual` leaves it pending for the instructor.
+ */
 export const Unmatched = z.enum(["manual", "incorrect"]);
 export type Unmatched = z.infer<typeof Unmatched>;
 
@@ -205,11 +232,15 @@ export const ScoredChoice = z.strictObject({
 });
 export type ScoredChoice = z.infer<typeof ScoredChoice>;
 
-/** A multiple-selection option -- `schema/multiple-selection.yaml#/$defs/Choice`. */
+/**
+ * A multiple-selection option -- `schema/multiple-selection.yaml#/$defs/Choice`.
+ * `correct` is required: every choice states its verdict, unlike
+ * multiple-choice where a blank `[ ]` omits `score`.
+ */
 export const BooleanChoice = z.strictObject({
 	id: Slug.optional(),
 	text: z.string().min(1),
-	correct: z.boolean().optional(),
+	correct: z.boolean(),
 	feedback: z.string().optional(),
 	comment: z.string().optional(),
 });
@@ -220,14 +251,15 @@ export type BooleanChoice = z.infer<typeof BooleanChoice>;
  *
  * `marker` keeps the letter written between the brackets verbatim: `correct`
  * carries the meaning, but the letter is what lets the linter warn about
- * provisional spellings and locale mismatches, and what round-trips the
- * document unchanged.
+ * unlisted spellings and locale mismatches, and what round-trips the
+ * document unchanged. The marker is one code point, which JSON Schema counts
+ * as length 1 even outside the BMP, where a UTF-16 `length` would be 2.
  */
 export const Statement = z.strictObject({
 	id: Slug.optional(),
 	text: z.string().min(1),
-	correct: z.boolean().optional(),
-	marker: z.string().min(1).max(1).optional(),
+	correct: z.boolean(),
+	marker: z.string().regex(/^.$/su).optional(),
 	feedback: z.string().optional(),
 	comment: z.string().optional(),
 });
@@ -248,10 +280,9 @@ export type Tolerance = z.infer<typeof Tolerance>;
  * One answer pattern -- `schema/short-answer.yaml#/$defs/patternString`.
  *
  * A regular expression when delimited by `/`, an exact literal when enclosed
- * in backticks, and a plain literal compared inexactly otherwise; a lone `*`
- * is a wildcard matching every response.
+ * in backticks, and a plain literal compared inexactly otherwise.
  */
-export const PatternString = z.string().min(1).regex(NON_BLANK_PATTERN);
+export const PatternString = z.string().min(1).regex(PATTERN_STRING_PATTERN);
 
 /** The object form of a pattern -- `schema/short-answer.yaml#/$defs/pattern`. */
 export const Pattern = z.strictObject({
@@ -271,13 +302,11 @@ export type PatternList = z.infer<typeof PatternList>;
 
 /**
  * The answer machinery a short-answer question and a short-answer blank share
- * -- `oneOf`/`regex` for the key, `accept`/`reject` for graded patterns that
- * can carry feedback, and `preAccept`/`preReject` for pre-submission
- * validation that never touches a score.
+ * -- `accept`/`reject` for graded patterns that can carry feedback, and
+ * `preAccept`/`preReject` for pre-submission validation that never touches
+ * a score.
  */
 export const shortAnswerKeyShape = {
-	oneOf: uniqueArray(PatternString).min(1).optional(),
-	regex: z.string().min(1).optional(),
 	accept: PatternList.optional(),
 	reject: PatternList.optional(),
 	preAccept: PatternList.optional(),

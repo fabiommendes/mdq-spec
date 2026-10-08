@@ -91,6 +91,7 @@ export const Exam = z.strictObject({
 	tags: uniqueArray(z.string()).optional(),
 	meta: z.record(z.string(), z.unknown()).optional(),
 	grading: ExamGradingType.optional(),
+	shuffle: z.boolean().optional(),
 	penalty: PenaltyPolicy.optional(),
 	start: z.string().regex(START_PATTERN).optional(),
 	duration: z.string().regex(DURATION_PATTERN).optional(),

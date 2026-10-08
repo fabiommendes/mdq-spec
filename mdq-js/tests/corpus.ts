@@ -26,12 +26,26 @@ export const INVALID_DIR = join(EXAMPLES_ROOT, "invalid");
  * (unique ids, regex that compiles, and so on).
  */
 export const INVALID_MODEL_ONLY_DIR = join(INVALID_DIR, "model-only");
+/**
+ * Invalid examples that are not documents at all: YAML or JSON that does
+ * not parse, repeats a key, or is not a mapping at the top level. Only
+ * `load` sees them (`yaml-syntax-error`, `json-syntax-error`,
+ * `invalid-document`); the schema tests leave them out.
+ */
+export const INVALID_SYNTAX_DIR = join(INVALID_DIR, "syntax");
 export const VALID_EXAMS_DIR = join(VALID_DIR, "exam");
 
 const DOCUMENT_SUFFIXES = [".yaml", ".yml", ".json"];
 
 /** Expected lint diagnostics, stored next to the documents they describe. */
 export const LINT_SUFFIX = ".lint.json";
+
+/**
+ * The expected resolution of an exam with `include`/`include-all`: the ids
+ * of its questions after `resolve` against `examples/valid/exam/`, and the
+ * diagnostics `resolve` reports. Not a document.
+ */
+export const RESOLVED_SUFFIX = ".resolved.yaml";
 
 /**
  * Surface-syntax questions. A question and an exam share this extension and
@@ -57,7 +71,8 @@ export function collectFiles(root: string): string[] {
 	return walk(root).filter(
 		(path) =>
 			DOCUMENT_SUFFIXES.some((suffix) => path.toLowerCase().endsWith(suffix)) &&
-			!path.endsWith(LINT_SUFFIX),
+			!path.endsWith(LINT_SUFFIX) &&
+			!path.endsWith(RESOLVED_SUFFIX),
 	);
 }
 
@@ -96,8 +111,12 @@ export function loadDocument(path: string): unknown {
 export const VALID_PARSED = collectFiles(VALID_DIR);
 /** Documents the schema itself must reject. */
 export const INVALID_PARSED = collectFiles(INVALID_DIR).filter(
-	(path) => !path.startsWith(INVALID_MODEL_ONLY_DIR + sep),
+	(path) =>
+		!path.startsWith(INVALID_MODEL_ONLY_DIR + sep) &&
+		!path.startsWith(INVALID_SYNTAX_DIR + sep),
 );
+/** Sources that are not documents; only `load` reports them. */
+export const INVALID_SYNTAX = collectFiles(INVALID_SYNTAX_DIR);
 /** Documents the schema accepts but the model rules must reject. */
 export const INVALID_MODEL_ONLY_PARSED = collectFiles(INVALID_MODEL_ONLY_DIR);
 export const VALID_SOURCES = collectSources(VALID_DIR);
@@ -107,3 +126,24 @@ export const VALID_EXAMS = VALID_PARSED.filter((path) =>
 export const VALID_QUESTIONS = VALID_PARSED.filter(
 	(path) => !path.startsWith(VALID_EXAMS_DIR + sep),
 );
+
+/**
+ * Surface-syntax documents `load` must reject. Each has a `.lint.json`
+ * listing every diagnostic `load` reports for it (errors included); a
+ * `.yaml` sibling, when present, must report the same ones.
+ */
+export const INVALID_SOURCES = collectSources(INVALID_DIR);
+
+/** One expected diagnostic of a `.lint.json` file. */
+export interface ExpectedDiagnostic {
+	readonly severity: "error" | "warning" | "info";
+	readonly code: string;
+	readonly path: readonly (string | number)[];
+}
+
+/** The diagnostics a `.lint.json` pins for a source or parsed document. */
+export function loadLintSibling(document: string): ExpectedDiagnostic[] {
+	return JSON.parse(
+		readFileSync(lintSibling(document), "utf-8"),
+	) as ExpectedDiagnostic[];
+}

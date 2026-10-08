@@ -23,6 +23,7 @@
 
 import { join } from "node:path";
 import {
+	ForeignChoiceMarkerError,
 	isExam,
 	MissingFieldError,
 	ParseError,
@@ -45,6 +46,7 @@ const CHARS: Record<string, string> = {
 type Expected =
 	| { ok: unknown }
 	| { error: "ParseError"; message: string }
+	| { error: "ForeignChoiceMarkerError"; message: string }
 	| { error: "MissingFieldError"; field: string };
 
 type Kind = "question" | "exam";
@@ -64,6 +66,11 @@ function expectOutcome(kind: Kind, source: string, expected: Expected): void {
 	if (expected.error === "MissingFieldError") {
 		expect(error).toBeInstanceOf(MissingFieldError);
 		expect((error as MissingFieldError).field).toBe(expected.field);
+		return;
+	}
+	if (expected.error === "ForeignChoiceMarkerError") {
+		expect(error).toBeInstanceOf(ForeignChoiceMarkerError);
+		expect((error as Error).message).toBe(expected.message);
 		return;
 	}
 	expect(error).toBeInstanceOf(ParseError);
@@ -174,7 +181,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				{
 					ok: {
 						stem: "Qual a capital do Brasil?",
-						oneOf: ["\u00a0Brasília"],
+						accept: ["\u00a0Brasília"],
 						type: "short-answer",
 					},
 				},
@@ -184,7 +191,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				{
 					ok: {
 						stem: "Qual a capital do Brasil?",
-						oneOf: ["\u3000Brasília"],
+						accept: ["\u3000Brasília"],
 						type: "short-answer",
 					},
 				},
@@ -194,7 +201,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				{
 					ok: {
 						stem: "Qual a capital do Brasil?",
-						oneOf: ["\u2028Brasília"],
+						accept: ["\u2028Brasília"],
 						type: "short-answer",
 					},
 				},
@@ -204,7 +211,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				{
 					ok: {
 						stem: "Qual a capital do Brasil?",
-						oneOf: ["\u0085Brasília"],
+						accept: ["\u0085Brasília"],
 						type: "short-answer",
 					},
 				},
@@ -214,7 +221,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				{
 					ok: {
 						stem: "Qual a capital do Brasil?",
-						oneOf: ["\ufeffBrasília"],
+						accept: ["\ufeffBrasília"],
 						type: "short-answer",
 					},
 				},
@@ -232,7 +239,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				{
 					ok: {
 						stem: "Qual a capital do Brasil?",
-						oneOf: ["\u00a0 Brasília"],
+						accept: ["\u00a0 Brasília"],
 						type: "short-answer",
 					},
 				},
@@ -242,7 +249,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				{
 					ok: {
 						stem: "Qual a capital do Brasil?",
-						oneOf: ["\u3000 Brasília"],
+						accept: ["\u3000 Brasília"],
 						type: "short-answer",
 					},
 				},
@@ -252,7 +259,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				{
 					ok: {
 						stem: "Qual a capital do Brasil?",
-						oneOf: ["\u2028 Brasília"],
+						accept: ["\u2028 Brasília"],
 						type: "short-answer",
 					},
 				},
@@ -262,7 +269,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				{
 					ok: {
 						stem: "Qual a capital do Brasil?",
-						oneOf: ["\u0085 Brasília"],
+						accept: ["\u0085 Brasília"],
 						type: "short-answer",
 					},
 				},
@@ -272,7 +279,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				{
 					ok: {
 						stem: "Qual a capital do Brasil?",
-						oneOf: ["\ufeff Brasília"],
+						accept: ["\ufeff Brasília"],
 						type: "short-answer",
 					},
 				},
@@ -290,7 +297,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				{
 					ok: {
 						stem: "Qual a capital do Brasil?",
-						oneOf: ["Brasília\u00a0"],
+						accept: ["Brasília\u00a0"],
 						type: "short-answer",
 					},
 				},
@@ -300,7 +307,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				{
 					ok: {
 						stem: "Qual a capital do Brasil?",
-						oneOf: ["Brasília\u3000"],
+						accept: ["Brasília\u3000"],
 						type: "short-answer",
 					},
 				},
@@ -310,7 +317,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				{
 					ok: {
 						stem: "Qual a capital do Brasil?",
-						oneOf: ["Brasília\u2028"],
+						accept: ["Brasília\u2028"],
 						type: "short-answer",
 					},
 				},
@@ -320,7 +327,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				{
 					ok: {
 						stem: "Qual a capital do Brasil?",
-						oneOf: ["Brasília\u0085"],
+						accept: ["Brasília\u0085"],
 						type: "short-answer",
 					},
 				},
@@ -330,7 +337,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				{
 					ok: {
 						stem: "Qual a capital do Brasil?",
-						oneOf: ["Brasília\ufeff"],
+						accept: ["Brasília\ufeff"],
 						type: "short-answer",
 					},
 				},
@@ -349,7 +356,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 					ok: {
 						stem: "A capital é [^cap].",
 						blanks: [
-							{ id: "cap", type: "short-answer", oneOf: ["\u00a0Brasília"] },
+							{ id: "cap", type: "short-answer", accept: ["\u00a0Brasília"] },
 						],
 						type: "fill-in",
 					},
@@ -361,7 +368,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 					ok: {
 						stem: "A capital é [^cap].",
 						blanks: [
-							{ id: "cap", type: "short-answer", oneOf: ["\u3000Brasília"] },
+							{ id: "cap", type: "short-answer", accept: ["\u3000Brasília"] },
 						],
 						type: "fill-in",
 					},
@@ -373,7 +380,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 					ok: {
 						stem: "A capital é [^cap].",
 						blanks: [
-							{ id: "cap", type: "short-answer", oneOf: ["\u2028Brasília"] },
+							{ id: "cap", type: "short-answer", accept: ["\u2028Brasília"] },
 						],
 						type: "fill-in",
 					},
@@ -385,7 +392,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 					ok: {
 						stem: "A capital é [^cap].",
 						blanks: [
-							{ id: "cap", type: "short-answer", oneOf: ["\u0085Brasília"] },
+							{ id: "cap", type: "short-answer", accept: ["\u0085Brasília"] },
 						],
 						type: "fill-in",
 					},
@@ -397,7 +404,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 					ok: {
 						stem: "A capital é [^cap].",
 						blanks: [
-							{ id: "cap", type: "short-answer", oneOf: ["\ufeffBrasília"] },
+							{ id: "cap", type: "short-answer", accept: ["\ufeffBrasília"] },
 						],
 						type: "fill-in",
 					},
@@ -630,10 +637,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				{
 					ok: {
 						stem: "...",
-						choices: [
-							{ text: "\u00a0Ipê", score: 1 },
-							{ text: "Jatobá", score: 0 },
-						],
+						choices: [{ text: "\u00a0Ipê", score: 1 }, { text: "Jatobá" }],
 						type: "multiple-choice",
 					},
 				},
@@ -643,10 +647,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				{
 					ok: {
 						stem: "...",
-						choices: [
-							{ text: "\u3000Ipê", score: 1 },
-							{ text: "Jatobá", score: 0 },
-						],
+						choices: [{ text: "\u3000Ipê", score: 1 }, { text: "Jatobá" }],
 						type: "multiple-choice",
 					},
 				},
@@ -656,10 +657,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				{
 					ok: {
 						stem: "...",
-						choices: [
-							{ text: "\u2028Ipê", score: 1 },
-							{ text: "Jatobá", score: 0 },
-						],
+						choices: [{ text: "\u2028Ipê", score: 1 }, { text: "Jatobá" }],
 						type: "multiple-choice",
 					},
 				},
@@ -669,10 +667,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				{
 					ok: {
 						stem: "...",
-						choices: [
-							{ text: "\u0085Ipê", score: 1 },
-							{ text: "Jatobá", score: 0 },
-						],
+						choices: [{ text: "\u0085Ipê", score: 1 }, { text: "Jatobá" }],
 						type: "multiple-choice",
 					},
 				},
@@ -682,10 +677,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				{
 					ok: {
 						stem: "...",
-						choices: [
-							{ text: "\ufeffIpê", score: 1 },
-							{ text: "Jatobá", score: 0 },
-						],
+						choices: [{ text: "\ufeffIpê", score: 1 }, { text: "Jatobá" }],
 						type: "multiple-choice",
 					},
 				},
@@ -693,6 +685,9 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 		],
 	);
 
+	// base.md, "Type inference": a value outside the type's grammar, such as
+	// `[?]`, is a `foreign-choice-marker` error, never an unmarked choice. A
+	// Unicode space is such a value: only space and tab are blank.
 	perChar(
 		"as the checkbox value",
 		"question",
@@ -701,71 +696,36 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 			[
 				"nbsp",
 				{
-					ok: {
-						stem: "...",
-						choices: [
-							{ text: "Ipê" },
-							{ text: "Jatobá", correct: true },
-							{ text: "Buriti", correct: true },
-						],
-						type: "multiple-selection",
-					},
+					error: "ForeignChoiceMarkerError",
+					message: "[\u00a0] is not a multiple-selection choice marker",
 				},
 			],
 			[
 				"ideographic",
 				{
-					ok: {
-						stem: "...",
-						choices: [
-							{ text: "Ipê" },
-							{ text: "Jatobá", correct: true },
-							{ text: "Buriti", correct: true },
-						],
-						type: "multiple-selection",
-					},
+					error: "ForeignChoiceMarkerError",
+					message: "[\u3000] is not a multiple-selection choice marker",
 				},
 			],
 			[
 				"ls",
 				{
-					ok: {
-						stem: "...",
-						choices: [
-							{ text: "Ipê" },
-							{ text: "Jatobá", correct: true },
-							{ text: "Buriti", correct: true },
-						],
-						type: "multiple-selection",
-					},
+					error: "ForeignChoiceMarkerError",
+					message: "[\u2028] is not a multiple-selection choice marker",
 				},
 			],
 			[
 				"nel",
 				{
-					ok: {
-						stem: "...",
-						choices: [
-							{ text: "Ipê" },
-							{ text: "Jatobá", correct: true },
-							{ text: "Buriti", correct: true },
-						],
-						type: "multiple-selection",
-					},
+					error: "ForeignChoiceMarkerError",
+					message: "[\u0085] is not a multiple-selection choice marker",
 				},
 			],
 			[
 				"bom",
 				{
-					ok: {
-						stem: "...",
-						choices: [
-							{ text: "Ipê" },
-							{ text: "Jatobá", correct: true },
-							{ text: "Buriti", correct: true },
-						],
-						type: "multiple-selection",
-					},
+					error: "ForeignChoiceMarkerError",
+					message: "[\ufeff] is not a multiple-selection choice marker",
 				},
 			],
 		],
@@ -782,7 +742,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 					ok: {
 						preamble: "...",
 						stem: "*\u00a0[*] Ipê",
-						choices: [{ text: "Jatobá" }],
+						choices: [{ text: "Jatobá", correct: false }],
 						type: "multiple-selection",
 					},
 				},
@@ -793,7 +753,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 					ok: {
 						preamble: "...",
 						stem: "*\u3000[*] Ipê",
-						choices: [{ text: "Jatobá" }],
+						choices: [{ text: "Jatobá", correct: false }],
 						type: "multiple-selection",
 					},
 				},
@@ -804,7 +764,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 					ok: {
 						preamble: "...",
 						stem: "*\u2028[*] Ipê",
-						choices: [{ text: "Jatobá" }],
+						choices: [{ text: "Jatobá", correct: false }],
 						type: "multiple-selection",
 					},
 				},
@@ -815,7 +775,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 					ok: {
 						preamble: "...",
 						stem: "*\u0085[*] Ipê",
-						choices: [{ text: "Jatobá" }],
+						choices: [{ text: "Jatobá", correct: false }],
 						type: "multiple-selection",
 					},
 				},
@@ -826,7 +786,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 					ok: {
 						preamble: "...",
 						stem: "*\ufeff[*] Ipê",
-						choices: [{ text: "Jatobá" }],
+						choices: [{ text: "Jatobá", correct: false }],
 						type: "multiple-selection",
 					},
 				},
@@ -846,7 +806,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 						stem: "...",
 						choices: [
 							{ text: "\u00a0Ipê", id: "ipe", score: 1 },
-							{ text: "Jatobá", score: 0 },
+							{ text: "Jatobá" },
 						],
 						type: "multiple-choice",
 					},
@@ -859,7 +819,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 						stem: "...",
 						choices: [
 							{ text: "\u3000Ipê", id: "ipe", score: 1 },
-							{ text: "Jatobá", score: 0 },
+							{ text: "Jatobá" },
 						],
 						type: "multiple-choice",
 					},
@@ -872,7 +832,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 						stem: "...",
 						choices: [
 							{ text: "\u2028Ipê", id: "ipe", score: 1 },
-							{ text: "Jatobá", score: 0 },
+							{ text: "Jatobá" },
 						],
 						type: "multiple-choice",
 					},
@@ -885,7 +845,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 						stem: "...",
 						choices: [
 							{ text: "\u0085Ipê", id: "ipe", score: 1 },
-							{ text: "Jatobá", score: 0 },
+							{ text: "Jatobá" },
 						],
 						type: "multiple-choice",
 					},
@@ -898,7 +858,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 						stem: "...",
 						choices: [
 							{ text: "\ufeffIpê", id: "ipe", score: 1 },
-							{ text: "Jatobá", score: 0 },
+							{ text: "Jatobá" },
 						],
 						type: "multiple-choice",
 					},
@@ -917,10 +877,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				{
 					ok: {
 						stem: "...",
-						choices: [
-							{ text: "Ipê\u00a0", score: 1 },
-							{ text: "Jatobá", score: 0 },
-						],
+						choices: [{ text: "Ipê\u00a0", score: 1 }, { text: "Jatobá" }],
 						type: "multiple-choice",
 					},
 				},
@@ -930,10 +887,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				{
 					ok: {
 						stem: "...",
-						choices: [
-							{ text: "Ipê\u3000", score: 1 },
-							{ text: "Jatobá", score: 0 },
-						],
+						choices: [{ text: "Ipê\u3000", score: 1 }, { text: "Jatobá" }],
 						type: "multiple-choice",
 					},
 				},
@@ -943,10 +897,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				{
 					ok: {
 						stem: "...",
-						choices: [
-							{ text: "Ipê\u2028", score: 1 },
-							{ text: "Jatobá", score: 0 },
-						],
+						choices: [{ text: "Ipê\u2028", score: 1 }, { text: "Jatobá" }],
 						type: "multiple-choice",
 					},
 				},
@@ -956,10 +907,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				{
 					ok: {
 						stem: "...",
-						choices: [
-							{ text: "Ipê\u0085", score: 1 },
-							{ text: "Jatobá", score: 0 },
-						],
+						choices: [{ text: "Ipê\u0085", score: 1 }, { text: "Jatobá" }],
 						type: "multiple-choice",
 					},
 				},
@@ -969,10 +917,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				{
 					ok: {
 						stem: "...",
-						choices: [
-							{ text: "Ipê\ufeff", score: 1 },
-							{ text: "Jatobá", score: 0 },
-						],
+						choices: [{ text: "Ipê\ufeff", score: 1 }, { text: "Jatobá" }],
 						type: "multiple-choice",
 					},
 				},
@@ -1208,6 +1153,8 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 		],
 	);
 
+	// `*` followed by a Unicode space is not a list marker, so the line is a
+	// lazy continuation of the tag paragraph and reads as the pattern.
 	perChar(
 		"after a pattern list marker",
 		"question",
@@ -1216,36 +1163,51 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 			[
 				"nbsp",
 				{
-					error: "ParseError",
-					message: "[short-answer/accept] takes a list, not inline text",
+					ok: {
+						stem: "Qual a capital do Brasil?",
+						type: "short-answer",
+						accept: ["*\u00a0Brasília"],
+					},
 				},
 			],
 			[
 				"ideographic",
 				{
-					error: "ParseError",
-					message: "[short-answer/accept] takes a list, not inline text",
+					ok: {
+						stem: "Qual a capital do Brasil?",
+						type: "short-answer",
+						accept: ["*\u3000Brasília"],
+					},
 				},
 			],
 			[
 				"ls",
 				{
-					error: "ParseError",
-					message: "[short-answer/accept] takes a list, not inline text",
+					ok: {
+						stem: "Qual a capital do Brasil?",
+						type: "short-answer",
+						accept: ["*\u2028Brasília"],
+					},
 				},
 			],
 			[
 				"nel",
 				{
-					error: "ParseError",
-					message: "[short-answer/accept] takes a list, not inline text",
+					ok: {
+						stem: "Qual a capital do Brasil?",
+						type: "short-answer",
+						accept: ["*\u0085Brasília"],
+					},
 				},
 			],
 			[
 				"bom",
 				{
-					error: "ParseError",
-					message: "[short-answer/accept] takes a list, not inline text",
+					ok: {
+						stem: "Qual a capital do Brasil?",
+						type: "short-answer",
+						accept: ["*\ufeffBrasília"],
+					},
 				},
 			],
 		],
@@ -1263,7 +1225,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 						stem: "...",
 						choices: [
 							{ text: "Ipê\u00a0amarelo", score: 1 },
-							{ text: "Jatobá", score: 0 },
+							{ text: "Jatobá" },
 						],
 						type: "multiple-choice",
 					},
@@ -1276,7 +1238,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 						stem: "...",
 						choices: [
 							{ text: "Ipê\u3000amarelo", score: 1 },
-							{ text: "Jatobá", score: 0 },
+							{ text: "Jatobá" },
 						],
 						type: "multiple-choice",
 					},
@@ -1289,7 +1251,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 						stem: "...",
 						choices: [
 							{ text: "Ipê\u2028amarelo", score: 1 },
-							{ text: "Jatobá", score: 0 },
+							{ text: "Jatobá" },
 						],
 						type: "multiple-choice",
 					},
@@ -1302,7 +1264,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 						stem: "...",
 						choices: [
 							{ text: "Ipê\u0085amarelo", score: 1 },
-							{ text: "Jatobá", score: 0 },
+							{ text: "Jatobá" },
 						],
 						type: "multiple-choice",
 					},
@@ -1315,7 +1277,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 						stem: "...",
 						choices: [
 							{ text: "Ipê\ufeffamarelo", score: 1 },
-							{ text: "Jatobá", score: 0 },
+							{ text: "Jatobá" },
 						],
 						type: "multiple-choice",
 					},
@@ -2001,7 +1963,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 					ok: {
 						stem: "A capital é [^cap].",
 						blanks: [
-							{ id: "cap", type: "short-answer", oneOf: ["Brasília\u00a0"] },
+							{ id: "cap", type: "short-answer", accept: ["Brasília\u00a0"] },
 						],
 						type: "fill-in",
 					},
@@ -2013,7 +1975,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 					ok: {
 						stem: "A capital é [^cap].",
 						blanks: [
-							{ id: "cap", type: "short-answer", oneOf: ["Brasília\u3000"] },
+							{ id: "cap", type: "short-answer", accept: ["Brasília\u3000"] },
 						],
 						type: "fill-in",
 					},
@@ -2025,7 +1987,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 					ok: {
 						stem: "A capital é [^cap].",
 						blanks: [
-							{ id: "cap", type: "short-answer", oneOf: ["Brasília\u2028"] },
+							{ id: "cap", type: "short-answer", accept: ["Brasília\u2028"] },
 						],
 						type: "fill-in",
 					},
@@ -2037,7 +1999,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 					ok: {
 						stem: "A capital é [^cap].",
 						blanks: [
-							{ id: "cap", type: "short-answer", oneOf: ["Brasília\u0085"] },
+							{ id: "cap", type: "short-answer", accept: ["Brasília\u0085"] },
 						],
 						type: "fill-in",
 					},
@@ -2049,7 +2011,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 					ok: {
 						stem: "A capital é [^cap].",
 						blanks: [
-							{ id: "cap", type: "short-answer", oneOf: ["Brasília\ufeff"] },
+							{ id: "cap", type: "short-answer", accept: ["Brasília\ufeff"] },
 						],
 						type: "fill-in",
 					},
@@ -2068,7 +2030,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 				{
 					ok: {
 						stem: "Qual a capital?\u00a0",
-						oneOf: ["Brasília"],
+						accept: ["Brasília"],
 						type: "short-answer",
 					},
 				},
@@ -2078,7 +2040,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 				{
 					ok: {
 						stem: "Qual a capital?\u3000",
-						oneOf: ["Brasília"],
+						accept: ["Brasília"],
 						type: "short-answer",
 					},
 				},
@@ -2088,7 +2050,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 				{
 					ok: {
 						stem: "Qual a capital?\ufeff",
-						oneOf: ["Brasília"],
+						accept: ["Brasília"],
 						type: "short-answer",
 					},
 				},
@@ -2119,7 +2081,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 				{
 					ok: {
 						stem: "\u00a0A capital é [^cap].",
-						blanks: [{ id: "cap", type: "short-answer", oneOf: ["Brasília"] }],
+						blanks: [{ id: "cap", type: "short-answer", accept: ["Brasília"] }],
 						type: "fill-in",
 					},
 				},
@@ -2129,7 +2091,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 				{
 					ok: {
 						stem: "\u3000A capital é [^cap].",
-						blanks: [{ id: "cap", type: "short-answer", oneOf: ["Brasília"] }],
+						blanks: [{ id: "cap", type: "short-answer", accept: ["Brasília"] }],
 						type: "fill-in",
 					},
 				},
@@ -2187,7 +2149,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 						stem: "...",
 						choices: [
 							{ text: "Ipê \u00a0Árvore símbolo.", score: 1 },
-							{ text: "Jatobá", score: 0 },
+							{ text: "Jatobá" },
 						],
 						type: "multiple-choice",
 					},
@@ -2200,7 +2162,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 						stem: "...",
 						choices: [
 							{ text: "Ipê \u3000Árvore símbolo.", score: 1 },
-							{ text: "Jatobá", score: 0 },
+							{ text: "Jatobá" },
 						],
 						type: "multiple-choice",
 					},
@@ -2213,7 +2175,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 						stem: "...",
 						choices: [
 							{ text: "Ipê \ufeffÁrvore símbolo.", score: 1 },
-							{ text: "Jatobá", score: 0 },
+							{ text: "Jatobá" },
 						],
 						type: "multiple-choice",
 					},
@@ -2259,7 +2221,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 			{
 				ok: {
 					stem: "Qual a capital do Brasil?",
-					oneOf: ["Brasília"],
+					accept: ["Brasília"],
 					type: "short-answer",
 				},
 			},
@@ -2270,7 +2232,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 			{
 				ok: {
 					stem: "Qual a capital do Brasil?",
-					oneOf: ["Brasília"],
+					accept: ["Brasília"],
 					type: "short-answer",
 				},
 			},
@@ -2281,7 +2243,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 			{
 				ok: {
 					stem: "Qual a capital do Brasil?",
-					oneOf: ["Brasília"],
+					accept: ["Brasília"],
 					type: "short-answer",
 				},
 			},
@@ -2292,7 +2254,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 			{
 				ok: {
 					stem: "Qual a capital do Brasil?",
-					oneOf: ["Brasília"],
+					accept: ["Brasília"],
 					type: "short-answer",
 				},
 			},
@@ -2303,7 +2265,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 			{
 				ok: {
 					stem: "Qual a capital do Brasil?",
-					oneOf: ["Brasília"],
+					accept: ["Brasília"],
 					type: "short-answer",
 				},
 			},
@@ -2338,10 +2300,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 			{
 				ok: {
 					stem: "...",
-					choices: [
-						{ text: "Ipê", score: 1 },
-						{ text: "Jatobá", score: 0 },
-					],
+					choices: [{ text: "Ipê", score: 1 }, { text: "Jatobá" }],
 					type: "multiple-choice",
 				},
 			},
@@ -2418,10 +2377,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 			{
 				ok: {
 					stem: "...",
-					choices: [
-						{ text: "Ipê", score: 1 },
-						{ text: "Jatobá", score: 0 },
-					],
+					choices: [{ text: "Ipê", score: 1 }, { text: "Jatobá" }],
 					type: "multiple-choice",
 				},
 			},
@@ -2432,10 +2388,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 			{
 				ok: {
 					stem: "...",
-					choices: [
-						{ text: "Ipê", score: 1 },
-						{ text: "Jatobá", score: 0 },
-					],
+					choices: [{ text: "Ipê", score: 1 }, { text: "Jatobá" }],
 					type: "multiple-choice",
 				},
 			},
@@ -2493,10 +2446,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 			{
 				ok: {
 					stem: "...",
-					choices: [
-						{ text: "Ipê\u0085amarelo", score: 1 },
-						{ text: "Jatobá", score: 0 },
-					],
+					choices: [{ text: "Ipê\u0085amarelo", score: 1 }, { text: "Jatobá" }],
 					type: "multiple-choice",
 				},
 			},
@@ -2507,10 +2457,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 			{
 				ok: {
 					stem: "...",
-					choices: [
-						{ text: "Ipê\u2028amarelo", score: 1 },
-						{ text: "Jatobá", score: 0 },
-					],
+					choices: [{ text: "Ipê\u2028amarelo", score: 1 }, { text: "Jatobá" }],
 					type: "multiple-choice",
 				},
 			},
@@ -2521,10 +2468,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 			{
 				ok: {
 					stem: "...",
-					choices: [
-						{ text: "Ipê\u2029amarelo", score: 1 },
-						{ text: "Jatobá", score: 0 },
-					],
+					choices: [{ text: "Ipê\u2029amarelo", score: 1 }, { text: "Jatobá" }],
 					type: "multiple-choice",
 				},
 			},
@@ -2535,10 +2479,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 			{
 				ok: {
 					stem: "...",
-					choices: [
-						{ text: "Ipê\u000bamarelo", score: 1 },
-						{ text: "Jatobá", score: 0 },
-					],
+					choices: [{ text: "Ipê\u000bamarelo", score: 1 }, { text: "Jatobá" }],
 					type: "multiple-choice",
 				},
 			},
@@ -2549,10 +2490,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 			{
 				ok: {
 					stem: "...",
-					choices: [
-						{ text: "Ipê\u000camarelo", score: 1 },
-						{ text: "Jatobá", score: 0 },
-					],
+					choices: [{ text: "Ipê\u000camarelo", score: 1 }, { text: "Jatobá" }],
 					type: "multiple-choice",
 				},
 			},
@@ -2563,10 +2501,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 			{
 				ok: {
 					stem: "...",
-					choices: [
-						{ text: "Ipê\u001camarelo", score: 1 },
-						{ text: "Jatobá", score: 0 },
-					],
+					choices: [{ text: "Ipê\u001camarelo", score: 1 }, { text: "Jatobá" }],
 					type: "multiple-choice",
 				},
 			},

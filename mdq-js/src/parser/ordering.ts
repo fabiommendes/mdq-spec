@@ -6,7 +6,8 @@
  * "Indentation"). A port of `mdq-py/mdq/_parser/_ordering.py`.
  */
 
-import { strip } from "./text.js";
+import { ParseError } from "../errors.js";
+import { repr, strip } from "./text.js";
 
 /**
  * A line before its indentation becomes a level: the leading whitespace in
@@ -72,14 +73,24 @@ export function orderingCodeLines(content: string): RawLine[] {
 	return rawLines.map(orderingLineIndent);
 }
 
-/** Split the raw source lines of a `ul` block into `(indent, text)` pairs. */
+/**
+ * Split the raw source lines of a `ul` block into `(indent, text)` pairs.
+ *
+ * @throws {ParseError} A non-blank line is not a list item: an item has a
+ *   continuation line or a second paragraph (an ordering item is exactly
+ *   one line).
+ */
 export function orderingUlLines(rawLines: readonly string[]): RawLine[] {
 	const items: RawLine[] = [];
 	for (const line of rawLines) {
+		if (strip(line, " \t") === "") continue;
 		const groups = ORDERING_ITEM_RE.exec(line)?.groups;
-		if (groups) {
-			items.push([expandTabs(groups.indent ?? "").length, groups.text ?? ""]);
+		if (!groups) {
+			throw new ParseError(
+				`an ordering item is exactly one line, found extra line: ${repr(line)}`,
+			);
 		}
+		items.push([expandTabs(groups.indent ?? "").length, groups.text ?? ""]);
 	}
 	return items;
 }
