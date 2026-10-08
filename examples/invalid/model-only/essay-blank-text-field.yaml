@@ -2,9 +2,7 @@
 # JSON Schema only checks that `preamble` is a string, so this passes
 # the schema; `preamble`/`epilogue`/`stem` being non-blank is now a
 # critical rule (base.md, "Additional Rules") enforced by a model
-# validator, whose diagnostic code is `blank-text-field` (or, if the two
-# severities of that code cannot share one implementation,
-# `blank-intro-field` -- see dev/specs/to-do/lint-on-models.md).
+# validator, whose diagnostic code is `blank-text-field`.
 type: essay
 stem: Descreva o processo de fotossíntese na Mata Atlântica.
 preamble: "   "

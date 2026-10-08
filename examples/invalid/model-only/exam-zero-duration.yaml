@@ -1,4 +1,4 @@
-# An exam `duration` must be positive (exam.md, "Scheduling"). `PT0S`
+# An exam `duration` must be positive (exam.md, "Duration and Start Time"). `PT0S`
 # matches the schema's ISO 8601 pattern, so only the `invalid-duration`
 # model validator rejects it.
 type: exam

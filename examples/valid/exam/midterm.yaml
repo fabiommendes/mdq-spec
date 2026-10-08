@@ -5,7 +5,7 @@
 # `include` is left unresolved here -- resolution is a loader's job, and a
 # document that has not been resolved is still well-formed. The third
 # question has no id here: its derived id, `q3`, is only assigned once a
-# consumer needs an addressable exam (`with_ids()`), counting position 1
+# consumer needs an addressable exam (exam.md, "Question ids"), counting position 1
 # for the `include`.
 #
 # Both inline questions inherit `author` and `locale` from the exam; the

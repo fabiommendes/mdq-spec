@@ -258,12 +258,12 @@ syntax that is widely supported.
 * Non-capturing groups: are supported, e.g., `/(?:abc)/`, but python-style 
   named groups are NOT supported, e.g., `/(?P<name>abc)/`.
 * Unicode: Unicode characters are allowed in the regex. Unicode escape sequences 
-  are also supported, e.g., `ሴ`, but users SHOULD NOT assume UTF-16 encoding
+  are also supported, e.g., `\u1234`, but users SHOULD NOT assume UTF-16 encoding
   and surrogate pairs should not be relied upon. Write the unicode character 
   directly in the regex, when possible.
 * Standard hex escaping is supported, e.g., `\x12`, but other more obscure
-  escape sequences MAY NOT be supported, e.g., `\cA`, `\123`, `\p{...}`,
-  `\P{...}`, `\k<name>`.
+  escape sequences are NOT supported (`invalid-regex`), e.g., `\cA`, `\123`,
+  `\p{...}`, `\P{...}`, `\k<name>`.
 * Positive and negative lookahead assertions are supported, e.g., `/(?=abc)/` and
   `/(?!abc)/`, but positive and negative lookbehind assertions are NOT supported,
   e.g., `/(?<=abc)/` and `/(?<!abc)/`.

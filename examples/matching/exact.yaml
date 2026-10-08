@@ -51,7 +51,7 @@ cases:
     match: true
   - name: no-break space and em space at the ends
     pattern: "Manaus"
-    response: " Manaus "
+    response: "\u00A0Manaus\u2003"
     match: true
   - name: a control at the end is not a space
     pattern: "Manaus"
@@ -63,7 +63,7 @@ cases:
     match: false
   - name: an interior no-break space is not a space
     pattern: "Rio Negro"
-    response: "Rio Negro"
+    response: "Rio\u00A0Negro"
     match: false
 
   # Everything else is significant
@@ -77,13 +77,13 @@ cases:
     match: false
   - name: zero width space
     pattern: "Manaus"
-    response: "Mana​us"
+    response: "Mana\u200Bus"
     match: false
   - name: typographic apostrophe
     pattern: "caixa d'água"
-    response: "caixa d’água"
+    response: "caixa d\u2019água"
     match: false
   - name: en dash
     pattern: "pau-brasil"
-    response: "pau–brasil"
+    response: "pau\u2013brasil"
     match: false

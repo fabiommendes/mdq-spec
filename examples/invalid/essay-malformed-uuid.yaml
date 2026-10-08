@@ -2,7 +2,7 @@
 # `nope` also fails the schema's own `uuid` pattern (schema/
 # question-base.yaml), so this belongs here rather than under
 # `model-only/`; `load` rejects it with `malformed-uuid`
-# (mdq.models._base) regardless of any schema check.
+# regardless of any schema check.
 type: essay
 id: q
 title: Q

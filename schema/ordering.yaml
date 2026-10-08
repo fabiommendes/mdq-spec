@@ -107,7 +107,6 @@ allOf:
           enum:
             - dedent
             - skip-blanks
-        uniqueItems: true
         default: []
 
     required:

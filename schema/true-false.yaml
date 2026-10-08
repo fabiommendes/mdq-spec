@@ -89,9 +89,9 @@ unevaluatedProperties: false
         type: string
         description: >-
           The single letter written between the brackets in the source
-          document (`T`, `F`, `V`, ...). Preserved verbatim: `answer`
+          document (`T`, `F`, `V`, ...). Preserved verbatim: `correct`
           carries the meaning, but the letter itself is needed to warn
-          about PROVISIONAL letters and locale mismatches, and to
+          about WARNING letters and locale mismatches, and to
           round-trip the document unchanged.
         minLength: 1
         maxLength: 1
@@ -102,11 +102,13 @@ unevaluatedProperties: false
           Feedback text shown to students that judged this statement
           incorrectly or left it unjudged. Usually explains why the
           statement is true or false.
+        minLength: 1
 
       comment:
         type: string
         description: >-
           Optional comment for the instructor. Do not show to students.
+        minLength: 1
 
     required:
       - text

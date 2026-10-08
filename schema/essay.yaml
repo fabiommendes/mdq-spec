@@ -42,8 +42,10 @@ allOf:
         type: string
         description: >-
           A model answer. It guides the instructor while grading and MAY be
-          shown to students as feedback afterwards. A blank value is a
-          warning (`blank-text-field`), not a schema error, like `title`.
+          shown to students as feedback afterwards. A blank, whitespace-only
+          value is a warning (`blank-text-field`). An empty string is a
+          schema error, exactly like `title`.
+        minLength: 1
 
     required:
       - type

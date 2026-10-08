@@ -1,5 +1,5 @@
 # U+0085 and U+2028 are text, and `non-ascii-whitespace` warns about them at
-# any position: editors may show them as line breaks. YAML reads both as
-# line breaks too, so this file spells them as escapes.
+# any position: editors may show them as line breaks. This file spells them
+# as escapes so that they stay visible.
 type: essay
 stem: "Explique o ciclo\x85da água e a linha\u2028seguinte."

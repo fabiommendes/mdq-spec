@@ -16,7 +16,7 @@ blanks:
     type: multiple-choice
     choices:
       - { id: x, text: Cerrado, feedback: "  " }
-      - { id: y, text: Pantanal, comment: "" }
+      - { id: y, text: Pantanal, comment: "  " }
   - id: c
     type: multiple-choice
     choices:

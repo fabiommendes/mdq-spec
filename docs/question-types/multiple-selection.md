@@ -24,7 +24,7 @@ frontmatter
 | Field   | Type                 | Description                      |
 | ------- | -------------------- | -------------------------------- |
 | type    | "multiple-selection" | The type discriminator           |
-| shuffle | boolean              | True if choices can be shuffled[^1] |
+| shuffle | boolean or "inherit"              | True if choices can be shuffled[^1] |
 | grading | grading              | The grading strategy to use.[^1] |
 
 [^1]: Grading is `"partial" | "all-or-nothing" | "symmetric" | "inherit"`.

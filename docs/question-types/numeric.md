@@ -62,7 +62,7 @@ The grammar is
 
 ```lark
 answer       : ws? "[" "numeric" unit? "]" ws? ":" numeric_body
-numeric_body : ws? sign? value tolerances?
+numeric_body : ws? sign? value tolerances? ws?
 tolerances   : ws? abstol (ws? reltol)?
              | ws? reltol (ws? abstol)?
 value        : INTEGER
@@ -126,6 +126,9 @@ the wider of the two wins. C has no fractions, so we place `fraction` between
 
 The absolute tolerance is an `INTEGER` or a `DECIMAL`, never a fraction (see
 the grammar above and `tolerance.absolute` in the schema, a number).
+
+The parsed document carries the inferred `domain`: the field is written out,
+not only inferred at grading time.
 
 Equivalently, rank the domains `integer` < `fraction` < `decimal` and take the
 maximum. If no absolute tolerance is given, the domain is the domain of the

@@ -1,0 +1,14 @@
+# A choice `feedback` that is the empty string fails `minLength: 1`; only
+# whitespace is the `blank-choice-feedback` warning instead.
+type: multiple-choice
+id: q
+title: Capital do Brasil
+stem: Qual é a capital do Brasil?
+choices:
+  - id: rio
+    text: Rio de Janeiro
+    score: 0
+    feedback: ""
+  - id: brasilia
+    text: Brasília
+    score: 1

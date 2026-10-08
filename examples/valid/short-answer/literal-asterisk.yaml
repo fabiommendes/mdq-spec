@@ -1,5 +1,5 @@
 # A literal asterisk is written as the regex `/\*/` or the exact literal
-# `` `*` ``; a bare `*` would be the wildcard.
+# `` `*` ``; a bare `*` cannot be a list item (`* *`); as content it is an inexact literal.
 id: sa-literal-asterisk
 title: Operador de multiplicação
 type: short-answer

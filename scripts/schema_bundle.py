@@ -97,7 +97,7 @@ def bundle_schemas(schema_dir: Path | None = None) -> dict[str, Any]:
     The result's `$defs` has one entry per source file, keyed by its
     stem (`question-base`, `multiple-choice`, ...), each still carrying
     its own original `$id` unchanged. The top-level `oneOf` lists every
-    standalone document type -- an exam or any one of the seven question
+    standalone document type -- an exam or any one of the eight question
     types -- so the bundle validates "is this any MDQ document" outright,
     while `#/$defs/<type>` still validates one type on its own.
 
@@ -138,7 +138,7 @@ def bundle_schemas(schema_dir: Path | None = None) -> dict[str, Any]:
         "$id": f"{base_url}/{BUNDLE_FILENAME}",
         "title": "MDQ document (bundled)",
         "description": (
-            "Every MDQ document type -- an exam, or any one of the seven "
+            "Every MDQ document type -- an exam, or any one of the eight "
             "question types -- bundled from schema/*.yaml into a single "
             "self-contained file. Validate against the whole thing to "
             "accept any MDQ document, or against `#/$defs/<type>` (e.g. "

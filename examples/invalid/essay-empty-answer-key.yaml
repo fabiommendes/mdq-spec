@@ -1,0 +1,7 @@
+# An `answerKey` that is the empty string fails `minLength: 1`; only
+# whitespace is the `blank-text-field` warning instead.
+type: essay
+id: q
+title: Ciclo da água
+stem: Explique o ciclo da água.
+answerKey: ""

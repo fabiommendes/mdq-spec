@@ -1,4 +1,4 @@
-# `tags` is a list of strings or one comma-separated string, never a number.
+# `tags` is a list of strings in a YAML document (base.md, "Frontmatter"), never a number.
 type: essay
 tags: 2024
 stem: Explique o ciclo da água.

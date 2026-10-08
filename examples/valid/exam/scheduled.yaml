@@ -1,5 +1,5 @@
-# `start` and `duration` are normalized to canonical ISO 8601. The YAML
-# timestamp keeps its UTC offset (Brasília time, -03:00), and the
+# `start` and `duration` are normalized to canonical ISO 8601. The
+# `start` string keeps its UTC offset (Brasília time, -03:00), and the
 # `2h 30m` shorthand becomes `PT2H30M`. `description` is copied as is and,
 # unlike `locale`, is not inherited by the question.
 type: exam

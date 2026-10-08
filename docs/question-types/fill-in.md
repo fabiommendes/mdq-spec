@@ -26,7 +26,7 @@ frontmatter
 | Field      | Type      | Description                                       |
 | ---------- | --------- | ------------------------------------------------- |
 | type       | "fill-in" | The type discriminator                            |
-| shuffle    | boolean   | True if the inner choices can be shuffled[^1]     |
+| shuffle    | boolean or "inherit"   | True if the inner choices can be shuffled[^1]     |
 | grading    | grading   | The grading strategy to use.[^1]                  |
 | diacritics | string    | Either "fold" (the default) or "keep"[^2]         |
 | unmatched  | string    | Either "incorrect" or "manual"[^6]                |

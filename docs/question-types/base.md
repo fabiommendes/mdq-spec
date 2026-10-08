@@ -31,7 +31,9 @@ are required.
 
 The frontmatter is a YAML document representing an object. The first paragraph
 of comments MUST be read and stored as a **comment string**. The **comment
-string** does not include the `#` and first space, if present.
+string** does not include the `#` and first space, if present. An empty
+**comment string** (no character after the `#`) is not stored; one of only
+whitespace is stored.
 
 The grammar for the frontmatter is:
 
@@ -346,4 +348,4 @@ warning instead.
 not whether the subtag names a real language.
 [^9]: Inside an exam a `---` line opens a frontmatter or include block, so a
 thematic break written with `-` changes meaning when the question is pasted
-into one (`unsafe-thematic-break`, see [exam.md](../exam.md#questions)).
+into one (`unsafe-thematic-break`, see [exam.md](../exam.md#question-and-include-blocks)).

@@ -4,7 +4,7 @@ title: Question (base)
 description: >-
   Common properties shared by every MDQ question type. Question-type
   schemas (multiple-choice, multiple-selection, true-false, numeric,
-  short-answer, fill-in, essay) extend this schema, typically via `allOf` +
+  short-answer, fill-in, essay, ordering) extend this schema, typically via `allOf` +
   `$ref`, and add their own `type`-specific fields (e.g. `choices`).
 type: object
 properties:
@@ -62,12 +62,14 @@ properties:
     description: >-
       One or more paragraphs of context shown before the stem. May contain
       Markdown markup.
+    minLength: 1
 
   epilogue:
     type: string
     description: >-
       One or more paragraphs of text shown after the question body (e.g.
       after the list of choices). May contain Markdown markup.
+    minLength: 1
 
   comment:
     type: string
@@ -75,6 +77,7 @@ properties:
       Free-form text shown only to instructors, never to students. Used to
       explain the intent of the question, grading rationale, formatting
       decisions, etc.
+    minLength: 1
 
   locale:
     type: string

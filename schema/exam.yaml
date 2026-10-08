@@ -75,6 +75,7 @@ properties:
     description: >-
       The paragraphs between the title and the first question, shown to
       the student before the assessment begins. May contain Markdown.
+    minLength: 1
 
   tags:
     type: array

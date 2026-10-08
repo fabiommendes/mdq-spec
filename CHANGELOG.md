@@ -13,6 +13,11 @@ The specification uses [Semantic Versioning](https://semver.org/). Before
 
 First version of the specification.
 
+### Changed
+
+- Free-text fields (`comment`, `preamble`, `epilogue`, `answerKey`, `instructions`, feedback and choice/pattern comments) must not be the empty string (`minLength: 1`). Whitespace only stays the `blank-text-field` warning. An empty frontmatter comment string is not stored.
+- Consistency pass over `docs/`, `schema/` and `examples/`: broken anchors and duplicate footnotes fixed, the ordering observation grammar allows blank lines between the `>` and `!` blocks, and the `id` false-friend, `[150%]`, `x` marker and regex-escape wording is made explicit. Renamed examples `exam-two-h1` to `exam-h1-in-question` and `true-false-marker-disagrees-provisional` to `true-false-marker-disagrees-warning`.
+
 ### Added
 
 - File extensions `.mdq.md`, `.md` and `.mdq`.

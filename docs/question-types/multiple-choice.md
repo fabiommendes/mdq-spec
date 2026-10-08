@@ -23,7 +23,7 @@ frontmatter
 | Field   | Type              | Description                      |
 | ------- | ----------------- | -------------------------------- |
 | type    | "multiple-choice" | The type discriminator           |
-| shuffle | boolean           | True if choices can be shuffled[^1] |
+| shuffle | boolean or "inherit"           | True if choices can be shuffled[^1] |
 | grading | grading           | The grading strategy to use.[^1] |
 
 [^1]: Grading is `"partial" | "all-or-nothing" | "symmetric" | "inherit"`.
@@ -112,7 +112,7 @@ single choice -- only how it is graded, see [Grading](#grading).
 Each choice carries a `score` on a scale from -1 to 1, derived from `value` in
 the body syntax above: `*` is 1. A percentage is its own fraction, so `[50%]` is
 0.5 and `[-25%]` is -0.25. A percentage that would put `score` outside [-1, 1]
--- `[150%]`, say -- makes the question malformed. `[0%]` is an explicit
+-- `[150%]`, say -- makes the question malformed (`schema-error`, the score is out of range). `[0%]` is an explicit
 zero; a blank value, `[ ]`, omits `score` from the document.
 
 A question can have negative scores, but the exam aggregation method may clamp
@@ -234,6 +234,7 @@ compatibility reasons with the other question types.
 | choices[].text     | info     | should not be visually equivalent to another choice[^3]   |
 | choices[].score    | info     | at least one choice should have a score of 1              |
 | choices[].score    | info     | not every choice should be correct                        |
+| choices[].score    | info     | more than one choice has a score of 1                     |
 | choices[].id       | info     | should be defined in the document, instead of derived[^4] |
 
 [^3]: Visual equivalence is not defined by this spec, see [choices](#choices).

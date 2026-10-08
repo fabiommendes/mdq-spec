@@ -91,11 +91,13 @@ unevaluatedProperties: false
           leaving unticked one that should be. Usually explains why the
           choice belongs in the answer or does not. Unlike
           multiple-choice, a correctly judged choice never shows it.
+        minLength: 1
 
       comment:
         type: string
         description: >-
           Optional comment for the instructor. Do not show to students.
+        minLength: 1
 
     required:
       - text

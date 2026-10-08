@@ -143,12 +143,12 @@ content  : md_code_block | md_ul
 
 section : ordering_extra | ordering_accept | ordering_reject
 
-ordering_extra  : "##" ws? "[" "extra" "]" nl+ content
-ordering_accept : "##" ws? "[" "accept" "]" nl+ observations? content
-ordering_reject : "##" ws? "[" "reject" "]" nl+ observations? content
+ordering_extra  : "##" ws "[" "extra" "]" nl+ content
+ordering_accept : "##" ws "[" "accept" "]" nl+ observations? content
+ordering_reject : "##" ws "[" "reject" "]" nl+ observations? content
 
-observations : feedback comment? nl*
-             | comment feedback? nl*
+observations : feedback nl* comment? nl*
+             | comment nl* feedback? nl*
 
 feedback : (ws? ">" ws? md_inline* nl)+
 comment  : (ws? "!" ws? md_inline* nl)+
@@ -216,8 +216,8 @@ observation part MAY also contain instructor comments. It uses a syntax similar
 to blockquote sections, but prefix each line with a `!` instead of a `>`.
 
 A section carries at most one feedback block and at most one comment block, in
-either order. They MUST NOT interleave: once a `!` comment block has started,
-a `>` line ends the observations.
+either order. They MUST NOT interleave: once both blocks have appeared, a further `>` or
+`!` line is a `parse-error`.
 
 Some markdown parsers accept indented blockquotes like below
 

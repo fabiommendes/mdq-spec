@@ -1,5 +1,5 @@
 # Numeric blanks in several forms: a negative decimal with a unit, both
-# tolerances on one value, an integer beyond 32 bits, and a unit with a
+# tolerances on one value, a large integer, and a unit with a
 # slash and a non-ASCII character.
 id: fill-in-numeric-forms
 title: Medidas do Brasil

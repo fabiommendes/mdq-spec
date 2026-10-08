@@ -23,7 +23,7 @@ frontmatter
 | Field   | Type         | Description                      |
 | ------- | ------------ | -------------------------------- |
 | type    | "true-false" | The type discriminator           |
-| shuffle | boolean      | True if choices can be shuffled[^1] |
+| shuffle | boolean or "inherit"      | True if choices can be shuffled[^1] |
 | grading | grading      | The grading strategy to use.[^1] |
 
 [^1]: Grading is `"partial" | "all-or-nothing" | "symmetric" | "inherit"`.
@@ -175,8 +175,9 @@ This matters most for `locale: id` (Indonesian): "salah" (false) starts with
 `S`, but `S` is globally assigned to TRUE (see [Body](#body)). A document with
 `locale: id` using `[S]` to mean false is silently graded as true, not just
 mismatched -- implementations SHOULD warn about `S` under `id` with a
-dedicated warning, not only the usual mismatch notice, and Indonesian documents
-should use `F` for false instead.
+dedicated warning, `false-friend-true-false-marker`. The `id` row has no
+mismatched form, so `locale-mismatched-true-false-marker` is never issued for
+it. Indonesian documents should use `F` for false instead.
 
 ## Feedback
 
@@ -245,7 +246,7 @@ of student markings and the resulting score for each grading strategy.
 
 [^2]: A letter is one code point in `\p{L}`, see [body](#body).
 [^3]: The TRUE, FALSE and WARNING categories are listed in [body](#body).
-[^4]: An `S` marker meaning false under `locale: id` SHOULD be escalated beyond
-the usual mismatch notice, see [locale](#locale).
+[^4]: An `S` marker meaning false under `locale: id` SHOULD get
+`false-friend-true-false-marker`, see [locale](#locale).
 [^5]: Visual equivalence is not defined by this spec, see
 [multiple choice](multiple-choice.md#choices).

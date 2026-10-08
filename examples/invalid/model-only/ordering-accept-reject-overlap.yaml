@@ -1,8 +1,7 @@
 # The same alternative ordering is declared as both accepted and
 # rejected. JSON Schema cannot express "these two lists must be
-# disjoint", so this passes the schema and is only rejected by
-# `OrderingQuestion.check_accept_and_reject_disjoint`
-# (ordering.md#additional-rules).
+# disjoint", so this passes the schema and is only rejected by the rule in
+# ordering.md, "Additional Rules".
 type: ordering
 stem: Ordene as linhas do algoritmo de Euclides para o MDC.
 lines:

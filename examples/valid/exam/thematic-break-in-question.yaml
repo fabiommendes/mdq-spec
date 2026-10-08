@@ -1,4 +1,4 @@
-# Regression fixture for the `_split_exam_blocks` ambiguity between a
+# Regression fixture for the ambiguity between a
 # thematic break inside a question's own preamble and the `---` fence
 # that opens a *later* question's frontmatter. The "extent" question's
 # preamble contains a bare `---` positioned mid-block (real content

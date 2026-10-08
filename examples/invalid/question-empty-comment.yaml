@@ -1,0 +1,8 @@
+# An empty `comment` adds nothing; the schema requires `minLength: 1`
+# (base.md, "Additional Rules"). Only whitespace is the `blank-text-field`
+# warning instead.
+type: essay
+id: q
+title: Rios do Brasil
+stem: Descreva a bacia do rio Amazonas.
+comment: ""

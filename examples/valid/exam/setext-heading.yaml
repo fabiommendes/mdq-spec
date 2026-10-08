@@ -1,4 +1,4 @@
-# exam.md, "Questions": the `---` after the instructions has no blank line
+# exam.md, "Question and include blocks": the `---` after the instructions has no blank line
 # before it, so CommonMark reads it as a setext heading underline and the
 # whole question block is swallowed into `instructions`. The exam has no
 # question; `setext-heading` and `exam-without-questions` point it out.

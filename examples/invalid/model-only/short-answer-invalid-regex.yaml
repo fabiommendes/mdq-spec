@@ -1,5 +1,5 @@
-# `regex` does not compile as an MDQ regex (unbalanced character
-# class). JSON Schema only checks that `regex` is a string, so this
+# The pattern does not compile as an MDQ regex (unbalanced character
+# class). JSON Schema only checks that the pattern is a string, so this
 # passes the schema and is only rejected by the `invalid-regex` model
 # validator (short-answer.md, "Additional Rules").
 type: short-answer

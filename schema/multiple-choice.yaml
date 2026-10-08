@@ -95,11 +95,13 @@ unevaluatedProperties: false
         description: >-
           Feedback text shown to students that selected this choice.
           Usually explains why the choice is wrong (or right).
+        minLength: 1
 
       comment:
         type: string
         description: >-
           Optional comment for the instructor. Do not shown to students.
+        minLength: 1
 
     required:
       - text

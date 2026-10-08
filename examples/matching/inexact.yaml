@@ -70,17 +70,17 @@ cases:
   # Ignorable code points (step 2)
   - name: zero width space
     pattern: "Manaus"
-    response: "Mana​us"
+    response: "Mana\u200Bus"
     fold: true
     keep: true
   - name: soft hyphen
     pattern: "Manaus"
-    response: "Ma­naus"
+    response: "Ma\u00ADnaus"
     fold: true
     keep: true
   - name: byte order mark
     pattern: "Manaus"
-    response: "﻿Manaus"
+    response: "\uFEFFManaus"
     fold: true
     keep: true
   - name: C0 control at the end
@@ -149,7 +149,7 @@ cases:
   # Quotes and dashes (step 4)
   - name: typographic apostrophe
     pattern: "caixa d'água"
-    response: "caixa d’água"
+    response: "caixa d\u2019água"
     fold: true
     keep: true
   - name: typographic double quotes
@@ -159,17 +159,17 @@ cases:
     keep: true
   - name: en dash
     pattern: "pau-brasil"
-    response: "pau–brasil"
+    response: "pau\u2013brasil"
     fold: true
     keep: true
   - name: non-breaking hyphen
     pattern: "pau-brasil"
-    response: "pau‑brasil"
+    response: "pau\u2011brasil"
     fold: true
     keep: true
   - name: minus sign
     pattern: "x-1"
-    response: "x−1"
+    response: "x\u22121"
     fold: true
     keep: true
   - name: a hyphen is not a space
@@ -186,12 +186,12 @@ cases:
     keep: true
   - name: no-break space
     pattern: "São Paulo"
-    response: "São Paulo"
+    response: "São\u00A0Paulo"
     fold: true
     keep: true
   - name: em space
     pattern: "Rio Negro"
-    response: "Rio Negro"
+    response: "Rio\u2003Negro"
     fold: true
     keep: true
   - name: tab and line feed
@@ -206,7 +206,7 @@ cases:
     keep: true
   - name: line separator
     pattern: "Rio Negro"
-    response: "Rio Negro"
+    response: "Rio\u2028Negro"
     fold: true
     keep: true
   - name: a missing space is significant

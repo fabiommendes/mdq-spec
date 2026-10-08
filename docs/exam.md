@@ -445,8 +445,8 @@ exam frontmatter.
 | duration       | critical | must be positive                                             |
 | epilogue       | critical | must not use `---` as a thematic break inside an exam        |
 | questions      | warning  | should contain at least one question[^10]                    |
-| instructions, questions[].{preamble,stem,epilogue} | warning | should not contain a setext heading, see [Questions](#questions) |
-| instructions, questions[].{preamble,stem,epilogue} | warning | should not write a thematic break with `-`, see [Questions](#questions) |
+| instructions, questions[].{preamble,stem,epilogue} | warning | should not contain a setext heading, see [Question and include blocks](#question-and-include-blocks) |
+| instructions, questions[].{preamble,stem,epilogue} | warning | should not write a thematic break with `-`, see [Question and include blocks](#question-and-include-blocks) |
 | include-all    | warning  | should add at least one question when it resolves            |
 | questions[].id | warning  | should be declared on an inline question after `include-all` |
 | questions[]    | warning  | an include block should not be preceded by `===`             |

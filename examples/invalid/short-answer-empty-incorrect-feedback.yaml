@@ -1,0 +1,9 @@
+# An `incorrectFeedback` that is the empty string fails `minLength: 1`; only
+# whitespace is the `blank-text-field` warning instead.
+type: short-answer
+id: q
+title: Capital do Brasil
+stem: Qual é a capital do Brasil?
+incorrectFeedback: ""
+accept:
+  - pattern: Brasília

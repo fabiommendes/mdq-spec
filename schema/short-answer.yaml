@@ -56,6 +56,7 @@ allOf:
           to: a response that matches no pattern under `unmatched:
           incorrect`, or one that matches a `reject` pattern with no
           feedback. Inline markdown, like the feedback of a pattern.
+        minLength: 1
 
     required:
       - type
@@ -106,10 +107,12 @@ allOf:
           feedback:
             type: string
             description: Shown to the student whose response this pattern decided.
+            minLength: 1
           comment:
             type: string
             description: >-
               An author-facing note. Never shown to students.
+            minLength: 1
         required:
           - pattern
         additionalProperties: false

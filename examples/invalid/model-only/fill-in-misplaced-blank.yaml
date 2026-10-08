@@ -1,4 +1,4 @@
-# fill-in.md:301: a `[^id]` marker may only appear in a plain text run of
+# fill-in.md, "Stem": a `[^id]` marker may only appear in a plain text run of
 # a paragraph -- here it sits inside a strong span, not a plain run.
 type: fill-in
 stem: A capital do Brasil é **[^capital]**.
