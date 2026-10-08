@@ -1,7 +1,7 @@
 /**
  * A tree adapter over markdown-it's flat token stream.
  *
- * `mdq-py/mdq/parser.py` walks `markdown_it.tree.SyntaxTreeNode`, a block
+ * `mdq-py/mdq/_parser/` walks `markdown_it.tree.SyntaxTreeNode`, a block
  * tree markdown-it-py builds for you. The JS `markdown-it` exposes only the
  * flat `Token[]` its block parser produces, with `nesting`/`level` marking
  * where a container opens and closes. This module folds that flat stream
@@ -28,6 +28,8 @@ import type Token from "markdown-it/lib/token.mjs";
 export interface Node {
 	readonly type: string;
 	readonly tag: string | undefined;
+	/** The token markup, e.g. `#` for an ATX heading and `=` for a setext one. */
+	readonly markup: string;
 	readonly map: readonly [number, number] | null;
 	readonly children: readonly Node[];
 	readonly content: string | undefined;
@@ -45,6 +47,7 @@ export function buildTree(tokens: readonly Token[]): Node[] {
 	const root: MutableNode = {
 		type: "root",
 		tag: undefined,
+		markup: "",
 		map: null,
 		children: [],
 		content: undefined,
@@ -63,6 +66,7 @@ export function buildTree(tokens: readonly Token[]): Node[] {
 			const node: MutableNode = {
 				type: stripSuffix(token.type, "_open"),
 				tag: token.tag || undefined,
+				markup: token.markup,
 				map: token.map,
 				children: [],
 				content: undefined,
@@ -78,6 +82,7 @@ export function buildTree(tokens: readonly Token[]): Node[] {
 			const node: MutableNode = {
 				type: token.type,
 				tag: token.tag || undefined,
+				markup: token.markup,
 				map: token.map,
 				children: [],
 				content: token.content || undefined,
@@ -93,6 +98,7 @@ export function buildTree(tokens: readonly Token[]): Node[] {
 type MutableNode = {
 	type: string;
 	tag: string | undefined;
+	markup: string;
 	map: readonly [number, number] | null;
 	children: MutableNode[];
 	content: string | undefined;

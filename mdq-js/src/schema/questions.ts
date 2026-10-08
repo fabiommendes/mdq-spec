@@ -11,6 +11,7 @@
 import * as z from "zod";
 import {
 	BooleanChoice,
+	DiacriticsType,
 	EssayInput,
 	GradingType,
 	Indentation,
@@ -23,6 +24,7 @@ import {
 	Statement,
 	shortAnswerKeyShape,
 	Unmatched,
+	uniqueArray,
 } from "./common.js";
 
 /** Every question type's discriminator -- `mdq.types.QuestionType`. */
@@ -96,6 +98,7 @@ export const ShortAnswerQuestion = z
 		...questionBaseShape,
 		...shortAnswerKeyShape,
 		type: z.literal("short-answer"),
+		diacritics: DiacriticsType.optional(),
 		openEnded: z.boolean().optional(),
 	})
 	.refine(
@@ -167,6 +170,7 @@ export const FillInQuestion = z.strictObject({
 	blanks: z.array(Blank).min(1),
 	grading: GradingType.optional(),
 	shuffle: z.boolean().optional(),
+	diacritics: DiacriticsType.optional(),
 });
 export type FillInQuestion = z.infer<typeof FillInQuestion>;
 
@@ -202,7 +206,7 @@ export const OrderingQuestion = z.strictObject({
 	highlight: z.string().min(1).optional(),
 	indentation: Indentation.optional(),
 	unmatched: Unmatched.optional(),
-	normalizations: z.array(Normalization).optional(),
+	normalizations: uniqueArray(Normalization).optional(),
 });
 export type OrderingQuestion = z.infer<typeof OrderingQuestion>;
 

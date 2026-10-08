@@ -8,6 +8,7 @@
  */
 
 import * as z from "zod";
+import { UNICODE_SPACE } from "../parser/text.js";
 
 /**
  * Url-friendly identifier, as used by question ids, choice ids and blank ids
@@ -19,14 +20,92 @@ export const SLUG_PATTERN = /^[a-zA-Z0-9]+(?:[-_][a-zA-Z0-9]+)*$/;
 export const UUID_PATTERN =
 	/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
 
-/** `schema/numeric.yaml#/properties/unit`. */
-export const UNIT_PATTERN = /^[\w.-]+$/;
+/**
+ * `schema/numeric.yaml#/properties/unit` -- the `UNIT` terminal of
+ * docs/references/grammar.md: any run of characters that are not a
+ * `UNICODE_SPACE`, a parenthesis or a bracket (`µm`, `°C`, `m/s`, `km/h`).
+ */
+export const UNIT_PATTERN = new RegExp(`^[^()\\[\\]${UNICODE_SPACE}]+$`, "u");
+
+/**
+ * `schema/numeric.yaml#/properties/answer`'s string form -- the bare `sign?
+ * value` grammar (docs/question-types/numeric.md, "Answer representation"),
+ * with no leading zeros. Shared by a numeric question's `answer` and a
+ * numeric fill-in blank's `answer`.
+ */
+export const NUMERIC_STRING_ANSWER_PATTERN =
+	/^[+-]?(?:(?:0|[1-9][0-9]*)\/[1-9][0-9]*|(?:0|[1-9][0-9]*)\.[0-9]+|0|[1-9][0-9]*)$/;
 
 /** At least one non-space character, the `pattern: "\\S"` the schemas use. */
 export const NON_BLANK_PATTERN = /\S/;
 
 export const Slug = z.string().regex(SLUG_PATTERN);
+
+/**
+ * The id of a question or an exam, and the target of an `include`. Any
+ * non-empty string: the linter warns about ids that are not safe
+ * (`unsafe-id`), but the schema accepts them. Choice and blank ids stay slugs.
+ */
+export const DocumentId = z.string().min(1);
 export const Uuid = z.string().regex(UUID_PATTERN);
+
+/**
+ * Structural equality per JSON Schema's own equality rule: same type,
+ * numbers compared by value, arrays compared item-by-item in order, and
+ * objects compared by key set regardless of insertion order. Reference
+ * equality (`===`) is not enough for `uniqueItems`, since two structurally
+ * identical objects or arrays are still duplicates.
+ */
+function jsonEqual(a: unknown, b: unknown): boolean {
+	if (a === b) return true;
+	if (Array.isArray(a) || Array.isArray(b)) {
+		return (
+			Array.isArray(a) &&
+			Array.isArray(b) &&
+			a.length === b.length &&
+			a.every((item, index) => jsonEqual(item, b[index]))
+		);
+	}
+	if (
+		typeof a === "object" &&
+		a !== null &&
+		typeof b === "object" &&
+		b !== null
+	) {
+		const aRecord = a as Record<string, unknown>;
+		const bRecord = b as Record<string, unknown>;
+		const aKeys = Object.keys(aRecord);
+		const bKeys = Object.keys(bRecord);
+		return (
+			aKeys.length === bKeys.length &&
+			aKeys.every(
+				(key) =>
+					Object.hasOwn(bRecord, key) && jsonEqual(aRecord[key], bRecord[key]),
+			)
+		);
+	}
+	return false;
+}
+
+/**
+ * An array that rejects a duplicate item -- the JSON Schema `uniqueItems:
+ * true` keyword, compared with JSON Schema equality (deep, not by
+ * reference). Also registers `uniqueItems: true` as schema metadata, so
+ * `z.toJSONSchema()` emits the same constraint it enforces at runtime.
+ */
+export function uniqueArray<Item extends z.ZodType>(item: Item) {
+	return z
+		.array(item)
+		.refine(
+			(items) =>
+				items.every(
+					(value, index) =>
+						items.findIndex((other) => jsonEqual(other, value)) === index,
+				),
+			{ error: "array items must be unique" },
+		)
+		.meta({ uniqueItems: true });
+}
 
 /**
  * How a partially correct answer is scored. See the `Grading` section of the
@@ -79,6 +158,15 @@ export const PenaltyPolicy = z.enum(["none", "capped", "full"]);
 export type PenaltyPolicy = z.infer<typeof PenaltyPolicy>;
 
 /**
+ * `schema/short-answer.yaml#/$defs/diacritics` -- how a plain literal, the
+ * pattern compared inexactly, treats diacritics. Shared by a short-answer
+ * question and a fill-in question, where it applies to every short-answer
+ * blank.
+ */
+export const DiacriticsType = z.enum(["fold", "keep"]);
+export type DiacriticsType = z.infer<typeof DiacriticsType>;
+
+/**
  * Fields common to every question type -- `schema/question-base.yaml`.
  *
  * Exposed as a shape rather than a schema because the per-type schemas
@@ -87,7 +175,7 @@ export type PenaltyPolicy = z.infer<typeof PenaltyPolicy>;
  * the Zod equivalent of that composition.
  */
 export const questionBaseShape = {
-	id: Slug.optional(),
+	id: DocumentId.optional(),
 	uuid: Uuid.optional(),
 	title: z.string().min(1).optional(),
 	author: z.string().min(1).optional(),
@@ -96,7 +184,8 @@ export const questionBaseShape = {
 	epilogue: z.string().optional(),
 	comment: z.string().optional(),
 	locale: z.string().optional(),
-	tags: z.array(z.string()).optional(),
+	tags: uniqueArray(z.string()).optional(),
+	weight: z.number().min(0).optional(),
 	meta: z.record(z.string(), z.unknown()).optional(),
 } as const;
 
@@ -187,7 +276,7 @@ export type PatternList = z.infer<typeof PatternList>;
  * validation that never touches a score.
  */
 export const shortAnswerKeyShape = {
-	oneOf: z.array(PatternString).min(1).optional(),
+	oneOf: uniqueArray(PatternString).min(1).optional(),
 	regex: z.string().min(1).optional(),
 	accept: PatternList.optional(),
 	reject: PatternList.optional(),
@@ -198,9 +287,17 @@ export const shortAnswerKeyShape = {
 /**
  * Numeric answer fields shared by a numeric question and a numeric blank.
  * `decimalPlaces` is ignored when `domain` is `integer` or `fraction`.
+ *
+ * `answer` written directly (not parsed from Markdown) may be a string
+ * holding an exact fraction or decimal in the numeric body's own grammar,
+ * e.g. `"1/3"` or `"-0.25"` -- `NUMERIC_STRING_ANSWER_PATTERN` rejects a
+ * malformed one, including a fraction with a zero denominator.
  */
 export const numericAnswerShape = {
-	answer: z.number(),
+	answer: z.union([
+		z.number(),
+		z.string().regex(NUMERIC_STRING_ANSWER_PATTERN),
+	]),
 	unit: z.string().regex(UNIT_PATTERN).optional(),
 	domain: NumericDomain.optional(),
 	decimalPlaces: z.number().int().min(0).optional(),

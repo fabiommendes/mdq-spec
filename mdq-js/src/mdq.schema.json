@@ -70,9 +70,7 @@
             },
             "answerKey": {
               "type": "string",
-              "description": "A model answer. It guides the instructor while grading and MAY be shown to students as feedback afterwards.",
-              "minLength": 1,
-              "pattern": "\\S"
+              "description": "A model answer. It guides the instructor while grading and MAY be shown to students as feedback afterwards. A blank value is a warning (`blank-text-field`), not a schema error, like `title`."
             }
           },
           "required": [
@@ -95,8 +93,8 @@
         },
         "id": {
           "type": "string",
-          "description": "Url-friendly slug identifying the exam, written either in the H1 (`# [slug] Title`) or in the frontmatter. A number written in the frontmatter is read as its decimal string form.",
-          "pattern": "^[a-zA-Z0-9]+(?:[-_][a-zA-Z0-9]+)*$",
+          "description": "Identifier of the exam, written either in the H1 (`# [slug] Title`) or in the frontmatter. It SHOULD be url-safe; an id that is not gets the `unsafe-id` lint warning and can only be written in the frontmatter. It MUST be a YAML string: a number is a schema error, never converted.",
+          "minLength": 1,
           "examples": [
             "midterm",
             "cs101-final"
@@ -130,7 +128,7 @@
         },
         "locale": {
           "type": "string",
-          "description": "The language the exam is written in, as an IETF BCP 47 language tag. Inherited by any question that does not set one. Well-formedness is left to the implementation -- see mdq.linter.",
+          "description": "The language the exam is written in, as an IETF BCP 47 language tag, well-formed under the RFC 5646 grammar (registration is not checked). Inherited by any question that does not set one. The check is left to the implementation (`malformed-locale`).",
           "examples": [
             "pt-BR",
             "en"
@@ -180,6 +178,11 @@
           ],
           "default": "symmetric"
         },
+        "shuffle": {
+          "type": "boolean",
+          "default": false,
+          "description": "The `shuffle` value of every question whose own `shuffle` is `inherit`. Defaults to false."
+        },
         "penalty": {
           "enum": [
             "none",
@@ -201,7 +204,7 @@
         },
         "duration": {
           "type": "string",
-          "description": "How long the exam lasts, as an ISO 8601 duration. Only fixed-length units are allowed (weeks, days, hours, minutes, seconds): years and months have no fixed length. The surface shorthands `HH:MM` and `Xd Yh Zm` are normalized to this form.",
+          "description": "How long the exam lasts, as an ISO 8601 duration. Only fixed-length units are allowed (weeks, days, hours, minutes, seconds): years and months have no fixed length. The surface shorthands `HH:MM` and `Xd Yh Zm` allowed in the Markdown document are normalized to this form.",
           "pattern": "^P(?!$)([0-9]+W)?([0-9]+D)?(T(?=[0-9])([0-9]+H)?([0-9]+M)?([0-9]+(\\.[0-9]+)?S)?)?$",
           "examples": [
             "PT1H30M",
@@ -236,6 +239,9 @@
               "$ref": "#/$defs/Include"
             },
             {
+              "$ref": "#/$defs/IncludeAll"
+            },
+            {
               "$ref": "./multiple-choice.yaml"
             },
             {
@@ -255,6 +261,9 @@
             },
             {
               "$ref": "./fill-in.yaml"
+            },
+            {
+              "$ref": "./ordering.yaml"
             }
           ]
         },
@@ -267,7 +276,7 @@
             "include": {
               "type": "string",
               "description": "The id of the question to pull in.",
-              "pattern": "^.*(/?([a-zA-Z0-9]+(?:[-_][a-zA-Z0-9]+)*))+$",
+              "minLength": 1,
               "examples": [
                 "recursion-01"
               ]
@@ -275,6 +284,30 @@
           },
           "required": [
             "include"
+          ]
+        },
+        "IncludeAll": {
+          "type": "object",
+          "title": "Include all",
+          "description": "A query for questions defined outside this exam. Adds every question that matches it, except the ones the exam already contains through an `include`, a declared inline id, or an earlier `include-all`. Resolving the query is the host system's job; a document that merely fails to resolve is still well-formed.",
+          "additionalProperties": false,
+          "properties": {
+            "include-all": {
+              "type": "string",
+              "minLength": 1,
+              "description": "The query. docs/exam.md recommends a language of tags combined with AND, OR, NOT and parentheses, followed by an optional EXCEPT with a comma-separated list of question ids.",
+              "examples": [
+                "recursion AND NOT draft EXCEPT recursion-07"
+              ]
+            },
+            "max": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "The maximum number of questions to add. Which ones are kept is implementation-defined."
+            }
+          },
+          "required": [
+            "include-all"
           ]
         }
       }
@@ -306,16 +339,29 @@
               "enum": [
                 "partial",
                 "all-or-nothing",
-                "symmetric"
+                "symmetric",
+                "inherit"
               ],
-              "description": "The strategy used to grade the question, see the `Grading` section of the corresponding document in docs/question-types. If omitted, the exam's `grading` field selects one, and `symmetric` applies when neither does."
+              "default": "inherit",
+              "description": "The strategy used to grade the question, see the `Grading` section of the corresponding document in docs/question-types. `inherit`, the default, takes the exam's `grading` value, and is `symmetric` outside an exam. A `null` value is the same as an absent field."
             },
             "shuffle": {
-              "type": "boolean",
-              "description": "If true, the choices of every choice-based blank are safe to shuffle. If false, they should never be shuffled, and if omitted the system is free to choose."
+              "oneOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "const": "inherit"
+                }
+              ],
+              "default": "inherit",
+              "description": "If true, the choices of every choice-based blank are safe to shuffle. If false, they should never be shuffled. `inherit`, the default, takes the exam's `shuffle` value, and is false outside an exam."
             },
             "diacritics": {
-              "$ref": "./short-answer.yaml#/$defs/diacritics",
+              "$ref": "./short-answer.yaml#/$defs/diacritics"
+            },
+            "unmatched": {
+              "$ref": "./short-answer.yaml#/$defs/unmatched",
               "description": "Applies to every short answer blank of the question, with the same meaning as in a short answer question."
             }
           },
@@ -390,20 +436,6 @@
             "type": {
               "const": "short-answer"
             },
-            "oneOf": {
-              "type": "array",
-              "description": "The list of accepted responses; a response is correct if it matches any entry. Entries follow the same notation as any other pattern, so backticks make an entry an exact literal.",
-              "items": {
-                "$ref": "./short-answer.yaml#/$defs/patternString"
-              },
-              "minItems": 1,
-              "uniqueItems": true
-            },
-            "regex": {
-              "type": "string",
-              "description": "A regular expression matching every correct response, applied as a full match. Takes precedence over `oneOf`.",
-              "minLength": 1
-            },
             "accept": {
               "description": "Patterns matching a correct response. The canonical form of the `[^id/short-answer/accept]` block; a response is correct if it matches any entry.",
               "$ref": "./short-answer.yaml#/$defs/patternList"
@@ -439,13 +471,21 @@
               "const": "numeric"
             },
             "answer": {
-              "type": "number",
-              "description": "The expected correct numeric value."
+              "description": "The expected correct numeric value: a number, or a string in the same grammar as a numeric body's value, e.g. \"1/3\", \"2.50\" or \"390000000000\" (docs/question-types/numeric.md, \"Answer representation\"). Parsed from Markdown, a fraction, an integer outside the 32-bit signed range and a decimal that a float cannot hold digit by digit stay strings. Written directly, either form MAY be used. A fraction's denominator MUST NOT be zero.",
+              "oneOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^[+-]?(?:(?:0|[1-9][0-9]*)/[1-9][0-9]*|(?:0|[1-9][0-9]*)\\.[0-9]+|0|[1-9][0-9]*)$"
+                }
+              ]
             },
             "unit": {
               "type": "string",
-              "description": "The unit (e.g., kg, m, lm, etc) of the expected answer.",
-              "pattern": "^[\\w.\\-]+$"
+              "description": "The unit (e.g., kg, m, lm, etc) of the expected answer. Any character except the brackets and UNICODE_SPACE (docs/references/grammar.md).",
+              "pattern": "^[^()\\[\\]\\t\\n\\v\\f\\r \\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]+$"
             },
             "domain": {
               "enum": [
@@ -499,13 +539,23 @@
               "enum": [
                 "partial",
                 "all-or-nothing",
-                "symmetric"
+                "symmetric",
+                "inherit"
               ],
-              "description": "The strategy used to grade the question, see the `Grading` section of the corresponding document in docs/question-types. If omitted, the exam's `grading` field selects one, and `symmetric` applies when neither does."
+              "default": "inherit",
+              "description": "The strategy used to grade the question, see the `Grading` section of the corresponding document in docs/question-types. `inherit`, the default, takes the exam's `grading` value, and is `symmetric` outside an exam. A `null` value is the same as an absent field."
             },
             "shuffle": {
-              "type": "boolean",
-              "description": "If true, the choices are safe to shuffle. If false, they should never be shuffled and if ommited, use the system is free to choose."
+              "oneOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "const": "inherit"
+                }
+              ],
+              "default": "inherit",
+              "description": "If true, the choices are safe to shuffle. If false, they should never be shuffled. `inherit`, the default, takes the exam's `shuffle` value, and is false outside an exam."
             }
           },
           "required": [
@@ -584,13 +634,23 @@
               "enum": [
                 "partial",
                 "all-or-nothing",
-                "symmetric"
+                "symmetric",
+                "inherit"
               ],
-              "description": "The strategy used to grade the question, see the `Grading` section of the corresponding document in docs/question-types. If omitted, the exam's `grading` field selects one, and `symmetric` applies when neither does."
+              "default": "inherit",
+              "description": "The strategy used to grade the question, see the `Grading` section of the corresponding document in docs/question-types. `inherit`, the default, takes the exam's `grading` value, and is `symmetric` outside an exam. A `null` value is the same as an absent field."
             },
             "shuffle": {
-              "type": "boolean",
-              "description": "If true, the choices are safe to shuffle. If false, they should never be shuffled and if ommited, use the system is free to choose."
+              "oneOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "const": "inherit"
+                }
+              ],
+              "default": "inherit",
+              "description": "If true, the choices are safe to shuffle. If false, they should never be shuffled. `inherit`, the default, takes the exam's `shuffle` value, and is false outside an exam."
             }
           },
           "required": [
@@ -623,8 +683,7 @@
             },
             "correct": {
               "type": "boolean",
-              "description": "Whether this choice should be selected in a correct answer. If omitted, it is interpreted as false (i.e. the choice should not be selected).",
-              "default": false
+              "description": "Whether this choice should be selected in a correct answer. Required: every choice states its verdict, unlike multiple-choice where a blank `[ ]` omits `score`."
             },
             "feedback": {
               "type": "string",
@@ -636,7 +695,8 @@
             }
           },
           "required": [
-            "text"
+            "text",
+            "correct"
           ]
         }
       }
@@ -657,13 +717,21 @@
               "const": "numeric"
             },
             "answer": {
-              "type": "number",
-              "description": "The expected correct numeric value."
+              "description": "The expected correct numeric value: a number, or a string in the same grammar as a numeric body's value, e.g. \"1/3\", \"2.50\" or \"390000000000\" (docs/question-types/numeric.md, \"Answer representation\"). Parsed from Markdown, a fraction, an integer outside the 32-bit signed range and a decimal that a float cannot hold digit by digit stay strings. Written directly, either form MAY be used. A fraction's denominator MUST NOT be zero.",
+              "oneOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^[+-]?(?:(?:0|[1-9][0-9]*)/[1-9][0-9]*|(?:0|[1-9][0-9]*)\\.[0-9]+|0|[1-9][0-9]*)$"
+                }
+              ]
             },
             "unit": {
               "type": "string",
-              "description": "The unit (e.g., kg, m, lm, etc) of the expected answer.",
-              "pattern": "^[\\w.\\-]+$"
+              "description": "The unit (e.g., kg, m, lm, etc) of the expected answer. Any character except the brackets and UNICODE_SPACE (docs/references/grammar.md).",
+              "pattern": "^[^()\\[\\]\\t\\n\\v\\f\\r \\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]+$"
             },
             "domain": {
               "enum": [
@@ -786,6 +854,7 @@
             },
             "normalizations": {
               "type": "array",
+              "uniqueItems": true,
               "description": "Transformations applied to both sides of every comparison -- the response and each answer key alike -- before they are matched. They never change what the student is shown.",
               "items": {
                 "enum": [
@@ -793,7 +862,6 @@
                   "skip-blanks"
                 ]
               },
-              "uniqueItems": true,
               "default": []
             }
           },
@@ -868,8 +936,8 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "Url-friendly identifier for the question. Used to reference the question from exams, results, and cross-links. When omitted, an id may be derived from the question's position or title.",
-          "pattern": "^[a-zA-Z0-9]+(?:[-_][a-zA-Z0-9]+)*$",
+          "description": "Identifier for the question. Used to reference the question from exams, results, and cross-links. It SHOULD be url-safe; an id that is not gets the `unsafe-id` lint warning. It MUST be a YAML string: a number is a schema error, never converted. When omitted, a host system may derive one (see `with_ids()` in mdq-py); the parsed document does not.",
+          "minLength": 1,
           "examples": [
             "q1",
             "rgb-question",
@@ -915,7 +983,7 @@
         },
         "locale": {
           "type": "string",
-          "description": "The language the question is written in, as an IETF BCP 47 language tag. BCP 47 is too involved to express as a JSON Schema `pattern`, so well-formedness is left to the implementation -- see the `malformed-locale` check in mdq.linter.",
+          "description": "The language the question is written in, as a well-formed IETF BCP 47 language tag (the RFC 5646 grammar; registration of the subtags is not checked). The grammar is too involved for a JSON Schema `pattern`, so the check is left to the implementation (`malformed-locale`).",
           "examples": [
             "pt-BR",
             "en",
@@ -950,7 +1018,7 @@
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "$id": "https://raw.githubusercontent.com/fabiommendes/mdq-spec/main/schema/short-answer.yaml",
       "title": "Short answer question",
-      "description": "A question answered with a short piece of free text, graded by comparing the response against a list of accepted answers or against a regular expression. Extends the common question-base schema.",
+      "description": "A question answered with a short piece of free text, graded by comparing the response against a list of accepted patterns. Extends the common question-base schema.",
       "allOf": [
         {
           "$ref": "./question-base.yaml"
@@ -961,23 +1029,8 @@
             "type": {
               "const": "short-answer"
             },
-            "oneOf": {
-              "type": "array",
-              "description": "The list of accepted responses; a response is correct if it matches any entry. This is where the body's answer text is stored -- either the single string written after `[short-answer]:`, or the unordered list written below it.",
-              "items": {
-                "type": "string",
-                "minLength": 1
-              },
-              "minItems": 1,
-              "uniqueItems": true
-            },
-            "regex": {
-              "type": "string",
-              "description": "A regular expression matching every correct response. Matching is a *full match*, so leading `^` and trailing `$` are redundant. Set from the frontmatter, or from a body whose answer text is delimited by `/`; the frontmatter wins.",
-              "minLength": 1
-            },
             "accept": {
-              "description": "Patterns matching a correct response. The canonical form of the `[short-answer/accept]` block; a response is correct if it matches any entry.",
+              "description": "Patterns matching a correct response. The canonical form of the `[short-answer/accept]` block; a response is correct if it matches any entry. The content of a simple `[short-answer]` block is the first entry.",
               "$ref": "#/$defs/patternList"
             },
             "reject": {
@@ -995,33 +1048,17 @@
             "diacritics": {
               "$ref": "#/$defs/diacritics"
             },
-            "openEnded": {
-              "type": "boolean",
-              "description": "If true, the question has no answer key and requires manual grading. Inferred when the body declares no answer text.",
-              "default": false
+            "unmatched": {
+              "$ref": "#/$defs/unmatched"
+            },
+            "incorrectFeedback": {
+              "type": "string",
+              "description": "Feedback for an incorrect response that no pattern gave feedback to: a response that matches no pattern under `unmatched: incorrect`, or one that matches a `reject` pattern with no feedback. Inline markdown, like the feedback of a pattern."
             }
           },
           "required": [
             "type"
-          ],
-          "if": {
-            "properties": {
-              "openEnded": {
-                "const": true
-              }
-            },
-            "required": [
-              "openEnded"
-            ]
-          },
-          "then": {
-            "properties": {
-              "oneOf": false,
-              "regex": false,
-              "accept": false,
-              "reject": false
-            }
-          }
+          ]
         }
       ],
       "$defs": {
@@ -1031,7 +1068,14 @@
             "keep"
           ],
           "default": "fold",
-          "description": "How plain literals, the patterns compared inexactly, treat diacritics. `fold` strips them from both the pattern and the response before comparing; `keep` preserves them. Regexes, backtick-enclosed literals and the `*` wildcard are unaffected. See the `Diacritics` section of docs/question-types/short-answer.md."
+          "description": "How plain literals, the patterns compared inexactly, treat diacritics. `fold` strips them from both the pattern and the response before comparing; `keep` preserves them. Regexes and backtick-enclosed literals are unaffected. See the `Diacritics` section of docs/question-types/short-answer.md."
+        },
+        "unmatched": {
+          "enum": [
+            "incorrect",
+            "manual"
+          ],
+          "description": "What becomes of a response that matches no `accept` and no `reject` pattern. `incorrect` scores it 0; `manual` leaves it pending, for the instructor to score by hand. There is no fixed default: when absent, it is `incorrect` for a question (or blank) with at least one `accept` pattern and `manual` for one with none. See the `Grading` section of docs/question-types/short-answer.md."
         },
         "patternList": {
           "type": "array",
@@ -1071,9 +1115,9 @@
         },
         "patternString": {
           "type": "string",
-          "description": "A regular expression when delimited by `/`, an exact literal when enclosed in backticks, and a plain literal compared inexactly otherwise; a lone `*` is a wildcard matching every response.",
+          "description": "A regular expression when delimited by `/`, an exact literal when enclosed in backticks, and a plain literal compared inexactly otherwise.",
           "minLength": 1,
-          "pattern": "\\S"
+          "pattern": "^(?:`[^`\\n]+`[ \\t]*|[^`\\s][\\s\\S]*|\\s+[^`\\s][\\s\\S]*)$"
         }
       },
       "unevaluatedProperties": false
@@ -1105,13 +1149,23 @@
               "enum": [
                 "partial",
                 "all-or-nothing",
-                "symmetric"
+                "symmetric",
+                "inherit"
               ],
-              "description": "The strategy used to grade the question, see the `Grading` section of the corresponding document in docs/question-types. If omitted, the exam's `grading` field selects one, and `symmetric` applies when neither does."
+              "default": "inherit",
+              "description": "The strategy used to grade the question, see the `Grading` section of the corresponding document in docs/question-types. `inherit`, the default, takes the exam's `grading` value, and is `symmetric` outside an exam. A `null` value is the same as an absent field."
             },
             "shuffle": {
-              "type": "boolean",
-              "description": "If true, the statements are safe to shuffle. If false, they should never be shuffled, and if omitted the system is free to choose."
+              "oneOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "const": "inherit"
+                }
+              ],
+              "default": "inherit",
+              "description": "If true, the statements are safe to shuffle. If false, they should never be shuffled. `inherit`, the default, takes the exam's `shuffle` value, and is false outside an exam."
             }
           },
           "required": [
@@ -1144,8 +1198,7 @@
             },
             "correct": {
               "type": "boolean",
-              "description": "Whether the statement is true. If omitted, it is interpreted as false (i.e. the statement is false).",
-              "default": false
+              "description": "Whether the statement is true. Required: every statement states its verdict."
             },
             "marker": {
               "type": "string",
@@ -1163,7 +1216,8 @@
             }
           },
           "required": [
-            "text"
+            "text",
+            "correct"
           ]
         }
       }

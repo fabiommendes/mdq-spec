@@ -1,7 +1,7 @@
 /**
  * Turning arbitrary text into url-friendly, unique slugs.
  *
- * A port of `mdq/slugify.py`. The strategies are registered by name and
+ * A port of `mdq-py/mdq/models/_slugify.py`. The strategies are registered by name and
  * dispatched through {@link slugify}, so a caller picks one without knowing
  * which strategies exist.
  */

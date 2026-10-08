@@ -69,9 +69,10 @@ The porting scheme is describe in the documents in this repository.
 | ---------------------- | ---------------------------- | ----------- |
 | Core schemas and types | [schemas.md](schemas.md)     | written     |
 | Testing                | [testing.md](testing.md)     | written     |
+| Roadmap and decisions  | [roadmap.md](roadmap.md)     | written     |
 | Parsing                | `parsing.md`                 | not written |
 | Rendering              | `rendering.md`               | not written |
 
 The unwritten rows describe parts the TypeScript port has not reached yet.
-It currently implements the schema layer, the validator, and the slugifier;
-the parser and the SolidJS components are still to come.
+[roadmap.md](roadmap.md) lists the phases of the port and the decisions that
+apply to all of them.

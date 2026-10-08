@@ -8,6 +8,7 @@
  * `docs/sync/README.md`.
  */
 
+export * from "./banks.js";
 export * from "./errors.js";
 export * from "./parser/index.js";
 export * from "./responses.js";

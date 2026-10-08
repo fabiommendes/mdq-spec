@@ -2,36 +2,42 @@
  * Bracket-list body parsing: choice markers, type inference, choice ids and
  * scores, for `multiple-choice`, `multiple-selection` and `true-false`.
  *
- * A port of the choice-list section of `mdq-py/mdq/parser.py` --
+ * A port of the choice-list section of `mdq-py/mdq/_parser/_choices.py` --
  * `parse_marker`, `_split_list_items`, `RawChoice`/`collect_item`,
  * `_slugify_choice_text`, `_infer_choice_type`, `_score_from_value` and
  * `parse_choice_body`.
  */
 
 import { ParseError } from "../errors.js";
+import { repr, strip } from "./text.js";
 
 /** A slug's body, shared by choice ids and the inline `[slug]` prefix. */
 export const SLUG_BODY_RE = "[a-zA-Z0-9]+(?:[-_][a-zA-Z0-9]+)*";
 
 /** `[slug]` at the very start of a line, e.g. the inline id/title prefix. */
-export const SLUG_PREFIX_RE = new RegExp(`^\\[(?<slug>${SLUG_BODY_RE})\\]\\s*`);
+export const SLUG_PREFIX_RE = new RegExp(
+	`^\\[(?<slug>${SLUG_BODY_RE})\\][ \\t]*`,
+	"u",
+);
 
 /** An explicit choice id written right after a choice's marker. */
 export const CHOICE_ID_PREFIX_RE = new RegExp(
-	`^\\[(?<id>${SLUG_BODY_RE})\\]\\s*`,
+	`^\\[(?<id>${SLUG_BODY_RE})\\][ \\t]*`,
+	"u",
 );
 
 /** A bullet item whose text starts with `[`, the shape a choice marker takes. */
-export const BRACKET_ITEM_RE = /^[*+-]\s*\[/;
+export const BRACKET_ITEM_RE = /^[*+-][ \t]*\[/u;
 
 /** A choice item's marker: `* [value] rest`. */
-export const ITEM_MARKER_RE = /^[*+-]\s+\[(?<value>[^\]]*)\]\s?(?<rest>.*)$/;
+export const ITEM_MARKER_RE =
+	/^[*+-][ \t]+\[(?<value>[^\]]*)\][ \t]?(?<rest>[^\n]*)$/u;
 
 /** A partial-credit marker, e.g. `50%` or `-25%`. */
-export const PERCENT_RE = /^[+-]?\d+(?:\.\d+)?%$/;
+export const PERCENT_RE = /^[+-]?\d+(?:\.\d+)?%$/u;
 
 /** A plain (non-bracket) list item, e.g. a short-answer pattern line. */
-export const PLAIN_ITEM_RE = /^[*+-]\s+(?<rest>.*)$/;
+export const PLAIN_ITEM_RE = /^[*+-][ \t]+(?<rest>[^\n]*)$/u;
 
 /**
  * True/false letters that mean false -- `docs/question-types/true-false.md`.
@@ -40,43 +46,6 @@ export const PLAIN_ITEM_RE = /^[*+-]\s+(?<rest>.*)$/;
  * than lowercased.
  */
 const FALSE_LETTERS = new Set(["f", "错", "偽"]);
-
-/**
- * Single-glyph choices (a lone symbol or digit) slugify to nothing useful
- * once punctuation is stripped, so they get a small name table instead.
- */
-const DIGIT_NAMES: Record<string, string> = {
-	"0": "zero",
-	"1": "one",
-	"2": "two",
-	"3": "three",
-	"4": "four",
-	"5": "five",
-	"6": "six",
-	"7": "seven",
-	"8": "eight",
-	"9": "nine",
-};
-
-const SYMBOL_NAMES: Record<string, string> = {
-	"-": "hyphen",
-	"*": "asterisk",
-	"+": "plus",
-	"!": "bang",
-	"?": "question",
-	"/": "slash",
-	".": "dot",
-	",": "comma",
-	":": "colon",
-	";": "semicolon",
-	"@": "at",
-	"#": "hash",
-	$: "dollar",
-	"%": "percent",
-	"&": "ampersand",
-	"=": "equals",
-	_: "underscore",
-};
 
 /** One choice item, before it is turned into its final schema shape. */
 export interface RawChoice {
@@ -103,10 +72,10 @@ export interface ParsedMarker {
 export function parseMarker(line: string): ParsedMarker {
 	const match = ITEM_MARKER_RE.exec(line);
 	if (!match?.groups) {
-		throw new ParseError(`malformed choice item: ${JSON.stringify(line)}`);
+		throw new ParseError(`malformed choice item: ${repr(line)}`);
 	}
 
-	const value = (match.groups.value ?? "").trim();
+	const value = strip(match.groups.value ?? "", " \t");
 	let rest = match.groups.rest ?? "";
 
 	let id: string | undefined;
@@ -119,12 +88,24 @@ export function parseMarker(line: string): ParsedMarker {
 	return { value, id, rest };
 }
 
+/**
+ * Strip a plain (non-bracket) list item line's `*`/`+`/`-` marker, e.g. for
+ * a short-answer body's `oneOf` list, whose items carry no `[value]`
+ * marker. A port of `_strip_list_marker`.
+ */
+export function stripListMarker(line: string): string {
+	const match = PLAIN_ITEM_RE.exec(line);
+	return match?.groups?.rest !== undefined
+		? strip(match.groups.rest, " \t")
+		: strip(line, " \t");
+}
+
 /** Split a list's raw source lines into per-item line groups. */
 export function splitListItems(lines: readonly string[]): string[][] {
 	const items: string[][] = [];
 	let current: string[] = [];
 	for (const line of lines) {
-		if (/^[*+-]\s/.test(line)) {
+		if (/^[*+-][ \t]/u.test(line)) {
 			current = [line];
 			items.push(current);
 		} else {
@@ -144,19 +125,19 @@ export function collectItem(
 	explicitId: string | undefined,
 	rest: string,
 ): RawChoice {
-	const textLines: string[] = rest.trim() ? [rest] : [];
+	const textLines: string[] = strip(rest, " \t") ? [rest] : [];
 	const feedbackLines: string[] = [];
 	const commentLines: string[] = [];
 	let mode: "text" | "feedback" | "comment" = "text";
 
 	for (const line of itemLines.slice(1)) {
-		const stripped = line.trim();
+		const stripped = strip(line, " \t");
 		if (stripped.startsWith(">")) {
 			mode = "feedback";
-			feedbackLines.push(stripped.slice(1).trim());
+			feedbackLines.push(strip(stripped.slice(1), " \t"));
 		} else if (stripped.startsWith("!")) {
 			mode = "comment";
-			commentLines.push(stripped.slice(1).trim());
+			commentLines.push(strip(stripped.slice(1), " \t"));
 		} else if (mode === "text") {
 			textLines.push(stripped);
 		} else if (mode === "feedback") {
@@ -199,56 +180,52 @@ export function parsePlainItem(itemLines: readonly string[]): RawChoice {
 	const first = itemLines[0];
 	const match = first === undefined ? null : PLAIN_ITEM_RE.exec(first);
 	if (!match?.groups) {
-		throw new ParseError(`malformed list item: ${JSON.stringify(first ?? "")}`);
+		throw new ParseError(`malformed list item: ${repr(first ?? "")}`);
 	}
 	return collectItem(itemLines, "", undefined, match.groups.rest ?? "");
 }
 
-function foldAscii(text: string): string {
-	const stripped = text.normalize("NFKD").replace(/\p{M}/gu, "");
-	return [...stripped]
-		.filter((char) => (char.codePointAt(0) as number) <= 0x7f)
-		.join("");
-}
+/** One accept/reject pattern entry: a bare string, or the `{pattern, feedback?, comment?}` object form. */
+export type PatternEntry = string | Record<string, unknown>;
 
-function slugifyText(text: string): string {
-	const folded = foldAscii(text).toLowerCase();
-	return folded.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+/**
+ * Build one accept/reject entry from a parsed pattern item, bare when it
+ * carries no feedback or comment. A port of `_pattern_entry`, shared by a
+ * short-answer question's `[short-answer/accept|reject]` blocks and a
+ * fill-in short-answer blank's.
+ *
+ * @throws {ParseError} If the item's pattern text is empty.
+ */
+export function patternEntry(item: RawChoice): PatternEntry {
+	const pattern = strip(item.text, " \t");
+	if (!pattern) {
+		throw new ParseError("a short-answer pattern line cannot be empty");
+	}
+	if (!item.feedback && !item.comment) {
+		return pattern;
+	}
+	const entry: Record<string, unknown> = { pattern };
+	if (item.feedback) {
+		entry.feedback = item.feedback;
+	}
+	if (item.comment) {
+		entry.comment = item.comment;
+	}
+	return entry;
 }
 
 /**
- * Derive a url-safe choice id from its text, per
- * `docs/question-types/multiple-choice.md#choices`.
+ * Return each choice's id, exactly as the author wrote it -- `undefined` for
+ * a choice with no explicit id.
+ *
+ * A choice without an id used to get one derived from its text here; that
+ * derivation now lives in the model layer's `withIds` (F5), called by
+ * whoever needs an addressable document (dev/specs/to-do/derived-ids.md).
  */
-export function slugifyChoiceText(text: string): string {
-	let core = text.trim();
-	const backtickCount = (core.match(/`/g) ?? []).length;
-	if (
-		core.length >= 2 &&
-		core.startsWith("`") &&
-		core.endsWith("`") &&
-		backtickCount === 2
-	) {
-		core = core.slice(1, -1);
-	}
-	if (core.length === 1) {
-		const symbol = SYMBOL_NAMES[core];
-		if (symbol !== undefined) {
-			return symbol;
-		}
-		const digit = DIGIT_NAMES[core];
-		if (digit !== undefined) {
-			return digit;
-		}
-	}
-	return slugifyText(text) || "choice";
-}
-
-/** Assign each choice its id: the explicit one it wrote, or one derived from its text. */
-export function assignChoiceIds(choices: readonly RawChoice[]): string[] {
-	return choices.map(
-		(choice) => choice.explicitId ?? slugifyChoiceText(choice.text),
-	);
+export function assignChoiceIds(
+	choices: readonly RawChoice[],
+): (string | undefined)[] {
+	return choices.map((choice) => choice.explicitId);
 }
 
 /**
@@ -307,10 +284,11 @@ export function buildChoices(
 ): Record<string, unknown>[] {
 	const ids = assignChoiceIds(rawChoices);
 	return rawChoices.map((choice, index) => {
-		const entry: Record<string, unknown> = {
-			id: ids[index],
-			text: choice.text,
-		};
+		const entry: Record<string, unknown> = { text: choice.text };
+		const id = ids[index];
+		if (id !== undefined) {
+			entry.id = id;
+		}
 
 		if (questionType === "multiple-choice") {
 			// Always explicit: score is emitted even when 0, not just for

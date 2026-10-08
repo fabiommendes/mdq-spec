@@ -4,18 +4,20 @@
  * `bracketListCaseArb` builds MDQ source for a `multiple-choice` /
  * `multiple-selection` / `true-false` question *alongside* the exact
  * document `parseQuestionDocument` must produce from it, the way
- * `docs/handoffs/01-parser-bracket-lists.md` asks for: title, optional id
- * (frontmatter or inline `[slug]`), an optional `type` (sometimes left out
- * of the frontmatter entirely, so the markers alone must drive
- * `_infer_choice_type`), preamble paragraphs, a stem, and N choices with
- * markers, optional explicit ids and optional per-choice feedback.
+ * `docs/handoffs/02-parser-bracket-lists-parity.md` asks for: title,
+ * optional id (frontmatter or inline `[slug]`), an optional `type`
+ * (sometimes left out of the frontmatter entirely, so the markers alone
+ * must drive `_infer_choice_type`), preamble paragraphs, a stem, N choices
+ * with markers, optional explicit ids and optional per-choice feedback, and
+ * optional `grading`/`shuffle`/`weight` frontmatter.
  *
  * `expected` is computed from the same config the source is built from, not
  * by calling the parser, so the property stays independent of the code
- * under test -- including the choice id, which is derived the way
- * `_slugify_choice_text` derives it (accents folded, multi-word text
- * hyphenated, a lone symbol or digit named) rather than assumed to equal
- * the lowercased text.
+ * under test. A choice carries an `id` in `expected` only when its `ChoiceSpec`
+ * carries an `explicitId` -- Python's parser stopped deriving one from the
+ * choice text (`_assign_choice_ids`, `_parser/_choices.py`; the derivation moved to
+ * `mdq.models.BaseQuestion.with_ids`, ported in a later cycle), so a choice
+ * with no explicit id has no `id` key at all, not one computed here to match.
  *
  * The prose pools (stems, preambles, titles) are plain ASCII with no
  * markdown-significant characters (`[`, `>`, `!`, leading list markers,
@@ -23,8 +25,9 @@
  * soft-wrap join unchanged -- the property is about the parser's skeleton,
  * not about prose escaping. `CHOICE_TEXTS` is the deliberate exception: it
  * mixes accented and multi-word text, backtick-quoted code, and lone
- * symbols/digits, because that variety is exactly what choice-id derivation
- * needs to be exercised against.
+ * symbols/digits, because that variety exercises choice *text*
+ * reconstruction (trimming, backtick spans) even though it no longer drives
+ * an id.
  */
 
 import fc from "fast-check";
@@ -48,10 +51,10 @@ export interface BracketListCase {
 }
 
 // A mix of plain ascii words, accented and multi-word text, backtick-quoted
-// code, and lone symbols/digits -- so the property exercises the same id
-// derivation the corpus does (`_slugify_choice_text`: accents fold, spaces
-// become hyphens, a lone symbol or digit gets a name, a two-backtick span
-// is unwrapped first), not just the ascii-single-word fast path.
+// code, and lone symbols/digits -- so choice-text reconstruction (trimming,
+// soft-wrap joins) is exercised against more than the ascii-single-word fast
+// path, even though none of it drives a derived id anymore (see the module
+// docstring).
 const CHOICE_TEXTS = [
 	"Amazonas",
 	"Cerrado",
@@ -117,74 +120,8 @@ const PERCENTS = ["0%", "25%", "50%", "75%", "100%", "-25%", "-50%"];
 const TRUE_FALSE_LETTERS = ["T", "F", "t", "f", "V", "v"];
 const FALSE_LETTERS = new Set(["f", "错", "偽"]);
 
-// Mirrors `mdq-py/mdq/parser.py`'s `DIGIT_NAMES`/`SYMBOL_NAMES`: a lone
-// symbol or digit slugifies to nothing useful once punctuation is stripped,
-// so it gets a name instead.
-const DIGIT_NAMES: Record<string, string> = {
-	"0": "zero",
-	"1": "one",
-	"2": "two",
-	"3": "three",
-	"4": "four",
-	"5": "five",
-	"6": "six",
-	"7": "seven",
-	"8": "eight",
-	"9": "nine",
-};
-const SYMBOL_NAMES: Record<string, string> = {
-	"-": "hyphen",
-	"*": "asterisk",
-	"+": "plus",
-	"!": "bang",
-	"?": "question",
-	"/": "slash",
-	".": "dot",
-	",": "comma",
-	":": "colon",
-	";": "semicolon",
-	"@": "at",
-	"#": "hash",
-	$: "dollar",
-	"%": "percent",
-	"&": "ampersand",
-	"=": "equals",
-	_: "underscore",
-};
-
-/** Ascii-fold like Python's `unicodedata.normalize("NFKD", ...).encode("ascii", "ignore")`. */
-function foldAscii(text: string): string {
-	return Array.from(text.normalize("NFKD"))
-		.filter((ch) => (ch.codePointAt(0) ?? 0) <= 127)
-		.join("");
-}
-
-function slugify(text: string): string {
-	const folded = foldAscii(text).toLowerCase();
-	return folded.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-}
-
-/** Port of `_slugify_choice_text` (parser.py:1386) -- the reference id derivation. */
-function slugifyChoiceText(text: string): string {
-	let core = text.trim();
-	if (
-		core.length >= 2 &&
-		core[0] === "`" &&
-		core[core.length - 1] === "`" &&
-		core.split("`").length - 1 === 2
-	) {
-		core = core.slice(1, -1);
-	}
-	if (core.length === 1) {
-		if (core in SYMBOL_NAMES) {
-			return SYMBOL_NAMES[core] as string;
-		}
-		if (core in DIGIT_NAMES) {
-			return DIGIT_NAMES[core] as string;
-		}
-	}
-	return slugify(text) || "choice";
-}
+const GRADINGS = ["partial", "all-or-nothing", "symmetric"] as const;
+const WEIGHTS = [0, 0.5, 1, 2, 3.25, 10] as const;
 
 function markerArb(kind: ChoiceKind): fc.Arbitrary<string> {
 	if (kind === "multiple-choice") {
@@ -196,9 +133,7 @@ function markerArb(kind: ChoiceKind): fc.Arbitrary<string> {
 	return fc.constantFrom(...TRUE_FALSE_LETTERS);
 }
 
-function optionalFrom<T extends string>(
-	pool: readonly T[],
-): fc.Arbitrary<T | undefined> {
+function optionalFrom<T>(pool: readonly T[]): fc.Arbitrary<T | undefined> {
 	return fc.option(fc.constantFrom(...pool), { nil: undefined });
 }
 
@@ -268,8 +203,13 @@ function choiceEntry(
 	kind: ChoiceKind,
 	spec: ChoiceSpec,
 ): Record<string, unknown> {
-	const id = spec.explicitId ?? slugifyChoiceText(spec.text);
-	const entry: Record<string, unknown> = { id, text: spec.text };
+	// `id` appears only when the source wrote one explicitly -- Python's
+	// `_assign_choice_ids` (`_parser/_choices.py`) no longer derives one from the
+	// choice text, so a choice with no `[id]` prefix has no `id` key here.
+	const entry: Record<string, unknown> = { text: spec.text };
+	if (spec.explicitId !== undefined) {
+		entry.id = spec.explicitId;
+	}
 	if (kind === "multiple-choice") {
 		entry.score = scoreFromMarker(spec.marker);
 	} else if (kind === "multiple-selection") {
@@ -293,7 +233,7 @@ interface CaseConfig {
 	inlineSlug?: string;
 	/**
 	 * Leave `type` out of the frontmatter, so the parse must infer `kind`
-	 * from the markers alone (`_infer_choice_type`, parser.py:1653). Safe
+	 * from the markers alone (`_infer_choice_type`, `_parser/_choices.py`). Safe
 	 * because `choiceSpecsArb` never mixes a kind's markers with another
 	 * kind's signal: multiple-choice always carries a `*`, which the ladder
 	 * checks first; multiple-selection and true-false markers never contain
@@ -302,6 +242,17 @@ interface CaseConfig {
 	 * as intended.
 	 */
 	omitType: boolean;
+	/**
+	 * `grading`/`shuffle`/`weight` frontmatter, copied verbatim into `expected`
+	 * the way `apply_common_frontmatter` (`_parser/_question.py`, `weight`) and
+	 * `apply_type_specific_frontmatter` (`_parser/_question.py`, `grading`/`shuffle`
+	 * for every `GRADED_QUESTION_TYPES` member -- all three kinds this
+	 * generator builds) do: the key is copied whenever the frontmatter carries
+	 * it, including the falsy `shuffle: false` and `weight: 0`.
+	 */
+	grading?: (typeof GRADINGS)[number];
+	shuffle?: boolean;
+	weight?: number;
 	preambles: string[];
 	stem: string;
 	choices: ChoiceSpec[];
@@ -317,6 +268,15 @@ function buildCase(cfg: CaseConfig): BracketListCase {
 	}
 	if (!cfg.omitType) {
 		fmFields.push(`type: ${cfg.kind}`);
+	}
+	if (cfg.grading !== undefined) {
+		fmFields.push(`grading: ${cfg.grading}`);
+	}
+	if (cfg.shuffle !== undefined) {
+		fmFields.push(`shuffle: ${cfg.shuffle}`);
+	}
+	if (cfg.weight !== undefined) {
+		fmFields.push(`weight: ${cfg.weight}`);
 	}
 	const frontmatter =
 		fmFields.length > 0 ? `---\n${fmFields.join("\n")}\n---\n\n` : "";
@@ -337,12 +297,21 @@ function buildCase(cfg: CaseConfig): BracketListCase {
 	if (cfg.title !== undefined) {
 		expected.title = cfg.title;
 	}
+	if (cfg.weight !== undefined) {
+		expected.weight = cfg.weight;
+	}
 	expected.type = cfg.kind;
 	if (cfg.preambles.length > 0) {
 		expected.preamble = cfg.preambles.join("\n\n");
 	}
 	expected.stem = cfg.stem;
 	expected.choices = cfg.choices.map((c) => choiceEntry(cfg.kind, c));
+	if (cfg.shuffle !== undefined) {
+		expected.shuffle = cfg.shuffle;
+	}
+	if (cfg.grading !== undefined) {
+		expected.grading = cfg.grading;
+	}
 
 	return { kind: cfg.kind, source, expected };
 }
@@ -354,6 +323,9 @@ function caseArb(kind: ChoiceKind): fc.Arbitrary<BracketListCase> {
 			title: optionalFrom(TITLES),
 			inlineSlug: optionalFrom(INLINE_SLUGS),
 			omitType: fc.boolean(),
+			grading: optionalFrom(GRADINGS),
+			shuffle: optionalFrom([true, false] as const),
+			weight: optionalFrom(WEIGHTS),
 			preambleCount: fc.integer({ min: 0, max: 2 }),
 			stem: fc.constantFrom(...STEMS),
 			choices: choiceSpecsArb(kind),

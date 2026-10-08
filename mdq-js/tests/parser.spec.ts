@@ -13,7 +13,6 @@
  */
 
 import { readFileSync } from "node:fs";
-import { sep } from "node:path";
 import {
 	isExam,
 	MissingFieldError,
@@ -29,6 +28,7 @@ import {
 	relativeId,
 	VALID_SOURCES,
 } from "./corpus.js";
+import { corpusIt, PARSE } from "./not-ported.js";
 
 const SEED = 20260921;
 
@@ -36,53 +36,17 @@ const SEED = 20260921;
 // 1. Corpus pairs
 //
 
-const IN_SCOPE_DIRS = ["multiple-choice", "multiple-selection", "true-false"];
-
-const inScopeSources = VALID_SOURCES.filter((path) =>
-	IN_SCOPE_DIRS.some((dir) => path.includes(`${sep}valid${sep}${dir}${sep}`)),
-);
-
 /**
- * Pairs the parser is known not to reproduce exactly yet, keyed the same way
- * `relativeId` names them -- mirrors `mdq-py/tests/test_parser.py`'s
- * `NOT_YET_SUPPORTED`. A choice's body is folded to single-line prose the
- * same way preamble/stem text is, so a fenced code block nested in a choice
- * loses its line breaks; see the yaml fixture's own comment.
+ * Every source in the corpus runs; `PARSE` in `not-ported.ts` lists the ones
+ * the port does not reproduce yet.
  */
-const NOT_YET_SUPPORTED = new Set([
-	"multiple-choice.fenced-code-choice.mdq.md",
-]);
-
-describe("corpus pairs found", () => {
-	it("has the 14 in-scope bracket-list pairs", () => {
-		expect(inScopeSources.length).toBe(14);
-	});
-});
-
 describe("corpus: parseQuestionDocument matches the paired fixture", () => {
-	for (const source of inScopeSources) {
-		const name = relativeId(source);
-		const run = () => {
+	for (const source of VALID_SOURCES) {
+		corpusIt(PARSE, relativeId(source), () => {
 			const got = parseQuestionDocument(readFileSync(source, "utf-8"));
-			const expected = loadDocument(parsedSibling(source));
-			expect(got).toEqual(expected);
-		};
-		if (NOT_YET_SUPPORTED.has(name)) {
-			it.fails(name, run);
-		} else {
-			it(name, run);
-		}
+			expect(got).toEqual(loadDocument(parsedSibling(source)));
+		});
 	}
-});
-
-describe("corpus: every in-scope parse validates", () => {
-	it.each(
-		inScopeSources.map((path) => [relativeId(path), path]),
-	)("%s", (_name, path) => {
-		const document = parseQuestionDocument(readFileSync(path, "utf-8"));
-		const result = validateQuestion(document);
-		expect(result.success, JSON.stringify(result.error?.issues)).toBe(true);
-	});
 });
 
 //
@@ -153,7 +117,7 @@ describe("edge cases", () => {
 	it("falls back to multiple-selection when markers are uninferable and type is undeclared", () => {
 		// Neither "*"/percent (multiple-choice), "x" (multiple-selection), nor
 		// a single letter (true-false, which requires len(v) == 1) -- and no
-		// frontmatter `type` to settle it. `_infer_choice_type` (parser.py:1653)
+		// frontmatter `type` to settle it. `_infer_choice_type` (`mdq-py/mdq/_parser/_choices.py`)
 		// falls through every check and defaults to multiple-selection.
 		const source =
 			"Which of these are valid?\n\n* [ab] First option.\n* [cd] Second option.\n";
