@@ -67,7 +67,7 @@ per-feature status is [`tests/not-ported.ts`](../../tests/not-ported.ts).
 | F2 | Parser: bracket lists aligned with Python (no derived ids; `grading`, `weight`, `shuffle`) | done |
 | F3 | Parser: essay, numeric, short-answer, ordering, fill-in bodies | done |
 | F4 | Parser: exams, `include`, `include-all`; the spec audit (`dev/audit/plan.md`) | done |
-| F4.1 | `resolveExam`, the question bank and the `include-all` query language (`banks.ts`, `query.ts` are stubs); `.resolved.yaml` corpus | to do |
+| F4.1 | `resolveExam`, the question bank and the `include-all` query language ; `.resolved.yaml` corpus | done |
 | F5 | Model layer: `withIds`, model rules as Zod refinements, `load()` with diagnostics | to do |
 | F6 | Linter, checked against the `.lint.json` files | to do |
 | F7 | Scoring, checked against `examples/grading/` | to do |
@@ -190,12 +190,6 @@ its phase ports it.
 * F5/F6: the `non-ascii-whitespace` lint (mdq-py `ac13b51`,
   `mdq-py/mdq/_parser/_spaces.py`, tests in `mdq-py/tests/test_whitespace.py`).
   `load` runs it before parsing and keeps it when parsing fails.
-* F4.1: the exam query tokens (`models/_query.py`, `_TOKEN_RE`): a tag
-  excludes `UNICODE_SPACE`, commas and parentheses; only `[ \t\f\r\n]` is
-  skipped between tokens. `Exam.resolve` with `max` keeps the first
-  candidates; `examples/valid/exam/<exam>.resolved.yaml` pins the ids and
-  the diagnostics of each exam with `include`/`include-all`
-  (`mdq-py/tests/test_exam_resolution_corpus.py`).
 * F6, from the audit: `unsafe-thematic-break` (a `-` thematic break in
   instructions/preamble/stem/epilogue), `setext-heading` on the model side
   for `instructions`, `unlisted-true-false-marker` (was

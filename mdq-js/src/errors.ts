@@ -93,8 +93,8 @@ export class IncludeNotFoundError extends MdqError {
 		readonly questionId: string,
 		detail = "",
 	) {
-		super("not implemented");
-		void detail;
-		throw new Error("not implemented");
+		super(
+			`cannot resolve included question '${questionId}'${detail === "" ? "" : `: ${detail}`}`,
+		);
 	}
 }

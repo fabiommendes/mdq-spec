@@ -53,6 +53,9 @@ export const LOAD: Manifest = {
 		"undefined-blank from a stem marker: model rule (F5)",
 };
 
+/** `.resolved.yaml` fixtures whose exam `resolveExam` does not resolve to the expected ids. */
+export const RESOLVE: Manifest = {};
+
 /** The reason `name` is not ported, or `undefined` if it is. */
 export function notPorted(
 	manifest: Manifest,

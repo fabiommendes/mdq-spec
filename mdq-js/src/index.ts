@@ -12,6 +12,7 @@ export * from "./banks.js";
 export * from "./diagnostics.js";
 export * from "./errors.js";
 export * from "./parser/index.js";
+export * from "./query.js";
 export * from "./responses.js";
 export * from "./schema/index.js";
 export * from "./slugify.js";

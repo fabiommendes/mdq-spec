@@ -43,6 +43,12 @@ Implements part of the unreleased MDQ specification.
   (`foreign-choice-marker`) and `UndefinedBlankError` (`undefined-blank`).
 - Zod schemas and validators for questions and exams.
 - Types for student responses.
+- `resolveExam`, which replaces the `include` and `include-all` entries of an
+  exam with the questions a `QuestionBank` holds, with `DictLoader` as the
+  in-memory bank, `selectRandom` as the default `include-all` choice, an
+  `empty-include-all` warning through `ResolveOptions.warnings`, and
+  `IncludeNotFoundError`. The `include-all` query language: `parseQuery`,
+  `Query`, `isStandardQuery` and `QuerySyntaxError`.
 
 ### Changed
 
