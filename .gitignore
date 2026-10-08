@@ -3,7 +3,7 @@ dev/
 private/
 prompt.md
 prompt/
-handoff*
+/handoff*
 
 # Tools
 .venv
@@ -14,3 +14,6 @@ handoff*
 # Python caches of scripts/
 __pycache__/
 .pytest_cache/
+
+# Claude Code worktree
+.claude/
