@@ -1,0 +1,4 @@
+# A frontmatter that holds only a comment string: empty YAML, one `comment`.
+type: essay
+comment: Só um comentário, sem campos.
+stem: Explique o ciclo da água.

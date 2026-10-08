@@ -1,0 +1,5 @@
+# A U+00A0 right after the `[Q1]` slug is in a syntax position: `warning`.
+# The slug is still read, and the stem keeps the space.
+id: Q1
+type: essay
+stem:  Explique o ciclo da água.

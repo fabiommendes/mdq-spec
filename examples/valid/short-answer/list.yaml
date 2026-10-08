@@ -5,7 +5,7 @@ id: sa-list
 title: Primary colours
 type: short-answer
 stem: Name one of the three additive primary colours.
-oneOf:
+accept:
   - red
   - green
   - blue

@@ -1,0 +1,30 @@
+[
+  {
+    "code": "redundant-regex-anchor",
+    "severity": "info",
+    "path": [
+      "blanks",
+      0,
+      "accept",
+      0
+    ]
+  },
+  {
+    "code": "ignored-regex-flag",
+    "severity": "info",
+    "path": [
+      "blanks",
+      0,
+      "accept",
+      0
+    ]
+  },
+  {
+    "code": "no-correct-answer",
+    "severity": "warning",
+    "path": [
+      "blanks",
+      1
+    ]
+  }
+]

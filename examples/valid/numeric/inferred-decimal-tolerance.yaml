@@ -1,0 +1,13 @@
+# An integer value with a decimal tolerance infers `domain: decimal`
+# (numeric.md, "Number type/domain"). `domain-mismatch` only reports a
+# declared domain narrower than the values, and `decimal` is the widest, so
+# nothing is reported here.
+id: num-inferred-decimal
+title: Boiling point
+type: numeric
+stem: At what temperature, in degrees Celsius, does water boil at sea level?
+answer: 100
+domain: decimal
+decimalPlaces: 1
+tolerance:
+  absolute: 1.0

@@ -1,0 +1,44 @@
+# Two `## [accept]` sections and a `## [reject]` section in one question.
+type: ordering
+stem: Ordene as linhas para ler três valores e imprimir o maior.
+content: code
+highlight: python
+lines:
+- - 0
+  - a = int(input())
+- - 0
+  - b = int(input())
+- - 0
+  - c = int(input())
+- - 0
+  - print(max(a, b, c))
+accept:
+- lines:
+  - - 0
+    - b = int(input())
+  - - 0
+    - a = int(input())
+  - - 0
+    - c = int(input())
+  - - 0
+    - print(max(a, b, c))
+- lines:
+  - - 0
+    - c = int(input())
+  - - 0
+    - b = int(input())
+  - - 0
+    - a = int(input())
+  - - 0
+    - print(max(a, b, c))
+reject:
+- lines:
+  - - 0
+    - print(max(a, b, c))
+  - - 0
+    - a = int(input())
+  - - 0
+    - b = int(input())
+  - - 0
+    - c = int(input())
+  feedback: O `print` precisa vir depois das três leituras.

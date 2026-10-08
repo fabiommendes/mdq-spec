@@ -13,8 +13,10 @@ properties:
     description: >-
       Identifier for the question. Used to reference the question from
       exams, results, and cross-links. It SHOULD be url-safe; an id that
-      is not gets the `unsafe-id` lint warning. When omitted, an id may be
-      derived from the question's position or title.
+      is not gets the `unsafe-id` lint warning. It MUST be a YAML string: a
+      number is a schema error, never converted. When omitted, a host system
+      may derive one (see `with_ids()` in mdq-py); the parsed document does
+      not.
     minLength: 1
     examples:
       - q1
@@ -77,10 +79,11 @@ properties:
   locale:
     type: string
     description: >-
-      The language the question is written in, as an IETF BCP 47 language
-      tag. BCP 47 is too involved to express as a JSON Schema `pattern`,
-      so well-formedness is left to the implementation -- see the
-      `malformed-locale` check in mdq.linter.
+      The language the question is written in, as a well-formed IETF BCP
+      47 language tag (the RFC 5646 grammar; registration of the subtags
+      is not checked). The grammar is too involved for a JSON Schema
+      `pattern`, so the check is left to the implementation
+      (`malformed-locale`).
     examples:
       - pt-BR
       - en

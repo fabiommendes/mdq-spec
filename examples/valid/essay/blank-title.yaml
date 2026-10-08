@@ -1,0 +1,5 @@
+# `blank-text-field` as a warning on `title`: defined, but only whitespace.
+id: ciclo-agua
+title: "   "
+type: essay
+stem: Explique o ciclo da água.

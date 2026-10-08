@@ -1,0 +1,31 @@
+# Every letter of the TRUE list (`T`, `V`, `S`) and the FALSE list (`F`), in
+# both cases. `S` reads as true outside `locale: id`, with no warning.
+id: tf-global-markers
+title: Fatos sobre a Mata Atlântica
+type: true-false
+stem: Julgue as afirmações sobre a Mata Atlântica.
+choices:
+- text: A Mata Atlântica se estende pelo litoral brasileiro.
+  correct: true
+  marker: T
+- text: A Mata Atlântica é um dos biomas mais ameaçados do país.
+  correct: true
+  marker: V
+- text: A Mata Atlântica abriga o mico-leão-dourado.
+  correct: true
+  marker: S
+- text: A Mata Atlântica tem alta biodiversidade.
+  correct: true
+  marker: t
+- text: A Mata Atlântica alcança o Paraguai e a Argentina.
+  correct: true
+  marker: v
+- text: A Mata Atlântica foi o primeiro bioma explorado pelos colonizadores.
+  correct: true
+  marker: s
+- text: A Mata Atlântica fica inteiramente na região Norte.
+  correct: false
+  marker: F
+- text: A Mata Atlântica é um bioma desértico.
+  correct: false
+  marker: f

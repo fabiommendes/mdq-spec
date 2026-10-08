@@ -1,0 +1,68 @@
+[
+  {
+    "code": "missing-choice-id",
+    "severity": "info",
+    "path": [
+      "blanks",
+      0,
+      "choices",
+      0,
+      "id"
+    ]
+  },
+  {
+    "code": "missing-choice-id",
+    "severity": "info",
+    "path": [
+      "blanks",
+      0,
+      "choices",
+      1,
+      "id"
+    ]
+  },
+  {
+    "code": "missing-choice-id",
+    "severity": "info",
+    "path": [
+      "blanks",
+      0,
+      "choices",
+      2,
+      "id"
+    ]
+  },
+  {
+    "code": "missing-choice-id",
+    "severity": "info",
+    "path": [
+      "blanks",
+      1,
+      "choices",
+      0,
+      "id"
+    ]
+  },
+  {
+    "code": "missing-choice-id",
+    "severity": "info",
+    "path": [
+      "blanks",
+      1,
+      "choices",
+      1,
+      "id"
+    ]
+  },
+  {
+    "code": "missing-choice-id",
+    "severity": "info",
+    "path": [
+      "blanks",
+      1,
+      "choices",
+      2,
+      "id"
+    ]
+  }
+]

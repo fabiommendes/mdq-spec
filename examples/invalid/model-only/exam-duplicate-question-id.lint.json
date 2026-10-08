@@ -1,0 +1,10 @@
+[
+  {
+    "code": "duplicate-question-id",
+    "severity": "error",
+    "path": [
+      "questions",
+      1
+    ]
+  }
+]

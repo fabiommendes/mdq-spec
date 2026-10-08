@@ -1,0 +1,16 @@
+[
+  {
+    "code": "missing-id",
+    "severity": "info",
+    "path": [
+      "id"
+    ]
+  },
+  {
+    "code": "missing-answer-key",
+    "severity": "info",
+    "path": [
+      "answerKey"
+    ]
+  }
+]

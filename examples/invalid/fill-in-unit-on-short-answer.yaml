@@ -7,5 +7,5 @@ blanks:
   - id: planet
     type: short-answer
     unit: km
-    oneOf:
+    accept:
       - Jupiter

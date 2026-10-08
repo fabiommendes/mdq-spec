@@ -1,0 +1,4 @@
+# `[Prova 1]` is not a `SLUG` (it has a space), so the bracket is ordinary
+# text of the first paragraph and the question has no inline id.
+type: essay
+stem: '[Prova 1] Explique o ciclo da água.'

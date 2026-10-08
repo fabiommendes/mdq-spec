@@ -1,0 +1,10 @@
+# `P1W` never stays in weeks: `P7D`.
+id: prova
+title: Prova
+type: exam
+duration: P7D
+questions:
+- stem: Qual é a capital do Brasil?
+  accept:
+  - Brasília
+  type: short-answer

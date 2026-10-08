@@ -1,0 +1,6 @@
+type: exam
+title: Prova de Geografia
+duration: duas horas
+questions:
+  - type: essay
+    stem: Qual é a capital do Brasil?

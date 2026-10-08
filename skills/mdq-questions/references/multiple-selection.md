@@ -20,8 +20,8 @@ allowed — a choice is either ticked or not.
 
 | Field   | Values                                             |
 | ------- | -------------------------------------------------- |
-| shuffle | `true` to allow shuffling the choices               |
-| grading | `symmetric` (default), `partial`, `all-or-nothing`  |
+| shuffle | `inherit` (default: the exam's value, else `false`), `true`, `false` |
+| grading | `inherit` (default: the exam's value, else `symmetric`), `symmetric`, `partial`, `all-or-nothing` |
 
 ## Grading
 

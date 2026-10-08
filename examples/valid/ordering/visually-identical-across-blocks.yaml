@@ -1,0 +1,13 @@
+# `visually-identical-lines` for a pair split between `lines` and `extra`:
+# `*1500*` and `_1500_` render alike but are different lines.
+type: ordering
+stem: Ordene os eventos.
+content: text
+lines:
+- - 0
+  - Chegada de Cabral ao Brasil, em *1500*
+- - 0
+  - Fundação de Salvador
+extra:
+- - 0
+  - Chegada de Cabral ao Brasil, em _1500_

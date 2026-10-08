@@ -2,5 +2,5 @@
 type: short-answer
 stem: Qual é a capital do Brasil?
 diacritics: strip
-oneOf:
+accept:
   - Brasília

@@ -1,0 +1,7 @@
+# `2026-02-30` matches the schema's date pattern but is not a date that
+# exists, so only the `malformed-start` model validator rejects it.
+type: exam
+id: prova
+title: Prova
+start: "2026-02-30"
+questions: []

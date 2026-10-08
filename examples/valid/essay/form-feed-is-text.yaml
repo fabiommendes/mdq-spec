@@ -1,0 +1,7 @@
+# U+000C inside a paragraph is text, not a line break: implementations MUST
+# NOT split lines on it (grammar.md). It is ASCII, so `non-ascii-whitespace`
+# does not report it.
+id: ciclo-agua
+title: Ciclo da água
+type: essay
+stem: "Explique o ciclo\fda água."

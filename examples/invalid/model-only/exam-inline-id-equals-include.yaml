@@ -1,0 +1,10 @@
+# An inline question declares the id of an included question (exam.md,
+# "Question ids", third form). JSON Schema cannot express "unique by field".
+type: exam
+id: biomes
+title: Biomes
+questions:
+  - include: cerrado-01
+  - id: cerrado-01
+    type: essay
+    stem: Explain the Cerrado.

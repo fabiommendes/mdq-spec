@@ -1,0 +1,9 @@
+# A comma-separated `tags` string with empty entries: the empty entries are
+# dropped, so a trailing comma is harmless.
+id: ciclo-agua
+title: Ciclo da água
+type: essay
+tags:
+- agua
+- clima
+stem: Explique o ciclo da água.

@@ -1,0 +1,10 @@
+# Seconds, with a fraction, are kept.
+id: prova
+title: Prova
+type: exam
+duration: PT1H30M15.5S
+questions:
+- stem: Qual é a capital do Brasil?
+  accept:
+  - Brasília
+  type: short-answer

@@ -1,10 +1,7 @@
-# `comment` is a free-text metadata field: if defined it must have at
-# least one visible character, unlike `preamble`/`stem`/`epilogue`
-# (which raise the same code as an error instead).
-id: amazon-river
-title: Amazon river discharge
+# A bare `#` line is a comment string with no text: `comment` is the empty
+# string, which `blank-text-field` warns about.
+id: ciclo-agua
+title: Ciclo da água
 type: essay
-stem: Explain why the Amazon River has the greatest discharge of any river.
-input: text
-answerKey: Its vast drainage basin spans a region of exceptionally heavy rainfall.
-comment: "   "
+comment: ''
+stem: Explique o ciclo da água.

@@ -1,0 +1,10 @@
+# An exam `id` that is not url-safe gets `unsafe-id`, as a question's would
+# (exam.md, "Additional Rules").
+id: prova-final-2026/1
+title: Prova final
+type: exam
+questions:
+- stem: Qual é a capital do Brasil?
+  accept:
+  - Brasília
+  type: short-answer

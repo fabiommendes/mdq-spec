@@ -1,0 +1,16 @@
+# A `## [extra]` section of a text question is a `ul` list, like the body.
+type: ordering
+stem: Ordene os biomas brasileiros do maior para o menor em área.
+content: text
+lines:
+- - 0
+  - Amazônia
+- - 0
+  - Cerrado
+- - 0
+  - Mata Atlântica
+extra:
+- - 0
+  - Patagônia
+- - 0
+  - Saara

@@ -1,0 +1,186 @@
+# Document structure
+#
+# Question {
+#   name: string
+#
+#   // The question's own fields, as in its YAML form: `answer`, and any
+#   // of `tolerance`, `domain`, `decimalPlaces`, `unit`.
+#   question: { answer: number | string, ... }
+#
+#   // Responses and what they score (numeric.md, "Grading"). A response is
+#   // a number, or a string that spells an exact decimal or fraction
+#   // (responses.md, "Numeric"). "malformed" is a value the question cannot
+#   // represent: it is rejected, never scored (responses.md, "Errors").
+#   examples: { response: number | string, score: 0 | 1 | "malformed" }[]
+# }
+questions:
+  # No tolerance: the match is exact.
+  - name: "Exact integer"
+    question: { answer: 1822 }
+    examples:
+      - response: 1822
+        score: 1
+      - response: "1822"
+        score: 1
+      - response: 1821
+        score: 0
+      - response: 1822.5
+        score: "malformed"
+      - response: "1/2"
+        score: "malformed"
+
+  # Absolute tolerance: |answer - response| <= absolute.
+  - name: "Absolute tolerance"
+    question: { answer: 8849, tolerance: { absolute: 50 } }
+    examples:
+      - response: 8849
+        score: 1
+      - response: 8899
+        score: 1
+      - response: 8799
+        score: 1
+      - response: 8900
+        score: 0
+      - response: 8798
+        score: 0
+
+  # Relative tolerance: |answer - response| <= |answer| * relative.
+  - name: "Relative tolerance"
+    question: { answer: 200, tolerance: { relative: 0.05 } }
+    examples:
+      - response: 210
+        score: 1
+      - response: 190
+        score: 1
+      - response: 211
+        score: 0
+      - response: 189
+        score: 0
+
+  # Both tolerances: passing either one is enough.
+  - name: "Either tolerance"
+    question: { answer: 1000, tolerance: { absolute: 1, relative: 0.1 } }
+    examples:
+      - response: 1001
+        score: 1
+      - response: 1100
+        score: 1
+      - response: 1101
+        score: 0
+
+  # Decimal domain: the response and the answer are rounded to
+  # `decimalPlaces`, half away from zero, before the tolerance test.
+  # Inferred from `3.14 +- 0.01`: two places.
+  - name: "Rounding to inferred decimal places"
+    question: { answer: 3.14, tolerance: { absolute: 0.01 } }
+    examples:
+      - response: 3.14159
+        score: 1
+      - response: 3.149
+        score: 1
+      - response: 3.155
+        score: 0
+      - response: 3.154
+        score: 1
+      - response: "3.1415"
+        score: 1
+
+  # Explicit `decimalPlaces`; rounding is decimal, never binary floating
+  # point, so 2.675 rounds to 2.68.
+  - name: "Explicit decimal places"
+    question: { answer: 2.68, decimalPlaces: 2 }
+    examples:
+      - response: 2.675
+        score: 1
+      - response: 2.6849
+        score: 1
+      - response: 2.685
+        score: 0
+      - response: 2.67
+        score: 0
+
+  # Fraction domain: a string response is an exact rational, which no float
+  # can represent.
+  - name: "Fraction"
+    question: { answer: "1/3" }
+    examples:
+      - response: "1/3"
+        score: 1
+      - response: "2/6"
+        score: 1
+      - response: 0.3333
+        score: 0
+      - response: "0.5"
+        score: 0
+
+  # A fraction with an absolute tolerance written as a decimal is a decimal
+  # question with two inferred places: the answer rounds to 0.33 first.
+  - name: "Fraction with tolerance"
+    question: { answer: "1/3", tolerance: { absolute: 0.01 } }
+    examples:
+      - response: 0.33
+        score: 1
+      - response: 0.34
+        score: 1
+      - response: 0.32
+        score: 1
+      - response: 0.31
+        score: 0
+
+  # Negative answer: the relative tolerance uses |answer|.
+  - name: "Negative answer"
+    question: { answer: -40, tolerance: { relative: 0.1 } }
+    examples:
+      - response: -40
+        score: 1
+      - response: -44
+        score: 1
+      - response: -36
+        score: 1
+      - response: -45
+        score: 0
+      - response: 40
+        score: 0
+
+  # Zero answer: a relative tolerance gives no room, the absolute one does.
+  - name: "Zero answer"
+    question: { answer: 0, tolerance: { relative: 0.1 } }
+    examples:
+      - response: 0
+        score: 1
+      - response: 0.1
+        score: "malformed"
+      - response: 1
+        score: 0
+  # `0 +- 0.5` is a decimal question with one inferred place, so 0.51
+  # rounds to 0.5 before the test and 0.56 rounds to 0.6.
+  - name: "Zero answer with absolute tolerance"
+    question: { answer: 0, tolerance: { absolute: 0.5 } }
+    examples:
+      - response: 0.5
+        score: 1
+      - response: 0.51
+        score: 1
+      - response: 0.56
+        score: 0
+
+  # The declared domain decides what the question can represent, even when
+  # the value is written as an integer. A decimal question whose value is
+  # written with no decimals infers zero places: the response rounds to a
+  # whole number, half away from zero.
+  - name: "Declared decimal domain"
+    question: { answer: 5, domain: decimal }
+    examples:
+      - response: 5.0
+        score: 1
+      - response: 5.4
+        score: 1
+      - response: 5.5
+        score: 0
+  - name: "Declared integer domain"
+    question: { answer: 5, domain: integer, tolerance: { absolute: 1 } }
+    examples:
+      - response: 6
+        score: 1
+      - response: 5.5
+        score: "malformed"

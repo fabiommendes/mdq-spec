@@ -16,6 +16,6 @@ questions:
   max: 2
 - include-all: forest AND NOT draft
 - stem: Which Brazilian biome covers the largest area?
-  oneOf:
+  accept:
   - Amazônia
   type: short-answer

@@ -1,0 +1,9 @@
+# The first paragraph starts with a blank. `[^capital]` is not a slug, since
+# a slug cannot start with `^`, so the question has no inline id.
+type: fill-in
+stem: '[^capital] é a capital do Brasil desde 1960.'
+blanks:
+- id: capital
+  type: short-answer
+  accept:
+  - Brasília

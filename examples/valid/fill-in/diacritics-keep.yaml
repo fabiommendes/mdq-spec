@@ -9,5 +9,5 @@ stem: O rio [^river] nasce na Serra da Canastra e deságua entre Alagoas e Sergi
 blanks:
   - id: river
     type: short-answer
-    oneOf:
+    accept:
       - São Francisco

@@ -1,0 +1,13 @@
+# A choice whose text starts with a markdown link: `[Brasilia](...)` is not
+# a choice id, because `(` follows the bracket (multiple-choice.md, "Body").
+# `[rio]` followed by a space is one.
+id: mc-link-choice
+title: Capital with a link
+type: multiple-choice
+stem: Qual é a capital do Brasil?
+choices:
+  - text: "[Brasilia](https://pt.wikipedia.org/wiki/Brasília)"
+    score: 1
+  - id: rio
+    text: "[Rio de Janeiro](https://pt.wikipedia.org/wiki/Rio_de_Janeiro)"
+  - text: Salvador

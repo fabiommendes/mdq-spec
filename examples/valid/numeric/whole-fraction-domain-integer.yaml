@@ -1,0 +1,8 @@
+# `"4/2"` is a fraction string whose value is whole, so `domain: integer`
+# gets no `answer-outside-domain` (numeric.md, "Additional Rules" [^6]).
+# `domain-mismatch` still fires: a fraction string is a `fraction` value,
+# wider than `integer` ([^3]).
+type: numeric
+stem: Quantos litros há em 4/2 litros?
+answer: "4/2"
+domain: integer

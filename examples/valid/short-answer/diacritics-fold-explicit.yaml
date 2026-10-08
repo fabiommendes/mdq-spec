@@ -1,0 +1,9 @@
+# `diacritics: fold` written explicitly: the default, so the document is the
+# same as one without the field, but the parsed document keeps it.
+id: sa-diacritics-fold
+title: Capital de Alagoas
+type: short-answer
+stem: Qual é a capital de Alagoas?
+diacritics: fold
+accept:
+- Maceió

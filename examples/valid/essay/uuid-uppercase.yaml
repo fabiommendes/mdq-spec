@@ -1,0 +1,7 @@
+# The schema accepts uppercase hex digits; version `4` and variant `A` are
+# standard, so no lint fires.
+id: ciclo-agua
+title: Ciclo da água
+uuid: 6F9619FF-8B86-4AC3-A4E7-6B0E2CBB3D55
+type: essay
+stem: Explique o ciclo da água.

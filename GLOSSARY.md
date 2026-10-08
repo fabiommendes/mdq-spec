@@ -38,7 +38,7 @@ _Avoid_: answer, submission, attempt
 
 ### Answer key
 The correct answer an instructor declared for a question, whether a machine can
-check it (`answer`, `oneOf`, `regex`, per-choice `score`) or only a human can
+check it (`answer`, `accept`, per-choice `score`) or only a human can
 (an essay's `answerKey`). Carrying one does not make a question auto-gradable.
 _Avoid_: solution, the correct answer, gabarito
 
@@ -80,23 +80,32 @@ _Avoid_: expanded, inlined, flattened
 
 ## Grading
 
-### Auto-gradable question
-A question declaring an answer key a machine can check. Every type except
-essay, and short-answer only when not `openEnded`.
-_Avoid_: keyed question, objective question
+### Automation
+How many responses a question settles without the instructor: `automatic`
+(every response), `semi-automatic` (only the responses that match an answer
+key) or `manual` (none). Derived from the fields, never written in the
+document.
+_Avoid_: auto-gradable, manually-graded, open-ended, objective, subjective
 
-### Manually-graded question
-A question with no machine-checkable answer key. It may still carry one written
-for a human, as an essay's `answerKey` is.
-_Avoid_: unkeyed question, subjective question, open question
+### Pending response
+A response the question does not settle. It has no score until the instructor
+gives one.
+_Avoid_: ungraded, unmatched response
 
 ### Score
 What a response to a single question is worth, on a scale from -1 to 1.
 _Avoid_: grade, mark, points, credit
 
+### Exam score
+The weighted mean of the question scores after `penalty`. Pending while any
+response is pending; a *provisional score* is the same mean over the settled
+questions only.
+_Avoid_: total, final grade, exam grade
+
 ### Grading strategy
 How a question with several parts reduces those parts to one score. Spelled
-`grading`, and carried only by multiple-selection, true-false and fill-in.
+`grading`, and carried only by multiple-choice, multiple-selection, true-false
+and fill-in.
 _Avoid_: grading mode, scoring method, algorithm
 
 ### Symmetric
@@ -113,6 +122,11 @@ _Avoid_: proportional, weighted, partial credit
 ### All-or-nothing
 A grading strategy scoring 1 only when every part is correct, and 0 otherwise.
 _Avoid_: strict, exact, binary
+
+### Inherit
+The default value of `grading` and `shuffle` in a question: take the exam's
+value, or `symmetric` and `false` outside an exam.
+_Avoid_: unset, default, none
 
 ### Feedback
 Remedial text attached to a choice and shown to the student after grading.

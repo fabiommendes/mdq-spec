@@ -1,0 +1,13 @@
+# Every ignored flag of patterns.md, "Regex flags", on `accept` and `reject`
+# entries: `g`, `s`, `u`, `v`, `y` and `d` are accepted and have no effect.
+id: sa-ignored-flags
+title: Capital do Brasil
+type: short-answer
+stem: Qual é a capital do Brasil?
+accept:
+  - "/Brasília/g"
+  - "/Brasília/su"
+reject:
+  - "/Rio de Janeiro/v"
+  - pattern: "/Salvador/yd"
+    feedback: Foi a primeira capital.

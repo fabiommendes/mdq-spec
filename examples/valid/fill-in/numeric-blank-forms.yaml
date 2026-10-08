@@ -1,0 +1,40 @@
+# Numeric blanks in several forms: a negative decimal with a unit, both
+# tolerances on one value, an integer beyond 32 bits, and a unit with a
+# slash and a non-ASCII character.
+id: fill-in-numeric-forms
+title: Medidas do Brasil
+type: fill-in
+stem: A temperatura mais baixa registrada no Brasil foi de [^minima], o litoral
+  tem cerca de [^litoral], a população passa de [^populacao] habitantes e a densidade
+  média é de [^densidade].
+blanks:
+- id: minima
+  type: numeric
+  answer: -14
+  unit: °C
+  domain: decimal
+  decimalPlaces: 1
+  tolerance:
+    absolute: 0.5
+- id: litoral
+  type: numeric
+  answer: 7400
+  unit: km
+  domain: integer
+  tolerance:
+    absolute: 100.0
+    relative: 0.02
+- id: populacao
+  type: numeric
+  answer: 203000000
+  domain: integer
+  tolerance:
+    relative: 0.01
+- id: densidade
+  type: numeric
+  answer: 23.86
+  unit: hab/km²
+  domain: decimal
+  decimalPlaces: 2
+  tolerance:
+    absolute: 0.5

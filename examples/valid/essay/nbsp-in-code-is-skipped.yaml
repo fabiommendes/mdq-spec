@@ -1,0 +1,11 @@
+# `non-ascii-whitespace` skips fenced code blocks and code spans.
+type: essay
+preamble: 'Veja o código:
+
+
+  ```
+
+  print("6 400")
+
+  ```'
+stem: E o span `6 400`. Explique o ciclo da água.

@@ -1,0 +1,14 @@
+# A paragraph after the last section is the epilogue.
+type: ordering
+stem: Ordene as linhas do programa.
+content: code
+highlight: python
+lines:
+- - 0
+  - n = int(input())
+- - 0
+  - print(n * 2)
+extra:
+- - 0
+  - print(n ** 2)
+epilogue: 'Dica: a entrada vem antes da saída.'

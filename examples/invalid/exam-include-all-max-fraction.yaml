@@ -1,0 +1,7 @@
+# `max` is an integer, not a fraction.
+type: exam
+id: biomes
+title: Biomes
+questions:
+  - include-all: biome
+    max: 2.5

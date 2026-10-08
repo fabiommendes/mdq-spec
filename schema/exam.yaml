@@ -21,8 +21,8 @@ properties:
       Identifier of the exam, written either in the H1 (`# [slug] Title`)
       or in the frontmatter. It SHOULD be url-safe; an id that is not gets
       the `unsafe-id` lint warning and can only be written in the
-      frontmatter. A number written in the frontmatter is read as its
-      decimal string form.
+      frontmatter. It MUST be a YAML string: a number is a schema error,
+      never converted.
     minLength: 1
     examples:
       - midterm
@@ -63,8 +63,9 @@ properties:
     type: string
     description: >-
       The language the exam is written in, as an IETF BCP 47 language
-      tag. Inherited by any question that does not set one. Well-formedness
-      is left to the implementation -- see mdq.linter.
+      tag, well-formed under the RFC 5646 grammar (registration is not
+      checked). Inherited by any question that does not set one. The
+      check is left to the implementation (`malformed-locale`).
     examples:
       - pt-BR
       - en
@@ -112,6 +113,13 @@ properties:
           fill-in:
             "$ref": "#/$defs/GradingStrategy"
     default: symmetric
+
+  shuffle:
+    type: boolean
+    default: false
+    description: >-
+      The `shuffle` value of every question whose own `shuffle` is
+      `inherit`. Defaults to false.
 
   penalty:
     enum:
@@ -185,6 +193,7 @@ additionalProperties: false
       - "$ref": "./numeric.yaml"
       - "$ref": "./short-answer.yaml"
       - "$ref": "./fill-in.yaml"
+      - "$ref": "./ordering.yaml"
 
   Include:
     type: object

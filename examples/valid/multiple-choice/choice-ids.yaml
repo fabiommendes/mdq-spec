@@ -1,0 +1,16 @@
+# A `[choice-id]` right after the value gives the choice its `id`. A choice
+# without one gets `missing-choice-id`, and its id is derived from the text.
+id: mc-choice-ids
+title: Árvore símbolo do Brasil
+type: multiple-choice
+stem: Qual destas árvores é considerada a árvore símbolo do Brasil?
+choices:
+- text: Ipê-amarelo
+  id: ipe-amarelo
+  score: 1
+- text: Pau-brasil
+  id: pau-brasil
+  feedback: O pau-brasil deu nome ao país, mas a árvore símbolo oficial é o ipê-amarelo.
+- text: Araucária
+  id: araucaria
+- text: Castanheira-do-pará

@@ -1,0 +1,4 @@
+# Every `tags` entry is a string; `1` is a number.
+type: essay
+tags: [agua, 1]
+stem: Explique o ciclo da água.

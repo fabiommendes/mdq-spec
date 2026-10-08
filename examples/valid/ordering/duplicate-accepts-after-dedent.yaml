@@ -1,0 +1,29 @@
+# `duplicate-alternative-lines` compares after every normalization: the two
+# accept sections differ only in indentation, which `lenient` dedents away.
+type: ordering
+stem: Ordene as linhas para ler um número e imprimir seu dobro e seu quadrado.
+content: code
+highlight: python
+indentation: lenient
+lines:
+- - 0
+  - n = int(input())
+- - 0
+  - print(n * 2)
+- - 0
+  - print(n ** 2)
+accept:
+- lines:
+  - - 0
+    - n = int(input())
+  - - 1
+    - print(n ** 2)
+  - - 0
+    - print(n * 2)
+- lines:
+  - - 0
+    - n = int(input())
+  - - 2
+    - print(n ** 2)
+  - - 0
+    - print(n * 2)

@@ -56,11 +56,14 @@ Besides the usual `title`, `id`, `uuid`, `tags`, `meta`:
 | course  | Course code                                                 |
 | author  | Inherited by the questions                                  |
 | locale  | Inherited by the questions, e.g. `pt-BR`                    |
-| grading | Default grading strategy for the questions; may also be a mapping of question type to strategy |
+| grading | Grading strategy for the questions with `grading: inherit` (the default); may also be a mapping of question type to strategy |
+| shuffle | `shuffle` for the questions with `shuffle: inherit` (the default); `false` by default |
 | penalty | `none` (default), `capped` or `full`                         |
 
-Only `author` and `locale` are inherited by the questions; a question that
-declares either keeps its own. `grading` is a default the question overrides.
+Only `author` and `locale` are copied into the questions; a question that
+declares either keeps its own. `grading` and `shuffle` reach a question through
+its own `inherit` value, which is the default, so a question that writes
+`grading: partial` or `shuffle: false` ignores the exam.
 
 ```yaml
 grading:

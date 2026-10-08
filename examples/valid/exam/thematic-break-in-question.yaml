@@ -20,7 +20,7 @@ questions:
         Most of its area, however, lies within a single country.
     stem: >-
       Which country contains the largest share of the Amazon rainforest?
-    oneOf:
+    accept:
       - Brazil
   - type: true-false
     stem: Judge the statements about the Amazon basin.

@@ -1,0 +1,7 @@
+# The nil UUID is well-formed; its version nibble is `0`
+# (`uuid-unknown-version`) and its variant nibble `0` (`uuid-unknown-variant`).
+id: ciclo-agua
+title: Ciclo da água
+uuid: 00000000-0000-0000-0000-000000000000
+type: essay
+stem: Explique o ciclo da água.

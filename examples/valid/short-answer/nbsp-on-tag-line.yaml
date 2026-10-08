@@ -1,0 +1,7 @@
+# A U+00A0 after `[short-answer]:` is text: the accepted answer starts with
+# it (grammar.md, "Whitespace and line endings"). It is on a tag line, so
+# `non-ascii-whitespace` is a `warning`.
+type: short-answer
+stem: Qual é a capital do Brasil?
+accept:
+-  Brasília

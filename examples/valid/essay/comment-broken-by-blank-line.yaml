@@ -1,0 +1,6 @@
+# A blank line ends the comment string (base.md, "Frontmatter"): the third
+# `#` line is an ordinary YAML comment and is not stored.
+id: ciclo-agua
+type: essay
+comment: Primeira linha do comentário. Segunda linha.
+stem: Explique o ciclo da água.

@@ -1,0 +1,12 @@
+# `shuffle: true` in the frontmatter of a multiple-choice question.
+id: mc-shuffle
+title: Capital do Brasil
+type: multiple-choice
+stem: Qual é a capital do Brasil?
+choices:
+- text: Brasília
+  score: 1
+- text: Rio de Janeiro
+- text: Salvador
+- text: Todas as anteriores
+shuffle: true

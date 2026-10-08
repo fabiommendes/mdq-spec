@@ -1,0 +1,7 @@
+# `relative-tolerance-around-zero` reads the value: the string `"0/5"` is
+# zero, so a relative tolerance accepts nothing but an exact 0.
+type: numeric
+stem: Qual é o valor de 0/5?
+answer: "0/5"
+tolerance:
+  relative: 0.1

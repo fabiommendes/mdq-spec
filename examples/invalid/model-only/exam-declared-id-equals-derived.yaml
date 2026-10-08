@@ -1,0 +1,12 @@
+# The first question declares `id: q2`, and the second, with no `id`, would
+# derive `q2` from its position (exam.md, "Question ids", fourth form). A
+# derived id is never renamed to avoid the collision.
+type: exam
+id: biomes
+title: Biomes
+questions:
+  - id: q2
+    type: essay
+    stem: Explain the Cerrado.
+  - type: essay
+    stem: Explain the Pantanal.

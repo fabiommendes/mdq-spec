@@ -1,0 +1,22 @@
+# `shuffle: true` and `grading: all-or-nothing` on a fill-in question.
+id: fill-in-shuffle
+title: Biomas e estados
+type: fill-in
+stem: O [^bioma] cobre a maior parte de [^estado].
+shuffle: true
+blanks:
+- id: bioma
+  type: multiple-choice
+  choices:
+  - text: Cerrado
+    score: 1
+  - text: Pantanal
+  - text: Pampa
+- id: estado
+  type: multiple-choice
+  choices:
+  - text: Amazonas
+  - text: Goiás
+    score: 1
+  - text: Rio Grande do Sul
+grading: all-or-nothing

@@ -1,0 +1,76 @@
+[
+  {
+    "code": "relative-tolerance-over-one",
+    "severity": "info",
+    "path": [
+      "blanks",
+      0,
+      "tolerance",
+      "relative"
+    ]
+  },
+  {
+    "code": "relative-tolerance-around-zero",
+    "severity": "warning",
+    "path": [
+      "blanks",
+      1,
+      "tolerance",
+      "relative"
+    ]
+  },
+  {
+    "code": "ignored-decimal-places",
+    "severity": "info",
+    "path": [
+      "blanks",
+      2,
+      "decimalPlaces"
+    ]
+  },
+  {
+    "code": "answer-outside-domain",
+    "severity": "warning",
+    "path": [
+      "blanks",
+      3,
+      "answer"
+    ]
+  },
+  {
+    "code": "domain-mismatch",
+    "severity": "info",
+    "path": [
+      "blanks",
+      3,
+      "domain"
+    ]
+  },
+  {
+    "code": "answer-outside-domain",
+    "severity": "warning",
+    "path": [
+      "blanks",
+      4,
+      "answer"
+    ]
+  },
+  {
+    "code": "domain-mismatch",
+    "severity": "info",
+    "path": [
+      "blanks",
+      4,
+      "domain"
+    ]
+  },
+  {
+    "code": "missing-tolerance",
+    "severity": "info",
+    "path": [
+      "blanks",
+      5,
+      "tolerance"
+    ]
+  }
+]

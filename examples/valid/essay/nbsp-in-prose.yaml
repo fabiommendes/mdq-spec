@@ -1,0 +1,4 @@
+# Unicode spaces in prose, on purpose: a U+202F digit group separator and a
+# U+00A0 before a unit. Both are `non-ascii-whitespace` at `info` level.
+type: essay
+stem: O Amazonas tem cerca de 6 400 km. Explique por que é tão extenso.

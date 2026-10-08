@@ -1,5 +1,6 @@
-# Two choices both carry a score >= 1, but only one can be selected --
-# use multiple-selection instead.
+# Two choices both carry a score of 1. multiple-choice.md allows any
+# number of correct choices; the student still picks one, and this only
+# changes the grading.
 id: brasil-fatos-mc
 title: Fatos sobre o Brasil
 type: multiple-choice

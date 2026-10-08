@@ -1,0 +1,8 @@
+# The `grading` mapping takes only the choice question types as keys
+# (exam.md, "Grading"); `essay` has no grading strategy.
+type: exam
+id: biomes
+title: Biomes
+grading:
+  essay: partial
+questions: []

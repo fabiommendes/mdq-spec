@@ -1,0 +1,163 @@
+# Document structure
+#
+# Question {
+#   name: string
+#
+#   // The question's own fields, as in its YAML form: any of `accept`,
+#   // `reject`, `unmatched`, `diacritics`.
+#   question: { accept: Pattern[], reject: Pattern[], ... }
+#
+#   // Responses and what they score (short-answer.md, "Grading"). The score
+#   // is binary. "pending" is a response the question does not settle: the
+#   // instructor grades it (responses.md, "Pending").
+#   examples: { response: string, score: 0 | 1 | "pending" }[]
+# }
+questions:
+  # One inexact literal (patterns.md, "Inexact literals"): case, diacritics,
+  # whitespace and the ASCII/typographic quote and dash pairs are ignored.
+  # No pattern matches "Rio de Janeiro", and the question has an `accept`,
+  # so `unmatched` defaults to "incorrect".
+  - name: "Inexact literal"
+    question: { accept: ["Brasília"] }
+    examples:
+      - response: "Brasília"
+        score: 1
+      - response: "BRASILIA"
+        score: 1
+      - response: "  brasilia  "
+        score: 1
+      - response: "Bras ília"
+        score: 0
+      - response: "Rio de Janeiro"
+        score: 0
+      - response: ""
+        score: 0
+
+  - name: "Inexact literal with quote and dash"
+    question: { accept: ["caixa d'água", "pau-brasil"] }
+    examples:
+      - response: "caixa d’água"
+        score: 1
+      - response: "pau–brasil"
+        score: 1
+      - response: "pau brasil"
+        score: 0
+
+  # `diacritics: keep` skips only the diacritics step: case folding and
+  # whitespace normalization still apply.
+  - name: "Diacritics kept"
+    question: { accept: ["Maceió"], diacritics: keep }
+    examples:
+      - response: "maceió"
+        score: 1
+      - response: "Maceio"
+        score: 0
+
+  # A backtick literal is compared exactly (patterns.md, "Exact literals"):
+  # only NFC and the whitespace at the ends are normalized.
+  - name: "Exact literal"
+    question: { accept: ["`math.isnan`"] }
+    examples:
+      - response: "math.isnan"
+        score: 1
+      - response: " math.isnan\n"
+        score: 1
+      - response: "Math.isnan"
+        score: 0
+      - response: "math . isnan"
+        score: 0
+
+  # A regex is anchored to the whole response; `i` folds case and `n`
+  # strips diacritics (patterns.md, "Regex flags").
+  - name: "Regex"
+    question: { accept: ["/1822-0?9-0?7/"] }
+    examples:
+      - response: "1822-09-07"
+        score: 1
+      - response: "1822-9-7"
+        score: 1
+      - response: "em 1822-09-07"
+        score: 0
+  - name: "Regex with flags"
+    question: { accept: ["/cerrado/in"] }
+    examples:
+      - response: "Cerrado"
+        score: 1
+      - response: "CERRÁDO"
+        score: 1
+      - response: "o cerrado"
+        score: 0
+  - name: "Regex without the flags"
+    question: { accept: ["/cerrado/"] }
+    examples:
+      - response: "cerrado"
+        score: 1
+      - response: "Cerrado"
+        score: 0
+
+  # The three rules apply in order: `accept` first, then `reject`, then
+  # `unmatched`. `reject` only attaches feedback to known wrong answers; it
+  # does not change what happens to the other responses.
+  - name: "Accept and reject"
+    question:
+      accept: ["Brasília"]
+      reject:
+        - pattern: "Rio de Janeiro"
+          feedback: "It was the capital until 1960."
+    examples:
+      - response: "brasília"
+        score: 1
+      - response: "rio de janeiro"
+        score: 0
+      - response: "Salvador"
+        score: 0
+  - name: "Accept wins over reject"
+    question: { accept: ["/cerrad[oa]/i"], reject: ["Cerrado"] }
+    examples:
+      - response: "Cerrado"
+        score: 1
+      - response: "cerrada"
+        score: 1
+
+  # `unmatched: manual`: a response that matches no pattern is pending.
+  - name: "Semi-automatic"
+    question:
+      accept: ["Cerrado", "Pantanal"]
+      reject: ["Savana"]
+      unmatched: manual
+    examples:
+      - response: "Cerrado"
+        score: 1
+      - response: "savana"
+        score: 0
+      - response: "Mata Atlântica"
+        score: "pending"
+
+  # No `accept`: `unmatched` defaults to "manual". A rejected response is
+  # still settled.
+  - name: "Reject only"
+    question: { reject: ["Savana"] }
+    examples:
+      - response: "Savana"
+        score: 0
+      - response: "Cerrado"
+        score: "pending"
+
+  # `unmatched: incorrect` without `accept`: every response is settled, and
+  # none is correct.
+  - name: "Reject only, automatic"
+    question: { reject: ["Savana"], unmatched: incorrect }
+    examples:
+      - response: "Savana"
+        score: 0
+      - response: "Cerrado"
+        score: 0
+
+  # No pattern at all: a one-line essay.
+  - name: "Manual"
+    question: {}
+    examples:
+      - response: "Cerrado"
+        score: "pending"
+      - response: ""
+        score: "pending"

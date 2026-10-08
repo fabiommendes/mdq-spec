@@ -1,0 +1,11 @@
+# `HH:MM` needs no quotes in YAML 1.2: `1:30` is a string, normalized to
+# `PT1H30M`.
+id: prova
+title: Prova
+type: exam
+duration: PT1H30M
+questions:
+- stem: Qual é a capital do Brasil?
+  accept:
+  - Brasília
+  type: short-answer

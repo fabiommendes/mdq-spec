@@ -1,0 +1,15 @@
+# `unmatched: manual`: a response that matches no pattern goes to the
+# instructor instead of scoring 0. The instructor knows some correct and
+# some incorrect answers; the automation of the question is
+# `semi-automatic`, a derived property that is never a field.
+id: bioma-centro
+title: Biome of central Brazil
+type: short-answer
+stem: Name a biome of central Brazil.
+unmatched: manual
+accept:
+  - Cerrado
+  - Pantanal
+reject:
+  - pattern: Savana
+    feedback: Savanna is the general term. Name the Brazilian biome.

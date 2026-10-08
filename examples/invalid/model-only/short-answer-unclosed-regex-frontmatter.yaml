@@ -1,0 +1,7 @@
+# A pattern that starts with `/` is a regex and must be closed by a `/`
+# (patterns.md, "Regular expressions"). An unclosed one is `invalid-regex`.
+# JSON Schema sees only a string, so this passes the schema.
+type: short-answer
+stem: Qual é a capital do Brasil?
+accept:
+  - "/Bras[íi]lia"

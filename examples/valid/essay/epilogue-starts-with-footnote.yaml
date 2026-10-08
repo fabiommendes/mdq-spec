@@ -1,0 +1,6 @@
+# A paragraph that starts with `[^` is allowed anywhere (base.md, "Forbidden
+# elements", the fill-in exception), so a footnote definition in the epilogue
+# stays as text.
+type: essay
+stem: Explique o ciclo da água[^1].
+epilogue: '[^1]: Considere apenas o ciclo na superfície do planeta.'

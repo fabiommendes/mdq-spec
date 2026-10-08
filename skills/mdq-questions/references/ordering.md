@@ -65,9 +65,11 @@ interleave. The same lines must never appear as both accepted and rejected.
 | highlight      | Language, for `content: code` — inferred from the fence    |
 | indentation    | `fixed` (default), `lenient`, `strict`                     |
 | unmatched      | `manual` (default) or `incorrect`                          |
-| normalizations | `dedent`, `skip-blanks`                                    |
+| normalizations | `dedent` (flattens every level to 0), `skip-blanks`        |
 
-* `fixed` keeps the authored indentation and the student cannot change it.
+* `fixed` keeps the authored indentation and the student cannot change it. The
+  level still identifies the line, so a distractor may differ from a key line
+  by indentation alone.
 * `lenient` lets the student indent freely but ignores it when grading.
 * `strict` lets the student indent and grades it — use it for code where
   indentation carries meaning.

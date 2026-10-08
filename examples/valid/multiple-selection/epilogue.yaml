@@ -1,0 +1,16 @@
+# A paragraph after the choice list is the epilogue.
+id: ms-epilogue
+title: Ciclos da água
+type: multiple-selection
+stem: Quais destes processos fazem parte do ciclo da água?
+choices:
+- text: Evaporação
+  correct: true
+- text: Condensação
+  correct: true
+- text: Precipitação
+  correct: true
+- text: Fotossíntese
+  correct: false
+epilogue: Lembre que a água muda de estado, mas a quantidade total no planeta se
+  mantém praticamente constante.

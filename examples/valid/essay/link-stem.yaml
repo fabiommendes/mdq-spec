@@ -1,0 +1,4 @@
+# The stem starts with a markdown link, not with a `[slug]`: `(` follows the
+# bracket (base.md, "Slug"), so the question has no inline id.
+type: essay
+stem: "[Amazonia](https://pt.wikipedia.org/wiki/Amazônia) é o maior bioma de qual país? Justifique."

@@ -29,21 +29,30 @@ allOf:
           - partial
           - all-or-nothing
           - symmetric
+          - inherit
+        default: inherit
         description: >-
           The strategy used to grade the question, see the `Grading`
           section of the corresponding document in docs/question-types.
-          If omitted, the exam's `grading` field selects one, and
-          `symmetric` applies when neither does.
+          `inherit`, the default, takes the exam's `grading` value, and
+          is `symmetric` outside an exam. A `null` value is the same as
+          an absent field.
 
       shuffle:
-        type: boolean
+        oneOf:
+          - type: boolean
+          - const: inherit
+        default: inherit
         description: >-
-          If true, the choices of every choice-based blank are safe to
-          shuffle. If false, they should never be shuffled, and if
-          omitted the system is free to choose.
+          If true, the choices of every choice-based blank are safe to shuffle. If false, they should
+          never be shuffled. `inherit`, the default, takes the exam's
+          `shuffle` value, and is false outside an exam.
 
       diacritics:
         "$ref": "./short-answer.yaml#/$defs/diacritics"
+
+      unmatched:
+        "$ref": "./short-answer.yaml#/$defs/unmatched"
         description: >-
           Applies to every short answer blank of the question, with the
           same meaning as in a short answer question.
@@ -124,24 +133,6 @@ unevaluatedProperties: false
 
       type:
         const: short-answer
-
-      oneOf:
-        type: array
-        description: >-
-          The list of accepted responses; a response is correct if it
-          matches any entry. Entries follow the same notation as any
-          other pattern, so backticks make an entry an exact literal.
-        items:
-          "$ref": "./short-answer.yaml#/$defs/patternString"
-        minItems: 1
-        uniqueItems: true
-
-      regex:
-        type: string
-        description: >-
-          A regular expression matching every correct response, applied
-          as a full match. Takes precedence over `oneOf`.
-        minLength: 1
 
       accept:
         description: >-

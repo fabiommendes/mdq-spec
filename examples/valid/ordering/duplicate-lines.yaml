@@ -1,0 +1,15 @@
+# The `[ordering]` block MAY repeat a line: the student gets that many copies
+# to order, and a correct response uses them all.
+type: ordering
+stem: Ordene as linhas para ler dois números e imprimir a soma.
+content: code
+highlight: python
+lines:
+- - 0
+  - a = int(input())
+- - 0
+  - b = int(input())
+- - 0
+  - print(a + b)
+- - 0
+  - print(a + b)

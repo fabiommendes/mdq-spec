@@ -1,0 +1,11 @@
+[
+  {
+    "code": "reserved-true-false-marker",
+    "severity": "error",
+    "path": [
+      "choices",
+      0,
+      "marker"
+    ]
+  }
+]

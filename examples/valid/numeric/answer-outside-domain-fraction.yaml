@@ -1,0 +1,8 @@
+# `answer-outside-domain` reads the value of a string answer: `"7/2"` is not
+# a whole number, so it contradicts `domain: integer`.
+type: numeric
+stem: Quantos litros há em 3,5 litros?
+answer: "7/2"
+domain: integer
+tolerance:
+  absolute: 1

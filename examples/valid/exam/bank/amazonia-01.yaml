@@ -4,6 +4,6 @@ tags:
 - biome
 - forest
 stem: Which river drains most of the Amazon rainforest?
-oneOf:
+accept:
 - Amazon
 type: short-answer

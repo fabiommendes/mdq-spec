@@ -1,0 +1,12 @@
+# `preAccept`/`preReject` patterns follow the same regex rules as
+# `accept`/`reject`: anchors are implicit and the `m` flag has no effect.
+id: ano-lei-aurea
+title: Ano da Lei Áurea
+type: short-answer
+stem: Em que ano a Lei Áurea aboliu a escravidão no Brasil?
+preAccept:
+  - "/^\\d{4}/"
+preReject:
+  - "/\\d{4}\\s*(?:d\\.?C\\.?)$/m"
+accept:
+  - "1888"

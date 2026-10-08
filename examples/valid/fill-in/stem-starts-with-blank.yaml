@@ -1,0 +1,10 @@
+# A stem that starts with a blank, after a preamble. A paragraph starting
+# with `[^` is never a forbidden element (base.md, "Forbidden elements").
+type: fill-in
+preamble: Leia o texto e complete.
+stem: '[^capital] é a capital do Brasil desde 1960.'
+blanks:
+- id: capital
+  type: short-answer
+  accept:
+  - Brasília

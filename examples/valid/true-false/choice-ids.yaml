@@ -1,0 +1,22 @@
+# A `[choice-id]` right after the marker gives the statement its `id`.
+id: tf-choice-ids
+title: Fatos sobre o Pantanal
+type: true-false
+stem: Julgue as afirmações sobre o Pantanal.
+choices:
+- text: O Pantanal é a maior planície alagável do planeta.
+  id: planicie
+  correct: true
+  marker: T
+- text: O Pantanal fica no litoral brasileiro.
+  id: litoral
+  correct: false
+  marker: F
+  feedback: Fica no interior, em Mato Grosso e Mato Grosso do Sul.
+- text: O rio Paraguai atravessa o Pantanal.
+  id: paraguai
+  correct: true
+  marker: T
+- text: O Pantanal é um deserto.
+  correct: false
+  marker: F

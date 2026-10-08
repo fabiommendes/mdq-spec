@@ -1,0 +1,14 @@
+# `-` and `+` list markers work like `*`, in the main block and in `## [extra]`.
+type: ordering
+stem: Ordene os períodos da história do Brasil, do mais antigo ao mais recente.
+content: text
+lines:
+- - 0
+  - Período colonial
+- - 0
+  - Império
+- - 0
+  - República Velha
+extra:
+- - 0
+  - Idade Média

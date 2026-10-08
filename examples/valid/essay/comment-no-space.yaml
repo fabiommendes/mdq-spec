@@ -1,0 +1,6 @@
+# Only the `#` and one following space are removed from each comment line:
+# `#Sem` keeps everything, `#  Dois` keeps one leading space.
+id: ciclo-agua
+type: essay
+comment: 'Sem espaço após a cerquilha.  Dois espaços: só o primeiro é removido.'
+stem: Explique o ciclo da água.

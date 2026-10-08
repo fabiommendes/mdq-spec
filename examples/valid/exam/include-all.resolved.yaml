@@ -1,0 +1,14 @@
+# `include-all` leaves out the questions the exam already holds: `cerrado-01`
+# (an `include`), then `amazonia-01` (added by the second block), so the
+# third block adds nothing. The inline question is the fourth position: `q4`.
+questions:
+- cerrado-01
+- amazonia-01
+- pantanal-01
+- q4
+diagnostics:
+- code: empty-include-all
+  severity: warning
+  path:
+  - questions
+  - 2

@@ -1,0 +1,9 @@
+# Domain inference: a decimal value with an integer absolute tolerance is a
+# `decimal` question; the places come from the value alone.
+type: numeric
+stem: Qual é a densidade da água do mar, em g/cm³?
+answer: 1.025
+domain: decimal
+decimalPlaces: 3
+tolerance:
+  absolute: 1.0

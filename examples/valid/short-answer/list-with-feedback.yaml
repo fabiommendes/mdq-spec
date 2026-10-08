@@ -1,0 +1,14 @@
+# `[short-answer]` takes a list on the lines right after the tag, with
+# the same feedback and comment lines as `[short-answer/reject]`.
+id: sa-list-feedback
+title: Capital of Brazil
+type: short-answer
+stem: What is the capital of Brazil?
+accept:
+  - pattern: Brasília
+    feedback: "Right: the capital since 1960."
+  - pattern: /Bras[íi]lia DF/i
+    comment: The state suffix is a common addition.
+reject:
+  - pattern: Rio de Janeiro
+    feedback: It used to be, but not since 1960.

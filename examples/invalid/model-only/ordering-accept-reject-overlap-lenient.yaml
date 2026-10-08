@@ -1,0 +1,18 @@
+# The accepted and the rejected alternative differ only in indentation.
+# `indentation: lenient` implies `dedent`, so once fully normalized they hold
+# the same lines: `accept-reject-overlap` (ordering.md, "Additional Rules"
+# [^9]). JSON Schema cannot compare the two lists.
+type: ordering
+stem: Ordene as linhas para imprimir os números de 0 a 9.
+indentation: lenient
+lines:
+  - [0, "for i in range(10):"]
+  - [1, "print(i)"]
+accept:
+  - lines:
+      - [0, "print(i)"]
+      - [0, "for i in range(10):"]
+reject:
+  - lines:
+      - [1, "print(i)"]
+      - [0, "for i in range(10):"]

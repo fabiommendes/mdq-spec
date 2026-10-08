@@ -13,7 +13,8 @@
     "severity": "warning",
     "path": [
       "questions",
-      1
+      1,
+      "id"
     ]
   },
   {

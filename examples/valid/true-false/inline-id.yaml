@@ -1,0 +1,14 @@
+# An inline `[Q7]` slug before the stem sets `id`, as in essay/inline-id.
+id: Q7
+type: true-false
+stem: Julgue as afirmações sobre o Cerrado.
+choices:
+- text: O Cerrado é a savana mais biodiversa do mundo.
+  correct: true
+  marker: T
+- text: O Cerrado não tem estação seca.
+  correct: false
+  marker: F
+- text: As árvores do Cerrado têm raízes profundas.
+  correct: true
+  marker: T

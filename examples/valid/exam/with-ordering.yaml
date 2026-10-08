@@ -1,0 +1,30 @@
+# An exam may hold an ordering question: `ordering.yaml` is one of the
+# entries of `schema/exam.yaml`. The exam `grading` mapping has no key for
+# it, since an ordering response is either right or wrong.
+type: exam
+id: ciclo-agua
+title: Ciclo da água
+questions:
+  - id: etapas
+    title: Etapas do ciclo
+    type: ordering
+    stem: Ordene as etapas do ciclo da água, da evaporação ao retorno ao oceano.
+    content: code
+    highlight: text
+    lines:
+      - [0, "A água evapora dos oceanos e rios."]
+      - [0, "O vapor sobe e condensa em nuvens."]
+      - [0, "A chuva cai sobre o continente."]
+      - [0, "Os rios levam a água de volta ao oceano."]
+  - id: motor
+    title: Motor do ciclo
+    type: multiple-choice
+    stem: Qual fonte de energia move o ciclo da água?
+    choices:
+      - id: sol
+        text: O Sol
+        score: 1
+      - id: lua
+        text: A Lua
+      - id: nucleo
+        text: O núcleo da Terra

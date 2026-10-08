@@ -1,0 +1,38 @@
+# exam.md, "Inheritance" and "Grading": a question's `grading` and `shuffle`
+# default to `inherit` and are not written out. The first question takes
+# `partial` and `shuffle: true` from the exam; the second keeps its own
+# `symmetric` and `false`.
+type: exam
+id: biomes-inherit
+title: Biomes
+instructions: |-
+  Each question takes `grading` and `shuffle` from the exam unless it says
+  otherwise.
+grading:
+  multiple-choice: partial
+shuffle: true
+questions:
+  - id: cerrado
+    type: multiple-choice
+    stem: Which biome is known as the Brazilian savanna?
+    choices:
+      - id: cerrado
+        text: Cerrado
+        score: 1
+      - id: caatinga
+        text: Caatinga
+      - id: pampa
+        text: Pampa
+  - id: pantanal
+    type: multiple-choice
+    grading: symmetric
+    shuffle: false
+    stem: Which biome is the largest tropical wetland in the world?
+    choices:
+      - id: pantanal
+        text: Pantanal
+        score: 1
+      - id: amazon
+        text: Amazon
+      - id: mangrove
+        text: Mangrove

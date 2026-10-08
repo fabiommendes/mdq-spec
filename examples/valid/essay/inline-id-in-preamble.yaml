@@ -1,0 +1,6 @@
+# When the first element is a preamble paragraph, the inline slug is read
+# from it and removed; the stem is untouched (base.md, "Slug").
+id: Q3
+type: essay
+preamble: A água da Terra circula entre oceanos, atmosfera e continentes.
+stem: Explique o ciclo da água.

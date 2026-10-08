@@ -1,0 +1,7 @@
+# A choice list needs at least two entries (schema `minItems: 2`), in every
+# choice type.
+type: multiple-selection
+stem: Quais destes rios pertencem à bacia Amazônica?
+choices:
+  - text: Rio Negro
+    correct: true

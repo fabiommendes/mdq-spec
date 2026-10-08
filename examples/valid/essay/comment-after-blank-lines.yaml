@@ -1,0 +1,6 @@
+# Blank lines between the opening `---` and the comment string are allowed
+# (`blank_line*` in the grammar).
+id: ciclo-agua
+type: essay
+comment: Comentário depois de linhas em branco.
+stem: Explique o ciclo da água.

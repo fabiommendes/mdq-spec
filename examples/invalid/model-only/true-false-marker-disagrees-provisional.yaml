@@ -1,0 +1,12 @@
+# `N` is a WARNING-category marker, which reads as true, paired here with
+# `correct: false`. The marker's category must agree with `correct`
+# (true-false.md, "Additional Rules"); JSON Schema cannot cross-check them.
+type: true-false
+stem: Julgue as afirmações sobre o Pantanal.
+choices:
+  - text: O Pantanal fica no litoral brasileiro.
+    correct: false
+    marker: N
+  - text: O Pantanal é uma planície alagável.
+    correct: true
+    marker: T

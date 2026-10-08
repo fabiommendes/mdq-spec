@@ -1,0 +1,12 @@
+[
+  {
+    "code": "foreign-choice-marker",
+    "severity": "error",
+    "path": [
+      "blanks",
+      0,
+      "choices",
+      0
+    ]
+  }
+]

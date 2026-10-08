@@ -1,5 +1,12 @@
 [
   {
+    "code": "unsafe-thematic-break",
+    "severity": "warning",
+    "path": [
+      "epilogue"
+    ]
+  },
+  {
     "code": "missing-id",
     "severity": "info",
     "path": [

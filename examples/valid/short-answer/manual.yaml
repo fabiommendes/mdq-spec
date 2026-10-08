@@ -1,0 +1,7 @@
+# A `[short-answer]` block with no pattern gives a question with no
+# `accept` list. With no `reject` list either, `unmatched` defaults to
+# `manual`: no response is settled, and the instructor grades every one.
+# The automation of the question is `manual`, and it is never a field.
+id: short-answer-manual
+type: short-answer
+stem: In one sentence, what is the single biggest weakness of this argument?

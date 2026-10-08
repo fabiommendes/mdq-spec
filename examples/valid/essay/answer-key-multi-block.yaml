@@ -1,0 +1,24 @@
+# An answer key with several blocks: a list, an H3 heading and a code fence.
+# The field keeps the markdown, heading markers included.
+id: ciclo-agua
+title: Ciclo da água
+type: essay
+stem: Explique o ciclo da água.
+answerKey: 'Etapas esperadas:
+
+
+  1. Evaporação
+
+  2. Condensação
+
+  3. Precipitação
+
+
+  ### Critério
+
+
+  ```
+
+  1 ponto por etapa
+
+  ```'

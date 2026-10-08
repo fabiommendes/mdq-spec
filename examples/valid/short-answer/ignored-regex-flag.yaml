@@ -4,4 +4,5 @@ id: capital-regex-flag
 title: Capital regex flag
 type: short-answer
 stem: Qual é a capital do Brasil?
-regex: /Bras[íi]lia/m
+accept:
+  - "/Bras[íi]lia/m"

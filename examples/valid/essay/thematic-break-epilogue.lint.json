@@ -1,0 +1,16 @@
+[
+  {
+    "code": "unsafe-thematic-break",
+    "severity": "warning",
+    "path": [
+      "epilogue"
+    ]
+  },
+  {
+    "code": "missing-answer-key",
+    "severity": "info",
+    "path": [
+      "answerKey"
+    ]
+  }
+]

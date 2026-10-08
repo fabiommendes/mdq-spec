@@ -1,0 +1,13 @@
+# Every choice is correct. The question is valid, with both
+# `multiple-choice-many-correct-choices` and `all-choices-correct`.
+id: mc-all-correct
+title: Biomas brasileiros
+type: multiple-choice
+stem: Qual destes é um bioma brasileiro?
+choices:
+- text: Caatinga
+  score: 1
+- text: Pampa
+  score: 1
+- text: Pantanal
+  score: 1

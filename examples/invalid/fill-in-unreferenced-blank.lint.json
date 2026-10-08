@@ -1,0 +1,11 @@
+[
+  {
+    "code": "unreferenced-blank",
+    "severity": "error",
+    "path": [
+      "blanks",
+      1,
+      "id"
+    ]
+  }
+]

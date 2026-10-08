@@ -24,10 +24,14 @@ frontmatter
 | Field   | Type                 | Description                      |
 | ------- | -------------------- | -------------------------------- |
 | type    | "multiple-selection" | The type discriminator           |
-| shuffle | boolean              | True if choices can be shuffled  |
+| shuffle | boolean              | True if choices can be shuffled[^1] |
 | grading | grading              | The grading strategy to use.[^1] |
 
-[^1]: Grading is `"partial" | "all-or-nothing" | "symmetric"`. Default is `"symmetric"`.
+[^1]: Grading is `"partial" | "all-or-nothing" | "symmetric" | "inherit"`.
+Default is `"inherit"`, which takes the strategy from the exam, and is
+`"symmetric"` outside an exam. `shuffle` is `boolean | "inherit"` with the
+same rule: `"inherit"` is the default and resolves to `false` outside an
+exam. See [exam inheritance](../exam.md#inheritance).
 
 
 ## Body
@@ -35,10 +39,17 @@ frontmatter
 Body consists of an unordered list of items. Each item follows the grammar:
 
 ```
-item  : ws? "[" value "]" markdown+
+item      : ws? "[" value "]" ws? (choice_id ws?)? markdown+
+choice_id : "[" SLUG "]"
 value : ws
       | ws? ("x" | "X") ws?
 ```
+
+A `choice_id` is a `SLUG` between square brackets, right after the value. A
+bracket there is a choice id only when its content is a `SLUG` and the next
+character is not `(` or `[`, which open a markdown link (`[text](url)`,
+`[text][ref]`); such a bracket is part of the choice text. `SLUG` is defined in
+[Common grammar rules](../references/grammar.md).
 
 `markdown` represent any markdown element nested inside the item. The rule
 `ws` is defined in [Common grammar rules](../references/grammar.md).
@@ -48,6 +59,19 @@ value : ws
 
 Choices follow the same structure from [Multiple choice questions](multiple-choice.md#choices),
 respecting the rules for the allowed `values` inside the initial square brackets.
+
+Each choice carries a boolean `correct`, derived from `value`: `[x]` is `true`
+and `[ ]` is `false`. The field is REQUIRED in the AST. Unlike multiple
+choice, where a blank `[ ]` omits `score`, every choice here is a verdict
+and states it explicitly:
+
+```yaml
+choices:
+  - text: Brasília
+    correct: true
+  - text: Lisbon
+    correct: false
+```
 
 ## Feedback
 
@@ -115,6 +139,7 @@ is no way to explicitly leave it unmarked. If that is necessary, prefer using
 
 | Field              | Level    | Rule                                                      |
 | ------------------ | -------- | --------------------------------------------------------- |
+| choices            | critical | must have at least two choices (schema)                   |
 | choices[].text     | critical | must not be empty                                         |
 | choices[].text     | critical | must be unique among the choices of the question          |
 | choices[].id       | critical | must be unique among the choices of the question          |

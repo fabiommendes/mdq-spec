@@ -1,0 +1,5 @@
+# The `===` before the include block changes nothing in the resolution.
+questions:
+- cerrado-01
+- q2
+diagnostics: []

@@ -1,0 +1,11 @@
+# A literal asterisk is written as the regex `/\*/` or the exact literal
+# `` `*` ``; a bare `*` would be the wildcard.
+id: sa-literal-asterisk
+title: Operador de multiplicação
+type: short-answer
+stem: Qual símbolo representa a multiplicação na maioria das linguagens de programação?
+accept:
+- /\*/
+- '`*`'
+- pattern: /×/
+  feedback: Esse é o sinal de multiplicação do Unicode, não o das linguagens.

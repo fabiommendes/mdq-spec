@@ -1,0 +1,5 @@
+# A `COMMENT_LINE` starts at column 0: an indented `# ...` line is not part
+# of the comment string.
+id: ciclo-agua
+type: essay
+stem: Explique o ciclo da água.

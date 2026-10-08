@@ -11,6 +11,5 @@ choices:
   - text: Atlantic
     score: 0.5
   - text: Indian
-    score: 0
   - text: The Moon has no ocean.
     score: -0.25

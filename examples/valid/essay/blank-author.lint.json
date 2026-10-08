@@ -1,0 +1,16 @@
+[
+  {
+    "code": "blank-text-field",
+    "severity": "warning",
+    "path": [
+      "author"
+    ]
+  },
+  {
+    "code": "missing-answer-key",
+    "severity": "info",
+    "path": [
+      "answerKey"
+    ]
+  }
+]

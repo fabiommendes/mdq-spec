@@ -1,5 +1,14 @@
 [
   {
+    "code": "unsafe-thematic-break",
+    "severity": "warning",
+    "path": [
+      "questions",
+      0,
+      "preamble"
+    ]
+  },
+  {
     "code": "missing-title",
     "severity": "info",
     "path": [

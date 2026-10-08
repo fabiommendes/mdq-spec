@@ -1,0 +1,11 @@
+# Every value is blank, which infers multiple-selection; `type:
+# multiple-choice` in the frontmatter wins over the inference. No choice has
+# a score, so the question gets `multiple-choice-no-correct-choice`.
+id: mc-no-correct-answer
+title: Clima do Cerrado
+type: multiple-choice
+stem: Qual destas características melhor descreve o clima do Cerrado?
+choices:
+- text: Chuvas o ano inteiro
+- text: Duas estações bem marcadas, uma seca e uma chuvosa
+- text: Neve frequente no inverno

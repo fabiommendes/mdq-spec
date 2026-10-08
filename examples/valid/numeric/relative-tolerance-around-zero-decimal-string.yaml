@@ -1,0 +1,7 @@
+# `relative-tolerance-around-zero` reads the value: the string `"0.0"` is
+# zero.
+type: numeric
+stem: Qual é a carga elétrica total de um átomo neutro, em coulombs?
+answer: "0.0"
+tolerance:
+  relative: 0.05

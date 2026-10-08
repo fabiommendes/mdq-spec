@@ -1,0 +1,8 @@
+# The nonstandard query adds no question.
+questions: []
+diagnostics:
+- code: empty-include-all
+  severity: warning
+  path:
+  - questions
+  - 0

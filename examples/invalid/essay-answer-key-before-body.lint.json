@@ -1,0 +1,9 @@
+[
+  {
+    "code": "forbidden-block-element",
+    "severity": "error",
+    "path": [
+      "preamble"
+    ]
+  }
+]

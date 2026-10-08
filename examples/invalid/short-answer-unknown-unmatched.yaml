@@ -1,0 +1,6 @@
+# `unmatched` is either `incorrect` or `manual`.
+type: short-answer
+stem: Qual é a capital do Brasil?
+unmatched: review
+accept:
+  - Brasília

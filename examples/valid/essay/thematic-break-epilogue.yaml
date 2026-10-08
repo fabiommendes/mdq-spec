@@ -1,0 +1,19 @@
+# `***` is a plain thematic break everywhere. `---` is one too in a question
+# file, but inside an exam it opens a block, so it earns
+# `unsafe-thematic-break` (base.md, "Additional Rules").
+id: cerrado-fire
+title: Fire in the cerrado
+type: essay
+preamble: |-
+  The cerrado burns naturally in the dry season.
+
+  ***
+
+  Many of its plants resist fire with thick bark and deep roots.
+stem: Explain how periodic fire shapes the vegetation of the cerrado.
+epilogue: |-
+  Keep the answer under 200 words.
+
+  ---
+
+  Cite at least one adaptation.

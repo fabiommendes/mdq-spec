@@ -1,0 +1,4 @@
+# `input` is `code`, `text` or `plain` (schema enum).
+type: essay
+input: markdown
+stem: Explique o ciclo da água.

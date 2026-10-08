@@ -1,0 +1,6 @@
+# `automation` is a derived property, never a field of the document.
+type: short-answer
+stem: Qual é a capital do Brasil?
+automation: automatic
+accept:
+  - Brasília

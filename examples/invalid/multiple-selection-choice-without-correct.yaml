@@ -1,0 +1,10 @@
+# Every multiple-selection choice states its verdict: `correct` is required,
+# even when false. Only multiple-choice leaves `score` out for a blank `[ ]`.
+type: multiple-selection
+stem: Which of these rivers run through the Amazon basin?
+choices:
+  - text: Rio Negro
+    correct: true
+  - text: Rio São Francisco
+  - text: Rio Madeira
+    correct: true

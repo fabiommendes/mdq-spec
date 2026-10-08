@@ -1,0 +1,10 @@
+# An ISO 8601 duration with a date and a time part, kept as written.
+id: prova
+title: Prova
+type: exam
+duration: P1DT2H30M
+questions:
+- stem: Qual é a capital do Brasil?
+  accept:
+  - Brasília
+  type: short-answer

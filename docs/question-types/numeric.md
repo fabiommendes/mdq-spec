@@ -8,7 +8,7 @@ answer and tolerance.
 ```md
 How many grams of water are there in a liter?
 
-[numeric(g)]: 1000 
+[numeric(g)]: 1000
 ```
 
 ## Frontmatter
@@ -23,7 +23,9 @@ frontmatter
 | domain        | string    | Either "integer", "decimal" or "fraction"       |
 | decimalPlaces | integer   | Number of decimal places for decimal values[^1] |
 
-[^1]: Must be greater than or equal to zero.
+[^1]: Must be greater than or equal to zero. The precision of the
+comparison, see [Decimal places](#decimal-places). Only meaningful when the
+domain is `decimal`.
 
 
 ## Body
@@ -59,7 +61,7 @@ Here are some examples:
 The grammar is 
 
 ```lark
-answer       : ws? "[" "numeric" unit? "]" ":" numeric_body
+answer       : ws? "[" "numeric" unit? "]" ws? ":" numeric_body
 numeric_body : ws? sign? value tolerances?
 tolerances   : ws? abstol (ws? reltol)?
              | ws? reltol (ws? abstol)?
@@ -117,11 +119,13 @@ the wider of the two wins. C has no fractions, so we place `fraction` between
 | value      | abstol     | domain     |
 | ---------- | ---------- | ---------- |
 | `integer`  | `integer`  | `integer`  |
-| `integer`  | `fraction` | `fraction` |
 | `integer`  | `decimal`  | `decimal`  |
-| `fraction` | `fraction` | `fraction` |
+| `fraction` | `integer`  | `fraction` |
 | `fraction` | `decimal`  | `decimal`  |
 | `decimal`  | any        | `decimal`  |
+
+The absolute tolerance is an `INTEGER` or a `DECIMAL`, never a fraction (see
+the grammar above and `tolerance.absolute` in the schema, a number).
 
 Equivalently, rank the domains `integer` < `fraction` < `decimal` and take the
 maximum. If no absolute tolerance is given, the domain is the domain of the
@@ -143,7 +147,25 @@ responses:
   where tol is calculated as `|answer| ⨉ percentage_number ÷ 100`.
 
 If both tolerances are defined, a response is accepted if it passes ANY of those
-criteria.
+criteria. When the domain is `decimal`, the response and the answer are first
+rounded to [`decimalPlaces`](#decimal-places).
+
+## Decimal places
+
+`decimalPlaces` is the precision of the comparison of a `decimal` question.
+Before the tolerance test, the response and the answer are rounded to that
+many decimal places, half away from zero, in decimal arithmetic (never in
+binary floating point: `2.675` rounds to `2.68`). A response with more digits
+than `decimalPlaces` is not malformed and is never rejected for it; rounding
+decides. A host system MAY also use the value to lay out its input widget, but
+that is outside this specification.
+
+When the frontmatter does not give `decimalPlaces` and the domain is
+`decimal`, it is inferred from the body: the larger of the number of decimal
+places written in the value and in the absolute tolerance. `2.50 +- 0.01` and
+`0 +- 0.01` both give 2; `3.14 +- 0.1` gives 2; `1.5 +- 1` gives 1. The parsed
+document carries the inferred value. The field has no meaning for an
+`integer` or `fraction` question (`ignored-decimal-places`).
 
 
 ## Unit conversion
@@ -171,7 +193,7 @@ how an instructor expresses leniency.
 Numeric questions therefore take no `grading` field: the strategies of the
 choice-based question types have nothing to select between. If unit conversion
 is performed (see [Unit conversion](#unit-conversion)), it happens before the
-tolerance test.
+tolerance test, as does the rounding to [`decimalPlaces`](#decimal-places).
 
 
 ## Additional Rules
@@ -180,18 +202,19 @@ tolerance test.
 | ------------------ | -------- | ---------------------------------------------------------- |
 | answer             | warning  | must be a whole number when `domain` is "integer"[^6]      |
 | tolerance.relative | warning  | must not be given when `answer` is zero[^2]                |
-| domain             | info     | should agree with the domain inferred from the document[^3]|
+| domain             | info     | when declared, should not be narrower than the values[^3]  |
 | tolerance.relative | info     | is a fraction, so a value above 1 is likely a mistake[^4]  |
 | decimalPlaces      | info     | is ignored unless `domain` is "decimal"[^7]                |
 | tolerance          | info     | should be defined for a `decimal` or `fraction` answer[^5] |
 
 [^2]: The relative tolerance is `|answer| ⨉ relative`, which is 0 for a zero
 answer, so only an exact 0 would be accepted.
-[^3]: See [number type/domain](#number-typedomain). A declared domain never widens
-the value written in the body -- it only contradicts it. The one exception is
-an integer, which also agrees with `fraction` (see
-[answer representation](#answer-representation)). A number that is not whole
-is a decimal, so it contradicts `fraction`.
+[^3]: See [number type/domain](#number-typedomain). A declared domain MAY be
+wider than the values need: `decimal` fits an integer answer, and `fraction`
+fits an integer (see [answer representation](#answer-representation)). It is a
+mismatch only when it is narrower: `integer` or `fraction` with a number that
+is not whole, or `integer` with a fraction string. The check reads values, not
+how a number is spelled in YAML or JSON, so `4.0` is whole.
 [^4]: `0.05` is 5%, not 0.05%; `5` would accept a response 500% off.
 [^5]: An exact comparison of a non-integer response is rarely what the author
 means, since the number of digits the student types decides the outcome.

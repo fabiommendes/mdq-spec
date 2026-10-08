@@ -1,0 +1,9 @@
+# A blank `id` is a `SLUG` (grammar.md): letters, digits, `-` and `_`. A
+# space breaks the schema pattern, and no `[^id]` marker could spell it.
+type: fill-in
+stem: "A capital do Brasil é [^capital federal]."
+blanks:
+  - id: "capital federal"
+    type: short-answer
+    accept:
+      - Brasília

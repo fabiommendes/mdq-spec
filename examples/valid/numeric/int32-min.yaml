@@ -1,0 +1,5 @@
+# `-2147483648` is the smallest 32-bit signed integer, so it stays a number.
+type: numeric
+stem: Qual é o menor inteiro de 32 bits com sinal?
+answer: -2147483648
+domain: integer

@@ -1,0 +1,16 @@
+# `false-friend-true-false-marker` fires for the lowercase `s` too, and for a
+# `locale` with a region subtag: `id-ID` has the language subtag `id`.
+id: fakta-amazon
+title: Fakta tentang Amazon
+type: true-false
+locale: id-ID
+stem: Nilai pernyataan tentang hutan Amazon.
+choices:
+  - id: a
+    text: Hutan Amazon adalah hutan hujan tropis terbesar di dunia.
+    correct: true
+    marker: s
+  - id: b
+    text: Hutan Amazon terletak di Afrika.
+    correct: false
+    marker: F

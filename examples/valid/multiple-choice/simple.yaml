@@ -3,8 +3,6 @@ type: multiple-choice
 stem: What is the capital of France?
 choices:
   - text: Berlin
-    score: 0
   - text: Paris
     score: 1
   - text: Madrid
-    score: 0

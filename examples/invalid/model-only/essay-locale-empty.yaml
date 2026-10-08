@@ -1,0 +1,5 @@
+# An empty `locale` is not a BCP 47 tag. JSON Schema has no `locale`
+# pattern, so this passes the schema; `malformed-locale` rejects it.
+type: essay
+locale: ""
+stem: Explique o ciclo da água.

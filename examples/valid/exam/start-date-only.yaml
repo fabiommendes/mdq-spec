@@ -1,0 +1,10 @@
+# A `start` with a date only stays a date.
+id: prova
+title: Prova
+type: exam
+start: '2026-03-10'
+questions:
+- stem: Qual é a capital do Brasil?
+  accept:
+  - Brasília
+  type: short-answer

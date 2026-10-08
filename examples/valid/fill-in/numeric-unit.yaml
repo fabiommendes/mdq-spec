@@ -10,7 +10,7 @@ stem: >-
 blanks:
   - id: river
     type: short-answer
-    oneOf:
+    accept:
       - Amazon
   - id: length
     type: numeric

@@ -164,6 +164,8 @@ question infers `content: "code"`, and the fence's language, if any, becomes
 
 If it is a `ul` list, the question infers `content: "text"`. Each line is
 derived from the respective list item, preserving its markdown source verbatim.
+An item is exactly one line: an item with a continuation line or a second
+paragraph is an error (`parse-error`), whatever the rendered markdown shows.
 That source is what a response is compared against, so two lines that render
 identically but are written differently -- `*emphasis*` and `_emphasis_`, say
 -- are two distinct lines. Implementations SHOULD raise an info-level notice
@@ -175,6 +177,10 @@ of spaces -- derived as described in [indentation](#indentation). Two lines
 with the same text and the same level are the same line, and a question MAY
 repeat one: duplicates are shown to the student as that many separate copies
 to be ordered.
+
+The sections below follow the content block directly. The epilogue, if any,
+comes after the last section; prose between the block and a section is an
+error (`parse-error`).
 
 The body can also contain additional sections that specify extra lines,
 alternative answers or known incorrect answers with feedback. These sections
@@ -239,12 +245,18 @@ The `indentation` field controls whether the student can change the indentation
 of the lines in the response and whether it is taken into account for grading:
 
 * `"fixed"` (the default): each line keeps the indentation it was authored
-  with and the student cannot change it.
+  with and the student cannot change it. The level is part of what identifies
+  a line, so two lines with the same text at different levels are different
+  lines, and a distractor may differ from a line of the answer key by its
+  level alone.
 * `"lenient"`: the student may change indentation freely, but it is ignored
   when grading. This implies the `dedent` normalization, whether or not
   `normalizations` lists it.
 * `"strict"`: the student may change indentation, and it is compared like the
   rest of the line.
+
+Indentation levels take part in the comparison under `"fixed"` and
+`"strict"`; only `dedent`, listed or implied by `"lenient"`, removes them.
 
 The **indentation unit** is inferred from the lines of the question. It
 considers all lines in the `[ordering]`, `## [extra]`, `## [accept]` and
@@ -265,8 +277,9 @@ what `"strict"` compares.
 The following normalizations can be applied before comparing a response to an
 answer key:
 
-- `dedent`: removes the common leading whitespace, reducing every line to
-  indentation level 0.
+- `dedent`: flattens every line to indentation level 0, so that indentation
+  takes no part in the comparison. It does not keep the relative indentation
+  of the lines: `dedent` removes all of it, not only the part the lines share.
 - `skip-blanks`: ignores blank lines.
 
 Normalizations apply to BOTH sides of the comparison: the student's response
@@ -296,9 +309,10 @@ Instructor comments (`!` lines) are never shown to students.
 
 Grading compares the response to the answer keys **by content**: lines carry no
 id, so a line is identified by its text -- its raw markdown source, when the
-content is a `ul` list -- and, under `indentation: "strict"`, by its
-indentation level. Repeated lines are compared in the order they appear, so a
-question with duplicates accepts exactly as many copies as it declares.
+content is a `ul` list -- and by its indentation level, unless `dedent` is in
+effect (listed in `normalizations`, or implied by `indentation: "lenient"`).
+Repeated lines are compared in the order they appear, so a question with
+duplicates accepts exactly as many copies as it declares.
 
 After all forms of normalization:
 
@@ -309,14 +323,20 @@ After all forms of normalization:
 
 If no answer key matches, the outcome depends on `unmatched`:
 
-* `"manual"` (the default): the response is left ungraded and flagged for
-  manual evaluation, exactly as an [essay](essay.md) or an open-ended
-  [short answer](short-answer.md) is. It has no score until the instructor
-  supplies one.
+* `"manual"` (the default): the response is pending, exactly as a response to
+  an [essay](essay.md) or to a `manual` [short answer](short-answer.md) is.
+  It has no score until the instructor supplies one.
 * `"incorrect"`: the response is incorrect, with a score of `0`.
 
 The score is always binary -- `1` or `0`, with no partial credit for a nearly
 correct ordering.
+
+### Automation
+
+The [automation](base.md#automation) of an ordering question follows
+`unmatched`: `automatic` with `"incorrect"`, and `semi-automatic` with
+`"manual"`, because the answer key always settles the responses that match it.
+It is a derived property and never a field of the document.
 
 
 ## Response
@@ -331,6 +351,8 @@ submitted, in the order they submitted them, each written as an
 
 | Field                 | Level    | Rule                                                             |
 | --------------------- | -------- | ---------------------------------------------------------------- |
+| lines                 | critical | must have at least two lines (schema)                            |
+| accept, reject        | critical | an alternative must have at least one line (schema)              |
 | accept, reject        | critical | the same lines must not be both accepted and rejected[^9]        |
 | extra, accept, reject | critical | must use the same content block type as `[ordering]`[^6]         |
 | extra                 | critical | at most one `## [extra]` section may be declared                 |
@@ -348,8 +370,9 @@ submitted, in the order they submitted them, each written as an
 [^7]: They may appear in either order but MUST NOT interleave, see
 [accepted/rejected answers](#acceptedrejected-answers).
 [^8]: `dedent` flattens every line to level 0, so nothing is left for
-`"strict"` to compare. `indentation: "lenient"` implies `dedent` and therefore
-never combines with `"strict"` in the first place.
+`"strict"` to compare, and `"strict"` then grades exactly as `"lenient"`.
+`indentation: "lenient"` implies `dedent` and therefore never combines with
+`"strict"` in the first place.
 [^9]: All forms of normalization: every entry of `normalizations`, plus what
 the `indentation` field implies.
 [^10]: Lines are compared by their raw markdown source, so a student ordering

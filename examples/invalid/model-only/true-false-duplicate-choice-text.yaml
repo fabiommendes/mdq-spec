@@ -1,0 +1,12 @@
+# Two statements whose texts differ only in the amount of whitespace. Texts
+# are compared with whitespace normalized, so this is `duplicate-choice-text`
+# (multiple-choice.md, "Choices"), which JSON Schema cannot express.
+type: true-false
+stem: Julgue as afirmações sobre o Pantanal.
+choices:
+  - text: O Pantanal fica em Mato Grosso.
+    correct: true
+    marker: T
+  - text: "O Pantanal   fica em  Mato Grosso."
+    correct: true
+    marker: T

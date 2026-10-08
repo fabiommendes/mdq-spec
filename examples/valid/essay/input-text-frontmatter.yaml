@@ -1,0 +1,6 @@
+# `input: text`, the default, written in the frontmatter of a Markdown source.
+id: ciclo-agua
+title: Ciclo da água
+type: essay
+stem: Explique o ciclo da água.
+input: text

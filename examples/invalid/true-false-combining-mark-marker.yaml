@@ -1,0 +1,12 @@
+# `E` followed by U+0301 COMBINING ACUTE ACCENT is one grapheme but two code
+# points, so it is not a letter in the sense of true-false.md, "Body". The
+# schema's `maxLength: 1` counts code points and rejects it too.
+type: true-false
+stem: Julgue as afirmações sobre o Pantanal.
+choices:
+  - text: O Pantanal é a maior planície alagável do planeta.
+    correct: true
+    marker: "E\u0301"
+  - text: O Pantanal fica no litoral brasileiro.
+    correct: false
+    marker: F

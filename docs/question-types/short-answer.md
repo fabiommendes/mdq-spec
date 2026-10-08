@@ -10,9 +10,11 @@ What is the capital of Brazil?
 [short-answer]: Brasília
 ```
 
-By default, the matching is **inexact**: it ignores case, strips diacritics,
-and normalizes whitespace by replacing `/\s+/` with a single space and removing
-any whitespace from the start and end.
+By default, the matching is **inexact**: it ignores case, diacritics, invisible
+characters, the difference between typographic and ASCII quotes and dashes, and
+the amount of whitespace. See
+[Inexact literals](../references/patterns.md#inexact-literals) for the exact
+steps.
 
 Stripping diacritics accepts `Brasilia` for `Brasília`. This is deliberate: a
 short answer question asks whether the student knows the answer, not whether
@@ -39,6 +41,10 @@ strings are accepted and which ones are rejected, including using regular
 expressions.
 
 ```md
+---
+incorrectFeedback: Sorry, that is not the correct answer.
+---
+
 What is the capital of Brazil?
 
 [short-answer/accept]:
@@ -55,9 +61,10 @@ What is the capital of Brazil?
   > You forgot the accent on the "i".
   ! If an accept and reject rule match the same string, the accept rule takes precedence.
   ! Hence this item is a no-op.
-* *
-  > Sorry, that is not the correct answer.
 ```
+
+A response that matches no pattern is incorrect, and `incorrectFeedback`
+supplies its feedback. See [Grading](#grading) and [Feedback](#feedback).
 
 
 ## Frontmatter
@@ -73,30 +80,19 @@ frontmatter
 | preAccept  | pattern-list   | Patterns a submission must match [^3]      |
 | preReject  | pattern-list   | Patterns a submission must not match [^4]  |
 | diacritics | string         | Either "fold" (the default) or "keep" [^5] |
+| unmatched  | string         | Either "incorrect" or "manual": what happens to a response that matches no pattern [^13] |
+| incorrectFeedback | string  | Feedback for an incorrect response that no pattern gave feedback to [^14] |
 
 `pattern-list` is an array of patterns. Each entry is either a pattern string
-or an object `{ "pattern": string, "feedback": string }`.
-
-A pattern string is written in the same mini-language used by the body's
-pattern lines. Its delimiters choose how it is matched:
-
-| Pattern       | Matched as                         |
-| ------------- | ---------------------------------- |
-| `/.../`       | a regular expression               |
-| `` `...` ``   | an exact string                    |
-| anything else | a plain string, compared inexactly |
-
-Plain strings use the normalization described at the top of this document. The
-regex syntax and its flags are described in the [Regex](#regex) section; the
-flags are NOT the same as in JavaScript.
+or an object with a `pattern`, a `feedback` and a `comment`. See
+[Patterns](../references/patterns.md) for the pattern strings, the object form
+and the regex dialect. The regex flags are NOT the same as in JavaScript.
 
 `accept` and `reject` are the canonical form of the `[short-answer/accept]`
 and `[short-answer/reject]` blocks -- writing the block and writing the
 frontmatter field are two spellings of the same thing, and a document MUST NOT
-use both spellings for the same list. A document that does anyway is not
-undefined, merely invalid: implementations that choose to accept it MUST follow
-the general rule of [base.md](base.md#frontmatter) and let the
-frontmatter win.
+use both spellings for the same list. A document that does is invalid, and an
+implementation MUST reject it with the `conflicting-accept` error.
 
 [^1]: A response is correct if it matches any `accept` pattern.
 
@@ -120,25 +116,20 @@ used by `accept`/`reject` when grading.
 
 [^5]: See [Diacritics](#diacritics).
 
+[^13]: Frontmatter-only. If absent, it is `"incorrect"` for a question with
+at least one `accept` pattern and `"manual"` for a question with none. See
+[Grading](#grading).
+
+[^14]: Frontmatter-only. Inline markdown, like the feedback of a pattern. See
+[Feedback](#feedback).
+
 
 ## Diacritics
 
 The `diacritics` field selects how plain literals, the ones compared inexactly,
-treat diacritics:
-
-* `"fold"` is the default. It strips diacritics from both the pattern and the
-  response before comparing them, so an inexact `Brasília` accepts `Brasilia`.
-* `"keep"` preserves them, so an inexact `Brasília` no longer accepts
-  `Brasilia`. The pattern and the response are still normalized to a common
-  Unicode form first, so `í` written as one code point and as `i` plus a
-  combining acute still compare equal.
-
-The field applies to the plain literals of every pattern list: `accept`,
-`reject`, `preAccept` and `preReject`, in the body or in the frontmatter. It
-does not apply to other patterns. A backtick-enclosed literal is already
-compared verbatim, a regex uses its own `n` flag instead (see
-[Regex flags](#regex-flags)), and the `*` wildcard matches every response.
-Case folding and whitespace normalization are unaffected either way.
+treat diacritics: `"fold"` (the default) strips them and `"keep"` preserves
+them. It applies to the plain literals of every pattern list, and to no other
+pattern. See [Diacritics](../references/patterns.md#diacritics).
 
 A [fill-in](fill-in.md#short-answer-blanks) question accepts the same field. It
 applies to all of its short answer blanks.
@@ -146,181 +137,109 @@ applies to all of its short answer blanks.
 
 ## Body
 
-Body consists of one or more blocks starting with the `[short-answer]` tag. The
-tag is optionally followed by a `/option` suffix and each suffix declares
-one specific variation.
+The body holds two kinds of block. `[short-answer]` lists the patterns of the
+correct responses, and `[short-answer/reject]` lists the patterns of known
+incorrect responses. A question MUST have a `[short-answer]` block and MAY
+have one `[short-answer/reject]` block, in any order. Each block appears at
+most once. `[short-answer/accept]` is an alias of `[short-answer]`, so a
+document MUST NOT use both spellings.
 
-### `[short-answer]` blocks
-
-It follows the grammar:
+Both blocks follow the same grammar:
 
 ```lark
-short_answer : "[" "short-answer" "]" ws? ":" ws? content?
+accept_block : "[" "short-answer" "/accept"? "]" ws? ":" ws? patterns?
+reject_block : "[" "short-answer" "/reject" "]" ws? ":" ws? patterns
+patterns     : content | nl pattern_list
 content      : exact | inexact
 exact        : "`" EXACT_TEXT "`" ws?
 inexact      : PLAIN_TEXT
+pattern_list : pattern_item+
 
 EXACT_TEXT   : /[^`\n\r]+/
 PLAIN_TEXT   : /[^` \t\r\n][^\r\n]*/
 ```
 
-The rule `ws` is defined in [Common grammar rules](../references/grammar.md).
+The rules `ws` and `nl` are defined in
+[Common grammar rules](../references/grammar.md). `pattern_item` is an item of
+a markdown unordered list, see
+[Pattern items](../references/patterns.md#pattern-items).
 
-The content is interpreted as a plain text string (never markdown). Backticks
-around it choose the comparison:
+A block takes its patterns in one of two forms:
 
-* **Bare content** is matched **inexactly**, with the normalization described
-  at the top of this document.
-* **Backtick-enclosed content** is matched **exactly**. Note that `PLAIN_TEXT`
-  cannot begin with a backtick, so content that opens with one MUST be a
-  complete backtick-enclosed span; there is no way to write an inexact answer
-  starting with a backtick, and no need for one.
+* **Single line**: the `content` after the colon is one pattern, with no
+  feedback and no comment.
+* **List**: a markdown unordered list that starts on the line right after the
+  tag. Each item is one pattern, with optional feedback and comment lines.
 
-For an exact answer, both the declared answer and the response have whitespace
-trimmed from their two ends, and are then compared literally -- code point for
-code point. Case, interior whitespace and punctuation are all significant, so
-`` `math.isnan` `` accepts neither `Math.isnan` nor `math . isnan`.
+Both forms produce the same list: `[short-answer]: Brasília` and a
+`[short-answer]:` followed by the single item `* Brasília` are the same
+document, with `accept: ["Brasília"]`. The pattern keeps its delimiters
+(`` ` `` or `/`).
 
-Trimming the ends is not a weakening of "exact": it is there because leading
-and trailing whitespace cannot be represented reliably in the first place.
-Markdown collapses runs of spaces, editors strip trailing whitespace, and the
-`ws?` before the content already swallows any space after the colon, so a
-document has no way to *state* that it wants a leading space. What cannot be
-written cannot be matched against. Everything a document can actually express
-is compared exactly.
+The list MUST start on the line right after the tag, with no blank line in
+between. A list after a blank line is not part of the block: it is an
+epilogue element. Implementations SHOULD warn about it, since it is a likely
+mistake (`detached-answer-list`). A tag with content on its line MUST NOT be
+followed by a list without a blank line.
 
-For the same reason, implementations MAY normalize both strings to a common
-Unicode representation before comparing them, even in exact mode. A document
-saved in NFD and the same document saved in NFC are indistinguishable to a
-reader, and which one an editor or input method produces is not something an
-author controls. Implementations that do normalize SHOULD use NFC. 
-
-If no PLAIN_TEXT is given, the question is considered to be open-ended, and the
-instructor is expected to grade it manually.
-
-A question cannot define the same block twice.
-
-
-### `[short-answer/accept]` and `[short-answer/reject]` blocks
-
-The syntax of both kinds of blocks is identical:
-
-```lark
-accept_reject : "[" "short-answer" "/" ("accept" | "reject") "]" ws? ":" ws? nl? block
+```md
+[short-answer]:
+* Brasília
+* /Bras[íi]lia DF/i
 ```
 
-The suffix is REQUIRED here: without it the tag is the `short_answer` rule
-above, which takes a single line of content rather than a list.
+```md
+[short-answer]:
 
-The block is a markdown unordered list. In each item, the first line represents a
-pattern, and any subsequent lines are interpreted as either feedback (when
-prefixed with `>`) or comments (when prefixed with `!`). Feedback and comment
-lines are optional, and if present cannot be interleaved. 
+* Brasília
+```
 
-A question MUST define at most one `[short-answer/accept]` and one
-`[short-answer/reject]` block. They can be defined in any order and combined
-with a `[short-answer]` block.
+The first block accepts two patterns. The second declares a question with no
+`accept` pattern and a list in the epilogue, and gets the warning.
 
-A simple `[short-answer]` block is interpreted as if its content were the only
-pattern of the `[short-answer/accept]` block, with no feedback or comments --
-keeping its backticks, and so its exactness, if it had any.
+A `[short-answer/reject]` block MUST declare at least one pattern: an empty
+tag line, with or without a detached list after it, is an error. Only the
+accept block may be empty, see [Block with no pattern](#block-with-no-pattern).
+
+A `[short-answer]` block with content and an `accept` field in the
+frontmatter are two spellings of the same list, and a document MUST NOT use
+both. The same holds for `[short-answer/reject]` and `reject`.
+
+### Content
+
+The content is one pattern string, interpreted as plain text (never
+markdown). Bare content is matched inexactly, backtick-enclosed content
+exactly and content delimited by `/` is a regex. See
+[Pattern string](../references/patterns.md#pattern-string).
+
+Note that `PLAIN_TEXT` cannot begin with a backtick, so content that opens
+with one MUST be a complete backtick-enclosed span; there is no way to write
+an inexact answer starting with a backtick, and no need for one.
+
+### Block with no pattern
+
+A `[short-answer]` block MAY have no pattern. The question then has no
+`accept` list. If it has no `reject` list either, the instructor grades every
+response, see [Grading](#grading).
 
 
 ### Pattern lines
 
-The pattern line of `accept/reject` items is interpreted as a regex string if it
-starts with a `/` after stripping spaces and tabs. A regex line must be closed
-by a `/` as well, and may include optional flags after the closing `/`. 
-
-The details of the regex syntax are described in the [Regex](#regex) section.
-
-A pattern line enclosed in backticks is an exact string, with the same meaning
-the backticks carry in a `[short-answer]` block.
-
-Any other pattern line is a plain string, matched inexactly, with the same
-rules as a bare `[short-answer]` block.
-
-Either block may have a single item with a pattern line of `*`, which acts as
-a wildcard matching any response. It belongs as the LAST item of a
-`[short-answer/reject]` block, where it supplies the default feedback for a
-response that matched nothing else. A wildcard in an accept block is legal but
-makes every response correct, which is rarely intended; implementations SHOULD
-warn about it. Omitting the reject block entirely is
-equivalent to ending it with a wildcard item carrying no feedback: every
-response that does not match an accept pattern is incorrect either way. 
-
-If users want to reject an answer with a single `*`, use a regex pattern 
-instead, e.g., `/\*/`.
-
-The pattern line cannot be empty.
+Each item of a list holds one pattern on its first line, the pattern line,
+followed by optional `>` feedback and `!` comment lines. A pattern line is a
+pattern string, with the same meaning as the content of a single-line block.
+The pattern, the feedback and the comment can continue on the next lines, and
+so can the content of a single-line block, see
+[Continuation lines](../references/patterns.md#continuation-lines).
+See [Pattern items](../references/patterns.md#pattern-items).
 
 
 ## Regex
 
-Regex patterns follow a subset of the JavaScript syntax, followed by optional
-flags (which might differ from JavaScript). The `/` delimiters are REQUIRED:
-they are what marks a pattern as a regex rather than a literal string, in a
-pattern line and in a frontmatter `pattern-list` alike. This section describes
-the supported regex syntax and semantics, and the differences from the
-JavaScript syntax.
-
-The restrictions below are intended to make the regex more portable across
-different programming languages and select a good subset of the JavaScript regex
-syntax that is widely supported.
-
-* anchor delimiters (`^`/`$`): Are supported and optional. All regular
-  expressions are implicitly anchored at both ends, so `^` and `$` are not
-  required. For example, the regex `/abc/` in MDQ is equivalent to `/^abc$/` in
-  JavaScript and would not match `xabc` or `abcx`. The `f` and `b` flags remove
-  implicit anchors -- see [Regex flags](#regex-flags) -- but an anchor the
-  author wrote is always honoured, so `/^abc/f` still matches only at the
-  start. 
-* Character class intersections: are NOT supported. Example:
-  `/[a-z&&[^aeiou]]/`. This is an invalid MDQ regex. Other character classes are
-  supported, including negated classes, e.g., `/[^aeiou]/`.
-* Special characters: are supported, including `\d`, `\D`, `\s`, `\S`, `\w`, and
-  `\W` and have the same semantics as in JavaScript.
-* Non-capturing groups: are supported, e.g., `/(?:abc)/`, but python-style 
-  named groups are NOT supported, e.g., `/(?P<name>abc)/`.
-* Unicode: Unicode characters are allowed in the regex. Unicode escape sequences 
-  are also supported, e.g., `\u1234`, but users SHOULD NOT assume UTF-16 encoding
-  and surrogate pairs should not be relied upon. Write the unicode character 
-  directly in the regex, when possible.
-* Standard hex escaping is supported, e.g., `\x12`, but other more obscure
-  escape sequences MAY NOT be supported, e.g., `\cA`, `\123`, `\p{...}`,
-  `\P{...}`, `\k<name>`.
-* Positive and negative lookahead assertions are supported, e.g., `/(?=abc)/` and
-  `/(?!abc)/`, but positive and negative lookbehind assertions are NOT supported,
-  e.g., `/(?<=abc)/` and `/(?<!abc)/`.
-
-
-### Regex flags
-
-Matching is **case-sensitive by default**; `i` turns that off. This is the one
-place where the default differs from a bare `[short-answer]` answer, which is
-compared inexactly and therefore ignores case. A regex says exactly what it
-matches, so it gets no implicit leniency.
-
-The following regex flags are supported:
-
-* `i`: Case-insensitive matching.
-* `n`: Strip diacritics from both the pattern and the response before
-  matching, the way an inexact literal does. Independent of the question's
-  `diacritics` field, which never reaches a regex.
-* `f`: Substring (find) matching. Removes both implicit anchors, so the pattern
-  matches anywhere in the response.
-* `b`: Beginning matching. Removes the implicit trailing anchor, so the pattern
-  matches any prefix of the response.
-
-`f` and `b` differ only in the leading anchor, and combining them is the same
-as `f` alone. Neither removes an anchor written by the author: under `f`,
-`/^abc/` still matches only at the start and `/abc$/` only at the end.
-
-The following flags are accepted, but ignored: `m`, `g`, `s`, `u`, `v`, `y`,
-`d`. Implementations MAY warn about those stale flags, but SHOULD accept the
-input. Note that `s` (dotAll) is ignored rather than honoured, so `.` never
-matches a newline; a response spanning lines should be matched with an explicit
-class such as `[\s\S]`.
+A pattern delimited by `/` is a regular expression, written in a subset of the
+JavaScript syntax with its own flags. See
+[Regex](../references/patterns.md#regex) and
+[Regex flags](../references/patterns.md#regex-flags).
 
 
 ## Grading
@@ -334,35 +253,140 @@ score.
 worth 1 or 0, and nothing in between. An instructor who wants to award partial
 credit has to grade manually.
 
-What varies is not the score but how much of the grading is **automated**. A
-response is settled automatically when it matches an accept pattern, making it
-correct, or a reject pattern, making it incorrect. A response that matches
-neither is settled only if the question has no `[short-answer/reject]` block at
-all, since an absent reject block carries an implicit trailing wildcard (see
-[Pattern lines](#pattern-lines)). Writing the block out replaces that implicit
-wildcard with whatever the block actually lists.
+A response is **settled** when the question decides if it is correct. An
+implementation MUST apply the rules below in order, and stop at the first one
+that applies:
 
-This gives three cases:
+1. The response matches a pattern of `accept`: it is correct.
+2. The response matches a pattern of `reject`: it is incorrect.
+3. The response matches no pattern. The `unmatched` field decides: with
+   `"incorrect"` the response is incorrect, and with `"manual"` it is not
+   settled and the instructor grades it.
 
-* **Fully automated**: no reject block, or a reject block whose last item is
-  the `*` wildcard. Either way nothing falls through, and the instructor is
-  never consulted.
-* **Partially automated**: a reject block that does not end in a wildcard.
-  Responses matching an accept or reject pattern are settled; anything matching
-  neither goes to the instructor. Adding the wildcard back is how an instructor
-  closes the question off.
-* **Fully manual**: no patterns at all, that is, a single `[short-answer]`
-  block with no content. Every response goes to the
-  instructor.
+If a question does not declare `unmatched`, its value is `"incorrect"` when the
+question has at least one `accept` pattern, and `"manual"` when it has none. A
+question with no correct answer to compare with cannot mark a response as
+correct, so it leaves the responses to the instructor.
 
-The automated portion never awards a fraction of a point -- it simply settles
-fewer responses, leaving the rest to be graded by hand.
+The `reject` list only says which responses are known to be incorrect, usually
+to give them a feedback. It does not change what happens to the other
+responses.
+
+### Automation
+
+The **automation** of a question tells how many responses it settles:
+
+| Automation       | The question settles                  | Condition                                                                            |
+| ---------------- | ------------------------------------- | ------------------------------------------------------------------------------------ |
+| `automatic`      | every response                        | `unmatched` is `"incorrect"`                                                         |
+| `semi-automatic` | the responses that match a pattern    | `unmatched` is `"manual"` and the question has at least one `accept` or `reject` pattern |
+| `manual`         | no response                           | `unmatched` is `"manual"` and the question has no pattern                            |
+
+`automation` is not a field of the document. It MUST NOT appear in the
+frontmatter of a question, or in its YAML or JSON form, and a document that
+declares it has an unknown key. An implementation computes it from `accept`,
+`reject` and `unmatched`, and SHOULD offer it as a read-only property of the
+question. `preAccept` and `preReject` validate a submission and play no part
+in it. Every question type has an automation, see
+[Automation](base.md#automation).
+
+An implementation that scores responses MUST NOT give a score to a response
+that is not settled. It reports the response as pending, in the same way as a
+response to an essay question, see [responses.md](../responses.md#pending).
+
+### Examples
+
+Automatic. The instructor knows the correct answers:
+
+```md
+[short-answer]: Brasília
+```
+
+`Salvador` matches no pattern. The question has an `accept` pattern, so
+`unmatched` is `"incorrect"`.
+
+Automatic, with feedback for known incorrect answers:
+
+```md
+---
+incorrectFeedback: This city was never the capital.
+---
+
+What is the capital of Brazil?
+
+[short-answer]: Brasília
+
+[short-answer/reject]:
+* Rio de Janeiro
+  > It was the capital until 1960.
+```
+
+`Rio de Janeiro` is incorrect and gets its own feedback. `Salvador` is
+incorrect and gets `incorrectFeedback`.
+
+Semi-automatic. The instructor knows some correct and some incorrect answers:
+
+```md
+---
+unmatched: manual
+---
+
+Name a biome of central Brazil.
+
+[short-answer]:
+* Cerrado
+* Pantanal
+
+[short-answer/reject]:
+* Savana
+  > Savanna is the general term. Name the Brazilian biome.
+```
+
+`Cerrado` is correct and `Savana` is incorrect. `Mata Atlântica` matches no
+pattern and goes to the instructor.
+
+Semi-automatic. The instructor knows only some correct answers:
+
+```md
+---
+unmatched: manual
+---
+
+Name a biome of central Brazil.
+
+[short-answer]:
+* Cerrado
+* Pantanal
+```
+
+Semi-automatic. The instructor knows only some incorrect answers:
+
+```md
+Name a biome of central Brazil.
+
+[short-answer]:
+
+[short-answer/reject]:
+* Savana
+  > Savanna is the general term. Name the Brazilian biome.
+```
+
+There is no `accept` pattern, so `unmatched` is `"manual"`. `Savana` is
+incorrect, and the instructor grades every other response.
+
+Manual:
+
+```md
+[short-answer]:
+```
+
+No response is settled. The question works like a one-line essay.
 
 
 ## Feedback
 
 Feedback is shown to students whose response matches a pattern that defines a
-feedback message, in either the `[short-answer/accept]` or the
+feedback message, in either the `[short-answer]` or the
 `[short-answer/reject]` block. The order in which the patterns are defined is
 important: the student must receive the feedback of the FIRST pattern that
 matches their response AND defines a feedback message.
@@ -372,29 +396,44 @@ draws its feedback from `accept`, and an incorrect one from `reject`. A
 response that matches an accept rule is correct even when it also matches a
 reject rule, and so takes the accept rule's feedback.
 
+An incorrect response that no pattern gave a feedback to shows the
+`incorrectFeedback` of the question, if the question declares one. This covers
+a response that matches no pattern, under `unmatched: incorrect`, and a
+response that matches a `reject` pattern with no feedback. A response that is
+not settled shows no feedback, because nothing has decided it yet.
+
 ## Additional Rules
 
-| Field                              | Level    | Rule                                                             |
-| ---------------------------------- | -------- | ---------------------------------------------------------------- |
-| regex                              | critical | must be a valid MDQ regex[^6]                                    |
-| accept, reject, preAccept, preReject | critical | every `/`-delimited pattern must be a valid MDQ regex[^6]      |
-| accept, reject                     | critical | must not be written as a body block and a frontmatter field[^7]  |
-| accept, reject, oneOf              | critical | each body block may be defined at most once                      |
-| openEnded                          | warning  | must be set when no `accept`, `oneOf` or `regex` is given[^8]    |
-| oneOf                              | warning  | is never consulted when `regex` is given                         |
-| accept                             | warning  | should not hold a `*` wildcard, which accepts every response     |
-| regex, accept, reject              | info     | an anchor that is already implicit is redundant[^9]              |
-| regex                              | info     | should not carry a flag that is accepted but ignored[^10]        |
-| reject                             | info     | a `*` wildcard should be the last item of the list               |
+| Field                                | Level    | Rule                                                            |
+| ------------------------------------ | -------- | --------------------------------------------------------------- |
+| accept, reject, preAccept, preReject | critical | a pattern list, when present, has at least one pattern (schema) |
+| accept, reject, preAccept, preReject | critical | every `/`-delimited pattern must be a valid MDQ regex[^6]       |
+| accept, reject, preAccept, preReject | critical | a regex flag must be a supported or an ignored flag, and must not repeat[^12] |
+| accept, reject                       | critical | must not be written as a body block and a frontmatter field[^7] |
+| accept, reject                       | critical | each body block may be defined at most once[^11]                |
+| accept, reject                       | critical | a tag with content must not be followed by a list without a blank line |
+| reject                               | critical | must declare at least one pattern; a list after a blank line is an epilogue element |
+| accept, reject                       | critical | feedback and comment lines of an item must not interleave           |
+| accept                               | warning  | a list after a blank line is an epilogue element, not the pattern list |
+| unmatched                            | critical | must be "incorrect" or "manual"                                 |
+| unmatched                            | warning  | must not be "incorrect" when the question has no `accept` pattern[^8] |
+| incorrectFeedback                    | warning  | if defined, must have at least one visible character            |
+| accept, reject, preAccept, preReject | info     | an anchor that is already implicit is redundant[^9]             |
+| accept, reject, preAccept, preReject | info     | should not carry a flag that is accepted but ignored[^10]       |
 
-[^6]: The supported syntax is the subset described in [regex](#regex): the
-pattern must compile and must stay inside that subset.
+[^6]: The supported syntax is the subset described in
+[Regex](../references/patterns.md#regex): the pattern must compile and must
+stay inside that subset.
 [^7]: Writing the block and writing the field are two spellings of the same
-list. A document that uses both is invalid; an implementation that accepts it
-anyway MUST let the frontmatter win.
-[^8]: Nothing can grade such a question, and it is not marked for manual
-grading either.
+list. A document that uses both is invalid (`conflicting-accept`).
+[^8]: No response can be correct: every response is incorrect, by a `reject`
+pattern or by `unmatched`. The lint code is `no-correct-answer`.
 [^9]: Without the `f` flag, a leading `^` is implicit. Without the `f` or `b`
-flag, a trailing `$` is implicit. See [regex flags](#regex-flags).
+flag, a trailing `$` is implicit. See
+[Regex flags](../references/patterns.md#regex-flags).
 [^10]: `m`, `g`, `s`, `u`, `v`, `y` and `d` are accepted for compatibility and
-have no effect, see [regex flags](#regex-flags).
+have no effect, see [Regex flags](../references/patterns.md#regex-flags).
+[^11]: `[short-answer/accept]` is an alias of `[short-answer]`, so a document
+with both has the block twice.
+[^12]: For example, `/brasil/x` and `/brasil/ii` are invalid. See
+[Regex flags](../references/patterns.md#regex-flags).

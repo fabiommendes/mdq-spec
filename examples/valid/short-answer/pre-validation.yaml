@@ -11,5 +11,5 @@ preAccept:
 preReject:
   - pattern: /\d{4}\s*(?:AD|CE)/i
     feedback: Write the year on its own, without an era suffix.
-oneOf:
+accept:
   - "1822"

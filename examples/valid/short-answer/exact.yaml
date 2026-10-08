@@ -6,5 +6,5 @@ type: short-answer
 stem: >-
   Write the Python literal for boolean truth, exactly as the interpreter
   spells it.
-oneOf:
+accept:
   - "`True`"

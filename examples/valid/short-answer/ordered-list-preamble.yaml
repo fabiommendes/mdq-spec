@@ -9,5 +9,5 @@ preamble: |-
 stem: >-
   What is the name for the wide, low-gradient landform where a river like
   the Amazon splits into multiple channels near its mouth?
-oneOf:
+accept:
   - delta

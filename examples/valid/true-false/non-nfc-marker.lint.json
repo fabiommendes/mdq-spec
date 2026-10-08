@@ -1,6 +1,6 @@
 [
   {
-    "code": "provisional-true-false-marker",
+    "code": "unlisted-true-false-marker",
     "severity": "warning",
     "path": [
       "choices",

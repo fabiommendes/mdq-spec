@@ -1,0 +1,14 @@
+# `penalty: none` written explicitly: the default.
+id: biomas
+title: Biomas
+type: exam
+penalty: none
+questions:
+- stem: Qual é o maior bioma do Brasil?
+  choices:
+  - text: Amazônia
+    score: 1
+  - text: Cerrado
+    score: -0.5
+  - text: Pantanal
+  type: multiple-choice

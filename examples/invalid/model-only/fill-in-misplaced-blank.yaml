@@ -5,5 +5,5 @@ stem: A capital do Brasil é **[^capital]**.
 blanks:
   - id: capital
     type: short-answer
-    oneOf:
+    accept:
       - Brasília

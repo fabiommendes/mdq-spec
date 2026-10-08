@@ -1,0 +1,4 @@
+# `tags` is a set: the schema's `uniqueItems` rejects a repeated entry.
+type: essay
+tags: [agua, clima, agua]
+stem: Explique o ciclo da água.

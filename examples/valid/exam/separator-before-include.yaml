@@ -1,0 +1,12 @@
+# An include block preceded by `===` gets `separator-before-include`: its
+# `---` lines already mark where it starts. The warning comes from the
+# Markdown parser only; the YAML form has no separator.
+id: biomas
+title: Biomas
+type: exam
+questions:
+- include: cerrado-01
+- stem: Qual é o maior bioma do Brasil?
+  accept:
+  - Amazônia
+  type: short-answer

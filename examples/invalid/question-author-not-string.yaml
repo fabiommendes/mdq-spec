@@ -1,0 +1,4 @@
+# `author` is a string; `42` is a number.
+type: essay
+author: 42
+stem: Explique o ciclo da água.

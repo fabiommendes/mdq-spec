@@ -1,0 +1,8 @@
+# Domain inference: a fraction value with an integer absolute tolerance
+# stays a `fraction` question.
+type: numeric
+stem: Quantos terços há em 10/3?
+answer: 10/3
+domain: fraction
+tolerance:
+  absolute: 1.0

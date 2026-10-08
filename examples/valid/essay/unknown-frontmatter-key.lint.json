@@ -1,0 +1,16 @@
+[
+  {
+    "code": "unknown-frontmatter-key",
+    "severity": "warning",
+    "path": [
+      "difficulty"
+    ]
+  },
+  {
+    "code": "missing-answer-key",
+    "severity": "info",
+    "path": [
+      "answerKey"
+    ]
+  }
+]

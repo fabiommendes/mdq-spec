@@ -1,0 +1,16 @@
+# A pattern, a feedback and a comment can each continue on the next
+# lines. A line that starts with neither `>` nor `!` continues the part
+# of the line before it, and each line ending becomes one space. The
+# content of a single-line block continues in the same way.
+id: sa-continuation-lines
+title: Longest river in Brazil
+type: short-answer
+stem: Which river is the longest one that runs only inside Brazil?
+accept:
+  - pattern: Rio São Francisco
+    feedback: "Right: about 2,800 km, from Minas Gerais to the Atlantic."
+  - pattern: São Francisco
+    feedback: Right. The full name is Rio São Francisco.
+    comment: The short name is the usual one.
+reject:
+  - Rio Amazonas

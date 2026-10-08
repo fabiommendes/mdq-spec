@@ -1,0 +1,11 @@
+[
+  {
+    "code": "missing-choice-id",
+    "severity": "info",
+    "path": [
+      "choices",
+      3,
+      "id"
+    ]
+  }
+]

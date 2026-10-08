@@ -1,0 +1,21 @@
+# The CJK markers of true-false.md, "Body": 对 and 真 are TRUE, 错 and 偽
+# are FALSE. `locale: zh-Hans-CN` has no marker expectation, so no warning.
+id: tf-cjk-markers
+title: 关于巴西的陈述
+type: true-false
+locale: zh-Hans-CN
+stem: 判断下列关于巴西的陈述。
+choices:
+- text: 巴西是南美洲面积最大的国家。
+  correct: true
+  marker: 对
+- text: 巴西的首都是里约热内卢。
+  correct: false
+  marker: 错
+  feedback: 巴西的首都是巴西利亚。
+- text: 亚马逊河流经巴西。
+  correct: true
+  marker: 真
+- text: 巴西的官方语言是西班牙语。
+  correct: false
+  marker: 偽

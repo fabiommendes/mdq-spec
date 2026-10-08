@@ -1,0 +1,18 @@
+# `locale: es` expects `V`/`F`, so `T` gets
+# `locale-mismatched-true-false-marker`; `V` and `F` do not.
+id: tf-locale-es
+title: Hechos sobre el río Amazonas
+type: true-false
+locale: es
+stem: Juzgue las afirmaciones sobre el río Amazonas.
+choices:
+- text: El Amazonas es el río más caudaloso del mundo.
+  correct: true
+  marker: T
+- text: El Amazonas nace en Brasil.
+  correct: false
+  marker: F
+  feedback: Nace en los Andes peruanos.
+- text: El Amazonas desemboca en el océano Atlántico.
+  correct: true
+  marker: V

@@ -1,0 +1,16 @@
+[
+  {
+    "code": "exam-without-questions",
+    "severity": "warning",
+    "path": [
+      "questions"
+    ]
+  },
+  {
+    "code": "blank-text-field",
+    "severity": "warning",
+    "path": [
+      "title"
+    ]
+  }
+]

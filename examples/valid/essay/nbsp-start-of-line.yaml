@@ -1,0 +1,4 @@
+# A U+00A0 at the start of a line is in a syntax position: `warning`. It is
+# text, so the stem keeps it.
+type: essay
+stem:  Explique o ciclo da água.

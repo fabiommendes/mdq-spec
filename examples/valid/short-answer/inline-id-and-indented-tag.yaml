@@ -1,0 +1,8 @@
+# The frontmatter `id` wins over the inline `[Q2]` slug (base.md, "Slug").
+# The tag line may be indented, have spaces around the colon and trailing
+# whitespace (base.md, "Bracketed tags").
+id: sa-frontmatter-id
+type: short-answer
+stem: Qual é a capital do Brasil?
+accept:
+- Brasília

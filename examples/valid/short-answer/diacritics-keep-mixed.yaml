@@ -1,0 +1,17 @@
+# `diacritics: keep` affects the inexact literal only. The exact literal is
+# compared verbatim and the regex strips diacritics with its own `n` flag;
+# `preAccept` patterns follow the same rules as `accept`.
+id: sa-diacritics-keep-mixed
+title: Grafia de Maceió
+type: short-answer
+stem: Escreva o nome da capital de Alagoas, com a acentuação correta.
+diacritics: keep
+accept:
+- pattern: Maceió
+  feedback: 'The inexact literal keeps its diacritics: `Maceio` does not match.'
+- pattern: '`MACEIÓ`'
+  feedback: An exact literal is compared verbatim regardless of `diacritics`.
+- pattern: /maceio/in
+  feedback: A regex strips diacritics with its own `n` flag regardless of `diacritics`.
+preAccept:
+- /[^\d]+/

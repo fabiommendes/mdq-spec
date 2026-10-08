@@ -1,0 +1,5 @@
+# A negative fraction, the spec's own example. A fraction is always a string.
+type: numeric
+stem: Qual é o valor de -1/3?
+answer: -1/3
+domain: fraction

@@ -26,14 +26,54 @@ frontmatter
 | Field      | Type      | Description                                       |
 | ---------- | --------- | ------------------------------------------------- |
 | type       | "fill-in" | The type discriminator                            |
-| shuffle    | boolean   | True if the inner choices can be shuffled         |
+| shuffle    | boolean   | True if the inner choices can be shuffled[^1]     |
 | grading    | grading   | The grading strategy to use.[^1]                  |
 | diacritics | string    | Either "fold" (the default) or "keep"[^2]         |
+| unmatched  | string    | Either "incorrect" or "manual"[^6]                |
+| preAccept  | map       | Blank id to the patterns a response must match[^7] |
+| preReject  | map       | Blank id to the patterns a response must not match[^7] |
 
-[^1]: Grading is `"partial" | "all-or-nothing" | "symmetric"`. Default is `"symmetric"`.
+[^1]: Grading is `"partial" | "all-or-nothing" | "symmetric" | "inherit"`.
+Default is `"inherit"`, which takes the strategy from the exam, and is
+`"symmetric"` outside an exam. `shuffle` is `boolean | "inherit"` with the
+same rule: `"inherit"` is the default and resolves to `false` outside an
+exam. See [exam inheritance](../exam.md#inheritance).
 [^2]: Applies to every [short answer blank](#short-answer-blanks) of
 the question, with the same meaning as in a standalone short answer question.
 See [short answer diacritics](short-answer.md#diacritics).
+[^6]: Applies to every [short answer blank](#short-answer-blanks) of the
+question, with the same meaning as in a standalone short answer question. If
+absent, each blank takes its own default: `"incorrect"` if the blank has an
+`accept` pattern, `"manual"` if it has none. See [Automation](#automation).
+[^7]: Frontmatter-only, like the `preAccept` and `preReject` fields of a
+[short answer](short-answer.md#frontmatter) question. Each key is the id of a
+[short answer blank](#short-answer-blanks) and its value a pattern list, with
+the same entries and the same meaning as in a standalone short answer
+question: the lists validate a response before submission and play no part in
+grading. In JSON they are fields of the blank, not of the question:
+
+```yaml
+preAccept:
+  state: ["/^[A-Za-z ]+$/"]
+preReject:
+  season:
+    - pattern: "/\\d+/"
+      feedback: Write the season, not a month number.
+```
+
+maps to
+
+```yaml
+blanks:
+  - id: state
+    type: short-answer
+    preAccept: ["/^[A-Za-z ]+$/"]
+  - id: season
+    type: short-answer
+    preReject:
+      - pattern: "/\\d+/"
+        feedback: Write the season, not a month number.
+```
 
 
 ## Stem
@@ -79,6 +119,10 @@ The same reasoning rules out link text, image alt text, emphasis and inline
 code: a blank must be a direct child of the paragraph, with only plain text
 around it.
 
+Only the stem holds blanks. A `[^slug]` in the preamble or in the epilogue is
+literal text, even in an ordinary paragraph: implementations MUST leave it as
+written, and it neither declares a blank nor has to match one.
+
 
 ## Blank definitions
 
@@ -89,12 +133,12 @@ names the blank and, optionally, its kind:
 ```lark
 blank_def   : choice_def | numeric_def | short_answer_def
 
-choice_def       : "[^" SLUG "]:" ws? nl choice_list
-numeric_def      : "[^" SLUG "/numeric" unit? "]:" ws? numeric_body
-short_answer_def : "[^" SLUG "/short-answer" "]:" ws? answer
-                 | "[^" SLUG "/short-answer/" list_kind "]:" ws? nl pattern_list
-
-list_kind        : "accept" | "reject"
+choice_def       : "[^" SLUG "]" ws? ":" ws? nl choice_list
+numeric_def      : "[^" SLUG "/numeric" unit? "]" ws? ":" ws? numeric_body
+short_answer_def : accept_def | reject_def
+accept_def       : "[^" SLUG "/short-answer" "/accept"? "]" ws? ":" ws? patterns?
+reject_def       : "[^" SLUG "/short-answer/reject" "]" ws? ":" ws? patterns
+patterns         : answer | nl pattern_list
 ```
 
 The rules `ws` and `nl` and the terminal `SLUG` are defined in
@@ -132,7 +176,7 @@ Numeric blanks are represented by a reference definition followed by a numeric
 value. It follows the grammar:
 
 ```lark
-numeric_def : "[^" SLUG "/" "numeric" unit? "]:" ws? numeric_body
+numeric_def : "[^" SLUG "/" "numeric" unit? "]" ws? ":" ws? numeric_body
 ```
 
 The `numeric_body` and `unit` non-terminals represent, respectively, a numeric
@@ -159,51 +203,46 @@ A short answer blank takes the same answer machinery as a standalone
 sharing the blank's slug:
 
 ```lark
-short_answer_def : "[^" SLUG "/short-answer" "]:" ws? answer
-                 | "[^" SLUG "/short-answer/" list_kind "]:" ws? nl pattern_list
+short_answer_def : accept_def | reject_def
+accept_def       : "[^" SLUG "/short-answer" "/accept"? "]" ws? ":" ws? patterns?
+reject_def       : "[^" SLUG "/short-answer/reject" "]" ws? ":" ws? patterns
+patterns         : answer | nl pattern_list
 
 answer           : PATTERN
-list_kind        : "accept" | "reject"
 pattern_list     : pattern_item+
 ```
 
 The `pattern_item` rule, including its `>` feedback and `!` comment lines, is
-the one defined in the [short answer](short-answer.md#pattern-lines) section,
+the one defined in [Pattern items](../references/patterns.md#pattern-items),
 and `pattern_list` is the unordered list those items form. The `blank` slug
 MUST be present in the stem.
 
-The suffix is REQUIRED on all three forms. Without it the definition is a
+The suffix `/short-answer` is REQUIRED. Without it the definition is a
 [multiple choice blank](#multiple-choice-blanks), which is what a bare
 `[^slug]:` introduces.
 
-A single `PATTERN` -- whether written after `[^slug/short-answer]:` or as an
-item of an accept or reject list -- carries its meaning in exactly the way
-[short answer](short-answer.md#pattern-lines) defines it:
+A short answer blank has the two blocks of a short answer question:
+`[^slug/short-answer]` (alias `[^slug/short-answer/accept]`) lists the
+accepted patterns and `[^slug/short-answer/reject]` the rejected ones. Each
+takes either a single pattern on the tag line or a list on the following
+lines, with the same rules as in a [short answer](short-answer.md#body)
+question, including the rule that a list after a blank line is not part of
+the block, and that a reject block MUST declare at least one pattern. A blank
+MUST define each block at most once, in any order. A blank whose
+`[^slug/short-answer]` block has no pattern has no `accept` list, and the
+instructor grades its responses, see [Automation](#automation).
 
-* Enclosed in **backticks**, it is an exact literal. Case, interior whitespace
-  and punctuation are all significant.
-* Delimited by **`/`**, it is a regular expression, implicitly anchored at both
-  ends, with optional trailing flags.
-* A lone **`*`** is a wildcard matching every response, and belongs as the last
-  item of a reject list.
-* Anything else is a plain literal, matched inexactly with the normalization
-  described at the top of the short answer document. The question's
-  `diacritics` field selects whether that normalization strips diacritics, see
-  [short answer diacritics](short-answer.md#diacritics).
+A single `PATTERN` -- on the tag line or as an item of a list -- is a pattern
+string, with the meaning defined in
+[Pattern string](../references/patterns.md#pattern-string). The question's
+`diacritics` field applies to its plain literals.
 
-A blank MUST define at most one of each form: one bare `[^slug/short-answer]`,
-one `accept` list and one `reject` list. They may be written in any order, and
-a bare definition is interpreted as if its pattern were the only item of the
-accept list. A blank that defines no pattern at all is open-ended, and is left
-for the instructor to grade -- which makes the whole fill-in question only
-partially automated.
-
-An example using all three forms:
+An example using both blocks:
 
 ```md
 The largest planet in the Solar System is [^planet].
 
-[^planet/short-answer/accept]:
+[^planet/short-answer]:
 * Jupiter
 * `Jove`
   > Archaic, but accepted.
@@ -211,18 +250,39 @@ The largest planet in the Solar System is [^planet].
 [^planet/short-answer/reject]:
 * Saturn
   > Second largest, but not the largest.
-* *
-  > Not a planet of the Solar System.
 ```
+
+A short answer blank also takes the `preAccept` and `preReject` lists of a
+short answer question. They have no block of their own: they are written in
+the question's [frontmatter](#frontmatter), in a map from the blank id to the
+list.
+
+
+## Automation
+
+A short answer blank has an [automation](short-answer.md#automation), by the
+rules of a short answer question, with the `unmatched` of the question or its
+own default. Choice blanks and numeric blanks are always `automatic`.
+
+A fill-in question is `automatic` if every blank is automatic, `manual` if
+every blank is manual, and `semi-automatic` in every other case. A response to
+the question is settled only when the response to every blank is settled; if
+a blank leaves its response to the instructor, the whole question is pending.
+Like every automation, this is a derived property and never a field of the
+document, see [Automation](base.md#automation).
 
 
 ## Feedback
 
-Feedback comes from the blanks, and only choice blanks can carry it: a choice
-of a choice blank takes `feedback` and `comment` exactly as it would in a
+Feedback comes from the blanks. A choice of a choice blank takes `feedback`
+and `comment` exactly as it would in a
 [multiple choice](multiple-choice.md#feedback) question, and shows it under the
 same rule -- the choice the student picked shows its feedback, whatever that
-choice scored. Numeric and short answer blanks have no feedback syntax.
+choice scored. A pattern of a short answer blank takes `feedback` and `comment`
+exactly as it would in a [short answer](short-answer.md#feedback) question, and
+shows it under the same rule -- the first pattern that matches the response
+and defines a feedback message, with `accept` taking precedence over `reject`.
+Numeric blanks have no feedback syntax.
 
 A question collects the feedback of every blank into one flat list, in the
 order the blank definitions appear in the document, not the order the stem
@@ -247,10 +307,10 @@ What each kind of blank can score:
 * A **numeric blank** is graded like a [numeric](numeric.md#grading) question:
   1 inside the tolerance, 0 outside it.
 * A **short answer blank** is graded like a
-  [short answer](short-answer.md#grading) question: 1 or 0. A response its 
-  patterns do not settle goes to the instructor, exactly as it would in a 
-  standalone question, which leaves the whole fill-in question only partially 
-  automated, depending on how the question was authored.
+  [short answer](short-answer.md#grading) question: 1 or 0. A response its
+  patterns do not settle, under `unmatched: manual`, goes to the instructor,
+  exactly as it would in a standalone question. The question is then not
+  settled either, see [Automation](#automation).
 
 The strategies combine those blank scores as follows:
 
@@ -300,14 +360,20 @@ of [numeric](numeric.md#additional-rules), and a short answer blank those of
 
 | Field           | Level    | Rule                                                          |
 | --------------- | -------- | ------------------------------------------------------------- |
+| blanks          | critical | must have at least one blank (schema)                         |
+| blanks[].choices | critical | a choice blank must have at least two choices (schema)       |
 | blanks[].id     | critical | must be unique within the question[^3]                        |
 | stem            | critical | every `[^id]` marker must name a declared blank               |
 | blanks[].id     | critical | must be referenced by an `[^id]` marker in the stem           |
 | stem            | critical | blanks may only appear in a plain text run of a paragraph[^4] |
-| blanks[]        | critical | a short answer blank defines at most one of each form[^5]     |
+| blanks[]        | critical | a short answer blank defines each block at most once[^5]      |
+| preAccept, preReject | critical | every key must be the id of a declared short answer blank[^8] |
 
 [^3]: Otherwise the stem's `[^id]` marker is ambiguous.
 [^4]: See [where blanks may appear](#where-blanks-may-appear). A `[^id]` found
 anywhere else is not a blank, and MUST NOT be silently dropped.
-[^5]: One bare `[^id/short-answer]`, one `accept` list and one `reject` list,
-in any order.
+[^5]: One `[^id/short-answer]` (or its alias `[^id/short-answer/accept]`)
+and one `[^id/short-answer/reject]`, in any order.
+[^8]: A key that is not the id of a declared blank is an `undefined-blank`
+error, at the path of the key. A key that is the id of a choice or numeric
+blank puts the list on that blank, where the schema rejects it.

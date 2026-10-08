@@ -7,7 +7,7 @@ Essay questions expect a textual (usually open ended) response.
 ```md
 Describe how the greenhouse effect works and how it affects the climate.
 
-[essay] 
+[essay]
 ```
 
 ## Frontmatter
@@ -18,10 +18,11 @@ frontmatter
 | Field     | Type    | Description                               |
 | --------- | ------- | ----------------------------------------- |
 | type      | "essay" | The type discriminator                    |
-| input     | string  | Either "code", "text" or "plain"          |
+| input     | string  | Either "code", "text" or "plain"[^2]      |
 | highlight | string  | Programming language of "code" inputs[^1] |
 
 [^1]: This property is ignored if the input is not of type "code".
+[^2]: Default is "text".
 
 
 ## Body
@@ -38,7 +39,7 @@ essay : "[essay]"
 
 The input section describes the expected type of response for the essay
 question. It is determined by the `input` field in the frontmatter, which can be
-"code", "text", or "plain".
+"code", "text", or "plain". When omitted, it is "text".
 
 "code" indicates that the response should be a code snippet and `highlight` 
 specifies the programming language for syntax highlighting.

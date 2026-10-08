@@ -1,0 +1,10 @@
+# base.md, "Forbidden elements": an unordered list whose items all start with
+# `[` could be mistaken for a choice list, so the preamble must not hold
+# one. JSON Schema sees only a string, so this passes the schema.
+type: essay
+preamble: |-
+  Antes de responder, confira:
+
+  * [ ] Li o enunciado.
+  * [ ] Tenho uma caneta.
+stem: Explique o ciclo da água.

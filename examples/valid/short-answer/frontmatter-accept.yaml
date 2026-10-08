@@ -1,0 +1,14 @@
+# `accept` in the frontmatter with an empty `[short-answer]:` block in the
+# body, and the reject list as a body block. Each list is declared once, so
+# there is no conflict.
+id: sa-frontmatter-accept
+title: Capital do Brasil
+type: short-answer
+stem: Qual é a capital do Brasil?
+reject:
+- pattern: Rio de Janeiro
+  feedback: Foi a capital até 1960.
+accept:
+- Brasília
+- pattern: /bras[íi]lia df/i
+  feedback: Aceito, mas o DF não faz parte do nome.

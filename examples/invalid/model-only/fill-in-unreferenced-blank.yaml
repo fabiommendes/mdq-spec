@@ -8,9 +8,9 @@ stem: O maior bioma brasileiro é a [^bioma].
 blanks:
   - id: bioma
     type: short-answer
-    oneOf:
+    accept:
       - Amazônia
   - id: regiao
     type: short-answer
-    oneOf:
+    accept:
       - Norte

@@ -15,4 +15,6 @@ choices:
   - text: Cerrado
     correct: true
   - text: Sahara
+    correct: false
   - text: Tundra
+    correct: false

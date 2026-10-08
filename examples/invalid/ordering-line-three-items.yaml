@@ -1,0 +1,6 @@
+# A line is a `[level, text]` pair (schema `maxItems: 2`).
+type: ordering
+stem: Ordene as linhas do programa.
+lines:
+  - [0, "n = int(input())"]
+  - [0, "print(n * 2)", "extra"]

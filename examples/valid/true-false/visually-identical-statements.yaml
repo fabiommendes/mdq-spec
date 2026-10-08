@@ -1,0 +1,20 @@
+# Two statements that render the same but are written differently: `*maior*`
+# and `_maior_` are both emphasis. They are not duplicates, since the texts
+# differ, but a reader cannot tell them apart (`visually-identical-choices`).
+id: tf-visually-identical
+title: Fatos sobre o Pantanal
+type: true-false
+stem: Julgue as afirmações sobre o Pantanal.
+choices:
+  - id: a
+    text: O Pantanal é a *maior* planície alagável do planeta.
+    correct: true
+    marker: T
+  - id: b
+    text: O Pantanal é a _maior_ planície alagável do planeta.
+    correct: true
+    marker: T
+  - id: c
+    text: O Pantanal fica no litoral.
+    correct: false
+    marker: F

@@ -1,0 +1,11 @@
+[
+  {
+    "code": "true-false-marker-disagrees-with-correct",
+    "severity": "error",
+    "path": [
+      "choices",
+      0,
+      "marker"
+    ]
+  }
+]

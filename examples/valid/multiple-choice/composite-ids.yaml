@@ -3,13 +3,14 @@ title: RGB
 type: multiple-choice
 stem: What does RGB stand for?
 choices:
-  - text: Red, green and blue.
+  - id: red-green-blue
+    text: Red, green and blue.
     score: 1
-  - text: Rapid growth boundary
-    score: 0
-  - text: Raw grammar baseline
-    score: 0
-  - text: None of the above
-    score: 0
-  - text: All of the above
-    score: 0
+  - id: rapid-growth
+    text: Rapid growth boundary
+  - id: raw-grammar
+    text: Raw grammar baseline
+  - id: none-of-the-above
+    text: None of the above
+  - id: all-of-the-above
+    text: All of the above

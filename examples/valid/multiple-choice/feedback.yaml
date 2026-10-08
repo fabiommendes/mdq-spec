@@ -12,12 +12,9 @@ choices:
   - text: Amazon
     score: 1
   - text: Nile
-    score: 0
     feedback: >-
       The Amazon is much larger by volume of water, and recent surveys put
       it ahead by length too.
   - text: Mississippi
-    score: 0
     feedback: Not even close!
   - text: Yellow River
-    score: 0

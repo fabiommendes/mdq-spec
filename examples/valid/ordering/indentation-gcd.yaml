@@ -1,0 +1,12 @@
+# Indents of 4 and 6 spaces give a unit of 2: levels 2 and 3.
+type: ordering
+stem: Ordene as linhas para imprimir uma mensagem por item de `valores`.
+content: code
+highlight: python
+lines:
+- - 0
+  - 'for x in valores:'
+- - 2
+  - 'if x:'
+- - 3
+  - print(x)

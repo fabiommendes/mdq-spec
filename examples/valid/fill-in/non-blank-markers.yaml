@@ -1,0 +1,10 @@
+# `[^ a]` has whitespace inside the brackets and `[^-x]` is not a `SLUG`, so
+# neither is a blank marker (base.md, "Bracketed tags"); both stay as text
+# and neither needs a definition.
+type: fill-in
+stem: A capital do Brasil é [^capital]; os marcadores [^ a] e [^-x] são texto.
+blanks:
+- id: capital
+  type: short-answer
+  accept:
+  - Brasília

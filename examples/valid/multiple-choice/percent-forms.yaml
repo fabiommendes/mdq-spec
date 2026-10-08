@@ -1,0 +1,21 @@
+# Every percent form of a score: the bounds `[100%]` and `[-100%]`, an
+# explicit `+` sign, a decimal `[33.5%]`, and `[0%]`, which is an explicit
+# score of 0 rather than an omitted one.
+id: mc-percent-forms
+title: Nascente do rio Amazonas
+type: multiple-choice
+stem: Onde fica a nascente do rio Amazonas?
+choices:
+- text: Nos Andes peruanos
+  score: 1.0
+- text: No Peru
+  score: 0.5
+  feedback: Correto, mas pouco preciso.
+- text: Na América do Sul
+  score: 0.335
+  feedback: Correto, mas vago demais.
+- text: No Brasil
+  score: 0.0
+- text: Na Europa
+  score: -1.0
+grading: partial

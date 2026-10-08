@@ -1,27 +1,30 @@
-# All three blank kinds in one question. Blanks appear in the order their
-# definitions appear in the document, which need not match the order the
-# stem references them.
+# All three blank kinds in one question. Definitions appear in an order
+# different from the stem references, and the reject list of `planet` is
+# separated from its accept list by another blank. `blanks` keeps the order
+# of the definitions: feature, planet, moons.
 id: fill-in-mixed
 title: Solar system
 type: fill-in
-stem: >-
-  The [^planet] is the largest planet in the Solar System, and it has
-  approximately [^moons] known moons. Its Great Red Spot is a [^feature].
+stem: The [^planet] is the largest planet in the Solar System, and it has approximately
+  [^moons] known moons. Its Great Red Spot is a [^feature].
 blanks:
-  - id: planet
-    type: short-answer
-    oneOf:
-      - Jupiter
-  - id: moons
-    type: numeric
-    answer: 95
-    domain: integer
-    tolerance:
-      absolute: 5
-  - id: feature
-    type: multiple-choice
-    choices:
-      - text: mountain
-      - text: storm
-        score: 1
-      - text: crater
+- id: feature
+  type: multiple-choice
+  choices:
+  - text: mountain
+  - text: storm
+    score: 1
+  - text: crater
+- id: planet
+  type: short-answer
+  accept:
+  - Jupiter
+  reject:
+  - pattern: Saturn
+    feedback: Second largest, but not the largest.
+- id: moons
+  type: numeric
+  answer: 95
+  domain: integer
+  tolerance:
+    absolute: 5.0

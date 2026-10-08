@@ -1,0 +1,13 @@
+# Regex constructs inside the MDQ subset (patterns.md, "Regex"): lookahead,
+# non-capturing groups, `\xNN` and `\uXXXX` escapes. The pattern is kept as
+# written, escapes included.
+id: sa-regex-subset
+title: Sigla do estado
+type: short-answer
+stem: Escreva a sigla de um estado da região Norte seguida do nome da capital.
+accept:
+- pattern: /(?=A)(?:AM|AC|AP) \w+/
+  feedback: A non-capturing group and a lookahead are part of the subset.
+- pattern: /\x50\x41 Bel\u00e9m/
+  feedback: Hex and Unicode escapes spell `PA Belém`.
+- /(?!AM)[A-Z]{2} [^\d]+/

@@ -1,0 +1,10 @@
+# `24h` carries into the next unit: `P1D`.
+id: prova
+title: Prova
+type: exam
+duration: P1D
+questions:
+- stem: Qual é a capital do Brasil?
+  accept:
+  - Brasília
+  type: short-answer

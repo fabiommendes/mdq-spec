@@ -4,8 +4,10 @@ type: multiple-selection
 stem: Which cities were capitals of Brazil?
 choices:
   - text: Lisbon
+    correct: false
   - text: Brasília
     correct: true
   - text: São Paulo
+    correct: false
   - text: Rio de Janeiro
     correct: true

@@ -1,0 +1,5 @@
+# `title` is a string; `2024` is a number and is never converted (base.md,
+# "Frontmatter").
+type: essay
+title: 2024
+stem: Explique o ciclo da água.

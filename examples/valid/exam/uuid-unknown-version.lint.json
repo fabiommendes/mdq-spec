@@ -1,0 +1,16 @@
+[
+  {
+    "code": "exam-without-questions",
+    "severity": "warning",
+    "path": [
+      "questions"
+    ]
+  },
+  {
+    "code": "uuid-unknown-version",
+    "severity": "warning",
+    "path": [
+      "uuid"
+    ]
+  }
+]

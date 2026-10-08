@@ -1,0 +1,8 @@
+# An H1 without a slug: the exam has a title and no id (`missing-id`).
+title: Geografia do Brasil
+type: exam
+questions:
+- stem: Qual é a capital do Brasil?
+  accept:
+  - Brasília
+  type: short-answer

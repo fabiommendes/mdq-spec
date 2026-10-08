@@ -1,0 +1,11 @@
+[
+  {
+    "code": "blank-choice-text",
+    "severity": "error",
+    "path": [
+      "choices",
+      0,
+      "text"
+    ]
+  }
+]

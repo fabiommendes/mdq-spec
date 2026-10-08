@@ -1,0 +1,14 @@
+# Precedence and `EXCEPT`: block 0 keeps `pantanal-01` alone; block 1 is
+# `cerrado-01`; block 2 skips `cerrado-01` (already added) and `pantanal-01`
+# (excepted); block 3 matches no tag, since `ANDROID` and `NOTE` are tags,
+# not keywords.
+questions:
+- pantanal-01
+- cerrado-01
+- pantanal-02
+diagnostics:
+- code: empty-include-all
+  severity: warning
+  path:
+  - questions
+  - 3

@@ -1,0 +1,6 @@
+# An indentation level is a non-negative integer (schema `minimum: 0`).
+type: ordering
+stem: Ordene as linhas do programa.
+lines:
+  - [0, "n = int(input())"]
+  - [-1, "print(n * 2)"]

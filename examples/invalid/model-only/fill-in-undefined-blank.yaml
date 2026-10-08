@@ -8,5 +8,5 @@ stem: O bioma [^bioma] abriga o maior rio do mundo em volume de água, o [^rio].
 blanks:
   - id: rio
     type: short-answer
-    oneOf:
+    accept:
       - Amazonas

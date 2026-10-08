@@ -1,0 +1,10 @@
+# A `start` without a UTC offset is kept as written: local time.
+id: prova
+title: Prova
+type: exam
+start: '2026-03-10T09:00:00'
+questions:
+- stem: Qual é a capital do Brasil?
+  accept:
+  - Brasília
+  type: short-answer

@@ -1,0 +1,33 @@
+[
+  {
+    "code": "non-ascii-whitespace",
+    "severity": "warning",
+    "path": []
+  },
+  {
+    "code": "non-ascii-whitespace",
+    "severity": "warning",
+    "path": []
+  },
+  {
+    "code": "missing-id",
+    "severity": "info",
+    "path": [
+      "id"
+    ]
+  },
+  {
+    "code": "missing-title",
+    "severity": "info",
+    "path": [
+      "title"
+    ]
+  },
+  {
+    "code": "missing-answer-key",
+    "severity": "info",
+    "path": [
+      "answerKey"
+    ]
+  }
+]

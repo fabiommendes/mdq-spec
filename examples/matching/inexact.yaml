@@ -1,0 +1,228 @@
+# Vectors for the inexact comparison of a plain literal pattern
+# (docs/references/patterns.md, "Inexact literals").
+#
+# Document structure
+#
+# Case {
+#   name: string
+#   pattern: string      // a plain literal, the only entry of `accept`
+#   response: string
+#   fold: boolean        // the pattern matches with `diacritics: fold`
+#   keep: boolean        // the pattern matches with `diacritics: keep`
+# }
+#
+# Invisible and ambiguous code points are written as YAML escapes.
+cases:
+  # Case folding (step 5)
+  - name: lower case response
+    pattern: "Brasília"
+    response: "brasília"
+    fold: true
+    keep: true
+  - name: upper case response
+    pattern: "Brasília"
+    response: "BRASÍLIA"
+    fold: true
+    keep: true
+  - name: sharp s folds to ss
+    pattern: "Straße"
+    response: "STRASSE"
+    fold: true
+    keep: true
+  - name: capital sharp s
+    pattern: "Straße"
+    response: "STRAẞE"
+    fold: true
+    keep: true
+  - name: final sigma
+    pattern: "σοφος"
+    response: "ΣΟΦΟΣ"
+    fold: true
+    keep: true
+  - name: case folding added in Unicode 16
+    pattern: "ᲊ"
+    response: "Ᲊ"
+    fold: true
+    keep: true
+
+  # Unicode normalization (step 1)
+  - name: decomposed response
+    pattern: "Brasília"
+    response: "Brasília"
+    fold: true
+    keep: true
+  - name: ligature
+    pattern: "fim"
+    response: "ﬁm"
+    fold: true
+    keep: true
+  - name: subscript digit
+    pattern: "H2O"
+    response: "H₂O"
+    fold: true
+    keep: true
+  - name: fullwidth letters
+    pattern: "Brasil"
+    response: "ＢＲＡＳＩＬ"
+    fold: true
+    keep: true
+
+  # Ignorable code points (step 2)
+  - name: zero width space
+    pattern: "Manaus"
+    response: "Mana​us"
+    fold: true
+    keep: true
+  - name: soft hyphen
+    pattern: "Manaus"
+    response: "Ma­naus"
+    fold: true
+    keep: true
+  - name: byte order mark
+    pattern: "Manaus"
+    response: "﻿Manaus"
+    fold: true
+    keep: true
+  - name: C0 control at the end
+    pattern: "Manaus"
+    response: "Manaus\x1F"
+    fold: true
+    keep: true
+  - name: null character
+    pattern: "Manaus"
+    response: "Mana\0us"
+    fold: true
+    keep: true
+  - name: a control is not a space
+    pattern: "Rio Negro"
+    response: "Rio\x1FNegro"
+    fold: false
+    keep: false
+  - name: a control between letters is removed
+    pattern: "RioNegro"
+    response: "Rio\x1FNegro"
+    fold: true
+    keep: true
+
+  # Diacritics (step 3)
+  - name: missing acute accent
+    pattern: "Brasília"
+    response: "Brasilia"
+    fold: true
+    keep: false
+  - name: missing cedilla and tilde
+    pattern: "ação"
+    response: "acao"
+    fold: true
+    keep: false
+  - name: missing Greek tonos
+    pattern: "σοφία"
+    response: "ΣΟΦΙΑ"
+    fold: true
+    keep: false
+  - name: o with stroke
+    pattern: "Ørsted"
+    response: "Orsted"
+    fold: true
+    keep: false
+  - name: l with stroke and marks
+    pattern: "Łódź"
+    response: "lodz"
+    fold: true
+    keep: false
+  - name: ae ligature letter
+    pattern: "Cæsar"
+    response: "caesar"
+    fold: true
+    keep: false
+  - name: thorn
+    pattern: "Þór"
+    response: "thor"
+    fold: true
+    keep: false
+  - name: dotless i
+    pattern: "Diyarbakır"
+    response: "diyarbakir"
+    fold: true
+    keep: false
+
+  # Quotes and dashes (step 4)
+  - name: typographic apostrophe
+    pattern: "caixa d'água"
+    response: "caixa d’água"
+    fold: true
+    keep: true
+  - name: typographic double quotes
+    pattern: "\"Ordem e Progresso\""
+    response: "“Ordem e Progresso”"
+    fold: true
+    keep: true
+  - name: en dash
+    pattern: "pau-brasil"
+    response: "pau–brasil"
+    fold: true
+    keep: true
+  - name: non-breaking hyphen
+    pattern: "pau-brasil"
+    response: "pau‑brasil"
+    fold: true
+    keep: true
+  - name: minus sign
+    pattern: "x-1"
+    response: "x−1"
+    fold: true
+    keep: true
+  - name: a hyphen is not a space
+    pattern: "Brasília-DF"
+    response: "Brasília DF"
+    fold: false
+    keep: false
+
+  # Whitespace (step 6)
+  - name: spaces at the ends and repeated spaces
+    pattern: "São Paulo"
+    response: "  São   Paulo "
+    fold: true
+    keep: true
+  - name: no-break space
+    pattern: "São Paulo"
+    response: "São Paulo"
+    fold: true
+    keep: true
+  - name: em space
+    pattern: "Rio Negro"
+    response: "Rio Negro"
+    fold: true
+    keep: true
+  - name: tab and line feed
+    pattern: "Rio Negro"
+    response: "Rio\t\nNegro"
+    fold: true
+    keep: true
+  - name: next line control is a space
+    pattern: "Rio Negro"
+    response: "Rio\x85Negro"
+    fold: true
+    keep: true
+  - name: line separator
+    pattern: "Rio Negro"
+    response: "Rio Negro"
+    fold: true
+    keep: true
+  - name: a missing space is significant
+    pattern: "Rio Negro"
+    response: "RioNegro"
+    fold: false
+    keep: false
+
+  # Different text
+  - name: different word
+    pattern: "Belém"
+    response: "Manaus"
+    fold: false
+    keep: false
+  - name: extra word
+    pattern: "Belém"
+    response: "Belém do Pará"
+    fold: false
+    keep: false

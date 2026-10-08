@@ -1,0 +1,20 @@
+# Feedback and comment blocks with no blank line between them, nor before
+# the content block: the form the grammar describes. The `!` line is not a
+# lazy continuation of the blockquote.
+type: ordering
+stem: Ordene as linhas do programa.
+content: code
+highlight: python
+lines:
+- - 0
+  - n = int(input())
+- - 0
+  - print(n * 2)
+reject:
+- lines:
+  - - 0
+    - print(n * 2)
+  - - 0
+    - n = int(input())
+  feedback: A saída não pode vir antes da entrada.
+  comment: Erro mais comum.

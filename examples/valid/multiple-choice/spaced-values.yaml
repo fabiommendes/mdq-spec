@@ -1,0 +1,14 @@
+# Whitespace inside the value brackets is allowed: `[ * ]`, `[ 50% ]` and a
+# tab or several spaces as the blank value.
+id: mc-spaced-values
+title: Ponto mais alto do Brasil
+type: multiple-choice
+stem: Qual é o ponto mais alto do Brasil?
+choices:
+- text: Pico da Neblina
+  score: 1
+- text: Pico 31 de Março
+  score: 0.5
+  feedback: Fica a poucos quilômetros da Neblina e é o segundo mais alto.
+- text: Pico da Bandeira
+- text: Monte Roraima

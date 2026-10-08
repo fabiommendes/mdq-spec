@@ -1,0 +1,21 @@
+# `grading: symmetric` written explicitly on a fill-in question.
+id: fill-in-symmetric
+title: Rios e estados
+type: fill-in
+stem: O rio [^rio] atravessa o estado de [^estado].
+blanks:
+- id: rio
+  type: multiple-choice
+  choices:
+  - text: Negro
+    score: 1
+  - text: Tietê
+  - text: São Francisco
+- id: estado
+  type: multiple-choice
+  choices:
+  - text: Amazonas
+    score: 1
+  - text: São Paulo
+  - text: Bahia
+grading: symmetric

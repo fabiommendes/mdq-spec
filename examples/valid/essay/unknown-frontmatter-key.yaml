@@ -1,0 +1,7 @@
+# A frontmatter key the question type does not know is dropped with
+# `unknown-frontmatter-key`. The warning comes from the Markdown parser only;
+# the YAML form of the same document has no such key.
+id: ciclo-agua
+title: Ciclo da água
+type: essay
+stem: Explique o ciclo da água.

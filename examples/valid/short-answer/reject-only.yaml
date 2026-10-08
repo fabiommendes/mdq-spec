@@ -1,0 +1,10 @@
+# No `accept` pattern, so `unmatched` defaults to `manual`. The instructor
+# knows only some incorrect answers: `Savana` scores 0 with its feedback,
+# and every other response goes to the instructor.
+id: bioma-centro-reject
+title: Biome of central Brazil
+type: short-answer
+stem: Name a biome of central Brazil.
+reject:
+  - pattern: Savana
+    feedback: Savanna is the general term. Name the Brazilian biome.

@@ -1,0 +1,4 @@
+# A U+FEFF that is not at the start of the file counts as a Unicode space:
+# `info` in prose.
+type: essay
+stem: "Explique o ciclo\uFEFF da água."

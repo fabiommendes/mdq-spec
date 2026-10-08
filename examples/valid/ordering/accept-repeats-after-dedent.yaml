@@ -1,0 +1,18 @@
+# `indentation: lenient` implies `dedent`, so an accept section that differs
+# from the `[ordering]` block only in indentation repeats the answer key.
+type: ordering
+stem: Ordene as linhas para imprimir os números de 0 a 9.
+content: code
+highlight: python
+indentation: lenient
+lines:
+- - 0
+  - 'for i in range(10):'
+- - 1
+  - print(i)
+accept:
+- lines:
+  - - 0
+    - 'for i in range(10):'
+  - - 2
+    - print(i)

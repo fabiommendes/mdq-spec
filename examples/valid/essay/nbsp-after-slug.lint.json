@@ -1,0 +1,21 @@
+[
+  {
+    "code": "non-ascii-whitespace",
+    "severity": "warning",
+    "path": []
+  },
+  {
+    "code": "missing-title",
+    "severity": "info",
+    "path": [
+      "title"
+    ]
+  },
+  {
+    "code": "missing-answer-key",
+    "severity": "info",
+    "path": [
+      "answerKey"
+    ]
+  }
+]

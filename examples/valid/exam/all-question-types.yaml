@@ -1,0 +1,83 @@
+# One inline question of every type: multiple-choice, multiple-selection,
+# true-false, numeric with a unit, short-answer, fill-in, ordering, essay.
+id: tipos
+title: Um exame com todos os tipos
+type: exam
+locale: pt-BR
+questions:
+- id: capital
+  stem: Qual é a capital do Brasil?
+  choices:
+  - text: Brasília
+    score: 1
+  - text: Rio de Janeiro
+  type: multiple-choice
+  locale: pt-BR
+- id: biomas
+  stem: Quais destes são biomas brasileiros?
+  choices:
+  - text: Cerrado
+    correct: true
+  - text: Pampa
+    correct: true
+  - text: Tundra
+    correct: false
+  type: multiple-selection
+  locale: pt-BR
+- id: pantanal
+  stem: Julgue as afirmações.
+  choices:
+  - text: O Pantanal é uma planície alagável.
+    correct: true
+    marker: V
+  - text: O Pantanal fica no litoral.
+    correct: false
+    marker: F
+  type: true-false
+  locale: pt-BR
+- id: amazonas
+  stem: Qual é a extensão aproximada do rio Amazonas?
+  answer: 6400
+  unit: km
+  domain: integer
+  tolerance:
+    relative: 0.05
+  type: numeric
+  locale: pt-BR
+- id: sigla
+  stem: Qual é a sigla do estado do Amazonas?
+  accept:
+  - AM
+  type: short-answer
+  locale: pt-BR
+- id: completar
+  stem: A capital do Amazonas é [^capital] e fica na região [^regiao].
+  blanks:
+  - id: capital
+    type: short-answer
+    accept:
+    - Manaus
+  - id: regiao
+    type: multiple-choice
+    choices:
+    - text: Norte
+      score: 1
+    - text: Sul
+  type: fill-in
+  locale: pt-BR
+- id: ordem
+  stem: Ordene os eventos.
+  content: text
+  lines:
+  - - 0
+    - Chegada de Cabral
+  - - 0
+    - Independência
+  - - 0
+    - Proclamação da República
+  type: ordering
+  locale: pt-BR
+- id: redacao
+  stem: Explique o ciclo da água.
+  type: essay
+  locale: pt-BR

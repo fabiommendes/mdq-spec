@@ -7,5 +7,5 @@ stem: Darwin visited Brazil during the voyage of the [^ship].
 blanks:
   - id: ship
     type: short-answer
-    oneOf:
+    accept:
       - Beagle

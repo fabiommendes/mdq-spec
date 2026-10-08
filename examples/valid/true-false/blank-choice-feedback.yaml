@@ -1,0 +1,17 @@
+# `blank-choice-feedback` and `blank-choice-comment` on true-false
+# statements: the fields are defined but hold only whitespace.
+id: tf-blank-feedback
+title: Fatos sobre o Pantanal
+type: true-false
+stem: Julgue as afirmações sobre o Pantanal.
+choices:
+  - id: a
+    text: O Pantanal é a maior planície alagável do planeta.
+    correct: true
+    marker: T
+    feedback: "   "
+  - id: b
+    text: O Pantanal fica no litoral brasileiro.
+    correct: false
+    marker: F
+    comment: "\t"

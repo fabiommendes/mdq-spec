@@ -3,7 +3,8 @@
     "code": "ignored-regex-flag",
     "severity": "info",
     "path": [
-      "regex"
+      "accept",
+      0
     ]
   }
 ]

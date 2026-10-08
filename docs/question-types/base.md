@@ -75,17 +75,34 @@ questions. All fields are optional.
 [^1]: MUST be a valid question type.
 [^2]: Slug SHOULD be url-safe according to the REGEX `[a-zA-Z0-9]+(?:[-_][a-zA-Z0-9]+)*`.
 [^3]: Must be a valid UUID, ``xxxxxxxx-xxxx-Mxxx-Nxxx-xxxxxxxxxxxx`` where `M` is the version and `N` is the variant. `M` and `N` SHOULD correspond to a existing standard.
-[^4]: MUST be a valid [IETF BCP 47](https://developer.mozilla.org/en-US/docs/Glossary/BCP_47_language_tag) language tag.
+[^4]: MUST be a well-formed [IETF BCP 47](https://www.rfc-editor.org/rfc/rfc5646)
+language tag: a string the grammar of RFC 5646 section 2.1 accepts (`langtag`,
+`privateuse` or a grandfathered tag), compared case-insensitively. Whether a
+subtag is registered is not checked, so `brasil` is well-formed and `pt_BR`
+is not. MDQ does little with the locale, so a host that needs a registered
+or supported language applies its own rule.
 [^5]: MUST NOT be negative. The exam score is the weighted mean of its question scores, so a weight of 0 keeps the question in the exam without counting towards the score.
 
 A mapping MUST NOT repeat a key. A repeated key is an error
 (`yaml-syntax-error`), not a value that replaces the first one, since it is
 almost always a mistake.
 
+The frontmatter, and a question or exam written directly in YAML, follow the
+[YAML 1.2 Core schema](https://yaml.org/spec/1.2.2/#103-core-schema): a plain
+scalar is `null` (`null`, `Null`, `NULL`, `~` or nothing), a boolean (`true`,
+`True`, `TRUE`, `false`, `False`, `FALSE`), an integer (decimal, `0o17`,
+`0x1F`), a float (`1.5`, `1e3`, `.inf`, `.nan`) or else a string. YAML 1.1
+forms are plain strings: `yes`, `no`, `on`, `off`, a timestamp such as
+`2026-03-10`, the base-60 `1:30`, `010` is the decimal 10, not the octal 8.
+A parser built on a YAML 1.1 library MUST be configured to match.
+
 A value keeps its YAML type and is never converted. A field of type string
 MUST hold a YAML string: `id: 2024` is a number and is an error, so a
-numeric-looking id is quoted (`id: "2024"`). A null `id` or `tags` (the key
-with nothing after it) is the same as an absent field.
+numeric-looking id is quoted (`id: "2024"`). A `null` value (the key with
+nothing after it, `~` or `null`) in any OPTIONAL field is the same as an absent
+field: `weight: null` is `weight: 1`, and `title:` is no title. This applies
+to every document, in Markdown, YAML and JSON, and to nested objects such as
+choices and blanks.
 
 If there is a collision of a field that is specified both in the frontmatter and
 elsewhere, the frontmatter takes precedence.
@@ -99,23 +116,6 @@ The stem is a REQUIRED block of text before the body. It is the main instruction
 for the students (e.g. "Mark the correct alternative"). Implementations SHOULD
 require that the stem is a paragraph of text (and not other block elements such
 as tables, lists, etc).
-
-If the stem consists of a single ellipsis, it MAY be replaced by a default
-statement for the question type.
-
-```md
-...
-* [ ] Earth is flat.
-* [*] Markdown is cool.
-``` 
-
-This can be expanded to 
-
-```md
-Mark the correct answer.
-* [ ] Earth is flat.
-* [*] Markdown is cool.
-``` 
 
 ### Forbidden elements
 
@@ -155,13 +155,21 @@ This marks the question with the slug `Q1`. This is equivalent to the
 frontmatter field `id: Q1`, and if both are set the frontmatter takes
 precedence.
 
-The slug SHOULD obey the regex:
+The slug MUST match the `SLUG` terminal of
+[Common grammar rules](../references/grammar.md):
 
 ```regex
 [a-zA-Z0-9]+(?:[-_][a-zA-Z0-9]+)*
 ```
 
-This is the `SLUG` terminal of [Common grammar rules](../references/grammar.md).
+A bracket at the start of the paragraph is a slug only when its content
+matches `SLUG` and the next character is not `(` or `[`, which open a markdown
+link (`[text](url)`, `[text][ref]`). A paragraph that starts with a link has no
+slug, and the link is part of the text:
+
+```md
+[Amazonia](https://pt.wikipedia.org/wiki/Amazônia) é o maior bioma de qual país?
+```
 
 Implementations MAY widen the allowed characters under an option flag.
 
@@ -192,6 +200,25 @@ spaces and tabs, the character `*`, or a percentage like in `[50%]`.
 Each question type defines their body elements. For all questions the body is 
 REQUIRED.
 
+### Type inference
+
+A question without `type` in the frontmatter takes its type from the body.
+Short answer, numeric, essay, ordering and fill in the blanks questions are
+identified by the bracketed tag that opens their body, see each type. A body
+that is an unordered list whose every item starts with `[value]` is a choice
+list, and its type comes from the values. The first rule that applies wins:
+
+1. a value is `*` or a percentage: multiple choice;
+2. a value is `x` or `X`: multiple selection;
+3. a value is a letter: true/false;
+4. every value is blank: multiple selection.
+
+Once the type is known, inferred or forced by `type`, every value MUST belong
+to the `value` rule of that type: `[x]` in a multiple choice list, `[ ]` in a
+true/false list, `[*]` in a list forced to multiple selection, or a `[?]`
+anywhere is a `foreign-choice-marker` error. An implementation MUST NOT read
+such a value as an unmarked choice: the answer key would change in silence.
+
 
 ## Epilogue
 
@@ -200,6 +227,30 @@ elements MUST follow the same rules as the block elements of the preamble.
 
 Some question types may define optional block elements that appear
 after the epilogue.
+
+
+## Automation
+
+Every question has an **automation**, which tells how many responses the
+question settles without the instructor:
+
+| Automation       | Meaning                                            |
+| ---------------- | -------------------------------------------------- |
+| `automatic`      | every response gets a score                        |
+| `semi-automatic` | some responses get a score, the others are pending |
+| `manual`         | every response is pending                          |
+
+Multiple choice, multiple selection, true/false and numeric questions are
+`automatic`. Essay questions are `manual`. A [short answer](short-answer.md#automation)
+question, an [ordering](ordering.md#automation) question and a
+[fill in the blanks](fill-in.md#automation) question derive it from their
+fields.
+
+Automation is a derived property, never a field of the document. It MUST NOT
+appear in the frontmatter of a question or in its YAML or JSON form. An
+implementation SHOULD offer it as a read-only property of the question. A
+response that is not settled is reported as pending, see
+[responses.md](../responses.md#pending).
 
 
 ## AST representation
@@ -222,8 +273,12 @@ The AST for questions is represented by a root object with a set of fields that
 vary from question type.
 
 In all question types, all fields in the frontmatter are translated as-is to
-fields in the AST. The fields carry the same name, types, optionality and
-validation rules as in the frontmatter. Validation rules that can be described
+fields in the AST, with two exceptions: `tags` written as a single
+comma-delimited string becomes the list of its parts, each stripped of
+surrounding whitespace, and the per-type shorthands that each question type
+documents (`normalizations` as a bare string in ordering, the `preAccept` and
+`preReject` maps in fill in the blanks). The fields carry the same name,
+types, optionality and validation rules as in the frontmatter. Validation rules that can be described
 by a JSON Schema are defined in the corresponding schema document. We only
 document here the validations that require additional processing.
 
@@ -240,6 +295,9 @@ those elements in the body of text, but implementations MAY perform any
 normalization step that do not affect markdown semantics. For instance,
 implementations may remove word wrap and normalize whitespace since both have no
 influence in the resulting rendered markdown.
+
+The same license applies to the frontmatter **comment string**: a comment
+that spans several `#` lines MAY be joined into one line with single spaces.
 
 Each question defines their own rules for translating the body and eventual 
 additional fields. Those rules are covered in their own dedicated document.
@@ -258,11 +316,19 @@ is assigned a strictness level of "critical", "warning", "info".
   relevant to know for a user authoring a question, but still produces valid and
   usable documents.
 
+The JSON Schema is normative for the shape of a document. Two of its rules
+are easy to miss from the prose: every text field (`title`, `author`,
+`comment`, choice text, feedback and the like) MUST NOT be the empty string
+(`minLength: 1`), and a list field MUST have at least the number of items the
+schema states (`minItems`). Each question type lists its minimums below. A
+string of only whitespace passes the schema and is the `blank-text-field`
+warning instead.
+
 | Field                    | Level    | Rule                                                        |
 | ------------------------ | -------- | ------------------------------------------------------------ |
-| preamble, epilogue, stem | critical | must have at least one visisible character                 |
+| preamble, epilogue, stem | critical | must have at least one visible character                   |
 | preamble, epilogue, stem | critical | cannot have explicitly forbidden block elements[^7]         |
-| locale                   | critical | must be a valid IETF BCP 47 tag[^4]                         |
+| locale                   | critical | must be a well-formed IETF BCP 47 tag[^4]                   |
 | id                       | warning  | should be url-safe[^2]                                      |
 | stem                     | warning  | must be a markdown `p` block element                        |
 | tags                     | warning  | each entry must have at least one visible character         |
@@ -272,9 +338,12 @@ is assigned a strictness level of "critical", "warning", "info".
 | uuid                     | warning  | the version and variant nibbles should correspond to an existing standard[^3] |
 | id, title                | info     | field must be defined in the document                       |
 | locale                   | info     | the language subtag SHOULD NOT look like a country code[^8] |
-| stem                     | info     | a bare ellipsis (`...`) SHOULD be replaced by a real statement instead of left unexpanded |
+| preamble, epilogue, stem | warning  | a thematic break should be `***` or `___`, not `---`[^9]   |
 
 [^7]: Those elements are described in the section [forbidden elements](#forbidden-elements)
 [^8]: For example `cn` (a country code) instead of `zh` (the language). The
-`locale` pattern in [Frontmatter](#frontmatter) only checks the tag's shape,
+`malformed-locale` check only tests that the tag is well-formed under BCP 47,
 not whether the subtag names a real language.
+[^9]: Inside an exam a `---` line opens a frontmatter or include block, so a
+thematic break written with `-` changes meaning when the question is pasted
+into one (`unsafe-thematic-break`, see [exam.md](../exam.md#questions)).

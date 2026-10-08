@@ -1,0 +1,21 @@
+# Feedback (`>`) and instructor comments (`!`) on multiple-selection
+# choices, in both orders. Feedback is shown for a wrongly judged choice,
+# see multiple-selection.md, "Feedback".
+id: ms-feedback
+title: Características dos mamíferos
+type: multiple-selection
+stem: Quais destas características são exclusivas dos mamíferos?
+choices:
+- text: Glândulas mamárias
+  correct: true
+  feedback: Toda fêmea de mamífero produz leite para os filhotes.
+  comment: 'Comentário para outros professores: característica que define o grupo.'
+- text: Pelos
+  correct: true
+  feedback: Os pelos aparecem em todos os mamíferos, ainda que poucos.
+  comment: Mesmo as baleias têm pelos em alguma fase da vida.
+- text: Sangue quente
+  correct: false
+  feedback: Aves também são endotérmicas.
+- text: Coluna vertebral
+  correct: false

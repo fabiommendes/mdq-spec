@@ -1,0 +1,15 @@
+# A `[^id/short-answer]:` definition with no pattern is an open blank: it has
+# no `accept` list and the instructor grades its responses (fill-in.md,
+# "Short answer blanks").
+id: fill-in-open-blank
+title: Capital e opinião
+type: fill-in
+stem: A capital do Brasil é [^capital], e a cidade brasileira que eu mais gostaria
+  de visitar é [^cidade].
+blanks:
+- id: capital
+  type: short-answer
+  accept:
+  - Brasília
+- id: cidade
+  type: short-answer

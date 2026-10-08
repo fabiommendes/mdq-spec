@@ -1,0 +1,8 @@
+# A choice list needs at least two entries (schema `minItems: 2`), in every
+# choice type.
+type: true-false
+stem: Julgue a afirmação sobre o Pantanal.
+choices:
+  - text: O Pantanal é uma planície alagável.
+    correct: true
+    marker: T

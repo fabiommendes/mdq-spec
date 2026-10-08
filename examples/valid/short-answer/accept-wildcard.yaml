@@ -1,9 +1,0 @@
-# The `*` wildcard accepts every response, so it defeats the purpose of
-# an answer key -- an author almost always means `openEnded` instead.
-id: capital-wildcard
-title: Capital wildcard
-type: short-answer
-stem: Qual é a capital do Brasil?
-accept:
-  - Brasília
-  - "*"

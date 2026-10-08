@@ -1,0 +1,19 @@
+# base.md, "Forbidden elements" bans an unordered list only when every item
+# starts with `[`. A list where some items do, and an ordered list, are
+# ordinary preamble blocks.
+type: essay
+preamble: 'Antes de responder, leia os lembretes:
+
+
+  * [opcional] Cite um exemplo brasileiro.
+
+  * Escreva ao menos dois parágrafos.
+
+
+  E os critérios, em ordem:
+
+
+  1. [clareza] Clareza do texto.
+
+  2. [exemplos] Uso de exemplos.'
+stem: Explique o ciclo da água.

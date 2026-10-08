@@ -1,0 +1,5 @@
+# `-2147483649` does not fit a 32-bit signed integer, so it is a string.
+type: numeric
+stem: Qual é o maior inteiro negativo que não cabe em 32 bits com sinal?
+answer: '-2147483649'
+domain: integer

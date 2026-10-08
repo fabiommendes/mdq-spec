@@ -1,0 +1,6 @@
+# `2147483648` does not fit a 32-bit signed integer, so it is a string
+# (numeric.md, "Answer representation").
+type: numeric
+stem: Qual é o menor inteiro que não cabe em 32 bits com sinal?
+answer: '2147483648'
+domain: integer

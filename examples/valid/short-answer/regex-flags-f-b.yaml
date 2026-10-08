@@ -1,0 +1,14 @@
+# The `f` (find) and `b` (beginning) flags remove the implicit anchors
+# (patterns.md, "Regex flags"). An anchor the author wrote stays.
+id: sa-regex-flags-f-b
+title: Bioma do Brasil central
+type: short-answer
+stem: Cite o bioma que cobre a maior parte do Brasil central.
+accept:
+- pattern: /cerrado/f
+  feedback: '`f` finds the word anywhere in the response.'
+- pattern: /Bras/b
+  feedback: '`b` matches any response that starts with `Bras`.'
+- pattern: /^rio/fi
+  feedback: 'The author''s `^` is honoured even under `f`: the response must start
+    with `rio`.'

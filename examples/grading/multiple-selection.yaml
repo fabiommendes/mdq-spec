@@ -12,19 +12,61 @@
 # }
 #
 # Some scores are represented as fractions because the floating point
-# representation would be inexact.
+# representation would be inexact. An unticked choice asserts false, so
+# `ticks: []` is a full answer, not an abstention.
 questions:
-  # Symmetric grading
-  - name: "Single correct choice"
-    choices: { a: true, b: false, c: false, d: false }
-    grading: "symmetric"
+  # The table in multiple-selection.md, "Grading": answer key [T, F, T, F].
+  - name: "Spec table"
+    choices: { a: true, b: false, c: true, d: false }
+    grading: "partial"
     examples:
-      - ticks: ["a"]
+      - ticks: ["a", "c"]
         score: 1.0
+      - ticks: ["b", "d"]
+        score: 0.0
+      - ticks: ["a", "b"]
+        score: 0.5
+      - ticks: ["a"]
+        score: 0.75
+      - ticks: ["b"]
+        score: 0.25
       - ticks: []
         score: 0.5
+  - name: "Spec table"
+    choices: { a: true, b: false, c: true, d: false }
+    grading: "all-or-nothing"
+    examples:
+      - ticks: ["a", "c"]
+        score: 1.0
+      - ticks: ["b", "d"]
+        score: 0.0
+      - ticks: ["a", "b"]
+        score: 0.0
+      - ticks: ["a"]
+        score: 0.0
+      - ticks: ["b"]
+        score: 0.0
+      - ticks: []
+        score: 0.0
+  - name: "Spec table"
+    choices: { a: true, b: false, c: true, d: false }
+    grading: "symmetric"
+    examples:
+      - ticks: ["a", "c"]
+        score: 1.0
+      - ticks: ["b", "d"]
+        score: -1.0
+      - ticks: ["a", "b"]
+        score: 0.0
+      - ticks: ["a"]
+        score: 0.5
+      - ticks: ["b"]
+        score: -0.5
+      - ticks: []
+        score: 0.0
 
-  # Partial grading
+  # A single correct choice: ticking nothing still judges three of four
+  # choices correctly.
   - name: "Single correct choice"
     choices: { a: true, b: false, c: false, d: false }
     grading: "partial"
@@ -33,8 +75,8 @@ questions:
         score: 1.0
       - ticks: []
         score: 0.75
-
-  # All-or-nothing grading
+      - ticks: ["a", "b", "c", "d"]
+        score: 0.25
   - name: "Single correct choice"
     choices: { a: true, b: false, c: false, d: false }
     grading: "all-or-nothing"
@@ -43,3 +85,31 @@ questions:
         score: 1.0
       - ticks: []
         score: 0.0
+  - name: "Single correct choice"
+    choices: { a: true, b: false, c: false, d: false }
+    grading: "symmetric"
+    examples:
+      - ticks: ["a"]
+        score: 1.0
+      - ticks: []
+        score: 0.5
+      - ticks: ["a", "b", "c", "d"]
+        score: -0.5
+
+  # Three choices: scores that are not exact in binary floating point.
+  - name: "Three choices"
+    choices: { a: true, b: true, c: false }
+    grading: "partial"
+    examples:
+      - ticks: ["a"]
+        score: "2/3"
+      - ticks: ["c"]
+        score: 0.0
+  - name: "Three choices"
+    choices: { a: true, b: true, c: false }
+    grading: "symmetric"
+    examples:
+      - ticks: ["a"]
+        score: "1/3"
+      - ticks: ["a", "c"]
+        score: "-1/3"

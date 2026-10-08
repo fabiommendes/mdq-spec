@@ -1,0 +1,89 @@
+# Vectors for the exact comparison of a backtick-enclosed pattern
+# (docs/references/patterns.md, "Exact literals").
+#
+# Document structure
+#
+# Case {
+#   name: string
+#   pattern: string      // the text between the backticks
+#   response: string
+#   match: boolean       // the pattern matches the response
+# }
+#
+# The result does not depend on the `diacritics` field. Invisible and
+# ambiguous code points are written as YAML escapes.
+cases:
+  - name: same text
+    pattern: "Brasília"
+    response: "Brasília"
+    match: true
+
+  # Unicode normalization (step 1)
+  - name: decomposed response
+    pattern: "Brasília"
+    response: "Brasília"
+    match: true
+  - name: decomposed pattern
+    pattern: "Brasília"
+    response: "Brasília"
+    match: true
+  - name: a ligature is not decomposed
+    pattern: "fim"
+    response: "ﬁm"
+    match: false
+  - name: a fullwidth letter is not narrowed
+    pattern: "Brasil"
+    response: "Ｂrasil"
+    match: false
+  - name: a subscript digit is not a digit
+    pattern: "H2O"
+    response: "H₂O"
+    match: false
+
+  # Trimming (step 2)
+  - name: spaces at the ends
+    pattern: "Manaus"
+    response: "  Manaus "
+    match: true
+  - name: tab and line feed at the ends
+    pattern: "Manaus"
+    response: "\tManaus\n"
+    match: true
+  - name: no-break space and em space at the ends
+    pattern: "Manaus"
+    response: " Manaus "
+    match: true
+  - name: a control at the end is not a space
+    pattern: "Manaus"
+    response: "Manaus\x1F"
+    match: false
+  - name: interior spaces are significant
+    pattern: "Rio Negro"
+    response: "Rio  Negro"
+    match: false
+  - name: an interior no-break space is not a space
+    pattern: "Rio Negro"
+    response: "Rio Negro"
+    match: false
+
+  # Everything else is significant
+  - name: case
+    pattern: "Manaus"
+    response: "manaus"
+    match: false
+  - name: missing diacritic
+    pattern: "Brasília"
+    response: "Brasilia"
+    match: false
+  - name: zero width space
+    pattern: "Manaus"
+    response: "Mana​us"
+    match: false
+  - name: typographic apostrophe
+    pattern: "caixa d'água"
+    response: "caixa d’água"
+    match: false
+  - name: en dash
+    pattern: "pau-brasil"
+    response: "pau–brasil"
+    match: false

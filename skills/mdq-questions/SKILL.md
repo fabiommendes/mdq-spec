@@ -14,6 +14,8 @@ when the reference implementation is available.
 
 Spec: https://github.com/fabiommendes/mdq-spec (`docs/question-types/`,
 `docs/exam.md`, plus worked pairs of markdown + expected YAML in `examples/`).
+The frontmatter is YAML 1.2 Core schema: `yes`/`no`/`on`/`off` and dates are
+plain strings; quote a numeric-looking id (`id: "2024"`).
 
 ## Anatomy
 
@@ -42,7 +44,6 @@ optional.
 * Frontmatter fields: `type`, `title`, `id`, `uuid`, `tags`, `author`,
   `locale`, `meta`, plus per-type ones. Frontmatter always wins over anything
   written in the body.
-* Write the stem as `...` to get the default instruction for the type.
 * `[slug]` at the start of the first paragraph sets the id: `[Q1] What is ...`.
 * Never use H1 headings inside a question, and do not start a paragraph or a
   list item with `[` unless it is a real tag.
@@ -62,11 +63,15 @@ optional.
 | Several questions in one file        | `# Title` + `===` separators        | [exam](references/exam.md) |
 
 Set `type:` in the frontmatter only to disambiguate; otherwise let it be inferred.
+Every marker must belong to the inferred (or forced) type: `[x]` in a list with
+`[*]`, or `[ ]` in a true/false list, is a `foreign-choice-marker` error, never
+an unmarked choice.
 
 ## Feedback and comments
 
 Anywhere a choice or pattern is listed, indent `>` lines for student feedback
-and `!` lines for instructor-only comments:
+and `!` lines for instructor-only comments. Keep each kind in one block; do not
+interleave `>` and `!` lines:
 
 ```md
 * [ ] Rio de Janeiro
@@ -79,11 +84,16 @@ and `!` lines for instructor-only comments:
 Choice-based types (multiple choice, multiple selection, true/false, fill-in)
 take `grading` in the frontmatter:
 
-* `symmetric` (default) — wrong answers subtract, so guessing averages zero.
+* `inherit` (default) — take the exam's `grading`; `symmetric` outside an exam.
+* `symmetric` — wrong answers subtract, so guessing averages zero.
 * `partial` — credit per correct item, never negative.
 * `all-or-nothing` — everything right or zero.
 
 Short answer and numeric are always binary (1 or 0). Essay is always manual.
+
+`shuffle` works the same way: `inherit` (default) takes the exam's `shuffle`,
+which is `false` unless the exam says otherwise. A `null` value in any optional
+field (`weight:`, `title: ~`) is the same as leaving it out.
 
 ## Checklist
 

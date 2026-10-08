@@ -1,0 +1,5 @@
+# A `#` line after the first YAML key is an ordinary YAML comment, not the
+# comment string.
+id: ciclo-agua
+type: essay
+stem: Explique o ciclo da água.

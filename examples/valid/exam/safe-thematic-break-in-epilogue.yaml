@@ -1,0 +1,18 @@
+# A `***` thematic break in a question's epilogue inside an exam. `---`
+# would open the next block (exam.md, "Question and include blocks").
+id: geografia
+title: Geografia do Brasil
+type: exam
+questions:
+- stem: Qual é a capital do Brasil?
+  accept:
+  - Brasília
+  type: short-answer
+  epilogue: '***
+
+
+    Nota: leia com atenção.'
+- stem: Qual é o maior estado do Brasil?
+  accept:
+  - Amazonas
+  type: short-answer

@@ -1,0 +1,6 @@
+# `penalty` is `none`, `capped` or `full` (schema enum).
+type: exam
+id: biomes
+title: Biomes
+penalty: half
+questions: []

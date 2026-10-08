@@ -1,0 +1,8 @@
+# `domain` declared in the frontmatter of a Markdown source wins over the
+# `integer` the body would infer. The domain is decimal, so `decimalPlaces`
+# is inferred from the body: the value has none.
+type: numeric
+stem: Quantos estados tem o Brasil?
+answer: 26
+domain: decimal
+decimalPlaces: 0

@@ -1,0 +1,10 @@
+# An integer value with an absolute tolerance written as `1.0` is a `decimal`
+# question with one inferred place: the tolerance is spelled as a decimal,
+# whatever its value.
+type: numeric
+stem: Quantos planetas tem o Sistema Solar?
+answer: 8
+domain: decimal
+decimalPlaces: 1
+tolerance:
+  absolute: 1.0

@@ -1,0 +1,7 @@
+# A `tags` string with no comma is a list of one tag.
+id: ciclo-agua
+title: Ciclo da água
+type: essay
+tags:
+- agua
+stem: Explique o ciclo da água.

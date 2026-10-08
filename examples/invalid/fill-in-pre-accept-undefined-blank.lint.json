@@ -1,0 +1,10 @@
+[
+  {
+    "code": "undefined-blank",
+    "severity": "error",
+    "path": [
+      "preAccept",
+      "bioma"
+    ]
+  }
+]

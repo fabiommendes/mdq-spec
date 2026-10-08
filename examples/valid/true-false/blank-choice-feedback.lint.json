@@ -1,0 +1,20 @@
+[
+  {
+    "code": "blank-choice-feedback",
+    "severity": "warning",
+    "path": [
+      "choices",
+      0,
+      "feedback"
+    ]
+  },
+  {
+    "code": "blank-choice-comment",
+    "severity": "warning",
+    "path": [
+      "choices",
+      1,
+      "comment"
+    ]
+  }
+]

@@ -1,0 +1,6 @@
+# A unit is a `UNIT`: no `UNICODE_SPACE`, no parentheses or brackets
+# (numeric.md, "Unit conversion"). The schema pattern rejects the space.
+type: numeric
+stem: Quanto pesa um saco padrão de café?
+answer: 60
+unit: "k g"

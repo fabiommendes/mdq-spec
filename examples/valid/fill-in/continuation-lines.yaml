@@ -1,0 +1,16 @@
+# The patterns of a short-answer blank continue on the next lines like
+# the ones of a short-answer question.
+id: fill-in-continuation-lines
+title: Encontro das Águas
+type: fill-in
+stem: Near Manaus, the dark [^dark] meets the sandy-colored [^light].
+blanks:
+  - id: dark
+    type: short-answer
+    accept:
+      - pattern: Rio Negro
+        feedback: "Right: its water is dark because of dissolved organic matter."
+  - id: light
+    type: short-answer
+    accept:
+      - Rio Solimões

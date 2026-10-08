@@ -1,0 +1,5 @@
+# A `null` value (`id:` with nothing after it, `tags: ~`) is the same as an
+# absent field (base.md, "Frontmatter"): the question has no id and no tags.
+title: Ciclo da água
+type: essay
+stem: Explique o ciclo da água.

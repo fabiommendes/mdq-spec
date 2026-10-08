@@ -1,0 +1,10 @@
+[
+  {
+    "code": "schema-error",
+    "severity": "error",
+    "path": [
+      "tolerance",
+      "absolute"
+    ]
+  }
+]

@@ -1,0 +1,6 @@
+# patterns.md, "Regex": this construct is outside the MDQ regex subset, so
+# the pattern is `invalid-regex`. JSON Schema sees only a string.
+type: short-answer
+stem: Qual é a sigla do estado do Amazonas?
+accept:
+  - "/(?<=rio )negro/"

@@ -1,0 +1,10 @@
+# A choice `id` is a `SLUG` (grammar.md): letters, digits, `-` and `_`. A
+# space breaks the schema pattern.
+type: multiple-choice
+stem: Qual é a maior cidade do Brasil?
+choices:
+  - id: "são paulo"
+    text: São Paulo
+    score: 1
+  - id: rio
+    text: Rio de Janeiro

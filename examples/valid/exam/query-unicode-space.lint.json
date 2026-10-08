@@ -1,0 +1,11 @@
+[
+  {
+    "code": "nonstandard-include-query",
+    "severity": "warning",
+    "path": [
+      "questions",
+      0,
+      "include-all"
+    ]
+  }
+]

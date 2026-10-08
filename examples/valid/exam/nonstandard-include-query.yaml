@@ -8,6 +8,6 @@ instructions: Answer every question.
 questions:
 - include-all: recursion and draft
 - stem: Qual é a capital do Brasil?
-  oneOf:
+  accept:
   - Brasília
   type: short-answer

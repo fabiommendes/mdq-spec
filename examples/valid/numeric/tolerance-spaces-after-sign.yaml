@@ -1,0 +1,10 @@
+# Runs of spaces are allowed after the colon, around each `+-` and at the
+# end of the line.
+type: numeric
+stem: Qual é o valor de pi?
+answer: 3.14
+domain: decimal
+decimalPlaces: 2
+tolerance:
+  absolute: 0.1
+  relative: 0.05

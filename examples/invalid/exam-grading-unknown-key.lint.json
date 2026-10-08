@@ -1,0 +1,17 @@
+[
+  {
+    "code": "schema-error",
+    "severity": "error",
+    "path": [
+      "grading"
+    ]
+  },
+  {
+    "code": "schema-error",
+    "severity": "error",
+    "path": [
+      "grading",
+      "essay"
+    ]
+  }
+]

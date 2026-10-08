@@ -1,0 +1,13 @@
+# Plain H2 headings are allowed in the preamble and in the epilogue. Only an
+# H1, or a heading that starts with `[`, is forbidden (base.md, "Forbidden
+# elements"). The fields keep the heading markup.
+type: essay
+preamble: |-
+  ## Contexto
+
+  A água da Terra circula entre oceanos, atmosfera e continentes.
+stem: Explique o ciclo da água.
+epilogue: |-
+  ## Critérios
+
+  Cite evaporação, condensação e precipitação.

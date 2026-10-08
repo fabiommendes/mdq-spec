@@ -1,6 +1,7 @@
 ---
 id: sa-capital
 title: Capital of Brazil
+incorrectFeedback: Sorry, that is not the correct answer.
 ---
 
 What is the capital of Brazil?
@@ -15,5 +16,3 @@ What is the capital of Brazil?
   ! Bare strings are normalized, so "buenos aires" is caught too.
 * Rio de Janeiro
   > It used to be, but it has not been since 1960.
-* *
-  > Sorry, that is not the correct answer.

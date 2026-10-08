@@ -1,0 +1,6 @@
+# A declared domain MAY be wider than the values need: `decimal` fits the
+# integer answer `42`, so there is no `domain-mismatch`.
+type: numeric
+stem: Qual é a resposta para a vida, o universo e tudo mais?
+answer: 42
+domain: decimal

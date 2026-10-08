@@ -1,5 +1,5 @@
-# Zero correct choices is legal for multiple-selection (unlike
-# multiple-choice, which needs exactly one). An all-blank body is exactly
+# Zero correct choices is legal for multiple-selection, as it is for
+# multiple-choice (`multiple-choice-no-correct-choice` is only an info). An all-blank body is exactly
 # how that is written, so it infers as multiple-selection -- no `type` in
 # the frontmatter is needed.
 id: ms-none-correct
@@ -7,5 +7,8 @@ type: multiple-selection
 stem: Which of these numbers are prime?
 choices:
   - text: "1"
+    correct: false
   - text: "4"
+    correct: false
   - text: "9"
+    correct: false

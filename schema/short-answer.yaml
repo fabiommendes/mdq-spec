@@ -3,8 +3,7 @@
 title: Short answer question
 description: >-
   A question answered with a short piece of free text, graded by comparing
-  the response against a list of accepted answers or against a regular
-  expression. Extends the common question-base schema.
+  the response against a list of accepted patterns. Extends the common question-base schema.
 
 allOf:
   - "$ref": "./question-base.yaml"
@@ -13,33 +12,12 @@ allOf:
       type:
         const: short-answer
 
-      oneOf:
-        type: array
-        description: >-
-          The list of accepted responses; a response is correct if it
-          matches any entry. This is where the body's answer text is
-          stored -- either the single string written after
-          `[short-answer]:`, or the unordered list written below it.
-        items:
-          type: string
-          minLength: 1
-        minItems: 1
-        uniqueItems: true
-
-      regex:
-        type: string
-        description: >-
-          A regular expression matching every correct response. Matching
-          is a *full match*, so leading `^` and trailing `$` are
-          redundant. Set from the frontmatter, or from a body whose
-          answer text is delimited by `/`; the frontmatter wins.
-        minLength: 1
-
       accept:
         description: >-
           Patterns matching a correct response. The canonical form of the
           `[short-answer/accept]` block; a response is correct if it matches
-          any entry.
+          any entry. The content of a simple `[short-answer]` block is the
+          first entry.
         "$ref": "#/$defs/patternList"
 
       reject:
@@ -68,32 +46,19 @@ allOf:
       diacritics:
         "$ref": "#/$defs/diacritics"
 
-      openEnded:
-        type: boolean
+      unmatched:
+        "$ref": "#/$defs/unmatched"
+
+      incorrectFeedback:
+        type: string
         description: >-
-          If true, the question has no answer key and requires manual
-          grading. Inferred when the body declares no answer text.
-        default: false
+          Feedback for an incorrect response that no pattern gave feedback
+          to: a response that matches no pattern under `unmatched:
+          incorrect`, or one that matches a `reject` pattern with no
+          feedback. Inline markdown, like the feedback of a pattern.
 
     required:
       - type
-
-    # An open-ended question is graded by hand, so an answer key would
-    # have nothing to grade against. `preAccept`/`preReject` are not an
-    # answer key -- they validate a submission, never score it -- so they
-    # stay allowed here.
-    if:
-      properties:
-        openEnded:
-          const: true
-      required:
-        - openEnded
-    then:
-      properties:
-        oneOf: false
-        regex: false
-        accept: false
-        reject: false
 
 "$defs":
   diacritics:
@@ -104,9 +69,21 @@ allOf:
     description: >-
       How plain literals, the patterns compared inexactly, treat
       diacritics. `fold` strips them from both the pattern and the
-      response before comparing; `keep` preserves them. Regexes,
-      backtick-enclosed literals and the `*` wildcard are unaffected.
+      response before comparing; `keep` preserves them. Regexes and
+      backtick-enclosed literals are unaffected.
       See the `Diacritics` section of docs/question-types/short-answer.md.
+
+  unmatched:
+    enum:
+      - incorrect
+      - manual
+    description: >-
+      What becomes of a response that matches no `accept` and no `reject`
+      pattern. `incorrect` scores it 0; `manual` leaves it pending, for the
+      instructor to score by hand. There is no fixed default: when absent,
+      it is `incorrect` for a question (or blank) with at least one `accept`
+      pattern and `manual` for one with none. See the `Grading` section of
+      docs/question-types/short-answer.md.
 
   patternList:
     type: array
@@ -142,11 +119,13 @@ allOf:
     description: >-
       A regular expression when delimited by `/`, an exact literal when
       enclosed in backticks, and a plain literal compared inexactly
-      otherwise; a lone `*` is a wildcard matching every response.
+      otherwise.
     minLength: 1
     # Must carry at least one non-space character: a blank pattern
-    # matches no response worth naming.
-    pattern: "\\S"
+    # matches no response worth naming. A pattern that opens with a
+    # backtick is a complete backtick-enclosed span (short-answer.md,
+    # "Content"): there is no inexact literal starting with a backtick.
+    pattern: "^(?:`[^`\\n]+`[ \\t]*|[^`\\s][\\s\\S]*|\\s+[^`\\s][\\s\\S]*)$"
 
 
 # Rejects any key not defined by question-base.yaml or by the object

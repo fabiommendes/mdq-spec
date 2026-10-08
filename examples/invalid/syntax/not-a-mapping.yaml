@@ -1,0 +1,4 @@
+# The top level of a document is a mapping, never a list
+# (`invalid-document`).
+- type: essay
+  stem: Explique o ciclo da água.

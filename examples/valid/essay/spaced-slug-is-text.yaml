@@ -1,0 +1,4 @@
+# No whitespace is allowed inside a bracketed tag (base.md, "Bracketed tags"):
+# `[ Q1 ]` is not a slug and stays as text.
+type: essay
+stem: '[ Q1 ] Explique o ciclo da água.'

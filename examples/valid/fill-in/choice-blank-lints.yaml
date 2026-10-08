@@ -1,0 +1,24 @@
+# The choice lint codes on blanks, reported under `blanks[i].choices`:
+# `all-choices-correct` with `multiple-choice-many-correct-choices`,
+# `multiple-choice-no-correct-choice`, `blank-choice-feedback`,
+# `blank-choice-comment` and `visually-identical-choices`.
+id: fill-in-choice-lints
+title: Biomas
+type: fill-in
+stem: "O [^a] e o [^b] são biomas; o [^c] também."
+blanks:
+  - id: a
+    type: multiple-choice
+    choices:
+      - { id: x, text: Cerrado, score: 1 }
+      - { id: y, text: Pantanal, score: 1 }
+  - id: b
+    type: multiple-choice
+    choices:
+      - { id: x, text: Cerrado, feedback: "  " }
+      - { id: y, text: Pantanal, comment: "" }
+  - id: c
+    type: multiple-choice
+    choices:
+      - { id: x, text: "*Cerrado*", score: 1 }
+      - { id: y, text: "_Cerrado_" }

@@ -1,0 +1,19 @@
+# base.md, "Frontmatter": the frontmatter follows the YAML 1.2 Core schema.
+# `yes`, `no`, `on`, `off`, `1:30` and a date are plain strings; `010` is
+# the decimal 10; `0o10` is 8; `True` is a boolean; `~` is null.
+id: mc-yaml-core-schema
+title: YAML 1.2 Core schema
+type: multiple-choice
+tags: ["yes", "no", "on", "off", "1:30", "2026-03-10"]
+meta:
+  octal: 8
+  leading-zero: 10
+  hex: 31
+  flag: true
+  nothing: null
+stem: Qual destes valores YAML é um booleano?
+choices:
+  - text: "`true`"
+    score: 1
+  - text: "`yes`"
+  - text: "`on`"

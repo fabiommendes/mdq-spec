@@ -1,0 +1,18 @@
+# `locale: de` is not in the table of true-false.md, "Locale", so `T` and `F`
+# raise no locale warning. `W` is a WARNING-category letter and gets
+# `unlisted-true-false-marker` regardless of locale.
+id: tf-locale-de
+title: Aussagen über Brasilien
+type: true-false
+locale: de
+stem: Beurteilen Sie die Aussagen über Brasilien.
+choices:
+- text: Brasilien ist das größte Land Südamerikas.
+  correct: true
+  marker: T
+- text: Die Hauptstadt Brasiliens ist Rio de Janeiro.
+  correct: false
+  marker: F
+- text: Der Amazonas fließt durch Brasilien.
+  correct: true
+  marker: W

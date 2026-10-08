@@ -1,0 +1,7 @@
+# An exam `grading` is one of the three strategies, never `inherit`: there is
+# nothing above the exam to inherit from.
+type: exam
+id: biomes
+title: Biomes
+grading: inherit
+questions: []

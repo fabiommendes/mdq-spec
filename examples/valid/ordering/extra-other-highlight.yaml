@@ -1,0 +1,14 @@
+# The language of the `## [extra]` fence is ignored; `highlight` comes from
+# the `[ordering]` block.
+type: ordering
+stem: Ordene as linhas do programa.
+content: code
+highlight: python
+lines:
+- - 0
+  - n = int(input())
+- - 0
+  - print(n * 2)
+extra:
+- - 0
+  - print(n ** 2)

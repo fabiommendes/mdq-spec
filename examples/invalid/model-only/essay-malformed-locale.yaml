@@ -1,8 +1,9 @@
-# `locale` names a country ("brasil"), not a BCP 47 language tag. JSON
-# Schema's `locale` pattern accepts any short lowercase word, so this
-# passes the schema and is only rejected by the `malformed-locale` model
-# validator (base.md, "Additional Rules").
+# `locale` uses an underscore (`pt_BR`), which the BCP 47 grammar does not
+# allow: subtags are separated by `-`. JSON Schema has no `locale` pattern,
+# so this passes the schema and is only rejected by the `malformed-locale`
+# model validator (base.md, "Additional Rules"). Note that an unregistered
+# but well-formed tag such as `brasil` is accepted.
 type: essay
 stem: Descreva as características do bioma Cerrado.
 input: text
-locale: brasil
+locale: pt_BR

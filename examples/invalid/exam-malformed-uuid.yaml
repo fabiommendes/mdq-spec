@@ -1,0 +1,7 @@
+# exam.md, "Additional Rules": the base.md rules for `uuid` apply to the exam
+# frontmatter. `nope` fails the schema pattern and `malformed-uuid`.
+type: exam
+id: prova
+title: Prova
+uuid: nope
+questions: []

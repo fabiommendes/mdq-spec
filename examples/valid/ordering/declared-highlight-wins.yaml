@@ -1,0 +1,10 @@
+# A declared `highlight` wins over the fence's language.
+type: ordering
+stem: Ordene as linhas do programa.
+content: code
+highlight: python
+lines:
+- - 0
+  - n = int(input())
+- - 0
+  - print(n * 2)

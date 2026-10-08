@@ -1,0 +1,6 @@
+# A negative integer answer.
+type: numeric
+stem: Qual é a temperatura mais baixa já registrada no Brasil, em graus Celsius,
+  arredondada?
+answer: -14
+domain: integer

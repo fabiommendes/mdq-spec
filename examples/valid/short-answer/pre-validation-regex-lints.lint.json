@@ -1,0 +1,26 @@
+[
+  {
+    "code": "redundant-regex-anchor",
+    "severity": "info",
+    "path": [
+      "preAccept",
+      0
+    ]
+  },
+  {
+    "code": "redundant-regex-anchor",
+    "severity": "info",
+    "path": [
+      "preReject",
+      0
+    ]
+  },
+  {
+    "code": "ignored-regex-flag",
+    "severity": "info",
+    "path": [
+      "preReject",
+      0
+    ]
+  }
+]

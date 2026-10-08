@@ -1,0 +1,24 @@
+# Feedback (`>`) and instructor comments (`!`) on true-false statements, in
+# both orders.
+id: tf-feedback
+title: Fatos sobre a Caatinga
+type: true-false
+stem: Julgue as afirmações sobre a Caatinga.
+choices:
+- text: A Caatinga é um bioma exclusivamente brasileiro.
+  correct: true
+  marker: T
+  feedback: Nenhum outro país tem Caatinga.
+  comment: 'Comentário para outros professores: afirmação que mais surpreende.'
+- text: A Caatinga tem chuvas regulares o ano inteiro.
+  correct: false
+  marker: F
+  feedback: A Caatinga é semiárida, com chuvas concentradas em poucos meses.
+  comment: Confundem com a Mata Atlântica.
+- text: A Caatinga fica na região Sul.
+  correct: false
+  marker: F
+  feedback: Fica no Nordeste.
+- text: Plantas da Caatinga perdem as folhas na seca.
+  correct: true
+  marker: T

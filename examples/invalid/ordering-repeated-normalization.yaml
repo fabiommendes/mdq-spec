@@ -1,0 +1,8 @@
+# `normalizations` is a set: the schema rejects a repeated entry.
+type: ordering
+stem: Order the lines.
+content: code
+normalizations: [dedent, dedent]
+lines:
+  - [0, "a = 1"]
+  - [0, "b = 2"]

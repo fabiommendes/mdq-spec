@@ -1,0 +1,21 @@
+# Regex patterns in a short answer blank: in the bare form on the tag line,
+# and as items of the accept and reject lists.
+id: fill-in-regex-blank
+title: Datas da independência
+type: fill-in
+stem: O Brasil declarou independência em [^data] e a República foi proclamada em
+  [^ano].
+blanks:
+- id: data
+  type: short-answer
+  accept:
+  - /1822-0?9-0?7/
+- id: ano
+  type: short-answer
+  accept:
+  - pattern: /18(89|9[0-9])/
+    feedback: Qualquer ano da década certa é aceito.
+  - '`1889`'
+  reject:
+  - pattern: /1[0-7]\d\d/i
+    feedback: Século errado.

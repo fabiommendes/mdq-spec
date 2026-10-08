@@ -1,0 +1,13 @@
+# A fence with no language infers `content: code` and no `highlight`.
+type: ordering
+stem: Ordene as etapas do método científico.
+content: code
+lines:
+- - 0
+  - Observar um fenômeno
+- - 0
+  - Formular uma hipótese
+- - 0
+  - Testar a hipótese com um experimento
+- - 0
+  - Analisar os resultados

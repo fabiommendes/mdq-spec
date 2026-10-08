@@ -1,0 +1,4 @@
+# Whitespace outside the brackets is allowed: the `[essay]` tag may be
+# indented by up to three spaces and followed by spaces and tabs.
+type: essay
+stem: Explique o ciclo da água.

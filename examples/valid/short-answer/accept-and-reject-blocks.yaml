@@ -1,0 +1,14 @@
+# A `[short-answer]` content block together with a `[short-answer/reject]`
+# list. The reject list only attaches feedback to known wrong answers; every
+# other response is already incorrect, since the question has an `accept`.
+id: sa-accept-and-reject
+title: Capital do Brasil
+type: short-answer
+stem: Qual é a capital do Brasil?
+accept:
+- Brasília
+reject:
+- pattern: Rio de Janeiro
+  feedback: Foi a capital até 1960.
+- pattern: Salvador
+  feedback: Foi a primeira capital, até 1763.

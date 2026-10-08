@@ -131,9 +131,10 @@ form, but they MUST reject a response with a unit that is not compatible with
 the question's unit with grade zero.
 
 A value the question cannot represent is a malformed response, never a wrong
-answer: a decimal where `domain` is `integer`, a unit other than the declared
-one, or a precision that violates `decimalPlaces`. Implementations MAY reject
-or truncate the last of these, but MUST do so before grading.
+answer: a decimal where `domain` is `integer`, or a unit other than the
+declared one. A response with more decimal places than the question's
+`decimalPlaces` is not malformed: it is rounded before grading, see
+[numeric.md](question-types/numeric.md#decimal-places).
 
 
 ### Short answer and essay
@@ -183,8 +184,10 @@ carry none, so they are compared by content, and a line the question repeats is
 matched as many times as it appears. A response may hold a distractor from the
 question's `extra` lines -- that is a wrong answer, not a malformed response.
 
-The indentation level is always present, even when the question sets
-`indentation: fixed` or normalizes it away; it is simply ignored in those cases.
+The indentation level is always present. Under `indentation: fixed` it is the
+authored level, which the student cannot change, and it takes part in the
+comparison like the text; it is ignored only when the question normalizes it
+away with `dedent`, listed or implied by `indentation: lenient`.
 
 ## Skipping
 
@@ -226,9 +229,19 @@ denominator of the exam total, exactly as an explicit `null` would.
 A response with a key not present in the exam MUST be rejected as non-gradable
 and not silently ignored.
 
-Responses to manually-graded questions are accepted and ignored. An LMS should
-not have to strip essay answers out of its response map before grading, and
-those questions are reported as pending rather than scored.
+### Pending
+
+A response is **pending** when the question does not settle it: every response
+to an essay question, a response to a `manual` short answer question, a
+response that matches no pattern of a short answer question with
+`unmatched: manual`, an ordering response that matches no answer key under
+`unmatched: manual`, and a fill-in response with a pending blank. See
+[Automation](question-types/base.md#automation).
+
+A pending response has no score until the instructor supplies one, and shows
+no feedback. An exam-level scorer accepts it and reports it as pending rather
+than scored. An LMS should not have to strip essay answers out of its response
+map before grading.
 
 
 ## Errors
@@ -242,4 +255,4 @@ answered badly" -- a wrong answer is a score, not an error.
 | an exam still holds an unresolved `include`       | `UnresolvedInclude` |
 | a response the question cannot represent          | `ResponseError`     |
 | a key naming no question in the exam              | `ResponseError`     |
-| a score asked of an essay or `openEnded` question | `NotAutoGradable`   |
+| a score asked of a pending response                | `NotAutoGradable`   |

@@ -1,0 +1,15 @@
+# `penalty: full` floors nothing: a negative question score survives into
+# the exam total.
+id: biomas
+title: Biomas
+type: exam
+penalty: full
+questions:
+- stem: Qual é o maior bioma do Brasil?
+  choices:
+  - text: Amazônia
+    score: 1
+  - text: Cerrado
+    score: -0.5
+  - text: Pantanal
+  type: multiple-choice

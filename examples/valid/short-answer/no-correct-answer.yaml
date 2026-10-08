@@ -1,0 +1,11 @@
+# `unmatched: incorrect` with no `accept` pattern: every response is
+# incorrect, by a `reject` pattern or by `unmatched`. Nothing can be
+# correct, which is almost always a mistake.
+id: opiniao-cerrado
+title: Opinião sobre o Cerrado
+type: short-answer
+stem: Qual é o maior bioma do Brasil?
+unmatched: incorrect
+reject:
+  - pattern: Cerrado
+    feedback: O Cerrado é o segundo maior.

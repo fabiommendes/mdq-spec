@@ -1,0 +1,11 @@
+[
+  {
+    "code": "duplicate-blank-id",
+    "severity": "error",
+    "path": [
+      "blanks",
+      1,
+      "id"
+    ]
+  }
+]

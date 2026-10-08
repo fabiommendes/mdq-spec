@@ -1,0 +1,8 @@
+# The query grammar ignores only the Lark `WS`; a U+00A0 between two tags is
+# part of a `TAG`, and a `TAG` cannot hold a `UNICODE_SPACE`. The query does
+# not follow the recommended language, so it is `nonstandard-include-query`.
+type: exam
+id: consultas
+title: Consultas
+questions:
+  - include-all: "biome\u00a0AND savanna"

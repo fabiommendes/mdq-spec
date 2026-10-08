@@ -35,8 +35,8 @@ kept in the parsed document, so `V` and `T` stay distinguishable.
 
 | Field   | Values                                             |
 | ------- | -------------------------------------------------- |
-| shuffle | `true` to allow shuffling the statements           |
-| grading | `symmetric` (default), `partial`, `all-or-nothing` |
+| shuffle | `inherit` (default: the exam's value, else `false`), `true`, `false` |
+| grading | `inherit` (default: the exam's value, else `symmetric`), `symmetric`, `partial`, `all-or-nothing` |
 
 ### Grading
 

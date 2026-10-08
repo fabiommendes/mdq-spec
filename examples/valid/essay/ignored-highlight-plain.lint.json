@@ -1,0 +1,16 @@
+[
+  {
+    "code": "ignored-highlight",
+    "severity": "warning",
+    "path": [
+      "highlight"
+    ]
+  },
+  {
+    "code": "missing-answer-key",
+    "severity": "info",
+    "path": [
+      "answerKey"
+    ]
+  }
+]

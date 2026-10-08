@@ -1,0 +1,6 @@
+# A U+FEFF byte order mark at the start of the file is removed before
+# parsing (grammar.md); the frontmatter is still read.
+id: ciclo-agua
+title: Ciclo da água
+type: essay
+stem: Explique o ciclo da água.

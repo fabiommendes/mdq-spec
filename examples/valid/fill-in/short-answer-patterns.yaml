@@ -4,8 +4,8 @@
 # blank, which keeps the position where `planet` first appears.
 #
 # Backticks make `Jove` an exact literal; the bare `Jupiter` is matched
-# inexactly. The trailing `*` in the reject list is the wildcard that
-# supplies default feedback for everything else.
+# inexactly. A response that matches no pattern is incorrect: the blank
+# has an `accept` pattern, so its `unmatched` defaults to `incorrect`.
 id: fill-in-largest-planet
 title: Largest planet
 type: fill-in
@@ -22,8 +22,6 @@ blanks:
     reject:
       - pattern: Saturn
         feedback: Second largest, but not the largest.
-      - pattern: "*"
-        feedback: Not a planet of the Solar System.
   - id: feature
     type: multiple-choice
     choices:

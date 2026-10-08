@@ -1,0 +1,10 @@
+# `unknown-highlight-language` on an ordering question's fence.
+type: ordering
+stem: Ordene as linhas do programa.
+content: code
+highlight: brainfudge
+lines:
+- - 0
+  - n = int(input())
+- - 0
+  - print(n * 2)

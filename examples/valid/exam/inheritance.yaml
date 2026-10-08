@@ -1,0 +1,26 @@
+# `author` and `locale` are inherited by a question that does not declare
+# them, and the parsed document carries them on the question. A question
+# that declares its own keeps it. `tags` are not inherited.
+id: geografia
+title: Geografia
+type: exam
+author: Fábio Macêdo Mendes
+locale: pt-BR
+tags:
+- geografia
+- prova
+questions:
+- stem: Qual é a capital do Brasil?
+  accept:
+  - Brasília
+  type: short-answer
+  locale: pt-BR
+  author: Fábio Macêdo Mendes
+- author: Maria Souza
+  locale: en
+  tags:
+  - capitals
+  stem: What is the capital of Argentina?
+  accept:
+  - Buenos Aires
+  type: short-answer

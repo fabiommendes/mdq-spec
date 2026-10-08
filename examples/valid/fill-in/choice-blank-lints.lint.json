@@ -1,0 +1,62 @@
+[
+  {
+    "code": "multiple-choice-many-correct-choices",
+    "severity": "info",
+    "path": [
+      "blanks",
+      0,
+      "choices"
+    ]
+  },
+  {
+    "code": "all-choices-correct",
+    "severity": "info",
+    "path": [
+      "blanks",
+      0,
+      "choices"
+    ]
+  },
+  {
+    "code": "multiple-choice-no-correct-choice",
+    "severity": "info",
+    "path": [
+      "blanks",
+      1,
+      "choices"
+    ]
+  },
+  {
+    "code": "blank-choice-feedback",
+    "severity": "warning",
+    "path": [
+      "blanks",
+      1,
+      "choices",
+      0,
+      "feedback"
+    ]
+  },
+  {
+    "code": "blank-choice-comment",
+    "severity": "warning",
+    "path": [
+      "blanks",
+      1,
+      "choices",
+      1,
+      "comment"
+    ]
+  },
+  {
+    "code": "visually-identical-choices",
+    "severity": "info",
+    "path": [
+      "blanks",
+      2,
+      "choices",
+      1,
+      "text"
+    ]
+  }
+]

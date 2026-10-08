@@ -98,6 +98,7 @@ allOf:
 
       normalizations:
         type: array
+        uniqueItems: true
         description: >-
           Transformations applied to both sides of every comparison --
           the response and each answer key alike -- before they are

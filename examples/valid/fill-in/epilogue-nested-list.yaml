@@ -5,7 +5,7 @@ stem: >-
 blanks:
   - id: animal
     type: short-answer
-    oneOf:
+    accept:
       - capybara
 epilogue: |-
     * Common mistakes

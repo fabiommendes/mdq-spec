@@ -1,0 +1,19 @@
+# Whitespace inside the marker brackets is allowed: `[ T ]`, `[F ]`, `[ F]`,
+# and tabs.
+id: tf-spaced-markers
+title: Fatos sobre o Pampa
+type: true-false
+stem: Julgue as afirmações sobre o Pampa.
+choices:
+- text: O Pampa fica no Rio Grande do Sul.
+  correct: true
+  marker: T
+- text: O Pampa é uma floresta tropical.
+  correct: false
+  marker: F
+- text: O Pampa fica na região Norte.
+  correct: false
+  marker: F
+- text: O Pampa tem campos nativos.
+  correct: true
+  marker: T

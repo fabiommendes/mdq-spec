@@ -1,0 +1,5 @@
+# `stem` is defined but has no visible character. JSON Schema only requires a
+# string, so this passes the schema; `blank-text-field` is an error for
+# `stem` (base.md, "Additional Rules").
+type: essay
+stem: "   "

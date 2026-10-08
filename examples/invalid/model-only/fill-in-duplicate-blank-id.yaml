@@ -8,9 +8,9 @@ stem: >-
 blanks:
   - id: colonizador
     type: short-answer
-    oneOf:
+    accept:
       - Portugal
   - id: colonizador
     type: short-answer
-    oneOf:
+    accept:
       - Brasília

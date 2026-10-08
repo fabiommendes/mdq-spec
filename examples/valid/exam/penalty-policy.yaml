@@ -1,6 +1,6 @@
 # `penalty: capped` keeps each question's full, possibly negative, score
 # but floors the *exam total* at 0 -- see
-# docs/adr/0001-score-scale-and-exam-level-clamping.md. The wrong choice
+# docs/exam.md, "Penalty". The wrong choice
 # below carries a negative score (`-50%` -> -0.5); it survives into the
 # total under "capped" (or "full"), but would be floored to 0 before
 # weighting under the default "none".
@@ -19,6 +19,4 @@ questions:
       - text: Cerrado
         score: -0.5
       - text: Atlantic Forest
-        score: 0
       - text: Caatinga
-        score: 0

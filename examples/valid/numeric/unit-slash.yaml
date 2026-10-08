@@ -1,0 +1,7 @@
+# A unit may hold a slash: `km/h` is a `UNIT`.
+type: numeric
+stem: Qual é a velocidade máxima permitida em rodovias federais brasileiras para
+  automóveis?
+answer: 110
+unit: km/h
+domain: integer

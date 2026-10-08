@@ -1,0 +1,10 @@
+# An exact literal keeps the whitespace inside the backticks as written;
+# the trim at both ends happens when the response is compared
+# (patterns.md, "Exact literals").
+id: sa-exact-with-spaces
+title: Chamada de função
+type: short-answer
+stem: Escreva a chamada que testa se `x` é NaN em Python, com espaços ao redor do
+  ponto.
+accept:
+- '` math . isnan(x) `'

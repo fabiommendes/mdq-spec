@@ -1,0 +1,5 @@
+# `epilogue` is defined but has no visible character: `blank-text-field` as
+# an error, like `preamble` and `stem`.
+type: essay
+stem: Explique o ciclo da água.
+epilogue: "\t\n"

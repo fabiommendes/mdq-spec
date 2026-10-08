@@ -1,0 +1,26 @@
+# The exam `grading` as a mapping from question type to strategy.
+id: biomas
+title: Biomas
+type: exam
+grading:
+  true-false: partial
+  multiple-selection: all-or-nothing
+questions:
+- stem: Julgue as afirmações.
+  choices:
+  - text: O Pantanal é uma planície alagável.
+    correct: true
+    marker: V
+  - text: O Pantanal fica no litoral.
+    correct: false
+    marker: F
+  type: true-false
+- stem: Quais destes são biomas brasileiros?
+  choices:
+  - text: Cerrado
+    correct: true
+  - text: Pampa
+    correct: true
+  - text: Tundra
+    correct: false
+  type: multiple-selection

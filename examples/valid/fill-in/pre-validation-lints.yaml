@@ -1,0 +1,23 @@
+# A short-answer blank carries `preAccept`/`preReject` like a short-answer
+# question, and the same regex lints apply, at the blank's path.
+id: fill-in-pantanal
+title: Pantanal
+type: fill-in
+stem: >-
+  The Pantanal, the largest tropical wetland on Earth, lies mostly in the
+  state of [^state] and floods during the [^season] season.
+blanks:
+  - id: state
+    type: short-answer
+    preAccept:
+      - "/^[A-Za-z ]+$/"
+    accept:
+      - Mato Grosso do Sul
+      - Mato Grosso
+  - id: season
+    type: short-answer
+    preReject:
+      - "/\\d+/m"
+    accept:
+      - rainy
+      - wet

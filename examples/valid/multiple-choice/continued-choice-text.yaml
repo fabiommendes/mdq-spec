@@ -1,0 +1,14 @@
+# A choice's text may continue on the next lines, indented like the list
+# item. The lines join into one paragraph.
+id: mc-continued-text
+title: Teoria da evolução
+type: multiple-choice
+stem: Qual é a ideia central da seleção natural, como proposta por Darwin e Wallace?
+choices:
+- text: Indivíduos com características que favorecem a sobrevivência e a reprodução
+    deixam mais descendentes, e essas características se tornam mais comuns na população.
+  score: 1
+- text: Os organismos se esforçam para mudar durante a vida e transmitem as mudanças
+    adquiridas aos descendentes.
+  feedback: Essa é a herança de caracteres adquiridos, de Lamarck.
+- text: As espécies são fixas e não mudam ao longo do tempo.

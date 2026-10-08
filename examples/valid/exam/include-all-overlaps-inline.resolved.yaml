@@ -1,0 +1,10 @@
+# The inline question declares `amazonia-01`, the only match of the query, so
+# the `include-all` adds nothing: not an error, only `empty-include-all`.
+questions:
+- amazonia-01
+diagnostics:
+- code: empty-include-all
+  severity: warning
+  path:
+  - questions
+  - 0

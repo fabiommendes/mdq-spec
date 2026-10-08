@@ -1,0 +1,6 @@
+# `non-ascii-whitespace` skips the YAML frontmatter; the title keeps its
+# U+00A0.
+id: ciclo-agua
+title: Ciclo da água
+type: essay
+stem: Explique o ciclo da água.

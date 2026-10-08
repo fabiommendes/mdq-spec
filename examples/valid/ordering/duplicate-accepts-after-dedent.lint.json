@@ -1,0 +1,25 @@
+[
+  {
+    "code": "missing-id",
+    "severity": "info",
+    "path": [
+      "id"
+    ]
+  },
+  {
+    "code": "missing-title",
+    "severity": "info",
+    "path": [
+      "title"
+    ]
+  },
+  {
+    "code": "duplicate-alternative-lines",
+    "severity": "warning",
+    "path": [
+      "accept",
+      1,
+      "lines"
+    ]
+  }
+]

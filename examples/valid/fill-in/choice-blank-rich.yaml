@@ -1,0 +1,27 @@
+# A choice blank with everything a multiple-choice item may carry: a
+# percentage score, a negative score, a `[choice-id]`, feedback and comments
+# in both orders.
+id: fill-in-choice-rich
+title: Nascente do Amazonas
+type: fill-in
+stem: O rio Amazonas nasce [^local].
+blanks:
+- id: local
+  type: multiple-choice
+  choices:
+  - text: nos Andes peruanos
+    id: andes
+    score: 1
+    feedback: Exato.
+    comment: A nascente oficial fica no Nevado Mismi.
+  - text: no Peru
+    id: peru
+    score: 0.5
+    feedback: 'Aceito em parte: falta dizer onde no Peru.'
+    comment: Correto, mas vago.
+  - text: no Brasil
+    id: brasil
+    score: -0.25
+    feedback: O Amazonas entra no Brasil já como um grande rio.
+  - text: na Europa
+    id: europa

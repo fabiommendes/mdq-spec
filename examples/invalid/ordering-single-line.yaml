@@ -1,0 +1,5 @@
+# `lines` needs at least two entries (schema `minItems: 2`).
+type: ordering
+stem: Ordene as linhas do programa.
+lines:
+  - [0, "print(1)"]

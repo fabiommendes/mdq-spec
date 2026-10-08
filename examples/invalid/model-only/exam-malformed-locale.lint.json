@@ -1,0 +1,9 @@
+[
+  {
+    "code": "malformed-locale",
+    "severity": "error",
+    "path": [
+      "locale"
+    ]
+  }
+]

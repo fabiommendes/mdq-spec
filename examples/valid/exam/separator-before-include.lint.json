@@ -1,0 +1,28 @@
+[
+  {
+    "code": "separator-before-include",
+    "severity": "warning",
+    "path": [
+      "questions",
+      0
+    ]
+  },
+  {
+    "code": "missing-id",
+    "severity": "info",
+    "path": [
+      "questions",
+      1,
+      "id"
+    ]
+  },
+  {
+    "code": "missing-title",
+    "severity": "info",
+    "path": [
+      "questions",
+      1,
+      "title"
+    ]
+  }
+]

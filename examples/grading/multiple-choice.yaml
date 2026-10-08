@@ -63,15 +63,48 @@ questions:
       "b": 0.5
       "c": 0.5
       "d": -1.0
+  # The remaining rows of the table in multiple-choice.md, "Grading".
+  - name: "Two full-score choices"
+    choices: { a: 1.0, b: 1.0, c: null, d: null }
+    grading: "symmetric"
+    examples:
+      "a": 1.0
+      "b": 1.0
+      "c": -1.0
+      "d": -1.0
+  - name: "Three full-score choices, clamped below"
+    choices: { a: 1.0, b: 1.0, c: 1.0, d: null }
+    grading: "symmetric"
+    examples:
+      "a": 1.0
+      "b": 1.0
+      "c": 1.0
+      "d": -1.0
+  - name: "Negative score balances the correct one"
+    choices: { a: 1.0, b: -1.0, c: null, d: null }
+    grading: "symmetric"
+    examples:
+      "a": 1.0
+      "b": -1.0
+      "c": 0.0
+      "d": 0.0
+  - name: "Two negative scores, clamped above"
+    choices: { a: 1.0, b: -1.0, c: -1.0, d: null }
+    grading: "symmetric"
+    examples:
+      "a": 1.0
+      "b": -1.0
+      "c": -1.0
+      "d": 0.0
 
   # Partial grading
-  - name: "Single write choice"
+  - name: "Single right choice"
     choices: { a: 1.0, b: null, c: 0.5, d: null }
     grading: "partial"
     examples:
       "a": 1.0
       "b": 0.0
-      "c": 0.0
+      "c": 0.5
       "d": 0.0
   - name: "With partial score"
     choices: { a: 1.0, b: 0.5, c: null, d: null }
@@ -90,18 +123,19 @@ questions:
       "c": 0.0
       "d": 0.0
 
-  # All-or-nothing grading
-  - name: "Single write choice"
+  # All-or-nothing grading: a declared score always wins, so these are
+  # the partial cases with the strategy renamed.
+  - name: "Single right choice"
     choices: { a: 1.0, b: null, c: 0.5, d: null }
     grading: "all-or-nothing"
     examples:
       "a": 1.0
       "b": 0.0
-      "c": 0.0
+      "c": 0.5
       "d": 0.0
   - name: "With partial score"
     choices: { a: 1.0, b: 0.5, c: null, d: null }
-    grading: "partial"
+    grading: "all-or-nothing"
     examples:
       "a": 1.0
       "b": 0.5
@@ -109,7 +143,7 @@ questions:
       "d": 0.0
   - name: "With negative score"
     choices: { a: 1.0, b: -0.5, c: null, d: null }
-    grading: "partial"
+    grading: "all-or-nothing"
     examples:
       "a": 1.0
       "b": -0.5

@@ -10,5 +10,6 @@ choices:
   - text: Caatinga
     correct: true
   - text: Tundra
+    correct: false
   - text: Pantanal
     correct: true

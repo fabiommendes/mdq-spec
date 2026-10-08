@@ -1,0 +1,5 @@
+# An exam that is only its H1: valid, with `exam-without-questions`.
+id: draft-quiz
+title: Draft quiz
+type: exam
+questions: []

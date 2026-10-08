@@ -1,0 +1,7 @@
+# An `include` occupies one position; the inline question with no `id` is
+# the third: `q3`.
+questions:
+- recursion-01
+- factorial
+- q3
+diagnostics: []

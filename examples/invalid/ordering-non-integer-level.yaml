@@ -1,0 +1,6 @@
+# An indentation level is an integer, not a count of spaces or a fraction.
+type: ordering
+stem: Ordene as linhas do programa.
+lines:
+  - [0, "n = int(input())"]
+  - [1.5, "print(n * 2)"]

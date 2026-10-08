@@ -1,0 +1,11 @@
+[
+  {
+    "code": "missing-title",
+    "severity": "info",
+    "path": [
+      "questions",
+      1,
+      "title"
+    ]
+  }
+]

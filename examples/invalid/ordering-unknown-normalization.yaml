@@ -1,0 +1,7 @@
+# `normalizations` entries are `dedent` or `skip-blanks` (schema enum).
+type: ordering
+stem: Ordene as linhas do programa.
+normalizations: [trim]
+lines:
+  - [0, "n = int(input())"]
+  - [0, "print(n * 2)"]

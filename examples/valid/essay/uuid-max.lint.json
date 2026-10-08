@@ -1,0 +1,23 @@
+[
+  {
+    "code": "uuid-unknown-version",
+    "severity": "warning",
+    "path": [
+      "uuid"
+    ]
+  },
+  {
+    "code": "uuid-unknown-variant",
+    "severity": "warning",
+    "path": [
+      "uuid"
+    ]
+  },
+  {
+    "code": "missing-answer-key",
+    "severity": "info",
+    "path": [
+      "answerKey"
+    ]
+  }
+]

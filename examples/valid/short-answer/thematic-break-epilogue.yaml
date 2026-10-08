@@ -1,6 +1,6 @@
 type: short-answer
 stem: What is the capital of the Brazilian state of Amazonas?
-oneOf:
+accept:
   - Manaus
 epilogue: |-
     Manaus sits at the confluence of the Rio Negro and the Solimões.

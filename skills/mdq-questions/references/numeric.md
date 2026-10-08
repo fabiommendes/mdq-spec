@@ -29,7 +29,7 @@ as `kg`, `km/h`, `°C` or `µm`. Write it inside the tag, never after the value.
 | ------------- | --------------------------------------------------- |
 | unit          | Same as the `(unit)` in the tag                      |
 | domain        | `integer`, `decimal` or `fraction` — normally inferred |
-| decimalPlaces | Digits to show/accept; only meaningful for `decimal` |
+| decimalPlaces | Precision of the comparison: the response is rounded to it before the tolerance test. Inferred from the digits of the value and of the absolute tolerance; only meaningful for `decimal` |
 
 The domain is inferred from how the value and absolute tolerance are written
 (the wider of the two wins: integer < fraction < decimal). A percentage

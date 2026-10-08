@@ -1,0 +1,12 @@
+# A paragraph after the `[ordering]` block, with no sections, is the
+# epilogue.
+type: ordering
+stem: Ordene as linhas do programa.
+content: code
+highlight: python
+lines:
+- - 0
+  - n = int(input())
+- - 0
+  - print(n * 2)
+epilogue: 'Dica: a entrada vem antes da saída.'

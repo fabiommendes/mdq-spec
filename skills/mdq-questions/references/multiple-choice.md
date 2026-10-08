@@ -29,7 +29,9 @@ What is the capital of Brazil?
 * Avoid partial credit or multiple correct choices. The format allow it mostly
   for after the fact revisions of the choice score.
 * `choice-id` is optional but recommended: it lets responses reference the
-  choice by name instead of position. Must be url-safe and unique.
+  choice by name instead of position. Must be url-safe and unique. A choice
+  text that starts with a link, `[text](url)`, is not an id: `(` after the
+  bracket marks a link.
 * Feedback (`>`) and comments (`!`) may span several lines; each line keeps its
   prefix. Both optional.
 
@@ -37,8 +39,8 @@ What is the capital of Brazil?
 
 | Field   | Values                                             |
 | ------- | -------------------------------------------------- |
-| shuffle | `true` to allow shuffling the choices              |
-| grading | `symmetric` (default), `partial`, `all-or-nothing` |
+| shuffle | `inherit` (default: the exam's value, else `false`), `true`, `false` |
+| grading | `inherit` (default: the exam's value, else `symmetric`), `symmetric`, `partial`, `all-or-nothing` |
 
 Unless explicitly requested, avoid setting those parameters. If left unset, the
 instructor can define exam-wide values.
@@ -46,6 +48,9 @@ instructor can define exam-wide values.
 ### Grading
 
 An explicit percentage on the picked choice always wins. Otherwise:
+
+`[ ]` omits the score; the grading strategy decides its value. `[0%]` is an
+explicit zero and always scores 0.
 
 * `partial` / `all-or-nothing`: unmarked choices score 0.
 * `symmetric`: unmarked choices get a negative score so that guessing at random

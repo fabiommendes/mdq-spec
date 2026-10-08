@@ -1,0 +1,10 @@
+# A `start` with `Z` is kept in UTC, written as the `+00:00` offset.
+id: prova
+title: Prova
+type: exam
+start: '2026-03-10T09:00:00+00:00'
+questions:
+- stem: Qual é a capital do Brasil?
+  accept:
+  - Brasília
+  type: short-answer

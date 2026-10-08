@@ -1,0 +1,18 @@
+# A `[choice-id]` right after the value gives the choice its `id`.
+id: ms-choice-ids
+title: Estados da região Norte
+type: multiple-selection
+stem: Quais destes estados ficam na região Norte do Brasil?
+choices:
+- text: Amazonas
+  id: amazonas
+  correct: true
+- text: Pará
+  id: para
+  correct: true
+- text: Maranhão
+  id: maranhao
+  correct: false
+  feedback: O Maranhão fica na região Nordeste.
+- text: Goiás
+  correct: false

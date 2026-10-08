@@ -1,0 +1,9 @@
+# The frontmatter `unit` wins over the one in the tag (base.md: the
+# frontmatter takes precedence).
+type: numeric
+stem: Quanto pesa um saco padrão de café?
+answer: 60
+domain: integer
+unit: kg
+tolerance:
+  absolute: 1.0

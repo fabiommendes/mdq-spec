@@ -1,0 +1,17 @@
+# base.md, "Frontmatter": a `null` value in any optional field is the same
+# as an absent field. `title:`, `author: ~`, `weight: null`, `shuffle: null`
+# and `grading: null` all vanish, and `weight` takes its default of 1;
+# `shuffle` and `grading` resolve as `inherit`.
+id: mc-null-fields
+type: multiple-choice
+stem: Which Brazilian state has the longest coastline?
+choices:
+  - id: ba
+    text: Bahia
+    score: 1
+  - id: ma
+    text: Maranhão
+  - id: rj
+    text: Rio de Janeiro
+  - id: sc
+    text: Santa Catarina

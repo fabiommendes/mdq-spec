@@ -65,6 +65,7 @@ Exams accept the following arguments in the frontmatter
 | meta        | object                     | Mapping of strings to arbitrary JSON.                                         |
 | penalty     | "none", "capped" or "full" | The exam's clamping policy. Defaults to "none".[^5]                           |
 | grading     | grading                    | The grading strategy to use for the exam. Defaults to "symmetric".[^6]        |
+| shuffle     | boolean                    | Whether the choices of the questions can be shuffled. Defaults to false.[^6]  |
 | start       | string                     | The start time of the exam (e.g., "2024-06-01T09:00:00").[^7]                 |
 | duration    | string                     | The duration of the exam (e.g., "90m" for 90 minutes).[^8]                    |
 
@@ -87,8 +88,9 @@ frontmatter takes precedence, consistently with the rule for questions.
 As for a question, a mapping MUST NOT repeat a key, in the exam frontmatter
 and in the frontmatter of every block (`yaml-syntax-error`). A value keeps its
 YAML type and is never converted: `id`, and the `include` and `include-all` of
-a block, MUST be YAML strings (`id: "2024"`, not `id: 2024`; `include: "yes"`,
-not `include: yes`).
+a block, MUST be YAML strings (`id: "2024"`, not `id: 2024`; `include-all: "7"`,
+not `include-all: 7`). See [Frontmatter](question-types/base.md#frontmatter)
+for the YAML schema.
 
 
 ## The title
@@ -131,11 +133,38 @@ preceded by a separator, since its `---` lines already mark where it starts.
 This rule helps distinguish between the instructions and the first question,
 and between the epilogue of a question and the next one.
 
+The `---` line that opens a frontmatter or include block MUST also be preceded
+by a blank line, unless it is the first line of the file or follows a `===`
+separator. MDQ is a subset of CommonMark, and CommonMark reads a `---` (or
+`===`) line right after a paragraph as the underline of a setext heading, not
+as a block boundary. The block is then swallowed into the text before it:
+
+```md
+Read every question carefully.
+---
+id: q1
+---
+```
+
+Here the instructions become the heading "Read every question carefully."
+followed by `id: q1` as text, and the exam has no question. Implementations
+SHOULD warn about a setext heading in the instructions or in a question of an
+exam (`setext-heading`).
+
 Inside an exam, the epilogue of a question MUST NOT use `---` as a thematic
 break. Use `***` or `___` instead. After the body of a question, a `---` line
 starts the frontmatter of the next block, so a thematic break followed by text
 that YAML can read as a mapping (like `Nota: leia com atenção.`) would start a
 new question.
+
+Elsewhere in an exam, a `---` line after a blank line is a thematic break, as
+in CommonMark. But two such lines in a row are read as a frontmatter or include
+block whatever lies between them: when that content is not valid YAML, the
+exam fails with `yaml-syntax-error` instead of reading it as text. A thematic
+break written with `-` is therefore unsafe in any document that may end up
+inside an exam. Implementations SHOULD warn about one (`unsafe-thematic-break`)
+and authors SHOULD write `***` or `___`, which are plain thematic breaks in
+every position.
 
 An include block holds exactly one of the two forms below. No other field is
 allowed.
@@ -226,7 +255,9 @@ resolves, the derived id of an inline question after it is not stable. Such a
 question SHOULD declare its own `id`.
 
 An included question already has an identity of its own, so it is never
-renamed by this rule.
+renamed by this rule. A question in the bank that declares no `id` takes the
+id the bank found it by, whether it came in through `include` or
+`include-all`.
 
 Question ids MUST be unique within the exam. The rule applies after includes
 resolve, and accounts for the derived id a question with no declared `id`
@@ -255,9 +286,17 @@ does not declare them itself:
 | author | yes       | The exam author is the author of its questions.   |
 | tags   | no        | Tags classify a question individually.            |
 
-A question that declares either field keeps its own value. No other field is
-inherited: `title`, `description`, `id`, `uuid`, `course`, and `meta` belong to
-whichever document declares them.
+A question that declares either field keeps its own value. The parsed
+document carries the inherited value on each question, as if the question had
+declared it; the exam keeps its own copy too.
+
+`grading` and `shuffle` are inherited in a different way: the question field
+takes the value `"inherit"`, which is its default, and then the exam's value
+applies. A question outside an exam resolves `"inherit"` to `"symmetric"`
+for `grading` and to `false` for `shuffle`. See [Grading](#grading) below.
+
+No other field is inherited: `title`, `description`, `id`, `uuid`, `course`,
+and `meta` belong to whichever document declares them.
 
 
 ## Penalty
@@ -272,10 +311,14 @@ score at 0 before weighting it into the total. `"capped"` keeps the full,
 possibly negative, question values, but floors the exam total at 0. `"full"`
 floors nothing, at either level.
 
-Under the default `"none"`, a multiple-selection question's `"symmetric"` and
-`"partial"` grading strategies produce identical exam totals, since the exam
-floors each question at 0 regardless of which one produced it. The two only
-diverge once the exam sets `"capped"` or `"full"`.
+The floor does not make the grading strategies agree. For a
+multiple-selection question, `"symmetric"` is `2 * partial - 1`, so the two
+differ whenever the score is positive: the markings `[T, F, _, _]` of the
+example in [multiple selection](question-types/multiple-selection.md#grading)
+score 0.75 under `"partial"` and 0.5 under `"symmetric"`, with any `penalty`.
+Under `"none"` the floor only removes the negative part of a `"symmetric"`
+score, so `[F, T, _, _]` scores 0.25 under `"partial"` and 0 under
+`"symmetric"`.
 
 A question scored outside an exam -- from a question bank, say, with no exam
 around it -- returns its raw value with no policy applied at all, since there
@@ -284,11 +327,11 @@ is no exam to apply one.
 ## Grading
 
 The optional `grading` field in the exam frontmatter sets the grading strategy
-for all questions in the exam that do not declare their own. It accepts the same
-values as the `grading` field in the question frontmatter: `"partial"`,
-`"all-or-nothing"`, or `"symmetric"`, but it can also be a mapping of question
-types to grading strategies, so that each question type can be graded
-differently.
+for all questions in the exam whose `grading` is `"inherit"`, the default. It
+accepts the three strategies of the `grading` field of a question, `"partial"`,
+`"all-or-nothing"` or `"symmetric"`, but not `"inherit"`. It can also be a
+mapping of question types to grading strategies, so that each question type can
+be graded differently.
 
 The mapping takes the shape:
 
@@ -302,13 +345,49 @@ grading:
 
 All keys are optional and missing keys are treated as `"symmetric"`. The value
 for each key is one of the three grading strategies. The exam's `grading` field
-is ignored if the question declares its own.
+is ignored if the question declares a strategy of its own.
+
+The optional `shuffle` field works the same way for the `shuffle` field of the
+questions: a question with `shuffle: "inherit"` (the default) takes the exam's
+value, and the exam's value defaults to `false`.
+
+## Exam score
+
+The exam score is the weighted mean of its question scores:
+
+```
+score = Σ wᵢ · pᵢ / Σ wᵢ
+```
+
+where `wᵢ` is the `weight` of question `i` (1 by default, see
+[base.md](question-types/base.md#frontmatter)) and `pᵢ` its score after the
+per-question step of [penalty](#penalty): `max(0, sᵢ)` under `"none"`, the raw
+`sᵢ` under `"capped"` and `"full"`. Under `"capped"` the result is then floored
+at 0. The score is in [0, 1] under `"none"` and `"capped"`, and in [-1, 1]
+under `"full"`.
+
+A question with no response, or with the response `null`, is skipped: it
+scores 0 and keeps its weight in the denominator (see
+[responses.md](responses.md#skipping)). When the total weight is 0, because
+every question has `weight: 0` or the exam has no question, the score is 0.
+
+A [pending response](responses.md#pending) leaves the exam score pending: the
+exam has no score until the instructor settles every pending question. An
+implementation reports which questions are pending, and MAY report a
+provisional score, computed by the same formula over the settled questions
+only, with their weights alone. A provisional score MUST be labelled as such.
+
+An exam-level scorer reports more than the number: the score of each question,
+the pending and the skipped questions, the total weight and the penalty
+applied, so that a host system can show the breakdown or finish the grading.
 
 ## Duration and Start Time
 
 The `start` and `duration` fields in the frontmatter define when the exam begins
 and how long it lasts. The `start` field must be a valid ISO 8601 date or
-date-time string. If not timezone-aware, it is assumed to be in the local time.
+date-time string; the date and the time MAY be separated by a space instead of
+`T`, as RFC 3339 allows, so `start: 2026-03-10 09:00:00-03:00` needs no quotes.
+If not timezone-aware, it is assumed to be in the local time.
 
 The `duration` field can use ISO 8601 durations (e.g., `P1DT2H30M`). Only
 fixed-length units are allowed -- weeks, days, hours, minutes and seconds --
@@ -320,22 +399,33 @@ component must be present, and the duration must be positive.
 The exact grammar is shown below.
 
 ```lark
-duration: iso_duration | hh_mm | xd_yh_zm
-iso_duration: "P" (INT "W")? (INT "D")? ("T" (INT "H")? (INT "M")? (SECONDS "S")?)?
-hh_mm: /[0-9]{1,2}/ ":" /[0-5][0-9]/
-xd_yh_zm: (INT "d")? " "* (INT "h")? " "* (INT "m")?
-INT: /[0-9]+/
-SECONDS: /[0-9]+([.][0-9]+)?/
+duration     : iso_duration | hh_mm | xd_yh_zm
+iso_duration : "P" date_part ("T" time_part)?
+             | "PT" time_part
+date_part    : INT "W" (INT "D")?
+             | INT "D"
+time_part    : INT "H" (INT "M")? (SECONDS "S")?
+             | INT "M" (SECONDS "S")?
+             | SECONDS "S"
+hh_mm        : /[0-9]{1,2}/ ":" /[0-5][0-9]/
+xd_yh_zm     : INT "d" (ws? INT "h")? (ws? INT "m")?
+             | INT "h" (ws? INT "m")?
+             | INT "m"
+INT          : /[0-9]+/
+SECONDS      : /[0-9]+([.][0-9]+)?/
 ```
 
-MDQ reads `1:30` as the string `"1:30"`, not as the YAML 1.1 base-60 integer
-`90`, so `HH:MM` needs no quotes.
+The rule `ws` is defined in [Common grammar rules](references/grammar.md).
+
+In the YAML 1.2 Core schema MDQ uses, `1:30` is the string `"1:30"`, not the
+YAML 1.1 base-60 integer `90`, so `HH:MM` needs no quotes.
 
 In the parsed document, both fields are normalized to a canonical ISO 8601
-form. `start` keeps its UTC offset, if any (`2026-03-10T09:00:00-03:00`).
-`duration` carries each component into the largest unit that holds it and
-omits zero components: `90m`, `1:30` and `PT90M` all become `PT1H30M`, and
-`24h` becomes `P1D`.
+form. `start` keeps its UTC offset, if any (`2026-03-10T09:00:00-03:00`), and
+a `start` with a date only stays a date (`2026-03-10`). `duration` carries each
+component into the largest unit that holds it, omits zero components, and
+never uses weeks: `90m`, `1:30` and `PT90M` all become `PT1H30M`, `24h`
+becomes `P1D`, and `P1W` becomes `P7D`.
 
 ## Empty exams
 
@@ -355,6 +445,8 @@ exam frontmatter.
 | duration       | critical | must be positive                                             |
 | epilogue       | critical | must not use `---` as a thematic break inside an exam        |
 | questions      | warning  | should contain at least one question[^10]                    |
+| instructions, questions[].{preamble,stem,epilogue} | warning | should not contain a setext heading, see [Questions](#questions) |
+| instructions, questions[].{preamble,stem,epilogue} | warning | should not write a thematic break with `-`, see [Questions](#questions) |
 | include-all    | warning  | should add at least one question when it resolves            |
 | questions[].id | warning  | should be declared on an inline question after `include-all` |
 | questions[]    | warning  | an include block should not be preceded by `===`             |

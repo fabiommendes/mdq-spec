@@ -1,0 +1,9 @@
+[
+  {
+    "code": "no-correct-answer",
+    "severity": "warning",
+    "path": [
+      "unmatched"
+    ]
+  }
+]

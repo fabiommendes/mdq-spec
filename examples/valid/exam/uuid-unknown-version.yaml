@@ -1,0 +1,7 @@
+# `uuid-unknown-version` on the exam frontmatter: well-formed, but the
+# version nibble is 0.
+type: exam
+id: prova
+title: Prova
+uuid: 3b1f0c52-9d7a-0f16-8b2e-1c0a7d6e4f93
+questions: []

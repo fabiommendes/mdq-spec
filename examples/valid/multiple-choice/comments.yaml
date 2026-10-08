@@ -1,0 +1,20 @@
+# Instructor comments (`!`) and student feedback (`>`) under a choice, in
+# both orders the grammar allows. Consecutive lines of one kind are joined
+# into one string, like the comment string of the frontmatter.
+id: mc-comments
+title: Descoberta do méson pi
+type: multiple-choice
+stem: Qual físico brasileiro participou da descoberta experimental do méson pi em
+  1947?
+choices:
+- text: César Lattes
+  score: 1
+  feedback: Lattes trabalhou com Powell e Occhialini em Bristol.
+  comment: 'Feedback first, then comments: the order the grammar lists first. A
+    second comment line, for the instructor only.'
+- text: Mário Schenberg
+  feedback: Schenberg trabalhou em astrofísica, com o processo Urca.
+  comment: 'Comments first, then feedback: the other order the grammar allows.'
+- text: José Leite Lopes
+  comment: A comment with no feedback at all.
+- text: Jayme Tiomno

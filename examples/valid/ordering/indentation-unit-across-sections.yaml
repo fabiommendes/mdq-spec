@@ -1,0 +1,21 @@
+# The indentation unit is the GCD over every block: the `[ordering]` lines
+# use 4 and 8 spaces, the `## [extra]` line 2, so the unit is 2 and the main
+# lines sit at levels 2 and 4.
+type: ordering
+stem: Ordene as linhas para contar os números pares de `valores`.
+content: code
+highlight: python
+lines:
+- - 0
+  - pares = 0
+- - 0
+  - 'for x in valores:'
+- - 2
+  - 'if x % 2 == 0:'
+- - 4
+  - pares += 1
+- - 0
+  - print(pares)
+extra:
+- - 1
+  - pares -= 1

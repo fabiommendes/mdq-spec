@@ -1,0 +1,7 @@
+# The max UUID is well-formed; its version nibble `f` is not a standard
+# version, and its variant nibble `f` is reserved.
+id: ciclo-agua
+title: Ciclo da água
+uuid: ffffffff-ffff-ffff-ffff-ffffffffffff
+type: essay
+stem: Explique o ciclo da água.

@@ -1,0 +1,5 @@
+# A fraction is kept as written, not reduced: `6/8` stays `"6/8"`.
+type: numeric
+stem: Qual fração de 8 é 6?
+answer: 6/8
+domain: fraction

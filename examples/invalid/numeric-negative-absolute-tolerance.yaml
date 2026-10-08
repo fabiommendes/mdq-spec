@@ -1,0 +1,6 @@
+# A tolerance is a distance, so the schema requires `minimum: 0`.
+type: numeric
+stem: Quantos estados tem o Brasil?
+answer: 26
+tolerance:
+  absolute: -1

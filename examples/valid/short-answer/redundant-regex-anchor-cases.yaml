@@ -1,0 +1,14 @@
+# `redundant-regex-anchor` reports an anchor that is already implicit: `^`
+# without `f` or `b`, and `$` without `f`. Under `f` both anchors are
+# meaningful, under `b` the leading `^` is still redundant but `$` is not.
+# Entries 0, 1 and 4 are reported; 2 and 3 are not.
+id: sa-anchor-cases
+title: Sigla do Amazonas
+type: short-answer
+stem: Qual é a sigla do estado do Amazonas?
+accept:
+  - "/^AM/"
+  - "/AM$/"
+  - "/^AM/f"
+  - "/AM$/b"
+  - "/^AM/b"

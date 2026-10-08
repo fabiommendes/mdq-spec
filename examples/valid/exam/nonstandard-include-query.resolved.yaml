@@ -1,0 +1,9 @@
+# A query outside the recommended language adds no question.
+questions:
+- q1
+diagnostics:
+- code: empty-include-all
+  severity: warning
+  path:
+  - questions
+  - 0

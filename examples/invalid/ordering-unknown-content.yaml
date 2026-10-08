@@ -1,0 +1,7 @@
+# `content` is `code` or `text` (schema enum).
+type: ordering
+stem: Ordene as linhas do programa.
+content: html
+lines:
+  - [0, "n = int(input())"]
+  - [0, "print(n * 2)"]

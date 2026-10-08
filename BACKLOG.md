@@ -11,6 +11,10 @@
 
 ## Large tasks
 
+* [ ] mdq-py: accept the `{value, unit}` numeric response of responses.md
+  (valid when the unit matches the question's, malformed when the question
+  declares none). Unit conversion stays optional.
+
 Those need discussion and design.
 
 * [ ] Line numbers in diagnostics. The parser records a `path -> line` source
@@ -66,24 +70,41 @@ Those need discussion and design.
   backlog.
 * [x] Automate the job of creating a jsonschema with all the models.
 * [ ] Find opportunities to remove redundant tests and fixtures in the test suite.
-* [ ] Create the test function that reads examples/grading/*.yaml files and run the corresponding tests
-* [ ] Create the examples/grading/*.yaml files for all question types with examples that cover all corner cases
+* [x] Create the test function that reads examples/grading/*.yaml files and run the corresponding tests
+* [ ] `examples/grading/`: add tables for ordering, fill-in, and the exam
+  penalty policies (`none`, `capped`, `full`), including a `null` response
+  against `{}` (responses.md, "Skipping").
 
 ## Specification
 
 * [ ] Write the section "AST representation" in the spec document for all question types.
-* [ ] Define the whitespace of answer matching without `\s`. The short-answer
-  normalization (`short-answer.md`, `/\s+/`), the trim of exact answers and
-  responses, and the `\S` "visible character" patterns in `schema/essay.yaml`
-  and `schema/short-answer.yaml` give different results in Python and
-  JavaScript (U+FEFF, U+0085, U+001C to U+001F). Candidate: `UNICODE_SPACE`
-  from `docs/references/grammar.md`.
-* [ ] A choice value that the grammar does not allow (`[?]`, `[#]`, `[ ]`
-  with U+00A0) is read as an unmarked choice. Decide if it is an error.
-* [ ] The example corpus cannot pin a code that only the Markdown parser
-  reports (`non-ascii-whitespace`, `unknown-frontmatter-key`), because the
-  `.mdq.md` and `.yaml` pair share one `.lint.json`. Add a lint file for
-  the Markdown side only, so mdq-js can reuse the cases.
+* [ ] The `\S` "visible character" patterns in `schema/essay.yaml` and
+  `schema/short-answer.yaml` give different results in Python and JavaScript
+  (U+FEFF, U+0085, U+001C to U+001F). Candidate: `UNICODE_SPACE` from
+  `docs/references/grammar.md`. The answer matching itself is done
+  (patterns.md, "Inexact literals" and "Exact literals").
+* [ ] `incorrectFeedback` for ordering and numeric questions. Ordering has
+  `unmatched` but no feedback for a response that matches no answer key;
+  numeric has no feedback at all. Same semantics as in short-answer.
+* [ ] `automation: semi-automatic` for essay questions: reject a response
+  that is invalid by its form (length, language, missing sections) before
+  the instructor reads it.
+* [ ] Explore pre-validation for numeric questions and blanks. The response
+  is a number or a rational string (`responses.md`), so `preAccept` and
+  `preReject` patterns would need a textual form to match (for example, to
+  refuse a decimal comma), or a range check instead of patterns.
+* [ ] Cloze over a table or a list in fill-in questions ("fill in the
+  capital of each state"). Today a blank may appear only in a plain text
+  run of the stem paragraph (fill-in.md, "Where blanks may appear"). Needs
+  a stem that holds a block, a render for an input inside a cell or item,
+  and the `misplaced-blank` rule relaxed.
+
+
+* [ ] Block elements inside a choice (fenced code, nested list) in
+  multiple-choice, multiple-selection and true/false. The grammar accepts
+  inline markdown only and the parser folds the item into one line, so a
+  fenced block loses its line breaks. The example
+  `multiple-choice/fenced-code-choice` was removed until this is designed.
 
 
 ## Uncategorized issues

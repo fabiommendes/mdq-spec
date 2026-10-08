@@ -1,0 +1,8 @@
+# An alternative must have at least one line (schema `minItems: 1`).
+type: ordering
+stem: Ordene as linhas do programa.
+lines:
+  - [0, "n = int(input())"]
+  - [0, "print(n * 2)"]
+accept:
+  - lines: []

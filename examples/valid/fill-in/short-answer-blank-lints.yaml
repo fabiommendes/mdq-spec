@@ -1,0 +1,18 @@
+# The short-answer lint codes on blanks, reported under `blanks[i]`:
+# `ignored-regex-flag`, `redundant-regex-anchor` and `no-correct-answer`.
+# `unmatched` is a field of the question and applies to every short answer
+# blank; blank `b` has no `accept`, so nothing can be correct in it.
+id: fill-in-short-answer-lints
+title: Capitais
+type: fill-in
+unmatched: incorrect
+stem: "A capital do Brasil é [^a] e a de Alagoas é [^b]."
+blanks:
+  - id: a
+    type: short-answer
+    accept:
+      - "/^Bras[íi]lia/g"
+  - id: b
+    type: short-answer
+    reject:
+      - Maceio

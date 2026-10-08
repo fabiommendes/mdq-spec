@@ -1,0 +1,7 @@
+# `max` is at least 1 (schema `minimum: 1`).
+type: exam
+id: biomes
+title: Biomes
+questions:
+  - include-all: biome
+    max: 0

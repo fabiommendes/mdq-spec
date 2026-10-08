@@ -1,0 +1,5 @@
+# An explicit `+` sign is allowed and adds nothing: the answer is `26`.
+type: numeric
+stem: Quantos estados tem o Brasil?
+answer: 26
+domain: integer

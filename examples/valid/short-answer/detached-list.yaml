@@ -1,0 +1,10 @@
+# A list after a blank line is NOT the pattern list: the block has no
+# pattern, so the question has no `accept` list and the list is the
+# epilogue. The `detached-answer-list` warning flags the likely mistake.
+id: sa-detached-list
+title: Water cycle
+type: short-answer
+stem: Describe the water cycle in the Amazon basin.
+epilogue: |-
+  * Mention evaporation from the forest canopy.
+  * Mention the "flying rivers" that carry moisture south.

@@ -1,0 +1,22 @@
+# `accept-repeats-answer-key` compares after every normalization: the
+# accept section equals the `[ordering]` block once `skip-blanks` drops the
+# blank line.
+type: ordering
+stem: Ordene as linhas do programa.
+content: code
+highlight: python
+normalizations:
+- skip-blanks
+lines:
+- - 0
+  - n = int(input())
+- - 0
+  - ''
+- - 0
+  - print(n * 2)
+accept:
+- lines:
+  - - 0
+    - n = int(input())
+  - - 0
+    - print(n * 2)

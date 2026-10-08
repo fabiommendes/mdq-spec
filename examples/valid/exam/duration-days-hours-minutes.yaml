@@ -1,0 +1,10 @@
+# The `Xd Yh Zm` form, normalized to ISO 8601.
+id: prova
+title: Prova
+type: exam
+duration: P1DT2H30M
+questions:
+- stem: Qual é a capital do Brasil?
+  accept:
+  - Brasília
+  type: short-answer

@@ -1,0 +1,9 @@
+# Two `include` blocks reference the same question, so two positions would
+# hold the same id (exam.md, "Question ids"). JSON Schema cannot express
+# "unique by field".
+type: exam
+id: biomes
+title: Biomes
+questions:
+  - include: cerrado-01
+  - include: cerrado-01

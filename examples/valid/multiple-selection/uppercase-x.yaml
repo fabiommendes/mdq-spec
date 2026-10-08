@@ -1,0 +1,17 @@
+# The tick is `x` or `X`, with optional whitespace inside the brackets. A
+# blank value may be a run of spaces.
+id: ms-uppercase-x
+title: Rios da bacia Amazônica
+type: multiple-selection
+stem: Quais destes rios pertencem à bacia Amazônica?
+choices:
+- text: Rio Negro
+  correct: true
+- text: Rio Madeira
+  correct: true
+- text: Rio Tapajós
+  correct: true
+- text: Rio São Francisco
+  correct: false
+- text: Rio Paraná
+  correct: false

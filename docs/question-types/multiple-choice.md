@@ -23,10 +23,14 @@ frontmatter
 | Field   | Type              | Description                      |
 | ------- | ----------------- | -------------------------------- |
 | type    | "multiple-choice" | The type discriminator           |
-| shuffle | boolean           | True if choices can be shuffled  |
+| shuffle | boolean           | True if choices can be shuffled[^1] |
 | grading | grading           | The grading strategy to use.[^1] |
 
-[^1]: Grading is `"partial" | "all-or-nothing" | "symmetric"`. Default is `"symmetric"`.
+[^1]: Grading is `"partial" | "all-or-nothing" | "symmetric" | "inherit"`.
+Default is `"inherit"`, which takes the strategy from the exam, and is
+`"symmetric"` outside an exam. `shuffle` is `boolean | "inherit"` with the
+same rule: `"inherit"` is the default and resolves to `false` outside an
+exam. See [exam inheritance](../exam.md#inheritance).
 
 
 ## Body
@@ -34,7 +38,8 @@ frontmatter
 Body consists of an unordered list of items. Each item follows the grammar:
 
 ```
-item          : ws? "[" value "]" md_inline+ nl extra_lines? (feedback? comments? | comments feedback)
+item          : ws? "[" value "]" ws? (choice_id ws?)? md_inline+ nl extra_lines? (feedback? comments? | comments feedback)
+choice_id     : "[" SLUG "]"
 
 value         : ws
               | ws? "*" ws?
@@ -47,6 +52,12 @@ feedback_line : ">" md_inline+ nl extra_lines?
 comments      : comment_line+
 comment_line  : "!" md_inline+ nl extra_lines?
 ```
+
+A `choice_id` is a `SLUG` between square brackets, right after the value. A
+bracket there is a choice id only when its content is a `SLUG` and the next
+character is not `(` or `[`, which open a markdown link (`[text](url)`,
+`[text][ref]`); such a bracket is part of the choice text. `SLUG` is defined in
+[Common grammar rules](../references/grammar.md).
 
 `md_inline` represent any markdown inline element except new lines (which are 
 represented explicitly by `nl`). The rules `ws` and `nl` are defined in
@@ -61,6 +72,17 @@ Each choice may represent additional information besides its text.
 * [value] [choice-id] Choice text
   > Feedback text to the students.
   ! Comments to other instructors.
+```
+Both the feedback and comments can span several lines, each one preceded by
+their corresponding punctuation. Both are optional.
+
+```md
+* [value] [choice-id] Choice text
+  > Multi
+  > line
+  > feedback.
+  ! Comments to other instructors.
+  ! Another line of comments.
 ```
 
 The choice text MUST NOT be empty. And all choice texts MUST be unique.
@@ -81,18 +103,6 @@ in a markdown paragraph context), but `c` and `d` are clearly not. `b` and `c`
 are visually different, but depending on formating and the rendering system
 they might still appear equivalent to a human reader.
 
-Both the feedback and comments can span several lines, each one preceded by
-their corresponding punctuation. Both are optional.
-
-```md
-* [value] [choice-id] Choice text
-  > Multi
-  > line
-  > feedback.
-  ! Comments to other instructors.
-  ! Another line of comments.
-```
-
 A question MAY mark any number of choices as correct, and typically marks
 exactly one. There is no upper limit, although a question in which every choice
 is correct is unusual enough that implementations MAY warn about it. The count
@@ -100,34 +110,40 @@ does not change how the question is answered -- the student still picks a
 single choice -- only how it is graded, see [Grading](#grading).
 
 Each choice carries a `score` on a scale from -1 to 1, derived from `value` in
-the body syntax above: `*` is 1, an omitted value is 0, and a percentage is its
-own fraction, so `[50%]` is 0.5 and `[-25%]` is -0.25. A percentage that would
-put `score` outside [-1, 1] -- `[150%]`, say -- makes the question malformed,
-not a grade that gets clamped down to the range: a choice never clamps its own
-score, only the exam containing it can decide whether a negative one survives
-(see [exam](../exam.md#penalty)).
+the body syntax above: `*` is 1. A percentage is its own fraction, so `[50%]` is
+0.5 and `[-25%]` is -0.25. A percentage that would put `score` outside [-1, 1]
+-- `[150%]`, say -- makes the question malformed. `[0%]` is an explicit
+zero; a blank value, `[ ]`, omits `score` from the document.
+
+A question can have negative scores, but the exam aggregation method may clamp
+it to non-negative values depending on the exam settings. Question authors have
+no control over this (see [exam](../exam.md#penalty)).
+
+An omitted value is treated differently depending on the `grading` parameter in
+the frontmatter and will be discussed in detail in the [Grading](#grading)
+section.
 
 The choice id is a slugfied identifier for the choice so we can refer it by
 content, and not by position. It follows the same rules for slugs mentioned
 before. If given, the choice ids for each choice MUST be unique.
 
-The id is not mandatory nor derived for each choice. An implementation MAY
-derive url-safe identifiers from the text content when it needs an addressable
-document (e.g., mdq-py: `with_ids()`); but it is not part of the parse step
-itself. This transformation SHOULD be stable in practical applications. A stable
-assignment should preserve the choice id assignments for the following
-operations:
+The id is not mandatory. An implementation MAY derive url-safe identifiers from
+the text content when it needs an addressable document (e.g., mdq-py:
+`with_ids()`); but it is not part of the parse step itself. This transformation
+SHOULD be stable in practical applications, althogh there might be edge cases
+where it cannot be guaranteed. A stable assignment should preserve the choice id
+assignments for the following operations:
 
-* Reordering of choices - each choice preserves its original id.
-* Addition of new choices - existing choices preserve their original ids.
-* Removal of choices - if a choice is removed, the remaining ones should keep
+* **Reordering of choices:** each choice preserves its original id.
+* **Addition of new choices:** existing choices preserve their original ids.
+* **Removal of choices:** if a choice is removed, the remaining ones should keep
   their previous ids.
-* Any edition (inclusion, deletion or modification) to the feedback and comments
-  parts of the choice.
+* **Editing of feedback or comments:** any edition (inclusion, deletion or
+  modification) to the feedback and comments parts of the choice.
 
 Since the transformation from an *arbitrary string* of text to an *url-safe
 string* is inherently lossy, it is generally not possible to preserve those
-properties for all cases. For instance:
+properties for all cases if we want practical slugs. For instance:
 
 ```md
 Which one is the exclamation mark?
@@ -173,27 +189,27 @@ Other question types trigger feedback differently: see
 
 There are three grading strategies for multiple choice questions. The grading
 strategy is ignored if the marked choice defines a score, and the question is
-graded according to that score. Otherwise, it uses the following rules:
+graded according to that score. Otherwise, (i.e., omitted scores) it uses the
+following rules:
 
 * **partial**: Unspecified scores are treated as 0.
 * **all-or-nothing**: Unspecified scores are treated as 0[^2].
-* **symmetric**: Unspecified scores are computed in such a way that the
-  average score of randomly picking choices is zero. This depends on the number
-  of choices and the number of choices with specified scores. The value derived
-  this way is clamped to the range `[-1, 0]`. The clamp applies to the score
-  assigned to each unspecified choice, not to the question's final grade.
+* **symmetric** (default): Unspecified scores are computed in such a way that
+  the average score of randomly picking choices is zero. This depends on the
+  number of choices and the number of choices with specified scores. The value
+  derived this way is clamped to the range `[-1, 0]`. The clamp applies to the
+  score assigned to each unspecified choice, not to the question's final grade.
 
 **Examples**:
 
-Marking a choice with a score defined in the body of the question overrides the 
-grading strategy. Consider the following answer keys and the effect of marking
-a choice that has no score defined in the body of the question. The answer
-key is a list with each choice score.
+Marking a choice with a score defined in the body of the question overrides the
+grading strategy. Consider the following answer keys (a list with each choice
+score) and the effect of marking a choice with an omitted score.
 
 | Answer Key       | "partial" | "all-or-nothing" | "symmetric" |
 | ---------------- | :-------: | :--------------: | :---------: |
 | `[1, _, _, _]`   |   0.00    |       0.00       |    -0.33    |
-| `[1, 1, _, _]`   |   0.00    |       0.00       |    -0.50    |
+| `[1, 1, _, _]`   |   0.00    |       0.00       |    -1.00    |
 | `[1, 0.5, _, _]` |   0.00    |       0.00       |    -0.75    |
 | `[1, 1, 1, _]`   |   0.00    |       0.00       |    -1.00    |
 | `[1, -1, _, _]`  |   0.00    |       0.00       |    0.00     |
@@ -209,6 +225,7 @@ compatibility reasons with the other question types.
 
 | Field              | Level    | Rule                                                      |
 | ------------------ | -------- | --------------------------------------------------------- |
+| choices            | critical | must have at least two choices (schema)                   |
 | choices[].text     | critical | must not be empty                                         |
 | choices[].text     | critical | must be unique among the choices of the question          |
 | choices[].id       | critical | must be unique among the choices of the question          |

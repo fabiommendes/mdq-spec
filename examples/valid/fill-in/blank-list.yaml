@@ -1,0 +1,13 @@
+# A short answer blank takes a list right after `[^id/short-answer]:`,
+# exactly as a short answer question does.
+id: fill-in-blank-list
+title: Largest biome
+type: fill-in
+stem: The largest Brazilian biome is the [^biome].
+blanks:
+  - id: biome
+    type: short-answer
+    accept:
+      - Amazon
+      - pattern: Amazônia
+        feedback: Both spellings are fine.

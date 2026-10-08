@@ -1,0 +1,10 @@
+# Every true/false statement states its verdict: `correct` is required,
+# even when false. `marker` alone does not carry it.
+type: true-false
+stem: Judge the statements about the Brazilian cerrado.
+choices:
+  - text: The cerrado is a tropical savanna.
+    correct: true
+    marker: T
+  - text: The cerrado has no dry season.
+    marker: F

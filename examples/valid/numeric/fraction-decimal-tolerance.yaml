@@ -1,0 +1,10 @@
+# Domain inference (numeric.md, "Number type/domain"): a fraction value with
+# a decimal absolute tolerance is a `decimal` question, with two inferred
+# decimal places (from the tolerance).
+type: numeric
+stem: Qual é o valor de 1/3?
+answer: 1/3
+domain: decimal
+decimalPlaces: 2
+tolerance:
+  absolute: 0.01

@@ -1,0 +1,9 @@
+# `decimalPlaces` declared in the frontmatter wins over the two places the
+# body would infer.
+type: numeric
+stem: Qual é o valor de pi?
+answer: 3.14
+domain: decimal
+decimalPlaces: 3
+tolerance:
+  absolute: 0.01

@@ -1,0 +1,10 @@
+# The `Xh` form alone, normalized to `PT2H`.
+id: prova
+title: Prova
+type: exam
+duration: PT2H
+questions:
+- stem: Qual é a capital do Brasil?
+  accept:
+  - Brasília
+  type: short-answer

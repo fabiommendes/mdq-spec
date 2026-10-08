@@ -1,0 +1,7 @@
+# `indentation` is `fixed`, `lenient` or `strict` (schema enum).
+type: ordering
+stem: Ordene as linhas do programa.
+indentation: loose
+lines:
+  - [0, "n = int(input())"]
+  - [0, "print(n * 2)"]

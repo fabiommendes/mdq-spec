@@ -1,0 +1,34 @@
+# The numeric lint codes on blanks, reported under `blanks[i]`:
+# `relative-tolerance-over-one`, `relative-tolerance-around-zero`,
+# `ignored-decimal-places`, `domain-mismatch`, `answer-outside-domain` and
+# `missing-tolerance`.
+id: fill-in-numeric-lints
+title: Medidas
+type: fill-in
+stem: "Valores: [^a], [^b], [^c], [^d], [^e] e [^f]."
+blanks:
+  - id: a
+    type: numeric
+    answer: 100
+    tolerance: { relative: 5 }
+  - id: b
+    type: numeric
+    answer: 0
+    tolerance: { relative: 0.1 }
+  - id: c
+    type: numeric
+    answer: 7
+    decimalPlaces: 2
+  - id: d
+    type: numeric
+    answer: 2.5
+    domain: integer
+    tolerance: { absolute: 1 }
+  - id: e
+    type: numeric
+    answer: "7/2"
+    domain: integer
+    tolerance: { absolute: 1 }
+  - id: f
+    type: numeric
+    answer: 3.14

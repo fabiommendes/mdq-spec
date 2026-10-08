@@ -1,0 +1,34 @@
+[
+  {
+    "code": "ignored-regex-flag",
+    "severity": "info",
+    "path": [
+      "accept",
+      0
+    ]
+  },
+  {
+    "code": "ignored-regex-flag",
+    "severity": "info",
+    "path": [
+      "accept",
+      1
+    ]
+  },
+  {
+    "code": "ignored-regex-flag",
+    "severity": "info",
+    "path": [
+      "reject",
+      0
+    ]
+  },
+  {
+    "code": "ignored-regex-flag",
+    "severity": "info",
+    "path": [
+      "reject",
+      1
+    ]
+  }
+]

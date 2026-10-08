@@ -1,0 +1,7 @@
+# `weight: 0` is allowed: the question stays in the exam without counting
+# towards the score.
+id: ciclo-agua
+title: Ciclo da água
+type: essay
+weight: 0
+stem: Explique o ciclo da água.

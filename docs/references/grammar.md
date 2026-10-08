@@ -19,8 +19,8 @@ below matches the same characters in Python `re`, in JavaScript `RegExp` and in
 a JSON Schema `pattern`.
 
 This rule is about the grammar of MDQ. The regexes that authors write in
-short-answer patterns follow JavaScript. See
-[Regex](../question-types/short-answer.md#regex).
+short-answer patterns follow the subset of JavaScript defined in
+[patterns.md](patterns.md#regex).
 
 ## Whitespace and line endings
 

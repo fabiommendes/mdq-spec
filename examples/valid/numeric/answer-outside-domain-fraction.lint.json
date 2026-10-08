@@ -1,0 +1,30 @@
+[
+  {
+    "code": "missing-id",
+    "severity": "info",
+    "path": [
+      "id"
+    ]
+  },
+  {
+    "code": "missing-title",
+    "severity": "info",
+    "path": [
+      "title"
+    ]
+  },
+  {
+    "code": "answer-outside-domain",
+    "severity": "warning",
+    "path": [
+      "answer"
+    ]
+  },
+  {
+    "code": "domain-mismatch",
+    "severity": "info",
+    "path": [
+      "domain"
+    ]
+  }
+]

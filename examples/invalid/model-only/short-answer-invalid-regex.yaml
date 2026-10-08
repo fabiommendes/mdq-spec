@@ -4,4 +4,5 @@
 # validator (short-answer.md, "Additional Rules").
 type: short-answer
 stem: Qual é a sigla do estado do Amazonas?
-regex: "/[AM/"
+accept:
+  - "/[AM/"

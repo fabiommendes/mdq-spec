@@ -1,0 +1,24 @@
+[
+  {
+    "code": "missing-id",
+    "severity": "info",
+    "path": [
+      "id"
+    ]
+  },
+  {
+    "code": "missing-title",
+    "severity": "info",
+    "path": [
+      "title"
+    ]
+  },
+  {
+    "code": "blank-ordering-line",
+    "severity": "info",
+    "path": [
+      "extra",
+      1
+    ]
+  }
+]

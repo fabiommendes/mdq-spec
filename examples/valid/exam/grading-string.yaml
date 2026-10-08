@@ -1,0 +1,13 @@
+# The exam `grading` as a single strategy for every question.
+id: biomas
+title: Biomas
+type: exam
+grading: partial
+questions:
+- stem: Qual é o maior bioma do Brasil?
+  choices:
+  - text: Amazônia
+    score: 1
+  - text: Cerrado
+  - text: Pantanal
+  type: multiple-choice

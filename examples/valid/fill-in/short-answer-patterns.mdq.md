@@ -14,8 +14,6 @@ on its surface is a [^feature].
 [^planet/short-answer/reject]:
 * Saturn
   > Second largest, but not the largest.
-* *
-  > Not a planet of the Solar System.
 
 [^feature]:
 * [ ] an impact crater

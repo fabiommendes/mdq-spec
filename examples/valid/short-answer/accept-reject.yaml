@@ -1,9 +1,10 @@
 # The accept/reject form: `accept` decides the score, `reject` only
-# attaches feedback to known wrong answers. The trailing `*` item is a
-# wildcard supplying the default message for anything else.
+# attaches feedback to known wrong answers. `incorrectFeedback` is the
+# message for every other incorrect response.
 id: sa-capital
 title: Capital of Brazil
 type: short-answer
+incorrectFeedback: Sorry, that is not the correct answer.
 stem: What is the capital of Brazil?
 accept:
   - pattern: /[Bb]ras[íi]lia/i
@@ -14,5 +15,3 @@ reject:
     comment: Bare strings are normalized, so "buenos aires" is caught too.
   - pattern: Rio de Janeiro
     feedback: It used to be, but it has not been since 1960.
-  - pattern: "*"
-    feedback: Sorry, that is not the correct answer.
