@@ -15,6 +15,8 @@ First version of the specification.
 
 ### Changed
 
+- `examples/invalid/exam-misspelled-include-all.mdq.md`: an exam block whose frontmatter has `include-all` and no body is a `parse-error`.
+- `examples/invalid/essay-snake-case-key.yaml`: a snake_case property (`answer_key`) in YAML/JSON is an unknown property, a `schema-error`.
 - `examples/invalid/exam-entry-misspelled-include-all.yaml`: an exam entry with no `type` and no `include`/`includeAll` key is a `schema-error`.
 - The exam include block key `include-all` is renamed to `includeAll`: properties are camelCase. `include-all` is now an unknown field of an include block (`unknown-include-field`). Values, type names and lint codes keep their dash-case.
 - `docs/exam.md`: the frontmatter table now says `grading` is a strategy or a map from question type to strategy, as `schema/exam.yaml` already accepts. In `schema/ordering.yaml` the normalization enum moves to `$defs/Normalization` (no semantic change).

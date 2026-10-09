@@ -1,0 +1,6 @@
+# Properties are camelCase in the schema. `answer_key` is the name of the
+# field in Python, not in the format, so it is an unknown property: a
+# `schema-error`.
+type: essay
+stem: Explique a fotossíntese.
+answer_key: A planta usa a luz para produzir glicose.
