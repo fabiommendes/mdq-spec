@@ -13,7 +13,11 @@ Audit the consistency of the specification: the schemas, the documents in
 `docs/`, the "Additional Rules" tables, `docs/lint-codes.md` and the example
 corpus.
 
-The audit runs these steps in order and reports every problem it finds:
+The audit first regenerates the schema bundle with `scripts/schema_bundle.py`
+(step 0), so the later steps and the implementations see fresh copies. With
+`--check` it writes nothing and fails if a copy is stale.
+
+Then it runs these steps in order and reports every problem it finds:
 
 1. Every `schema/*.yaml` is valid YAML and a valid JSON Schema, and each
    document in `docs/question-types/` (and `docs/exam.md`) has a schema.
@@ -42,10 +46,15 @@ The audit runs these steps in order and reports every problem it finds:
 11. Every code fence of `docs/` is a top-level `md`, `json`, `yaml` or `lark`
     block. `json` and `yaml` blocks parse, and `lark` blocks compile as Lark
     grammars, with stubs for the rules and terminals they leave undefined.
+12. Every path of a `.lint.json` file resolves in the document of its example.
+13. The reference implementation agrees with the schemas: `mdq-py`'s
+    `tests/test_schema_agreement.py` passes. The step is skipped, not failed,
+    if `mdq-py/` is not in the checkout.
 
 Run it from the repository root with `uv run scripts/spec_audit.py`.
 `--fail-fast` stops at the first step that fails. A step that fails still
-feeds the steps after it with the data it could collect.
+feeds the steps after it with the data it could collect. A skipped step is
+not a failure.
 """
 
 from __future__ import annotations
@@ -53,6 +62,8 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import shutil
+import subprocess
 import sys
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -163,6 +174,24 @@ DEFINITION_RE = re.compile(
 #: Rule that references every definition of a snippet, so that Lark checks all
 #: of them and not only the ones reachable from the first rule.
 LARK_START = "audit_start"
+
+SCHEMA_BUNDLE_SCRIPT = MDQ_ROOT / "scripts" / "schema_bundle.py"
+PY_DIR = MDQ_ROOT / "mdq-py"
+#: The test file of the reference implementation that step 13 runs, relative
+#: to `mdq-py/`.
+AGREEMENT_TEST = "tests/test_schema_agreement.py"
+#: Lines of the pytest output reported when no failing test id can be parsed.
+OUTPUT_TAIL_LINES = 15
+#: A line of the pytest short summary (`-rf`) that reports a failing test.
+PYTEST_SUMMARY_RE = re.compile(r"^(?:FAILED|ERROR) (\S.*?)(?: - .*)?$")
+
+
+class AuditSkip(Exception):
+    """Raised by a step that cannot run in this checkout. Not a failure."""
+
+    def __init__(self, reason: str) -> None:
+        super().__init__(reason)
+        self.reason = reason
 
 
 class AuditFailure(Exception):
@@ -394,9 +423,48 @@ def fmt_files(files: list[Path], limit: int = 3) -> str:
     return ", ".join(names)
 
 
+def pytest_failures(output: str) -> list[str]:
+    """The ids of the tests that failed (or errored) in the `-rf` short summary
+    of a pytest `output`."""
+    ids = []
+    for line in output.splitlines():
+        match = PYTEST_SUMMARY_RE.match(line.strip())
+        if match:
+            ids.append(match.group(1))
+    return ids
+
+
+def output_tail(output: str, lines: int = OUTPUT_TAIL_LINES) -> list[str]:
+    """The last non-empty `lines` lines of `output`."""
+    return [line for line in output.splitlines() if line.strip()][-lines:]
+
+
+def run(command: list[str], cwd: Path = MDQ_ROOT) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        command, cwd=cwd, capture_output=True, text=True, encoding="utf-8"
+    )
+
+
 # ---------------------------------------------------------------------------
 # Steps
 # ---------------------------------------------------------------------------
+
+
+def step_bundle(check: bool) -> str:
+    """Step 0: regenerate the schema bundle, or with `check` verify its copies.
+
+    Runs `schema_bundle.py` with this interpreter: the dependencies of the
+    audit include the ones of the bundle script, so no nested `uv` is needed.
+    """
+    command = [sys.executable, str(SCHEMA_BUNDLE_SCRIPT)]
+    if check:
+        command.append("--check")
+    result = run(command)
+    if result.returncode != 0:
+        problems = [line for line in result.stderr.splitlines() if line.strip()]
+        raise AuditFailure(problems or [f"schema_bundle.py exited with {result.returncode}"])
+    lines = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    return "; ".join(lines)
 
 
 def step_schemas(audit: Audit) -> str:
@@ -1468,10 +1536,9 @@ def step_lint_paths(audit: Audit) -> str:
                     absent[entry["code"]] += 1
     if problems:
         raise AuditFailure(problems)
-    tolerated = ", ".join(f"{code} {n}" for code, n in sorted(absent.items()))
     return (
         f"{entries_count} paths in {checked} lint files resolve "
-        f"({sum(absent.values())} on an absent last key: {tolerated}); "
+        f"({sum(absent.values())} on an absent last key), "
         f"{skipped} files skipped (no parsable .yaml/.json)"
     )
 
@@ -1490,6 +1557,28 @@ def step_code_blocks(audit: Audit) -> str:
     return f"{count} code blocks use a known language and are valid"
 
 
+def step_schema_agreement(audit: Audit) -> str:
+    if not PY_DIR.is_dir():
+        raise AuditSkip("mdq-py/ is not present")
+    uv = shutil.which("uv")
+    if uv is None:
+        raise AuditFailure(["`uv` is not on the PATH, cannot run the mdq-py tests"])
+    result = run(
+        [uv, "run", "--directory", str(PY_DIR), "pytest", "-q", "-rf", AGREEMENT_TEST]
+    )
+    if result.returncode != 0:
+        output = result.stdout + result.stderr
+        failed = pytest_failures(output)
+        if failed:
+            raise AuditFailure(failed)
+        raise AuditFailure(
+            [f"pytest exited with {result.returncode}; end of its output:"]
+            + [f"    {line}" for line in output_tail(output)]
+        )
+    summary = output_tail(result.stdout, 1)
+    return f"mdq-py/{AGREEMENT_TEST}: {summary[0] if summary else 'passed'}"
+
+
 STEPS: list[tuple[str, Callable[[Audit], str]]] = [
     ("schemas", step_schemas),
     ("docs", step_docs),
@@ -1503,6 +1592,7 @@ STEPS: list[tuple[str, Callable[[Audit], str]]] = [
     ("property consistency", step_property_consistency),
     ("code blocks", step_code_blocks),
     ("lint paths", step_lint_paths),
+    ("schema agreement", step_schema_agreement),
 ]
 
 
@@ -1514,14 +1604,29 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="stop at the first step that fails",
     )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="do not regenerate the schema bundle: fail if a copy is stale",
+    )
     args = parser.parse_args(argv)
 
     audit = Audit()
-    failed = 0
+    failed = skipped = 0
     total = 0
-    for number, (title, step) in enumerate(STEPS, start=1):
+    numbered: list[tuple[int, str, Callable[[], str]]] = [
+        (0, "schema bundle", lambda: step_bundle(args.check)),
+        *(
+            (number, title, lambda step=step: step(audit))
+            for number, (title, step) in enumerate(STEPS, start=1)
+        ),
+    ]
+    for number, title, run_step in numbered:
         try:
-            message = step(audit)
+            message = run_step()
+        except AuditSkip as skip:
+            skipped += 1
+            print(f"skip {number}. {title}: {skip.reason}")
         except AuditFailure as failure:
             failed += 1
             total += len(failure.problems)
@@ -1533,9 +1638,10 @@ def main(argv: list[str] | None = None) -> int:
         else:
             print(f"ok   {number}. {title}: {message}")
     if failed:
-        print(f"\n{failed} of {len(STEPS)} steps failed, {total} problem(s)")
+        print(f"\n{failed} of {len(numbered)} steps failed, {total} problem(s)")
         return 1
-    print(f"\nall {len(STEPS)} steps passed")
+    note = f" ({skipped} skipped)" if skipped else ""
+    print(f"\nall {len(numbered) - skipped} steps passed{note}")
     return 0
 
 

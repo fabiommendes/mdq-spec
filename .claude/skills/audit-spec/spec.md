@@ -8,7 +8,8 @@ flaws to look for.
 
 Part of the audit is automated in a script that checks that the schemas, the
 docs, the "Additional Rules" tables, `docs/lint-codes.md`, and the corpus
-agree. Run it from the repository root:
+agree, and that `mdq-py` accepts the corpus against the schemas. It
+regenerates the schema bundle first. Run it from the repository root:
 
 ```bash
 uv run scripts/spec_audit.py

@@ -16,12 +16,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
-      - name: Check that every copy of the bundle is up to date
-        run: uv run scripts/schema_bundle.py --check
       - name: Check that every copy of the inexact comparison tables is up to date
         run: uv run scripts/inexact_tables.py --check
-      - name: Audit the consistency of the specification and the corpus
-        run: uv run scripts/spec_audit.py
+      - name: Audit the specification, the corpus and the bundle copies
+        run: uv run scripts/spec_audit.py --check
       - name: Test the bundle script
         run: uv run --no-project --with pytest --with PyYAML --with jsonschema --with markdown-it-py --with mdit-py-plugins --with lark pytest scripts
 

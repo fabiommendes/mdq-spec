@@ -122,14 +122,13 @@ for the undefined rules and terminals.
 | Changelogs        | `CHANGELOG.md`         | One per repo: spec at root, one in each subtree            |
 | CI                | `.github/workflows/`   | Runs the checks of the spec and of both implementations    |
 
-After you change `schema/*.yaml`, run `uv run scripts/schema_bundle.py`. It
-writes the bundle to `schema/` and to each subtree that is present. The CI
-fails if a copy is out of date.
-
 After you change `docs/`, `schema/` or `examples/`, run
-`uv run scripts/spec_audit.py`. It checks that the schemas, the docs, the
-"Additional Rules" tables, `docs/lint-codes.md` and the corpus agree. The CI
-runs it too.
+`uv run scripts/spec_audit.py`. It first regenerates the bundle
+(`scripts/schema_bundle.py`) in `schema/` and in each subtree that is present.
+Then it checks that the schemas, the docs, the "Additional Rules" tables,
+`docs/lint-codes.md` and the corpus agree, and runs the schema agreement test
+of `mdq-py/`. The CI runs it with `--check`: it fails if a bundle copy is out
+of date.
 
 Record user-visible changes under `[Unreleased]` in the changelog of each repo
 that changed.

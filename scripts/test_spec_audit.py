@@ -20,6 +20,8 @@ from spec_audit import (
     lint_path_is_absent_value,
     lint_path_problem,
     markdown,
+    output_tail,
+    pytest_failures,
     PropertyDef,
     Rule,
     check_rule_field,
@@ -527,3 +529,31 @@ def test_lint_path_is_absent_value() -> None:
     assert not lint_path_is_absent_value(DOCUMENT, ["title"])
     assert not lint_path_is_absent_value(DOCUMENT, [])
     assert not lint_path_is_absent_value(DOCUMENT, ["questions", 0])
+
+
+PYTEST_OUTPUT = """\
+.F.                                                                      [100%]
+=================================== FAILURES ===================================
+...
+=========================== short test summary info ============================
+FAILED tests/test_schema_agreement.py::test_valid[multiple-choice/a] - Assertion
+FAILED tests/test_schema_agreement.py::test_invalid[x y] - ValidationError: no
+ERROR tests/test_other.py
+2 failed, 1 passed in 0.12s
+"""
+
+
+def test_pytest_failures_reads_the_short_summary() -> None:
+    assert pytest_failures(PYTEST_OUTPUT) == [
+        "tests/test_schema_agreement.py::test_valid[multiple-choice/a]",
+        "tests/test_schema_agreement.py::test_invalid[x y]",
+        "tests/test_other.py",
+    ]
+
+
+def test_pytest_failures_finds_nothing_in_a_passing_run() -> None:
+    assert pytest_failures("436 passed in 2.84s\n") == []
+
+
+def test_output_tail_drops_blank_lines() -> None:
+    assert output_tail("a\n\nb\nc\n\n", 2) == ["b", "c"]
