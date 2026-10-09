@@ -1,0 +1,10 @@
+# exam.md, "Question and include blocks": an entry of `questions` is a
+# question with a `type`, or an include block with `include` or
+# `includeAll`. `include-all` is neither (the key was `include-all`
+# before it became `includeAll`), so `load` rejects the entry as a
+# `schema-error`.
+type: exam
+id: biomas-quiz
+title: Biomas quiz
+questions:
+  - include-all: biome
