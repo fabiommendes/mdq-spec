@@ -305,7 +305,7 @@ Each question defines their own rules for translating the body and eventual
 additional fields. Those rules are covered in their own dedicated document.
 
 
-### Additional Rules
+## Additional Rules
 
 This section documents only the rules that are NOT captured by the JSON schema and
 requires additional programatic support in compliant implementations. Each rule
@@ -323,24 +323,30 @@ are easy to miss from the prose: every text field (`title`, `author`,
 `comment`, choice text, feedback and the like) MUST NOT be the empty string
 (`minLength: 1`), and a list field MUST have at least the number of items the
 schema states (`minItems`). Each question type lists its minimums below. A
-string of only whitespace passes the schema and is the `blank-text-field`
-warning instead.
+string of only whitespace passes the schema and is a blank-field diagnostic
+instead: the `blank-content-field` error on `preamble`, `epilogue` and `stem`,
+and the `blank-text-field` warning on the other text fields.
 
-| Field                    | Level    | Rule                                                        |
-| ------------------------ | -------- | ------------------------------------------------------------ |
-| preamble, epilogue, stem | critical | must have at least one visible character                   |
-| preamble, epilogue, stem | critical | cannot have explicitly forbidden block elements[^7]         |
-| locale                   | critical | must be a well-formed IETF BCP 47 tag[^4]                   |
-| id                       | warning  | should be url-safe[^2]                                      |
-| stem                     | warning  | must be a markdown `p` block element                        |
-| tags                     | warning  | each entry must have at least one visible character         |
-| tags                     | warning  | an entry containing a comma is only split when `tags` itself is a single string, not a list |
-| title, author, comment   | warning  | if defined, must have at least one visible character        |
-| uuid                     | critical | must be a well-formed UUID[^3]                              |
-| uuid                     | warning  | the version and variant nibbles should correspond to an existing standard[^3] |
-| id, title                | info     | field must be defined in the document                       |
-| locale                   | info     | the language subtag SHOULD NOT look like a country code[^8] |
-| preamble, epilogue, stem | warning  | a thematic break should be `***` or `___`, not `---`[^9]   |
+| Field                    | Level    | Code                      | Rule |
+| ------------------------ | -------- | ------------------------- | -------------------- |
+| preamble, epilogue, stem | critical | blank-content-field       | must have at least one visible character |
+| preamble, epilogue, stem | critical | forbidden-block-element   | cannot have explicitly forbidden block elements[^7] |
+| locale                   | critical | malformed-locale          | must be a well-formed IETF BCP 47 tag[^4] |
+| id                       | warning  | unsafe-id                 | should be url-safe[^2] |
+| stem                     | warning  | stem-not-a-paragraph      | must be a markdown `p` block element |
+| tags                     | warning  | blank-tag                 | each entry must have at least one visible character |
+| tags                     | warning  | unsplit-tag-list          | an entry containing a comma is only split when `tags` itself is a single string, not a list |
+| title, author, comment   | warning  | blank-text-field          | if defined, must have at least one visible character |
+| uuid                     | critical | malformed-uuid            | must be a well-formed UUID[^3] |
+| uuid                     | warning  | uuid-unknown-version      | the version nibble should correspond to an existing standard[^3] |
+| uuid                     | warning  | uuid-unknown-variant      | the variant nibble should correspond to an existing standard[^3] |
+| id                       | info     | missing-id                | field must be defined in the document |
+| title                    | info     | missing-title             | field must be defined in the document |
+| locale                   | info     | locale-lookalike-language | the language subtag SHOULD NOT look like a country code[^8] |
+| preamble, epilogue, stem | warning  | unsafe-thematic-break     | a thematic break should be `***` or `___`, not `---`[^9] |
+| any frontmatter key      | warning  | unknown-frontmatter-key   | a key not recognized for the document or question type is dropped |
+| any text                 | warning  | non-ascii-whitespace      | U+0085, U+2028, U+2029, or a Unicode space in a syntax position[^10] |
+| any text                 | info     | non-ascii-whitespace-in-prose | any other Unicode space outside ASCII[^10]                       |
 
 [^7]: Those elements are described in the section [forbidden elements](#forbidden-elements)
 [^8]: For example `cn` (a country code) instead of `zh` (the language). The
@@ -349,3 +355,7 @@ not whether the subtag names a real language.
 [^9]: Inside an exam a `---` line opens a frontmatter or include block, so a
 thematic break written with `-` changes meaning when the question is pasted
 into one (`unsafe-thematic-break`, see [exam.md](../exam.md#question-and-include-blocks)).
+[^10]: Specified in [Common grammar rules](../references/grammar.md#the-non-ascii-whitespace-lint):
+`non-ascii-whitespace` (warning) for U+0085, U+2028, U+2029 and for a Unicode
+space in a syntax position, `non-ascii-whitespace-in-prose` (info) for any other
+Unicode space.

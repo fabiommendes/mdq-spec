@@ -1,0 +1,14 @@
+type: exam
+id: pantanal
+title: Pantanal
+instructions: |-
+  Read the questions about the Pantanal.
+
+  ---
+
+  Answer every question.
+questions:
+  - type: short-answer
+    stem: Which Brazilian region holds most of the Pantanal wetland?
+    accept:
+      - Centro-Oeste

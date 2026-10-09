@@ -1,0 +1,14 @@
+# A statement `feedback` that is the empty string fails `minLength: 1`; only
+# whitespace is the `blank-choice-feedback` warning instead.
+type: true-false
+stem: Julgue as afirmações sobre o Pantanal.
+choices:
+  - id: mato-grosso
+    text: O Pantanal fica em Mato Grosso.
+    correct: true
+    marker: T
+    feedback: ""
+  - id: litoral
+    text: O Pantanal fica no litoral brasileiro.
+    correct: false
+    marker: F

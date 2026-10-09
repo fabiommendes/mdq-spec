@@ -83,7 +83,7 @@ see the `marker` field under [Choices](#choices).
 
 The assignments were chosen to reflect the spelling of True and False in the
 most commonly used languages in the world. See
-[references/true-false-spellings.md](../references/true-false-spellings.md)
+[annex/true-false-spellings.md](../annex/true-false-spellings.md)
 for the source data and the rationale behind each addition.
 
 * **TRUE**: `TVS`, plus 对 (Mandarin "dui") and 真 (Japanese "shin")
@@ -160,7 +160,7 @@ a `T` and a `V` are indistinguishable once reduced to a boolean.
 The letters expected for each language are listed below. A `locale` whose
 language subtag is not in the table has no expectation, and no warning is
 issued. The table follows the spellings in
-[True/False spellings](../references/true-false-spellings.md).
+[True/False spellings](../annex/true-false-spellings.md).
 
 | Language subtag | TRUE | FALSE | Words                 |
 | --------------- | ---- | ----- | --------------------- |
@@ -227,22 +227,28 @@ of student markings and the resulting score for each grading strategy.
 
 ## Additional Rules
 
-| Field              | Level    | Rule                                                        |
-| ------------------ | -------- | ----------------------------------------------------------- |
-| choices[].marker   | critical | must be a single letter, and never `X` or `x`[^2]           |
-| choices[].marker   | critical | must agree with `correct` according to its category[^3]     |
-| choices            | critical | must have at least two statements (schema)                   |
-| choices[].text     | critical | must not be empty                                            |
-| choices[].text     | critical | must be unique among the statements of the question         |
-| choices[].id       | critical | must be unique among the statements of the question         |
-| choices[].marker   | warning  | should not be a WARNING letter[^3]                          |
-| choices[].marker   | warning  | should be compatible with `locale`[^4]                      |
-| choices[].feedback | warning  | must have at least one visible character                    |
-| choices[].comment  | warning  | must have at least one visible character                    |
-| choices[].text     | info     | should not be visually equivalent to another statement[^5]  |
-| choices[].correct  | info     | statements should not be all true or all false              |
-| choices[].marker   | info     | should be a single code point in NFC form[^2]               |
-| choices[].id       | info     | should be defined in the document, instead of derived       |
+| Field              | Level    | Code                                     | Rule                                                       |
+| ------------------ | -------- | ---------------------------------------- | ---------------------------------------------------------- |
+| choices            | critical | schema-error                             | must have at least two statements (schema)                 |
+| choices[].id       | critical | schema-error                             | must be a valid slug (schema)                              |
+| choices[].correct  | critical | schema-error                             | must be declared in every statement (schema)               |
+| choices[].feedback | critical | schema-error                             | must not be an empty string (schema)                       |
+| choices[]          | critical | foreign-choice-marker                    | must use a value allowed in a true/false list              |
+| choices[].marker   | critical | malformed-true-false-marker              | must be a single letter[^2]                                |
+| choices[].marker   | critical | reserved-true-false-marker               | must not be `X` or `x`[^2]                                 |
+| choices[].marker   | critical | true-false-marker-disagrees-with-correct | must agree with `correct` according to its category[^3]    |
+| choices[].text     | critical | blank-choice-text                        | must not be empty                                          |
+| choices[].text     | critical | duplicate-choice-text                    | must be unique among the statements of the question        |
+| choices[].id       | critical | duplicate-choice-id                      | must be unique among the statements of the question        |
+| choices[].marker   | warning  | unlisted-true-false-marker               | should not be a WARNING letter[^3]                         |
+| choices[].marker   | warning  | locale-mismatched-true-false-marker      | should be compatible with `locale`[^4]                     |
+| choices[].marker   | warning  | false-friend-true-false-marker           | should not be `S` under `locale: id`[^4]                   |
+| choices[].feedback | warning  | blank-choice-feedback                    | must have at least one visible character                   |
+| choices[].comment  | warning  | blank-choice-comment                     | must have at least one visible character                   |
+| choices[].text     | info     | visually-identical-choices               | should not be visually equivalent to another statement[^5] |
+| choices[].correct  | info     | uniform-true-false-answers               | statements should not be all true or all false             |
+| choices[].marker   | info     | non-nfc-true-false-marker                | should be a single code point in NFC form[^2]              |
+| choices[].id       | info     | missing-choice-id                        | should be defined in the document, instead of derived      |
 
 [^2]: A letter is one code point in `\p{L}`, see [body](#body).
 [^3]: The TRUE, FALSE and WARNING categories are listed in [body](#body).

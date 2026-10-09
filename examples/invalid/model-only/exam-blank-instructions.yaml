@@ -1,0 +1,7 @@
+# `instructions` is defined but has no visible character: `blank-content-field`
+# as an error, like `preamble`, `stem` and `epilogue`. The schema's
+# `minLength: 1` lets whitespace through, so only the model rule fires.
+type: exam
+title: Prova de Geografia do Pantanal
+instructions: "  "
+questions: []

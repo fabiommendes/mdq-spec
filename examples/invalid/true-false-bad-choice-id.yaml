@@ -1,0 +1,13 @@
+# A statement `id` is a `SLUG` (grammar.md): letters, digits, `-` and `_`. A
+# space breaks the schema pattern.
+type: true-false
+stem: Julgue as afirmações sobre o Pantanal.
+choices:
+  - id: "mato grosso"
+    text: O Pantanal fica em Mato Grosso.
+    correct: true
+    marker: T
+  - id: litoral
+    text: O Pantanal fica no litoral brasileiro.
+    correct: false
+    marker: F

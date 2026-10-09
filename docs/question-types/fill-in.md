@@ -269,7 +269,7 @@ every blank is manual, and `semi-automatic` in every other case. A response to
 the question is settled only when the response to every blank is settled; if
 a blank leaves its response to the instructor, the whole question is pending.
 Like every automation, this is a derived property and never a field of the
-document, see [Automation](base.md#automation).
+document, see [Automation](question-base.md#automation).
 
 
 ## Feedback
@@ -358,16 +358,19 @@ question type it declares -- a choice blank those of
 of [numeric](numeric.md#additional-rules), and a short answer blank those of
 [short answer](short-answer.md#additional-rules).
 
-| Field           | Level    | Rule                                                          |
-| --------------- | -------- | ------------------------------------------------------------- |
-| blanks          | critical | must have at least one blank (schema)                         |
-| blanks[].choices | critical | a choice blank must have at least two choices (schema)       |
-| blanks[].id     | critical | must be unique within the question[^3]                        |
-| stem            | critical | every `[^id]` marker must name a declared blank               |
-| blanks[].id     | critical | must be referenced by an `[^id]` marker in the stem           |
-| stem            | critical | blanks may only appear in a plain text run of a paragraph[^4] |
-| blanks[]        | critical | a short answer blank defines each block at most once[^5]      |
-| preAccept, preReject | critical | every key must be the id of a declared short answer blank[^8] |
+| Field                | Level    | Code               | Rule                                                               |
+| -------------------- | -------- | ------------------ | ------------------------------------------------------------------ |
+| blanks               | critical | schema-error       | must have at least one blank (schema)                              |
+| blanks[].id          | critical | schema-error       | must be present and a slug: letters, digits, `-` and `_` (schema)  |
+| blanks[].choices     | critical | schema-error       | a choice blank must have at least two choices (schema)             |
+| blanks[].unit        | critical | schema-error       | only a numeric blank may have a `unit` (schema)                    |
+| blanks[].id          | critical | duplicate-blank-id | must be unique within the question[^3]                             |
+| stem                 | critical | undefined-blank    | every `[^id]` marker must name a declared blank                    |
+| blanks[].id          | critical | unreferenced-blank | must be referenced by an `[^id]` marker in the stem                |
+| stem                 | critical | misplaced-blank    | blanks may only appear in a plain text run of a paragraph[^4]      |
+| blanks[]             | critical | parse-error        | a short answer blank defines each block at most once[^5]           |
+| preAccept, preReject | critical | undefined-blank    | every key must be the id of a declared blank[^8]                   |
+| preAccept, preReject | critical | schema-error       | a key must not be the id of a choice or numeric blank (schema)[^8] |
 
 [^3]: Otherwise the stem's `[^id]` marker is ambiguous.
 [^4]: See [where blanks may appear](#where-blanks-may-appear). A `[^id]` found

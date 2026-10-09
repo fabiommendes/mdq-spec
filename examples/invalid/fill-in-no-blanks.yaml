@@ -1,0 +1,5 @@
+# A fill-in question needs at least one blank (`minItems: 1`). The stem has
+# no `[^id]` marker either, so the schema is the only rule that fires.
+type: fill-in
+stem: A Mata Atlântica é um bioma brasileiro.
+blanks: []

@@ -3,7 +3,7 @@
     "code": "blank-content-field",
     "severity": "error",
     "path": [
-      "epilogue"
+      "instructions"
     ]
   }
 ]

@@ -223,19 +223,23 @@ compatibility reasons with the other question types.
 
 ## Additional Rules
 
-| Field              | Level    | Rule                                                      |
-| ------------------ | -------- | --------------------------------------------------------- |
-| choices            | critical | must have at least two choices (schema)                   |
-| choices[].text     | critical | must not be empty                                         |
-| choices[].text     | critical | must be unique among the choices of the question          |
-| choices[].id       | critical | must be unique among the choices of the question          |
-| choices[].feedback | warning  | must have at least one visible character                  |
-| choices[].comment  | warning  | must have at least one visible character                  |
-| choices[].text     | info     | should not be visually equivalent to another choice[^3]   |
-| choices[].score    | info     | at least one choice should have a score of 1              |
-| choices[].score    | info     | not every choice should be correct                        |
-| choices[].score    | info     | more than one choice has a score of 1                     |
-| choices[].id       | info     | should be defined in the document, instead of derived[^4] |
+| Field              | Level    | Code                                 | Rule                                                      |
+| ------------------ | -------- | ------------------------------------ | --------------------------------------------------------- |
+| choices            | critical | schema-error                         | must have at least two choices (schema)                   |
+| choices[].id       | critical | schema-error                         | must be a valid slug (schema)                             |
+| choices[].score    | critical | schema-error                         | must be between -1 and 1 (schema)                         |
+| choices[].feedback | critical | schema-error                         | must not be an empty string (schema)                      |
+| choices[]          | critical | foreign-choice-marker                | must use a value allowed in a multiple choice list        |
+| choices[].text     | critical | blank-choice-text                    | must not be empty                                         |
+| choices[].text     | critical | duplicate-choice-text                | must be unique among the choices of the question          |
+| choices[].id       | critical | duplicate-choice-id                  | must be unique among the choices of the question          |
+| choices[].feedback | warning  | blank-choice-feedback                | must have at least one visible character                  |
+| choices[].comment  | warning  | blank-choice-comment                 | must have at least one visible character                  |
+| choices[].text     | info     | visually-identical-choices           | should not be visually equivalent to another choice[^3]   |
+| choices[].score    | info     | multiple-choice-no-correct-choice    | at least one choice should have a score of 1              |
+| choices[].score    | info     | all-choices-correct                  | not every choice should be correct                        |
+| choices[].score    | info     | multiple-choice-many-correct-choices | more than one choice has a score of 1                     |
+| choices[].id       | info     | missing-choice-id                    | should be defined in the document, instead of derived[^4] |
 
 [^3]: Visual equivalence is not defined by this spec, see [choices](#choices).
 [^4]: Derived ids are only as stable as the slugifier that produced them.

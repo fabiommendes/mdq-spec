@@ -124,6 +124,11 @@ After you change `schema/*.yaml`, run `uv run scripts/schema_bundle.py`. It
 writes the bundle to `schema/` and to each subtree that is present. The CI
 fails if a copy is out of date.
 
+After you change `docs/`, `schema/` or `examples/`, run
+`uv run scripts/spec_audit.py`. It checks that the schemas, the docs, the
+"Additional Rules" tables, `docs/lint-codes.md` and the corpus agree. The CI
+runs it too.
+
 Record user-visible changes under `[Unreleased]` in the changelog of each repo
 that changed.
 

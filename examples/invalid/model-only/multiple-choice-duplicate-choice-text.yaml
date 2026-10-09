@@ -1,0 +1,16 @@
+# Two choices declare the same `text`. JSON Schema cannot express
+# "unique by field", so this passes the schema and is only rejected by
+# the `duplicate-choice-text` model validator (multiple-choice.md,
+# "Additional Rules").
+type: multiple-choice
+stem: Qual é o maior bioma brasileiro em área?
+choices:
+  - id: amazonia
+    text: Amazônia
+    score: 1
+  - id: cerrado
+    text: Cerrado
+    score: 0
+  - id: cerrado-2
+    text: Cerrado
+    score: 0

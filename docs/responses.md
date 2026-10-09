@@ -236,7 +236,7 @@ to an essay question, a response to a `manual` short answer question, a
 response that matches no pattern of a short answer question with
 `unmatched: manual`, an ordering response that matches no answer key under
 `unmatched: manual`, and a fill-in response with a pending blank. See
-[Automation](question-types/base.md#automation).
+[Automation](question-types/question-base.md#automation).
 
 A pending response has no score until the instructor supplies one, and shows
 no feedback. An exam-level scorer accepts it and reports it as pending rather

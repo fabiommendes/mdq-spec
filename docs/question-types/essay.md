@@ -84,13 +84,18 @@ Essay questions are graded manually.
 
 ## Additional Rules
 
-| Field      | Level   | Rule                                               |
-| ---------- | ------- | -------------------------------------------------- |
-| highlight  | warning | must be omitted unless `input` is "code"           |
-| answerKey  | warning | if defined, must have at least one visible character |
-| highlight  | info    | should be a recognized language identifier[^3]     |
-| highlight  | info    | should be defined when `input` is "code"           |
-| answerKey  | info    | should be defined in the document                  |
+| Field     | Level    | Code                         | Rule                                                       |
+| --------- | -------- | ---------------------------- | ---------------------------------------------------------- |
+| input     | critical | schema-error                 | must be "code", "text" or "plain" (schema)                 |
+| answerKey | critical | schema-error                 | if defined, must not be the empty string (schema)          |
+| body      | critical | foreign-choice-marker        | the `[essay]` tag cannot be a list item[^4]                |
+| highlight | warning  | ignored-highlight            | must be omitted unless `input` is "code"                   |
+| answerKey | warning  | blank-text-field             | if defined, must have at least one visible character       |
+| highlight | info     | unknown-highlight-language   | should be a recognized language identifier[^3]             |
+| highlight | info     | code-input-without-highlight | should be defined when `input` is "code"                   |
+| answerKey | info     | missing-answer-key           | should be defined in the document                          |
 
 [^3]: Any alias of a [Pygments](https://pygments.org/) lexer is a recognized
 language identifier -- Pygments' own lexer aliases are the reference list.
+[^4]: A list item such as `* [essay]` reads as a choice with a foreign marker
+(see [Type inference](question-base.md#type-inference)).

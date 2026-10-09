@@ -1,0 +1,11 @@
+[
+  {
+    "code": "duplicate-choice-text",
+    "severity": "error",
+    "path": [
+      "choices",
+      2,
+      "text"
+    ]
+  }
+]

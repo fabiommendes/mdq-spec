@@ -1,0 +1,13 @@
+# A choice's `comment`, if given, must have a visible character.
+id: biomes-blank-comment
+title: Biomes blank comment
+type: multiple-selection
+stem: Quais destes são biomas brasileiros?
+choices:
+  - id: cerrado
+    text: Cerrado
+    correct: true
+    comment: "\t "
+  - id: tundra
+    text: Tundra
+    correct: false

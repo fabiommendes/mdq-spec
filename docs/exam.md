@@ -72,7 +72,7 @@ Exams accept the following arguments in the frontmatter
 [^1]: Redundant in practice: an exam is recognized by its H1 title, which a
     question can never have.
 [^2]: Same rules as a question id -- see
-    [generic fields](question-types/base.md).
+    [generic fields](question-types/question-base.md).
 [^3]: Must be a valid UUID.
 [^4]: Must be a valid IETF BCP 47 language tag.
 [^5]: See [Penalty](#penalty) below.
@@ -89,7 +89,7 @@ As for a question, a mapping MUST NOT repeat a key, in the exam frontmatter
 and in the frontmatter of every block (`yaml-syntax-error`). A value keeps its
 YAML type and is never converted: `id`, and the `include` and `include-all` of
 a block, MUST be YAML strings (`id: "2024"`, not `id: 2024`; `include-all: "7"`,
-not `include-all: 7`). See [Frontmatter](question-types/base.md#frontmatter)
+not `include-all: 7`). See [Frontmatter](question-types/question-base.md#frontmatter)
 for the YAML schema.
 
 
@@ -360,7 +360,7 @@ score = Σ wᵢ · pᵢ / Σ wᵢ
 ```
 
 where `wᵢ` is the `weight` of question `i` (1 by default, see
-[base.md](question-types/base.md#frontmatter)) and `pᵢ` its score after the
+[base.md](question-types/question-base.md#frontmatter)) and `pᵢ` its score after the
 per-question step of [penalty](#penalty): `max(0, sᵢ)` under `"none"`, the raw
 `sᵢ` under `"capped"` and `"full"`. Under `"capped"` the result is then floored
 at 0. The score is in [0, 1] under `"none"` and `"capped"`, and in [-1, 1]
@@ -436,21 +436,25 @@ it, since an exam with no questions cannot be answered.
 ## Additional Rules
 
 The rules for `id`, `uuid`, `locale` and `title` in
-[generic fields](question-types/base.md#additional-rules) also apply to the
+[generic fields](question-types/question-base.md#additional-rules) also apply to the
 exam frontmatter.
 
-| Field          | Level    | Rule                                                         |
-| -------------- | -------- | ------------------------------------------------------------ |
-| questions[].id | critical | must be unique within the exam after includes resolve[^9]    |
-| duration       | critical | must be positive                                             |
-| epilogue       | critical | must not use `---` as a thematic break inside an exam        |
-| questions      | warning  | should contain at least one question[^10]                    |
-| instructions, questions[].{preamble,stem,epilogue} | warning | should not contain a setext heading, see [Question and include blocks](#question-and-include-blocks) |
-| instructions, questions[].{preamble,stem,epilogue} | warning | should not write a thematic break with `-`, see [Question and include blocks](#question-and-include-blocks) |
-| include-all    | warning  | should add at least one question when it resolves            |
-| questions[].id | warning  | should be declared on an inline question after `include-all` |
-| questions[]    | warning  | an include block should not be preceded by `===`             |
-| include-all    | warning  | should follow the recommended query language                 |
+| Field           | Level    | Code                            | Rule                                                                                                                                                                                                              |
+| --------------- | -------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| questions[].id  | critical | duplicate-question-id           | must be unique within the exam after includes resolve[^9]                                                                                                                                                         |
+| start           | critical | malformed-start                 | must be an ISO 8601 date or date-time, see [Duration and Start Time](#duration-and-start-time)                                                                                                                    |
+| duration        | critical | invalid-duration                | must be a positive ISO 8601 duration without years or months, `HH:MM` or `Xd Yh Zm`                                                                                                                               |
+| instructions    | critical | blank-content-field             | must have at least one visible character                                                                                                                                                                          |
+| epilogue        | critical | parse-error                     | must not use `---` as a thematic break inside an exam                                                                                                                                                             |
+| questions[]     | critical | unknown-include-field           | an include block allows only `include`, or `include-all` with `max`                                                                                                                                               |
+| questions[].max | critical | schema-error                    | must be a positive integer (schema)                                                                                                                                                                               |
+| questions       | warning  | exam-without-questions          | should contain at least one question[^10]                                                                                                                                                                         |
+| instructions, questions[].{preamble,stem,epilogue} | warning  | setext-heading                  | should not contain a setext heading, see [Question and include blocks](#question-and-include-blocks)                                                                                                              |
+| instructions    | warning  | unsafe-thematic-break           | should not write a thematic break with `-`, see [Question and include blocks](#question-and-include-blocks); the same rule for questions is in [generic fields](question-types/question-base.md#additional-rules) |
+| include-all     | warning  | empty-include-all               | should add at least one question when it resolves                                                                                                                                                                 |
+| questions[].id  | warning  | undeclared-id-after-include-all | should be declared on an inline question after `include-all`                                                                                                                                                      |
+| questions[]     | warning  | separator-before-include        | an include block should not be preceded by `===`                                                                                                                                                                  |
+| include-all     | warning  | nonstandard-include-query       | should follow the recommended query language                                                                                                                                                                      |
 
 [^9]: See [Question ids](#question-ids). Overlap with an `include-all` is not
     a violation, since the `include-all` leaves out the repeated questions.

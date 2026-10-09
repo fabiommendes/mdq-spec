@@ -88,7 +88,7 @@ Optional epilogue, shown after the body.
 
 A `[slug]` at the start of the first paragraph sets the id, as in
 `[Q1] What is the capital of Brazil?`. See
-[docs/question-types/base.md](docs/question-types/base.md) for the full rules.
+[docs/question-types/question-base.md](docs/question-types/question-base.md) for the full rules.
 
 
 ## Question types

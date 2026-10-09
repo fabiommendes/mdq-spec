@@ -1,6 +1,6 @@
 [
   {
-    "code": "blank-text-field",
+    "code": "blank-content-field",
     "severity": "error",
     "path": [
       "stem"

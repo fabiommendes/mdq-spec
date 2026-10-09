@@ -65,14 +65,14 @@ COMMENT_LINE : /#[^\r\n]*(\r\n|\r|\n)/
 
 * `SLUG` is the format of question ids, choice ids, blank ids and exam slugs.
   Implementations MAY accept more characters under an option flag. See
-  [Slug](../question-types/base.md#slug).
+  [Slug](../question-types/question-base.md#slug).
 * `INTEGER` and `DECIMAL` have no sign and no leading zeros. The rules that use
   them add the sign.
 * `UNIT` is a unit of measurement. It holds any character except
   `UNICODE_SPACE` and the brackets `(`, `)`, `[` and `]`. See
   [Unit conversion](../question-types/numeric.md#unit-conversion).
 * `COMMENT_LINE` is one line of the comment string of the frontmatter. See
-  [Frontmatter](../question-types/base.md#frontmatter).
+  [Frontmatter](../question-types/question-base.md#frontmatter).
 
 ## Unicode spaces
 
@@ -93,8 +93,9 @@ carriage return and space.
 The grammar reads a Unicode space as text. Markdown parsers, editors and the
 string functions of each language can read the same character as whitespace or
 as a line break. The result of a document with Unicode spaces can therefore
-change from one implementation to another. The lint code `non-ascii-whitespace`
-reports each Unicode space in the document. For this check, a U+FEFF that is
+change from one implementation to another. The lint codes
+`non-ascii-whitespace` and `non-ascii-whitespace-in-prose` report each Unicode
+space in the document. Each code has one severity. For this check, a U+FEFF that is
 not at the start of the file also counts as a Unicode space: it is invisible,
 and JavaScript `\s` matches it.
 
@@ -105,13 +106,14 @@ The check skips:
 * the YAML frontmatter of the document, and of each question of an exam,
 * a U+FEFF at the start of the file.
 
-The severity is **warning** for:
+The code is `non-ascii-whitespace`, with severity **warning**, for:
 
 * U+0085, U+2028 and U+2029 at any position. Many editors show them as line
   breaks.
 * A Unicode space in a syntax position (see below).
 
-The severity is **info** for all other Unicode spaces. Prose can use them on
+The code is `non-ascii-whitespace-in-prose`, with severity **info**, for all
+other Unicode spaces. Prose can use them on
 purpose: a U+00A0 between a number and its unit (`10 km`), or a U+202F as a
 digit group separator (`6 400`).
 

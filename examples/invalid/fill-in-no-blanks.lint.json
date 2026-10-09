@@ -1,9 +1,9 @@
 [
   {
-    "code": "blank-content-field",
+    "code": "schema-error",
     "severity": "error",
     "path": [
-      "epilogue"
+      "blanks"
     ]
   }
 ]

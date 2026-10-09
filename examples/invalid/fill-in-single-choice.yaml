@@ -1,0 +1,8 @@
+# A choice blank needs at least two choices (`minItems: 2`).
+type: fill-in
+stem: O maior bioma do Brasil é a [^bioma].
+blanks:
+  - id: bioma
+    type: multiple-choice
+    choices:
+      - { id: amazonia, text: Amazônia, score: 1 }

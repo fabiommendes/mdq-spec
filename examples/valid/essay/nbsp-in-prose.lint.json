@@ -1,11 +1,11 @@
 [
   {
-    "code": "non-ascii-whitespace",
+    "code": "non-ascii-whitespace-in-prose",
     "severity": "info",
     "path": []
   },
   {
-    "code": "non-ascii-whitespace",
+    "code": "non-ascii-whitespace-in-prose",
     "severity": "info",
     "path": []
   },

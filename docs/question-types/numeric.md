@@ -201,14 +201,18 @@ tolerance test, as does the rounding to [`decimalPlaces`](#decimal-places).
 
 ## Additional Rules
 
-| Field              | Level    | Rule                                                       |
-| ------------------ | -------- | ---------------------------------------------------------- |
-| answer             | warning  | must be a whole number when `domain` is "integer"[^6]      |
-| tolerance.relative | warning  | must not be given when `answer` is zero[^2]                |
-| domain             | info     | when declared, should not be narrower than the values[^3]  |
-| tolerance.relative | info     | is a fraction, so a value above 1 is likely a mistake[^4]  |
-| decimalPlaces      | info     | is ignored unless `domain` is "decimal"[^7]                |
-| tolerance          | info     | should be defined for a `decimal` or `fraction` answer[^5] |
+| Field              | Level    | Code                           | Rule                                                               |
+| ------------------ | -------- | ------------------------------ | ------------------------------------------------------------------ |
+| answer             | critical | malformed-numeric-answer       | a string must be a valid `sign? value`, with a nonzero denominator |
+| answer             | warning  | answer-outside-domain          | must be a whole number when `domain` is "integer"[^6]              |
+| tolerance.absolute | critical | schema-error                   | must not be negative (schema)                                      |
+| tolerance.relative | warning  | relative-tolerance-around-zero | must not be given when `answer` is zero[^2]                        |
+| tolerance.relative | info     | relative-tolerance-over-one    | is a fraction, so a value above 1 is likely a mistake[^4]          |
+| domain             | info     | domain-mismatch                | when declared, should not be narrower than the values[^3]          |
+| decimalPlaces      | critical | schema-error                   | must not be negative (schema)                                      |
+| decimalPlaces      | info     | ignored-decimal-places         | is ignored unless `domain` is "decimal"[^7]                        |
+| unit               | critical | schema-error                   | must not contain whitespace or brackets (schema)                   |
+| tolerance          | info     | missing-tolerance              | should be defined for a `decimal` or `fraction` answer[^5]         |
 
 [^2]: The relative tolerance is `|answer| ⨉ relative`, which is 0 for a zero
 answer, so only an exact 0 would be accepted.

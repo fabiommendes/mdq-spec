@@ -137,18 +137,22 @@ is no way to explicitly leave it unmarked. If that is necessary, prefer using
 
 ## Additional Rules
 
-| Field              | Level    | Rule                                                      |
-| ------------------ | -------- | --------------------------------------------------------- |
-| choices            | critical | must have at least two choices (schema)                   |
-| choices[].text     | critical | must not be empty                                         |
-| choices[].text     | critical | must be unique among the choices of the question          |
-| choices[].id       | critical | must be unique among the choices of the question          |
-| choices[].feedback | warning  | must have at least one visible character                  |
-| choices[].comment  | warning  | must have at least one visible character                  |
-| choices[].text     | info     | should not be visually equivalent to another choice[^2]   |
-| choices[].correct  | info     | at least one choice should be correct                     |
-| choices[].correct  | info     | not every choice should be correct                        |
-| choices[].id       | info     | should be defined in the document, instead of derived[^3] |
+| Field              | Level    | Code                       | Rule                                                      |
+| ------------------ | -------- | -------------------------- | --------------------------------------------------------- |
+| choices            | critical | schema-error               | must have at least two choices (schema)                   |
+| choices[].id       | critical | schema-error               | must be a valid slug (schema)                             |
+| choices[].correct  | critical | schema-error               | must be declared in every choice (schema)                 |
+| choices[].feedback | critical | schema-error               | must not be an empty string (schema)                      |
+| choices[]          | critical | foreign-choice-marker      | must use a value allowed in a multiple selection list     |
+| choices[].text     | critical | blank-choice-text          | must not be empty                                         |
+| choices[].text     | critical | duplicate-choice-text      | must be unique among the choices of the question          |
+| choices[].id       | critical | duplicate-choice-id        | must be unique among the choices of the question          |
+| choices[].feedback | warning  | blank-choice-feedback      | must have at least one visible character                  |
+| choices[].comment  | warning  | blank-choice-comment       | must have at least one visible character                  |
+| choices[].text     | info     | visually-identical-choices | should not be visually equivalent to another choice[^2]   |
+| choices[].correct  | info     | no-correct-choice          | at least one choice should be correct                     |
+| choices[].correct  | info     | all-choices-correct        | not every choice should be correct                        |
+| choices[].id       | info     | missing-choice-id          | should be defined in the document, instead of derived[^3] |
 
 [^2]: Visual equivalence is not defined by this spec, see
 [multiple choice](multiple-choice.md#choices).

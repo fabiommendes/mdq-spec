@@ -1,0 +1,9 @@
+# `blank-text-field` as a warning on `incorrectFeedback`: defined, but only
+# whitespace.
+id: capital-do-brasil
+title: Capital do Brasil
+type: short-answer
+stem: Qual é a capital do Brasil?
+incorrectFeedback: "  "
+accept:
+  - pattern: Brasília

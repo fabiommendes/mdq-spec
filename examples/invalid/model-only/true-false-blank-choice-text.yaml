@@ -1,0 +1,12 @@
+# A statement `text` with no visible character. JSON Schema accepts a
+# whitespace-only string, so only the `blank-choice-text` model validator
+# rejects it (true-false.md, "Additional Rules").
+type: true-false
+stem: Julgue as afirmações sobre o Pantanal.
+choices:
+  - text: "   "
+    correct: true
+    marker: T
+  - text: O Pantanal fica no litoral brasileiro.
+    correct: false
+    marker: F

@@ -1,0 +1,16 @@
+# `*Cerrado*` and `_Cerrado_` render identically, but are written
+# differently in source.
+id: biomes-visual-twins
+title: Biomes visual twins
+type: multiple-selection
+stem: Quais destes são biomas brasileiros?
+choices:
+  - id: a
+    text: "*Cerrado*"
+    correct: true
+  - id: b
+    text: "_Cerrado_"
+    correct: true
+  - id: c
+    text: Tundra
+    correct: false

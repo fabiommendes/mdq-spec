@@ -1,0 +1,5 @@
+# `preamble` is defined but has no visible character: `blank-text-field` as
+# an error, like `stem` and `epilogue`.
+type: essay
+preamble: "  "
+stem: Explique o ciclo da água.

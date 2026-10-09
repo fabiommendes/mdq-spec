@@ -288,7 +288,7 @@ declares it has an unknown key. An implementation computes it from `accept`,
 `reject` and `unmatched`, and SHOULD offer it as a read-only property of the
 question. `preAccept` and `preReject` validate a submission and play no part
 in it. Every question type has an automation, see
-[Automation](base.md#automation).
+[Automation](question-base.md#automation).
 
 An implementation that scores responses MUST NOT give a score to a response
 that is not settled. It reports the response as pending, in the same way as a
@@ -404,22 +404,23 @@ not settled shows no feedback, because nothing has decided it yet.
 
 ## Additional Rules
 
-| Field                                | Level    | Rule                                                            |
-| ------------------------------------ | -------- | --------------------------------------------------------------- |
-| accept, reject, preAccept, preReject | critical | a pattern list, when present, has at least one pattern (schema) |
-| accept, reject, preAccept, preReject | critical | every `/`-delimited pattern must be a valid MDQ regex[^6]       |
-| accept, reject, preAccept, preReject | critical | a regex flag must be a supported or an ignored flag, and must not repeat[^12] |
-| accept, reject                       | critical | must not be written as a body block and a frontmatter field[^7] |
-| accept, reject                       | critical | each body block may be defined at most once[^11]                |
-| accept, reject                       | critical | a tag with content must not be followed by a list without a blank line |
-| reject                               | critical | must declare at least one pattern; a list after a blank line is an epilogue element |
-| accept, reject                       | critical | feedback and comment lines of an item must not interleave           |
-| accept                               | warning  | a list after a blank line is an epilogue element, not the pattern list |
-| unmatched                            | critical | must be "incorrect" or "manual"                                 |
-| unmatched                            | warning  | must not be "incorrect" when the question has no `accept` pattern[^8] |
-| incorrectFeedback                    | warning  | if defined, must have at least one visible character            |
-| accept, reject, preAccept, preReject | info     | an anchor that is already implicit is redundant[^9]             |
-| accept, reject, preAccept, preReject | info     | should not carry a flag that is accepted but ignored[^10]       |
+| Field                                | Level    | Code                   | Rule                                                                                |
+| ------------------------------------ | -------- | ---------------------- | ----------------------------------------------------------------------------------- |
+| accept, reject, preAccept, preReject | critical | schema-error           | a pattern list, when present, has at least one pattern (schema)                     |
+| accept, reject, preAccept, preReject | critical | invalid-regex          | every `/`-delimited pattern must be a valid MDQ regex[^6]                           |
+| accept, reject, preAccept, preReject | critical | invalid-regex          | a regex flag must be a supported or an ignored flag, and must not repeat[^12]       |
+| accept, reject                       | critical | conflicting-accept     | must not be written as a body block and a frontmatter field[^7]                     |
+| accept, reject                       | critical | parse-error            | each body block may be defined at most once[^11]                                    |
+| accept, reject                       | critical | parse-error            | a tag with content must not be followed by a list without a blank line              |
+| reject                               | critical | parse-error            | must declare at least one pattern; a list after a blank line is an epilogue element |
+| accept, reject                       | critical | parse-error            | feedback and comment lines of an item must not interleave                           |
+| accept                               | warning  | detached-answer-list   | a list after a blank line is an epilogue element, not the pattern list              |
+| unmatched                            | critical | schema-error           | must be "incorrect" or "manual" (schema)                                            |
+| unmatched                            | warning  | no-correct-answer      | must not be "incorrect" when the question has no `accept` pattern[^8]               |
+| incorrectFeedback                    | warning  | blank-text-field       | if defined, must have at least one visible character                                |
+| incorrectFeedback                    | critical | schema-error           | must not be the empty string (schema)                                               |
+| accept, reject, preAccept, preReject | info     | redundant-regex-anchor | an anchor that is already implicit is redundant[^9]                                 |
+| accept, reject, preAccept, preReject | info     | ignored-regex-flag     | should not carry a flag that is accepted but ignored[^10]                           |
 
 [^6]: The supported syntax is the subset described in
 [Regex](../references/patterns.md#regex): the pattern must compile and must

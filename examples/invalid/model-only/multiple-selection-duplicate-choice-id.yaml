@@ -1,0 +1,13 @@
+# Two choices declare the same `id`. JSON Schema cannot express
+# "unique by field", so this passes the schema and is only rejected by
+# the `duplicate-choice-id` model validator (multiple-selection.md,
+# "Additional Rules").
+type: multiple-selection
+stem: Quais destes são biomas brasileiros?
+choices:
+  - id: bioma
+    text: Cerrado
+    correct: true
+  - id: bioma
+    text: Pantanal
+    correct: true

@@ -11,6 +11,16 @@
 
 ## Large tasks
 
+* [ ] mdq-js: port the blank `instructions` rule (`blank-content-field` on an
+  exam's `instructions`) and the `minItems`/`minLength` checks that mdq-py now
+  enforces in its models: fill-in `blanks` (1) and choice blank `choices` (2),
+  short answer pattern lists (1), ordering `accept`/`reject` (1), and
+  non-empty `id`, `title`, `author`, `course`, `highlight`, `include` and
+  ordering alternative `feedback`/`comment`. Check against
+  `examples/invalid/`.
+* [ ] mdq-js: port the one-severity-per-code split. `non-ascii-whitespace-in-prose`
+  (info) for prose Unicode spaces, `blank-content-field` (error) for a blank
+  `preamble`, `epilogue` or `stem`. See `docs/lint-codes.md`.
 * [ ] mdq-py: accept the `{value, unit}` numeric response of responses.md
   (valid when the unit matches the question's, malformed when the question
   declares none). Unit conversion stays optional.

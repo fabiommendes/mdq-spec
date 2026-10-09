@@ -123,7 +123,7 @@ graded automatically either way, so this field decides nothing else. See
 
 [^5]: `Normalization = "dedent" | "skip-blanks"`. Defaults to the empty list. A
 single normalization MAY be written as a bare string instead of a one-item
-list, exactly as `tags` allows in [base](base.md#frontmatter); like `tags`,
+list, exactly as `tags` allows in [base](question-base.md#frontmatter); like `tags`,
 that is a frontmatter spelling only, and the parsed document always holds a
 list. The list is a set: order carries no meaning and an entry MUST NOT repeat.
 
@@ -333,7 +333,7 @@ correct ordering.
 
 ### Automation
 
-The [automation](base.md#automation) of an ordering question follows
+The [automation](question-base.md#automation) of an ordering question follows
 `unmatched`: `automatic` with `"incorrect"`, and `semi-automatic` with
 `"manual"`, because the answer key always settles the responses that match it.
 It is a derived property and never a field of the document.
@@ -349,22 +349,27 @@ submitted, in the order they submitted them, each written as an
 
 ## Additional Rules
 
-| Field                 | Level    | Rule                                                             |
-| --------------------- | -------- | ---------------------------------------------------------------- |
-| lines                 | critical | must have at least two lines (schema)                            |
-| accept, reject        | critical | an alternative must have at least one line (schema)              |
-| accept, reject        | critical | the same lines must not be both accepted and rejected[^9]        |
-| extra, accept, reject | critical | must use the same content block type as `[ordering]`[^6]         |
-| extra                 | critical | at most one `## [extra]` section may be declared                 |
-| accept, reject        | critical | a section carries at most one feedback and one comment block[^7] |
-| highlight             | warning  | must be omitted unless `content` is "code"                       |
-| accept, reject        | warning  | two sections should not hold the same lines, fully normalized[^9] |
-| accept                | warning  | should not repeat the `[ordering]` block's own lines             |
-| indentation           | warning  | `"strict"` is pointless when `dedent` is normalized away[^8]     |
-| lines, extra          | info     | a line should not be blank unless `skip-blanks` is normalized    |
-| highlight             | info     | should be a recognized language identifier[^11]                  |
-| reject                | info     | should declare feedback, which is its whole purpose              |
-| lines, extra          | info     | two lines should not render alike while differing in source[^10] |
+| Field                 | Level    | Code                         | Rule                                                              |
+| --------------------- | -------- | ---------------------------- | ----------------------------------------------------------------- |
+| lines                 | critical | schema-error                 | must have at least two lines (schema)                             |
+| lines[]               | critical | schema-error                 | each line must be a `[level, text]` pair (schema)                 |
+| lines[]               | critical | schema-error                 | `level` must be a non-negative integer (schema)                   |
+| accept, reject        | critical | schema-error                 | an alternative must have at least one line (schema)               |
+| accept, reject        | critical | accept-reject-overlap        | the same lines must not be both accepted and rejected[^9]         |
+| extra, accept, reject | critical | parse-error                  | must use the same content block type as `[ordering]`[^6]          |
+| extra                 | critical | parse-error                  | at most one `## [extra]` section may be declared                  |
+| accept, reject        | critical | parse-error                  | a section carries at most one feedback and one comment block[^7]  |
+| content               | critical | schema-error                 | must be a known content type (schema)                             |
+| indentation           | critical | schema-error                 | must be a known indentation mode (schema)                         |
+| normalizations        | critical | schema-error                 | must list known normalizations, each at most once (schema)        |
+| highlight             | warning  | ignored-highlight            | must be omitted unless `content` is "code"                        |
+| accept, reject        | warning  | duplicate-alternative-lines  | two sections should not hold the same lines, fully normalized[^9] |
+| accept                | warning  | accept-repeats-answer-key    | should not repeat the `[ordering]` block's own lines              |
+| indentation           | warning  | redundant-strict-indentation | `"strict"` is pointless when `dedent` is normalized away[^8]      |
+| lines, extra          | info     | blank-ordering-line          | a line should not be blank unless `skip-blanks` is normalized     |
+| highlight             | info     | unknown-highlight-language   | should be a recognized language identifier[^11]                   |
+| reject                | info     | reject-without-feedback      | should declare feedback, which is its whole purpose               |
+| lines, extra          | info     | visually-identical-lines     | two lines should not render alike while differing in source[^10]  |
 
 [^6]: A code block and a `ul` list cannot be compared line for line.
 [^7]: They may appear in either order but MUST NOT interleave, see
