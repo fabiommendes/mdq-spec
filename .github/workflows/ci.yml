@@ -23,7 +23,7 @@ jobs:
       - name: Audit the consistency of the specification and the corpus
         run: uv run scripts/spec_audit.py
       - name: Test the bundle script
-        run: uv run --no-project --with pytest --with PyYAML --with jsonschema pytest scripts
+        run: uv run --no-project --with pytest --with PyYAML --with jsonschema --with markdown-it-py --with mdit-py-plugins --with lark pytest scripts
 
   python:
     name: mdq-py
