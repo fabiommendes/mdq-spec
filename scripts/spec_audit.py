@@ -1371,6 +1371,111 @@ def check_fence(name: str, line: int, token: Token, problems: list[str]) -> None
         problems.append(f"{where}: invalid {language} block: {message}")
 
 
+#: Sentinel for a path segment that is not in the document.
+_MISSING = object()
+
+
+def lint_path_problem(document: Any, path: list[Any]) -> str | None:
+    """Why `path` does not resolve in `document`, or None if it does.
+
+    Integer segments index lists and string segments key mappings. The last
+    segment may be a key absent from a mapping: the diagnostic is then about a
+    missing value (`missing-title`). Use `lint_path_is_absent_value` to tell
+    the two cases apart.
+    """
+    node = document
+    for i, segment in enumerate(path):
+        last = i == len(path) - 1
+        here = json.dumps(path[: i + 1])
+        if isinstance(segment, bool) or not isinstance(segment, (int, str)):
+            return f"segment {segment!r} must be a string or an integer"
+        if isinstance(segment, int):
+            if not isinstance(node, list):
+                return f"{here}: index into a {type(node).__name__}, not a list"
+            if not -len(node) <= segment < len(node) or segment < 0:
+                return f"{here}: index out of range (the list has {len(node)})"
+            node = node[segment]
+        else:
+            if not isinstance(node, dict):
+                return f"{here}: key into a {type(node).__name__}, not a mapping"
+            if segment not in node:
+                if last:
+                    return None
+                return f"{here}: no such key"
+            node = node[segment]
+    return None
+
+
+def lint_path_is_absent_value(document: Any, path: list[Any]) -> bool:
+    """Whether `path` resolves only because its last key is absent."""
+    if not path or not isinstance(path[-1], str):
+        return False
+    parent = document
+    for segment in path[:-1]:
+        parent = parent[segment]
+    return isinstance(parent, dict) and path[-1] not in parent
+
+
+def load_example_document(stem: str) -> tuple[Any, str] | None:
+    """The data model of an example (`.yaml`, else `.json`) and its suffix, or
+    None if it has none. Raises `ValueError` if the file does not parse."""
+    for suffix in (".yaml", ".json"):
+        path = Path(stem + suffix)
+        if path.is_file():
+            try:
+                return yaml.safe_load(path.read_text(encoding="utf-8")), suffix
+            except yaml.YAMLError as error:
+                raise ValueError(f"{rel(path)}: invalid YAML: {error}") from error
+    return None
+
+
+def step_lint_paths(audit: Audit) -> str:
+    """Lint paths refer to the source document, not to `.resolved.yaml`: the
+    corpus tests load the source (`load(doc_path)`), and resolution only
+    expands `include` blocks."""
+    problems: list[str] = []
+    checked = entries_count = 0
+    skipped = 0
+    absent: dict[str, int] = defaultdict(int)
+    for root in (VALID_DIR, INVALID_DIR):
+        for lint_path in sorted(root.rglob(f"*{LINT_SUFFIX}")):
+            name = rel(lint_path)
+            entries = load_lint_file(lint_path, [])
+            # No duplicate-entry check: the corpus tests compare lint output as
+            # a multiset, so repeated diagnostics are meaningful (two NBSP in
+            # one file give two entries).
+            stem = str(lint_path)[: -len(LINT_SUFFIX)]
+            try:
+                loaded = load_example_document(stem)
+            except ValueError:
+                # A syntax example is invalid on purpose: no data model.
+                skipped += 1
+                continue
+            if loaded is None:
+                skipped += 1
+                continue
+            document, _ = loaded
+            checked += 1
+            for entry in entries:
+                entries_count += 1
+                problem = lint_path_problem(document, entry["path"])
+                if problem:
+                    problems.append(
+                        f"{name}: {entry['code']} at "
+                        f"{json.dumps(entry['path'])}: {problem}"
+                    )
+                elif lint_path_is_absent_value(document, entry["path"]):
+                    absent[entry["code"]] += 1
+    if problems:
+        raise AuditFailure(problems)
+    tolerated = ", ".join(f"{code} {n}" for code, n in sorted(absent.items()))
+    return (
+        f"{entries_count} paths in {checked} lint files resolve "
+        f"({sum(absent.values())} on an absent last key: {tolerated}); "
+        f"{skipped} files skipped (no parsable .yaml/.json)"
+    )
+
+
 def step_code_blocks(audit: Audit) -> str:
     problems: list[str] = []
     count = 0
@@ -1397,6 +1502,7 @@ STEPS: list[tuple[str, Callable[[Audit], str]]] = [
     ("rule fields", step_rule_fields),
     ("property consistency", step_property_consistency),
     ("code blocks", step_code_blocks),
+    ("lint paths", step_lint_paths),
 ]
 
 

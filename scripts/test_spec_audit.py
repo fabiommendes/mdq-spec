@@ -17,6 +17,8 @@ from spec_audit import (
     check_fence,
     check_frontmatter,
     lark_stubs,
+    lint_path_is_absent_value,
+    lint_path_problem,
     markdown,
     PropertyDef,
     Rule,
@@ -470,3 +472,58 @@ def test_lark_stubs_rejects_undefined_template() -> None:
 def test_lark_stubs_rejects_empty_snippet() -> None:
     with pytest.raises(ValueError):
         lark_stubs("// nothing\n")
+
+
+DOCUMENT = {
+    "title": "Exam",
+    "questions": [{"id": "q1", "choices": [{"id": "a"}, {"text": "b"}]}],
+}
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        [],
+        ["title"],
+        ["questions"],
+        ["questions", 0],
+        ["questions", 0, "choices", 1, "text"],
+        # The last key may be absent: the diagnostic is about a missing value.
+        ["questions", 0, "stem"],
+        ["questions", 0, "choices", 1, "id"],
+        ["author"],
+    ],
+)
+def test_lint_path_resolves(path: list) -> None:
+    assert lint_path_problem(DOCUMENT, path) is None
+
+
+@pytest.mark.parametrize(
+    "path, message",
+    [
+        (["questions", 1], "index out of range"),
+        (["questions", -1], "index out of range"),
+        (["questions", 0, "choices", 2, "id"], "index out of range"),
+        (["questions", "id"], "key into a list"),
+        (["title", 0], "index into a str"),
+        (["title", "x"], "key into a str"),
+        (["questions", 0, "stem", "x"], "no such key"),
+        (["author", "name"], "no such key"),
+        (["questions", 0, 1.5], "must be a string or an integer"),
+        (["questions", True], "must be a string or an integer"),
+    ],
+)
+def test_lint_path_does_not_resolve(path: list, message: str) -> None:
+    assert message in (lint_path_problem(DOCUMENT, path) or "")
+
+
+def test_lint_path_root_of_a_scalar_document() -> None:
+    assert lint_path_problem("text", []) is None
+    assert lint_path_problem("text", ["x"]) is not None
+
+
+def test_lint_path_is_absent_value() -> None:
+    assert lint_path_is_absent_value(DOCUMENT, ["questions", 0, "stem"])
+    assert not lint_path_is_absent_value(DOCUMENT, ["title"])
+    assert not lint_path_is_absent_value(DOCUMENT, [])
+    assert not lint_path_is_absent_value(DOCUMENT, ["questions", 0])

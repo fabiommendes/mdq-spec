@@ -4,8 +4,7 @@
     "severity": "error",
     "path": [
       "accept",
-      0,
-      "pattern"
+      0
     ]
   }
 ]
