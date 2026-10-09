@@ -126,6 +126,20 @@ Instruct it to:
    already checks property presence and types between the frontmatter table
    and the schema, so focus on formats, constraints and descriptions.
 
+5. Test with the reference implementation each ```md block that the spec
+   presents as a complete valid document. Skip fragments and counterexamples.
+   Pipe the block to `mdq validate`, from the repository root:
+
+   ```bash
+   uv run --directory mdq-py mdq validate - <<'EOF'
+   <block>
+   EOF
+   ```
+
+   Record a finding when it rejects the document, or reports a warning that
+   the text does not expect. Use `--format yaml` or `--format json` for a
+   `yaml` or `json` block.
+
 After each subagent finishes, review its findings as `audit-report` describes
 in "Reviewing subagent findings". When you disagree with a finding and
 rereading the spec does not settle it, keep it and write both readings, with
