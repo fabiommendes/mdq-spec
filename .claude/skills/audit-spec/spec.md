@@ -15,7 +15,7 @@ uv run scripts/spec_audit.py
 ```
 
 It must pass. When it fails, read the reported error, investigate the root
-cause, and propose a fix. Continue once the human accepts the fix; otherwise
+cause, and propose a fix. Continue if the human accepts the fixes; otherwise
 stop.
 
 Copy this checklist and track it:
@@ -49,13 +49,13 @@ Copy this checklist and track it:
 
 ## Severity
 
-| Level | Meaning |
-|---|---|
-| `critical` | Severely impacts the correctness or usability of the spec; introduces contradictions in practical use. |
-| `high` | Ambiguous interpretations, or issues that introduce contradictions in contrived scenarios. |
-| `medium` | Convention violations, minor inconsistencies, and issues that moderately affect the spec without major disruption. |
-| `low` | Minimal impact: pedantry, superficial concerns, minor text improvements. |
-| `info` | Informational notes or suggestions for improvement. |
+| Level      | Meaning                                                                                                            |
+| ---------- | ------------------------------------------------------------------------------------------------------------------ |
+| `critical` | Severely impacts the correctness or usability of the spec; introduces contradictions in practical use.             |
+| `high`     | Ambiguous interpretations, or issues that introduce contradictions in contrived scenarios.                         |
+| `medium`   | Convention violations, minor inconsistencies, and issues that moderately affect the spec without major disruption. |
+| `low`      | Minimal impact: pedantry, superficial concerns, minor text improvements.                                           |
+| `info`     | Informational notes or suggestions for improvement.                                                                |
 
 ## Editing the specs during the audit
 
