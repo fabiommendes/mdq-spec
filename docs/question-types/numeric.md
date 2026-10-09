@@ -14,7 +14,7 @@ How many grams of water are there in a liter?
 ## Frontmatter
 
 Numeric questions accept the following extra arguments in the
-frontmatter
+frontmatter:
 
 | Field         | Type      | Description                                     |
 | ------------- | --------- | ----------------------------------------------- |
@@ -30,7 +30,7 @@ domain is `decimal`.
 
 ## Body
 
-Body consists of a tag enclosed in square brackets followed by the expected
+The body consists of a tag enclosed in square brackets followed by the expected
 numeric value and tolerance.
 
 Here are some examples:
@@ -58,7 +58,7 @@ Here are some examples:
 [numeric(kg)]: 5.5 +- 0.1
 ```
 
-The grammar is 
+The grammar is:
 
 ```lark
 answer       : ws? "[" "numeric" unit? "]" ws? ":" numeric_body
@@ -174,7 +174,7 @@ document carries the inferred value. The field has no meaning for an
 ## Unit conversion
 
 Numeric questions may declare units for the responses. Implementations MAY
-perform the correct transformations (e.g., if the student respond 1kg in an
+perform the correct transformations (e.g., if the student responds 1kg in an
 answer that expects g, it could treat it as 1000g), or use it just as a visual
 cue in the response input field.
 

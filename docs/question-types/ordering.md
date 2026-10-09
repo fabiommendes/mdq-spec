@@ -92,7 +92,7 @@ for _ in range(10):
 ## Frontmatter
 
 Ordering questions accept the following extra arguments in the
-frontmatter
+frontmatter:
 
 | Field          | Type            | Description                                                                |
 | -------------- | --------------- | -------------------------------------------------------------------------- |
@@ -130,7 +130,7 @@ list. The list is a set: order carries no meaning and an entry MUST NOT repeat.
 
 ## Body
 
-Body consists of an `[ordering]` tag followed either by a code block or a
+The body consists of an `[ordering]` tag followed either by a code block or a
 markdown `ul` element holding the lines to be ordered. The `content` and
 `highlight` frontmatter fields are inferred from this block when they are not
 declared, and a declared value wins.
@@ -213,7 +213,7 @@ content blocks hold the same lines after that same normalization.
 
 The optional feedback message is provided in a markdown blockquote. The
 observation part MAY also contain instructor comments. It uses a syntax similar
-to blockquote sections, but prefix each line with a `!` instead of a `>`.
+to blockquote sections, but prefixes each line with a `!` instead of a `>`.
 
 A section carries at most one feedback block and at most one comment block, in
 either order. They MUST NOT interleave: once both blocks have appeared, a further `>` or
@@ -233,8 +233,8 @@ Some markdown parsers accept indented blockquotes like below
 
 It is up to the implementation to decide if it should ignore the indentation,
 issue a warning or even an error. Implementations MUST always accept blockquotes
-with no indentation. Regardless of how implementations handle indentation, it
-MUST handle comment blocks `!` in the same way.
+with no indentation. Regardless of how implementations handle indentation,
+they MUST handle comment blocks `!` in the same way.
 
 Authors SHOULD avoid indenting blockquotes and comment blocks with spaces.
 
