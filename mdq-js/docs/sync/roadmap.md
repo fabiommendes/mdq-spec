@@ -115,6 +115,10 @@ its phase ports it.
   union labels stripped from error paths and one diagnostic per
   `(code, path)`. The corpus suite `tests/invalid-sources.spec.ts` lists the
   codes in `LOAD_CODES` of `tests/not-ported.ts`.
+* F5: an error path stops at a string-or-mapping shorthand written as a bare
+  string: `["accept", 0]`, never `["accept", 0, "pattern"]` (mdq-py
+  `_strip_discriminator_tags`). Apply it when the Zod issue paths become
+  diagnostic paths.
 * F5: null in any optional field is absent (base.md), nested fields
   included; `meta` keeps null values. The parser drops nulls from the
   frontmatter; the YAML/JSON path needs the same before validation.
