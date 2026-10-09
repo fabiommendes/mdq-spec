@@ -160,8 +160,8 @@ precedence.
 The slug MUST match the `SLUG` terminal of
 [Common grammar rules](../references/grammar.md):
 
-```regex
-[a-zA-Z0-9]+(?:[-_][a-zA-Z0-9]+)*
+```lark
+SLUG: /[a-zA-Z0-9]+([-_][a-zA-Z0-9]+)*/
 ```
 
 A bracket at the start of the paragraph is a slug only when its content

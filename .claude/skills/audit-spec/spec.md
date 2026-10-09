@@ -95,8 +95,10 @@ above. Instruct it to:
 
 1. Read `docs/references/grammar.md`.
 2. Turn each grammar into a Lark grammar and test it against the rules the
-   document states. The grammars leave some rules unspecified; fill those
-   with stub rules to make them testable.
+   document states. The audit script already checks that every snippet
+   compiles, with stubs for the undefined rules; the subagent must still test
+   what the grammars accept and reject. Fill the unspecified rules with stub
+   rules to make them testable.
 3. Be meticulous: for each violation, record a finding that quotes the
    grammar rule in `snippet` and gives the counter-example in `description`.
    Record a strength for each grammar that holds, with the inputs tested.

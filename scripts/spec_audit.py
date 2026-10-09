@@ -3,6 +3,7 @@
 # dependencies = [
 #   "PyYAML>=6.0",
 #   "jsonschema>=4.18",
+#   "lark>=1.1",
 #   "markdown-it-py>=3.0",
 #   "mdit-py-plugins>=0.4",
 # ]
@@ -38,6 +39,9 @@ The audit runs these steps in order and reports every problem it finds:
    exist in the schema of the document.
 10. A property name has the same type in every schema that defines it, and
     property names are camelCase.
+11. Every code fence of `docs/` is a top-level `md`, `json`, `yaml` or `lark`
+    block. `json` and `yaml` blocks parse, and `lark` blocks compile as Lark
+    grammars, with stubs for the rules and terminals they leave undefined.
 
 Run it from the repository root with `uv run scripts/spec_audit.py`.
 `--fail-fast` stops at the first step that fails. A step that fails still
@@ -56,6 +60,7 @@ from functools import cache
 from pathlib import Path
 from typing import Any, Callable
 
+import lark
 import yaml
 from jsonschema.exceptions import SchemaError
 from jsonschema.validators import validator_for
@@ -139,6 +144,25 @@ INHERIT = "inherit"
 
 #: Pattern of a property name.
 CAMEL_CASE_RE = re.compile(r"^[a-z][a-zA-Z0-9]*$")
+
+#: Info string languages that a code fence of `docs/` may use. Use `md`, not
+#: `markdown`.
+FENCE_LANGUAGES = ("md", "json", "yaml", "lark")
+
+#: Lark errors that report a name used but not defined, for a rule or a
+#: terminal (lark reports an undefined terminal used in a rule as a rule).
+UNDEFINED_RE = re.compile(
+    r"^(?:Rule|Terminal|Template) '(\w+)' used but not defined"
+    r"|^Terminal used but not defined: (\w+)"
+)
+#: Definition of a rule or terminal in a Lark snippet (`rule:`, `?rule:`,
+#: `rule.2:`, `TERMINAL:`). A template (`rule{a}:`) cannot be a start symbol.
+DEFINITION_RE = re.compile(
+    r"^[?!]{0,2}([A-Za-z_][A-Za-z0-9_]*)(?:\.-?\d+)?[ \t]*:", re.MULTILINE
+)
+#: Rule that references every definition of a snippet, so that Lark checks all
+#: of them and not only the ones reachable from the first rule.
+LARK_START = "audit_start"
 
 
 class AuditFailure(Exception):
@@ -1294,6 +1318,72 @@ def step_property_consistency(audit: Audit) -> str:
     names = {d.name for d in definitions}
     return f"{len(names)} property names, {len(definitions)} definitions agree"
 
+def lark_stubs(snippet: str) -> tuple[Any, dict[str, str]]:
+    """Compile a Lark snippet that may use undefined rules and terminals.
+
+    Each name that Lark reports as undefined gets a stub (`name: "name_stub"`
+    for a rule, `NAME: "NAME_STUB"` for a terminal) and the snippet compiles
+    again. Returns the `Lark` object and the stubs. Any other error (or an
+    undefined template, that no stub can replace) is raised: `ValueError` if
+    the snippet defines nothing, `lark.exceptions.LarkError` or `OSError` (a
+    `%import` of a missing grammar) otherwise.
+    """
+    names = DEFINITION_RE.findall(snippet)
+    if not names:
+        raise ValueError("defines no rule or terminal")
+    root = f"\n{LARK_START}: {' | '.join(dict.fromkeys(names))}"
+    stubs: dict[str, str] = {}
+    while True:
+        source = snippet + root + "".join(f"\n{name}: {body}" for name, body in stubs.items())
+        try:
+            return lark.Lark(source, start=LARK_START), stubs
+        except lark.exceptions.GrammarError as error:
+            found = UNDEFINED_RE.match(str(error))
+            name = found and (found.group(1) or found.group(2))
+            if not name or name in stubs or str(error).startswith("Template"):
+                raise
+            literal = f"{name}_STUB" if name.isupper() else f"{name}_stub"
+            stubs[name] = json.dumps(literal)
+
+
+def check_fence(name: str, line: int, token: Token, problems: list[str]) -> None:
+    """Check one top-level code fence of the file `name` at `line`."""
+    where = f"{name}:{line}"
+    words = token.info.split()
+    language = words[0] if words else ""
+    if language not in FENCE_LANGUAGES:
+        found = f"language {language!r}" if language else "no language"
+        hint = " (use `md`, not `markdown`)" if language == "markdown" else ""
+        problems.append(
+            f"{where}: code fence has {found}{hint}, expected one of "
+            f"{', '.join(FENCE_LANGUAGES)}"
+        )
+        return
+    try:
+        if language == "json":
+            json.loads(token.content)
+        elif language == "yaml":
+            list(yaml.safe_load_all(token.content))
+        elif language == "lark":
+            lark_stubs(token.content)
+    except (ValueError, yaml.YAMLError, lark.exceptions.LarkError, OSError) as error:
+        message = str(error).strip().replace("\n", " ")
+        problems.append(f"{where}: invalid {language} block: {message}")
+
+
+def step_code_blocks(audit: Audit) -> str:
+    problems: list[str] = []
+    count = 0
+    for path in sorted(DOCS_DIR.rglob("*.md")):
+        tokens = markdown().parse(path.read_text(encoding="utf-8"))
+        for token in tokens:
+            if token.type == "fence":
+                count += 1
+                check_fence(rel(path), token.map[0] + 1, token, problems)
+    if problems:
+        raise AuditFailure(problems)
+    return f"{count} code blocks use a known language and are valid"
+
 
 STEPS: list[tuple[str, Callable[[Audit], str]]] = [
     ("schemas", step_schemas),
@@ -1306,6 +1396,7 @@ STEPS: list[tuple[str, Callable[[Audit], str]]] = [
     ("frontmatter tables", step_frontmatter),
     ("rule fields", step_rule_fields),
     ("property consistency", step_property_consistency),
+    ("code blocks", step_code_blocks),
 ]
 
 

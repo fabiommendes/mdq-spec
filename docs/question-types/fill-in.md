@@ -105,7 +105,7 @@ obviously right -- a blank inside code is literal text.
 
 At the inline level, blanks cannot occur inside markup. Consider the example
 
-```markdown
+```md
 **start [^blank] end**
 ```
 

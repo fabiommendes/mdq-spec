@@ -4,7 +4,7 @@ Tests for the frontmatter step of `scripts/spec_audit.py`.
 Run from the repository root:
 
     uv run --with pytest --with PyYAML --with jsonschema --with markdown-it-py \
-        --with mdit-py-plugins pytest scripts
+        --with mdit-py-plugins --with lark pytest scripts
 """
 
 from __future__ import annotations
@@ -14,7 +14,10 @@ from pathlib import Path
 import pytest
 import spec_audit
 from spec_audit import (
+    check_fence,
     check_frontmatter,
+    lark_stubs,
+    markdown,
     PropertyDef,
     Rule,
     check_rule_field,
@@ -401,3 +404,69 @@ def test_stale_property_entries(monkeypatch: pytest.MonkeyPatch) -> None:
     assert any("`gone` is not a property" in p for p in problems)
     assert any("`camel` is already camelCase" in p for p in problems)
     assert any("`gone-too` is not a property" in p for p in problems)
+
+
+def fence_problems(source: str) -> list[str]:
+    problems: list[str] = []
+    for token in markdown().parse(source):
+        if token.type == "fence":
+            check_fence("doc.md", token.map[0] + 1, token, problems)
+    return problems
+
+
+@pytest.mark.parametrize("language", ["md", "json", "yaml", "lark"])
+def test_fence_language_is_allowed(language: str) -> None:
+    body = {"json": "{}", "yaml": "a: 1", "lark": 'a: "x"', "md": "# T"}[language]
+    assert fence_problems(f"```{language}\n{body}\n```\n") == []
+
+
+@pytest.mark.parametrize("info", ["", "regex", "python", "markdown"])
+def test_fence_language_is_rejected(info: str) -> None:
+    (problem,) = fence_problems(f"text\n\n```{info}\nx\n```\n")
+    assert problem.startswith("doc.md:3: code fence has")
+    assert ("`md`" in problem) == (info == "markdown")
+
+
+def test_fence_nested_in_a_longer_fence_is_content() -> None:
+    assert fence_problems("````md\n```python\nx\n```\n````\n") == []
+
+
+def test_fence_json_and_yaml_must_parse() -> None:
+    assert "invalid json block" in fence_problems("```json\n{\n```\n")[0]
+    assert "invalid yaml block" in fence_problems("```yaml\na: [\n```\n")[0]
+    assert fence_problems("```yaml\na: 1\n---\nb: 2\n```\n") == []
+
+
+def test_fence_lark_error_is_reported_with_line() -> None:
+    (problem,) = fence_problems("x\n\n```lark\na: (\"x\"\n```\n")
+    assert problem.startswith("doc.md:3: invalid lark block:")
+
+
+def test_lark_stubs_undefined_rules_and_terminals() -> None:
+    _, stubs = lark_stubs('start: item SLUG ws?\nitem: "a"\n')
+    assert stubs == {"SLUG": '"SLUG_STUB"', "ws": '"ws_stub"'}
+
+
+def test_lark_stubs_undefined_terminal_in_terminal() -> None:
+    _, stubs = lark_stubs('A: B "x"\n')
+    assert stubs == {"B": '"B_STUB"'}
+
+
+def test_lark_stubs_checks_unreachable_definitions() -> None:
+    with pytest.raises(Exception):
+        lark_stubs('start: "a"\nBAD: /(/\n')
+
+
+def test_lark_stubs_terminal_only_snippet_and_modifiers() -> None:
+    lark_stubs("SLUG : /[a-z]+/\nUNIT : /x/\n")
+    lark_stubs('?a.2: b\n!c: "x"\n%import common.INT\n')
+
+
+def test_lark_stubs_rejects_undefined_template() -> None:
+    with pytest.raises(Exception, match="Template"):
+        lark_stubs("a: t{b}\n")
+
+
+def test_lark_stubs_rejects_empty_snippet() -> None:
+    with pytest.raises(ValueError):
+        lark_stubs("// nothing\n")

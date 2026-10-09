@@ -100,6 +100,8 @@ otherwise valid Lark. Test by copying the snippet into a `.lark` file, adding
 the missing rules with some example, e.g., `rule: "example"`, and running `uv
 run lark-run <grammar_file> -t <example_file>` on it. This works from the root
 because the ignored `.venv` symlink points to `mdq-py/.venv`.
+`scripts/spec_audit.py` already compiles every snippet of `docs/`, with stubs
+for the undefined rules and terminals.
 
 
 ### Important resources

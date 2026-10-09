@@ -335,7 +335,7 @@ be graded differently.
 
 The mapping takes the shape:
 
-```
+```yaml
 grading:
   multiple-selection: <method>
   true-false: <method>
@@ -355,7 +355,7 @@ value, and the exam's value defaults to `false`.
 
 The exam score is the weighted mean of its question scores:
 
-```
+```md
 score = Σ wᵢ · pᵢ / Σ wᵢ
 ```
 

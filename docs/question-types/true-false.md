@@ -37,7 +37,7 @@ exam. See [exam inheritance](../exam.md#inheritance).
 
 Body consists of an unordered list of items. Each item follows the grammar:
 
-```
+```lark
 item      : ws? "[" value "]" ws? (choice_id ws?)? markdown+
 choice_id : "[" SLUG "]"
 value : ws? (true | false) ws?
