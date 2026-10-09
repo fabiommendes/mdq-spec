@@ -15,7 +15,16 @@ import pytest
 import spec_audit
 from spec_audit import (
     check_frontmatter,
+    PropertyDef,
+    Rule,
+    check_rule_field,
+    collect_properties,
     either_values,
+    expand_braces,
+    parse_field_paths,
+    property_conflicts,
+    stale_property_entries,
+    schema_path_exists,
     load_schema,
     parse_doc_type,
     resolve_ref,
@@ -227,9 +236,168 @@ def test_frontmatter_stale_shorthand_is_reported(
 def test_frontmatter_shorthand_of_another_doc_is_ignored(
     frontmatter_doc: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr(
-        spec_audit, "FRONTMATTER_SHORTHANDS", {("other", "tags"): "x"}
-    )
+    monkeypatch.setattr(spec_audit, "FRONTMATTER_SHORTHANDS", {("other", "tags"): "x"})
     problems = run_check_frontmatter(frontmatter_doc)
     assert len(problems) == 1
     assert "`tags` is 'string'" in problems[0]
+
+
+def test_expand_braces() -> None:
+    assert expand_braces("a") == ["a"]
+    assert expand_braces("q[].{x,y, z}") == ["q[].x", "q[].y", "q[].z"]
+
+
+@pytest.mark.parametrize(
+    "text, expected",
+    [
+        ("answer", [["answer"]]),
+        ("tolerance.absolute", [["tolerance", "absolute"]]),
+        ("choices[].id", [["choices", "[]", "id"]]),
+        ("accept, reject", [["accept"], ["reject"]]),
+        (
+            "questions[].{stem,epilogue}",
+            [["questions", "[]", "stem"], ["questions", "[]", "epilogue"]],
+        ),
+        ("include-all", [["include-all"]]),
+    ],
+)
+def test_parse_field_paths(text: str, expected: list) -> None:
+    assert parse_field_paths(text) == expected
+
+
+@pytest.mark.parametrize("text", ["", "a..b", "a b", "[]"])
+def test_parse_field_paths_rejects_unknown_syntax(text: str) -> None:
+    with pytest.raises(ValueError):
+        parse_field_paths(text)
+
+
+@pytest.fixture
+def path_schema(tmp_path: Path) -> tuple[Path, dict]:
+    path = tmp_path / "doc.yaml"
+    path.write_text(
+        """
+properties:
+  answer: {type: string}
+  tolerance: {$ref: "#/$defs/Tolerance"}
+  blanks:
+    type: array
+    items:
+      oneOf:
+        - properties: {unit: {type: string}}
+        - properties: {other: {type: string}}
+$defs:
+  Tolerance:
+    properties: {absolute: {type: number}}
+"""
+    )
+    return path, load_schema(path)
+
+
+@pytest.mark.parametrize(
+    "segments, exists",
+    [
+        (["answer"], True),
+        (["missing"], False),
+        (["tolerance", "absolute"], True),
+        (["tolerance", "relative"], False),
+        (["blanks", "[]", "unit"], True),
+        (["blanks", "[]", "other"], True),
+        (["blanks", "unit"], False),
+        (["answer", "[]"], False),
+    ],
+)
+def test_schema_path_exists(
+    path_schema: tuple[Path, dict], segments: list[str], exists: bool
+) -> None:
+    path, root = path_schema
+    assert schema_path_exists(root, path, segments) is exists
+
+
+def test_check_rule_field(
+    path_schema: tuple[Path, dict], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path, root = path_schema
+    monkeypatch.setattr(spec_audit, "MDQ_ROOT", path.parent)
+    doc = path.parent / "doc.md"
+    monkeypatch.setattr(spec_audit, "FRONTMATTER_SHORTHANDS", {("doc", "short"): "x"})
+
+    def check(field: str) -> str | None:
+        return check_rule_field(Rule(doc, field, "critical", "c", "r", 7), path, root)
+
+    assert check("answer, blanks[].unit") is None
+    assert check("body") is None
+    assert check("short, answer") is None
+    assert check("answer, nope") == (
+        "doc.md:7: field `answer, nope` is not a path of schema/doc.yaml"
+    )
+
+
+def test_collect_properties_finds_nested_and_defs(
+    path_schema: tuple[Path, dict], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path, _ = path_schema
+    monkeypatch.setattr(spec_audit, "MDQ_ROOT", path.parent)
+    names = {d.name: d.where for d in collect_properties(path)}
+    assert names["answer"] == "doc.yaml#/properties/answer"
+    assert names["absolute"] == "doc.yaml#/$defs/Tolerance/properties/absolute"
+    assert names["unit"] == "doc.yaml#/properties/blanks/items/oneOf/0/properties/unit"
+
+
+def prop(name: str, where: str, *atoms) -> PropertyDef:
+    return PropertyDef(name, where, frozenset(atoms))
+
+
+def test_property_conflicts() -> None:
+    defs = [
+        prop("id", "a#/id", STRING),
+        prop("id", "b#/id", STRING),
+        prop("max", "a#/max", ("type", "integer")),
+        prop("max", "b#/max", STRING),
+        prop("type", "a#/type", ("lit", "x")),
+        prop("type", "b#/type", ("lit", "y")),
+        prop("grading", "a#/grading", STRING),
+        prop("grading", "b#/grading", ("type", "object")),
+    ]
+    problems = property_conflicts(defs, ignored={"grading"})
+    assert len(problems) == 1
+    assert problems[0].startswith("property `max` has different types: a#/max")
+    assert "b#/max is string" in problems[0]
+
+
+def test_property_conflicts_ignore_inherit() -> None:
+    defs = [
+        prop("shuffle", "a#/shuffle", ("lit", "none"), ("lit", "inherit")),
+        prop("shuffle", "b#/shuffle", ("lit", "none")),
+    ]
+    assert property_conflicts(defs, ignored=set()) == []
+
+
+def test_property_conflicts_allowlist(monkeypatch: pytest.MonkeyPatch) -> None:
+    defs = [
+        prop("accept", "a#/accept", STRING),
+        prop("accept", "b#/accept", ("type", "object")),
+    ]
+    monkeypatch.setattr(spec_audit, "POLYMORPHIC_PROPERTIES", {"accept": "why"})
+    monkeypatch.setattr(spec_audit, "NAMING_EXCEPTIONS", {})
+    assert property_conflicts(defs, ignored=set()) == []
+    assert stale_property_entries(defs, set()) == []
+
+
+def test_stale_property_entries(monkeypatch: pytest.MonkeyPatch) -> None:
+    defs = [
+        prop("same", "a#/same", STRING),
+        prop("same", "b#/same", STRING),
+        prop("camel", "a#/camel", STRING),
+    ]
+    monkeypatch.setattr(
+        spec_audit, "POLYMORPHIC_PROPERTIES", {"same": "x", "gone": "x"}
+    )
+    monkeypatch.setattr(
+        spec_audit, "NAMING_EXCEPTIONS", {"camel": "x", "gone-too": "x"}
+    )
+    problems = stale_property_entries(defs, set())
+    assert len(problems) == 4
+    assert any("`same` has the same type" in p for p in problems)
+    assert any("`gone` is not a property" in p for p in problems)
+    assert any("`camel` is already camelCase" in p for p in problems)
+    assert any("`gone-too` is not a property" in p for p in problems)

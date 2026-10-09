@@ -34,6 +34,10 @@ The audit runs these steps in order and reports every problem it finds:
    with its schema: every field is a property, the `type` row matches the
    schema `const`, the Type column matches the schema type, and every schema
    property is in the table or mentioned in the text.
+9. The `Field` column of each "Additional Rules" table refers to paths that
+   exist in the schema of the document.
+10. A property name has the same type in every schema that defines it, and
+    property names are camelCase.
 
 Run it from the repository root with `uv run scripts/spec_audit.py`.
 `--fail-fast` stops at the first step that fails. A step that fails still
@@ -106,6 +110,36 @@ FRONTMATTER_SHORTHANDS = {
     ("question-base", "type"): "each question type schema declares its own",
 }
 
+#: Values of the "Field" column of an "Additional Rules" table that are not
+#: schema paths, with the reason.
+PSEUDO_FIELDS = {
+    "body": "the Markdown body of the document, not a frontmatter key",
+    "any frontmatter key": "stands for every key of the frontmatter",
+    "any text": "stands for every piece of text of the document",
+}
+
+#: Property names that several schemas define with different types, with the
+#: reason.
+POLYMORPHIC_PROPERTIES: dict[str, str] = {
+    "grading": "the exam also accepts a map from question type to strategy",
+    "accept": "ordering lists alternative orderings (objects), short-answer "
+    "and fill-in blanks list patterns (string or object)",
+    "reject": "ordering lists alternative orderings (objects), short-answer "
+    "and fill-in blanks list patterns (string or object)",
+}
+
+#: Property names that are not camelCase on purpose, with the reason.
+NAMING_EXCEPTIONS: dict[str, str] = {
+    "include-all": "pending decision: deliberate kebab-case key of an include block",
+}
+
+#: Literal that questions accept for `grading` and `shuffle`, to take the value
+#: of the exam. The exam is the top of the chain, so its schema lacks it.
+INHERIT = "inherit"
+
+#: Pattern of a property name.
+CAMEL_CASE_RE = re.compile(r"^[a-z][a-zA-Z0-9]*$")
+
 
 class AuditFailure(Exception):
     def __init__(self, problems: list[str]) -> None:
@@ -122,6 +156,7 @@ class Rule:
     level: str
     code: str
     rule: str
+    line: int = 0  # 1-based line of the row
 
     @property
     def severity(self) -> str:
@@ -573,7 +608,7 @@ def step_rule_tables(audit: Audit) -> str:
                 if not CODE_RE.match(code):
                     problems.append(f"{where}: bad or missing code {code!r}")
                     continue
-                audit.rules.append(Rule(path, field_, level, code, rule))
+                audit.rules.append(Rule(path, field_, level, code, rule, line))
     for code, severities in sorted(audit.declared().items()):
         if len(severities) > 1:
             where = sorted({rel(r.doc) for r in audit.rules if r.code == code})
@@ -1033,6 +1068,233 @@ def step_frontmatter(audit: Audit) -> str:
     return f"{len(docs)} frontmatter tables agree with their schemas"
 
 
+# Schema paths: `tolerance.absolute`, `choices[].id`. `[]` goes into the items
+# of an array and `.` into a property.
+
+Segment = str  # a property name, or `[]` for the items of an array
+
+
+def expand_braces(text: str) -> list[str]:
+    """Expand the first `{a,b}` group of `text`, recursively."""
+    match = re.search(r"\{([^{}]*)\}", text)
+    if match is None:
+        return [text]
+    result: list[str] = []
+    for option in match.group(1).split(","):
+        result += expand_braces(
+            text[: match.start()] + option.strip() + text[match.end() :]
+        )
+    return result
+
+
+def parse_field_paths(text: str) -> list[list[Segment]]:
+    """Parse a cell of the Field column into paths.
+
+    The cell is a list of paths separated by `,` (outside braces) and a path
+    may have a brace group (`questions[].{stem,epilogue}`). A path is a
+    sequence of segments: properties and `[]`.
+    """
+    items = re.split(r",\s*(?![^{}]*\})", text.strip())
+    paths: list[list[Segment]] = []
+    for item in items:
+        for expanded in expand_braces(item.strip()):
+            segments: list[Segment] = []
+            for part in expanded.split("."):
+                base = part
+                arrays = 0
+                while base.endswith("[]"):
+                    base = base[:-2]
+                    arrays += 1
+                if not re.fullmatch(r"[A-Za-z][\w-]*", base):
+                    raise ValueError(f"cannot parse the path {expanded!r}")
+                segments += [base] + ["[]"] * arrays
+            paths.append(segments)
+    return paths
+
+
+def schema_variants(node: Any, path: Path) -> list[tuple[Any, Path]]:
+    """The node and every node reachable through `$ref`, `allOf`, `oneOf` and
+    `anyOf`."""
+    result: list[tuple[Any, Path]] = []
+    stack = [(node, path)]
+    seen: set[int] = set()
+    while stack:
+        current, current_path = stack.pop()
+        if not isinstance(current, dict) or id(current) in seen:
+            continue
+        seen.add(id(current))
+        result.append((current, current_path))
+        if "$ref" in current:
+            target, target_path, _ = resolve_ref(current["$ref"], current_path)
+            stack.append((target, target_path))
+        for key in ("allOf", "oneOf", "anyOf"):
+            stack += [(option, current_path) for option in current.get(key, [])]
+    return result
+
+
+def schema_path_exists(root: Any, path: Path, segments: list[Segment]) -> bool:
+    """Whether `segments` exists in ANY branch of the schema `root`."""
+    nodes = [(root, path)]
+    for segment in segments:
+        children: list[tuple[Any, Path]] = []
+        for node, node_path in nodes:
+            for variant, variant_path in schema_variants(node, node_path):
+                if segment == "[]":
+                    if "items" in variant:
+                        children.append((variant["items"], variant_path))
+                elif segment in (variant.get("properties") or {}):
+                    children.append((variant["properties"][segment], variant_path))
+        if not children:
+            return False
+        nodes = children
+    return True
+
+
+def check_rule_field(rule: Rule, schema_path: Path, root: Any) -> str | None:
+    """The problem of a rule whose field is not a schema path, or None."""
+    where = f"{rel(rule.doc)}:{rule.line}"
+    stem = rule.doc.stem
+    text = rule.field
+    if text in PSEUDO_FIELDS:
+        return None
+    try:
+        paths = parse_field_paths(text)
+    except ValueError as error:
+        return f"{where}: field `{text}`: {error}"
+    for segments in paths:
+        if len(segments) == 1 and (stem, segments[0]) in FRONTMATTER_SHORTHANDS:
+            continue
+        if not schema_path_exists(root, schema_path, segments):
+            return f"{where}: field `{text}` is not a path of schema/{stem}.yaml"
+    return None
+
+
+def step_rule_fields(audit: Audit) -> str:
+    problems: list[str] = []
+    for rule in audit.rules:
+        schema_path = SCHEMA_DIR / f"{rule.doc.stem}.yaml"
+        if not schema_path.is_file():
+            continue
+        problem = check_rule_field(rule, schema_path, load_schema(schema_path))
+        if problem:
+            problems.append(problem)
+    if problems:
+        raise AuditFailure(problems)
+    return f"{len(audit.rules)} rule fields are paths of their schemas"
+
+
+@dataclass
+class PropertyDef:
+    """A property declared in a schema file."""
+
+    name: str
+    where: str  # `file#/pointer`
+    atoms: frozenset[Atom]
+
+
+def pointer_escape(segment: str) -> str:
+    return segment.replace("~", "~0").replace("/", "~1")
+
+
+def collect_properties(path: Path) -> list[PropertyDef]:
+    """Every property declared in the schema file `path`, wherever it is.
+
+    A property that a schema inherits through `allOf` and `$ref` is declared
+    only in the file that defines it.
+    """
+    found: list[PropertyDef] = []
+
+    def walk(node: Any, pointer: str) -> None:
+        if isinstance(node, list):
+            for i, item in enumerate(node):
+                walk(item, f"{pointer}/{i}")
+        elif isinstance(node, dict):
+            for key, value in node.items():
+                here = f"{pointer}/{pointer_escape(str(key))}"
+                if key == "properties" and isinstance(value, dict):
+                    for name, sub in value.items():
+                        where = f"{rel(path)}#{here}/{pointer_escape(name)}"
+                        atoms = schema_atoms(sub, path, deref=True)
+                        found.append(PropertyDef(name, where, atoms))
+                        walk(sub, f"{here}/{pointer_escape(name)}")
+                else:
+                    walk(value, here)
+
+    walk(load_schema(path), "")
+    return found
+
+
+def property_conflicts(
+    definitions: list[PropertyDef], ignored: set[str], check_allowlist: bool = True
+) -> list[str]:
+    """Problems of the properties that have different types in different
+    places. `ignored` are names that are not compared, as are the names in
+    POLYMORPHIC_PROPERTIES unless `check_allowlist` is False."""
+    groups: dict[str, list[PropertyDef]] = defaultdict(list)
+    for definition in definitions:
+        groups[definition.name].append(definition)
+    problems: list[str] = []
+    for name, group in sorted(groups.items()):
+        if name in ignored or (check_allowlist and name in POLYMORPHIC_PROPERTIES):
+            continue
+        if name == "type":
+            # Each question type declares its own `const`.
+            group = [d for d in group if not any(a[0] == "lit" for a in d.atoms)]
+        if len({d.atoms - {("lit", INHERIT)} for d in group}) > 1:
+            listing = "; ".join(f"{d.where} is {describe(d.atoms)}" for d in group)
+            problems.append(f"property `{name}` has different types: {listing}")
+    return problems
+
+
+def stale_property_entries(
+    definitions: list[PropertyDef], ignored: set[str]
+) -> list[str]:
+    """Problems of the allowlist entries that no longer apply."""
+    groups: dict[str, list[PropertyDef]] = defaultdict(list)
+    for definition in definitions:
+        groups[definition.name].append(definition)
+    problems: list[str] = []
+    for name in sorted(POLYMORPHIC_PROPERTIES):
+        if name not in groups:
+            problems.append(f"POLYMORPHIC_PROPERTIES: `{name}` is not a property")
+        elif not property_conflicts(groups[name], ignored, check_allowlist=False):
+            problems.append(
+                f"POLYMORPHIC_PROPERTIES: `{name}` has the same type everywhere"
+            )
+    for name in sorted(NAMING_EXCEPTIONS):
+        if name not in groups:
+            problems.append(f"NAMING_EXCEPTIONS: `{name}` is not a property")
+        elif CAMEL_CASE_RE.match(name):
+            problems.append(f"NAMING_EXCEPTIONS: `{name}` is already camelCase")
+    return problems
+
+
+def step_property_consistency(audit: Audit) -> str:
+    problems: list[str] = []
+    definitions: list[PropertyDef] = []
+    for path in sorted(SCHEMA_DIR.glob("*.yaml")):
+        definitions += collect_properties(path)
+    # `grading` and similar maps are keyed by question type: `multiple-choice`
+    # is a key there, not a property name to check.
+    question_types = {p.stem for p in question_type_docs()} - {BASE_SCHEMA}
+    for definition in definitions:
+        if definition.name in question_types:
+            continue
+        if (
+            not CAMEL_CASE_RE.match(definition.name)
+            and definition.name not in NAMING_EXCEPTIONS
+        ):
+            problems.append(
+                f"property `{definition.name}` is not camelCase: {definition.where}"
+            )
+    problems += property_conflicts(definitions, question_types)
+    problems += stale_property_entries(definitions, question_types)
+    if problems:
+        raise AuditFailure(problems)
+    names = {d.name for d in definitions}
+    return f"{len(names)} property names, {len(definitions)} definitions agree"
+
+
 STEPS: list[tuple[str, Callable[[Audit], str]]] = [
     ("schemas", step_schemas),
     ("docs", step_docs),
@@ -1042,6 +1304,8 @@ STEPS: list[tuple[str, Callable[[Audit], str]]] = [
     ("lint-codes.md", step_lint_codes),
     ("invalid corpus", step_invalid_corpus),
     ("frontmatter tables", step_frontmatter),
+    ("rule fields", step_rule_fields),
+    ("property consistency", step_property_consistency),
 ]
 
 
