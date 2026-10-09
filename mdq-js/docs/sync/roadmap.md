@@ -182,6 +182,15 @@ its phase ports it.
     `["questions", N, "includeAll"]`;
   * error paths inside an exam's `questions` have no union tag
     (`questions.0.stem`, not `questions.0.question.essay.stem`).
+* Missing `type` message (mdq-py `_pydantic_message`; test
+  `mdq-py/tests/test_missing_type_message.py`; corpus
+  `invalid/exam-entry-misspelled-include-all.yaml`). For F5: an exam entry
+  with no `type` and no `include`/`includeAll` key is `schema-error` at
+  `["questions", N]` with the message "an entry of `questions` needs a
+  `type`, or an `include` or `includeAll` key", plus "(did you mean
+  `includeAll` instead of `include-all`?)" when a key matches an include key
+  ignoring case, `-` and `_`. A standalone question with no `type` says "a
+  question needs a `type`". Do not leak the Zod discriminator message.
 * Duplicate keys and exam tags (J1, J3; root `78b4bd2`, mdq-py `2bfeaae`;
   tests in `mdq-py/tests/test_duplicate_keys.py`). The parser part is
   ported (`YamlSyntaxError`). For F5:
