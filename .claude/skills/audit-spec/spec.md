@@ -58,6 +58,11 @@ Copy this checklist and track it:
 | `low`      | Minimal impact: pedantry, superficial concerns, minor text improvements.                                           |
 | `info`     | Informational notes or suggestions for improvement.                                                                |
 
+Most fixes to a specification are decisions about what the format should be.
+Mark a fix `mechanical` only when the spec already settles it, such as a
+broken link, a wrong cross-reference, or a schema description that contradicts
+an unambiguous rule.
+
 ## Editing the specs during the audit
 
 Fix spelling and grammar mistakes as you read; they are not findings. Keep
@@ -94,7 +99,9 @@ Spawn one subagent for the `grammar` category, briefed as `audit-report`
 describes in "Splitting the audit across agents", with the Severity table
 above. Instruct it to:
 
-1. Read `docs/references/grammar.md`.
+1. Read `docs/references/grammar.md` and the grammar of each question type in
+   scope, in `docs/question-types/<type>.md`. Leave out the grammars of
+   question types outside the scope.
 2. Turn each grammar into a Lark grammar and test it against the rules the
    document states. The audit script already checks that every snippet
    compiles, with stubs for the undefined rules; the subagent must still test
@@ -125,7 +132,6 @@ Instruct it to:
    format mismatches, and descriptions that disagree. `scripts/spec_audit.py`
    already checks property presence and types between the frontmatter table
    and the schema, so focus on formats, constraints and descriptions.
-
 5. Test with the reference implementation each ```md block that the spec
    presents as a complete valid document. Skip fragments and counterexamples.
    Pipe the block to `mdq validate`, from the repository root:
