@@ -377,8 +377,8 @@ describe("zod-json-schema agreement", () => {
 				Unmatched.options,
 			],
 			[
-				"ordering.normalizations items (Normalization)",
-				def("ordering").allOf[1].properties.normalizations.items.enum,
+				"ordering#/$defs/Normalization (Normalization)",
+				def("ordering").$defs.Normalization.enum,
 				Normalization.options,
 			],
 			[
@@ -511,6 +511,7 @@ describe("zod-json-schema agreement", () => {
 			"short-answer#/$defs/diacritics",
 			"short-answer#/$defs/unmatched",
 			"exam#/$defs/GradingStrategy",
+			"ordering#/$defs/Normalization",
 		]);
 
 		/** Enum-typed `$defs` entries deliberately left untested, with why. */
