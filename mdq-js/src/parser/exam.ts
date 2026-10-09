@@ -3,7 +3,7 @@
  * that become the entries of `questions`.
  *
  * A port of `mdq-py/mdq/_parser/_exam.py`. The parser never resolves an
- * `include` or `include-all` block: it keeps it as the entry the block's
+ * `include` or `includeAll` block: it keeps it as the entry the block's
  * frontmatter writes. `resolveExam` in `src/banks.ts` replaces them.
  */
 
@@ -110,8 +110,8 @@ export function codeLineIndices(lines: readonly string[]): Set<number> {
  * Parse an exam document into its unvalidated JSON shape, the shape of the
  * `examples/valid/exam/*.yaml` files.
  *
- * `include` and `include-all` blocks stay as `{include: id}` and
- * `{"include-all": query, max?}` entries, with every key of the block's
+ * `include` and `includeAll` blocks stay as `{include: id}` and
+ * `{"includeAll": query, max?}` entries, with every key of the block's
  * frontmatter. An inline question block is parsed with
  * `parseQuestionDocument` and takes `locale` and `author` from the exam.
  * A block with no declared `id` gets none. Lines inside a fenced or indented
@@ -391,7 +391,7 @@ function cleanBlock(text: string): string | undefined {
 
 /**
  * Turn one block into an entry of `questions`. A block whose frontmatter has
- * `include-all` (checked first) or `include` is that mapping with the value
+ * `includeAll` (checked first) or `include` is that mapping with the value
  * as a string. Any other block is a question that takes the exam's
  * `locale` and `author` when it has none. `index` is the block's 0-based
  * position, which prefixes the path of its warnings as `["questions",
@@ -415,7 +415,7 @@ function parseExamBlock(
 	const front = frontmatterText ? loadFrontmatterYaml(frontmatterText) : {};
 
 	const isInclude =
-		Object.hasOwn(front, "include-all") || Object.hasOwn(front, "include");
+		Object.hasOwn(front, "includeAll") || Object.hasOwn(front, "include");
 	if (hasSeparator && isInclude) {
 		warnings?.push(
 			diagnostic(

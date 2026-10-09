@@ -1,7 +1,7 @@
 ---
 type: handoff
 status: completed
-tags: [mdq, mdq-js, exam, include, include-all, query, banks]
+tags: [mdq, mdq-js, exam, include, includeAll, query, banks]
 relatedTo: [mdq-js/docs/handoffs/10-banks.md, mdq-js/docs/sync/roadmap.md]
 ---
 

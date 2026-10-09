@@ -66,8 +66,8 @@ per-feature status is [`tests/not-ported.ts`](../../tests/not-ported.ts).
 | F1 | Zod schemas equal to the JSON Schema | done |
 | F2 | Parser: bracket lists aligned with Python (no derived ids; `grading`, `weight`, `shuffle`) | done |
 | F3 | Parser: essay, numeric, short-answer, ordering, fill-in bodies | done |
-| F4 | Parser: exams, `include`, `include-all`; the spec audit (`dev/audit/plan.md`) | done |
-| F4.1 | `resolveExam`, the question bank and the `include-all` query language ; `.resolved.yaml` corpus | done |
+| F4 | Parser: exams, `include`, `includeAll`; the spec audit (`dev/audit/plan.md`) | done |
+| F4.1 | `resolveExam`, the question bank and the `includeAll` query language ; `.resolved.yaml` corpus | done |
 | F5 | Model layer: `withIds`, model rules as Zod refinements, `load()` with diagnostics | to do |
 | F6 | Linter, checked against the `.lint.json` files | to do |
 | F7 | Scoring, checked against `examples/grading/` | to do |
@@ -177,9 +177,9 @@ its phase ports it.
 * String-only fields (root `40591e2`, mdq-py `4409033`; tests in
   `mdq-py/tests/test_string_only_fields.py`, `test_invalid_sources.py`).
   The parser part is ported. For F5:
-  * a non-string `id`, `include` or `include-all` is `schema-error` at
+  * a non-string `id`, `include` or `includeAll` is `schema-error` at
     `["id"]`, `["questions", N, "id"]`, `["questions", N, "include"]`,
-    `["questions", N, "include-all"]`;
+    `["questions", N, "includeAll"]`;
   * error paths inside an exam's `questions` have no union tag
     (`questions.0.stem`, not `questions.0.question.essay.stem`).
 * Duplicate keys and exam tags (J1, J3; root `78b4bd2`, mdq-py `2bfeaae`;

@@ -47,7 +47,7 @@ function examText(...blocks: string[]): string {
 }
 
 function includeAll(query: string, max?: number): string {
-	const lines = ["---", `include-all: ${query}`];
+	const lines = ["---", `includeAll: ${query}`];
 	if (max !== undefined) {
 		lines.push(`max: ${max}`);
 	}
@@ -306,7 +306,7 @@ describe("resolveExam: inheritance", () => {
 	});
 });
 
-describe("resolveExam: include-all", () => {
+describe("resolveExam: includeAll", () => {
 	it("adds every match, sorted", () => {
 		expect(questionIds(examText(includeAll("biome AND NOT draft")))).toEqual([
 			"amazonia",
@@ -366,7 +366,7 @@ describe("resolveExam: include-all", () => {
 		]);
 	});
 
-	it("a later include-all skips what an earlier one added", () => {
+	it("a later includeAll skips what an earlier one added", () => {
 		const text = examText(
 			includeAll("forest AND NOT draft"),
 			includeAll("biome AND NOT draft"),

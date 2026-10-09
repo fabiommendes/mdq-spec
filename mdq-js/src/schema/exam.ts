@@ -3,7 +3,7 @@
  *
  * An exam is recognized by its H1 title, which a question document can never
  * carry. Each entry of `questions` is either a question written inline, an
- * `include` naming one stored elsewhere, or an `include-all` query matching
+ * `include` naming one stored elsewhere, or an `includeAll` query matching
  * several at once.
  */
 
@@ -32,12 +32,12 @@ export type Include = z.infer<typeof Include>;
  * A query for questions defined outside the exam --
  * `schema/exam.yaml#/$defs/IncludeAll`. Adds every question that matches it,
  * except the ones the exam already contains through an `include`, a declared
- * inline id, or an earlier `include-all`. Resolving the query is the host
+ * inline id, or an earlier `includeAll`. Resolving the query is the host
  * system's job; a reference that merely fails to resolve is still a
  * well-formed document.
  */
 export const IncludeAll = z.strictObject({
-	"include-all": z.string().min(1),
+	includeAll: z.string().min(1),
 	max: z.number().int().min(1).optional(),
 });
 export type IncludeAll = z.infer<typeof IncludeAll>;

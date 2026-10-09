@@ -14,6 +14,7 @@ Implements part of the unreleased MDQ specification.
 
 ### Changed
 
+- The exam include block key `include-all` is renamed to `includeAll` (Zod schema, parser, `resolveExam`). `include-all` is now an unknown field (`unknown-include-field`).
 - Empty free-text fields (`comment`, `preamble`, `epilogue`, `answerKey`, `instructions`, feedback) are now schema errors, and an empty frontmatter comment string is not stored.
 - Refreshed the bundled schema (description text only).
 
@@ -36,7 +37,7 @@ Implements part of the unreleased MDQ specification.
   frontmatter with the YAML 1.2 Core schema, like mdq-py.
 - Parser for exams (`parseExam`, `parseExamDocument`): the H1 title, the
   instructions, `===` and `---` question blocks, `include` and
-  `include-all` entries, `locale`/`author` inheritance, and the canonical
+  `includeAll` entries, `locale`/`author` inheritance, and the canonical
   `start` and `duration` (`canonicalStart`, `canonicalDuration`).
   `parseDocument` tells an exam from a question (`isExam`) and parses it.
 - `Diagnostic` and the parser warnings: `parseDocument`,
@@ -48,11 +49,11 @@ Implements part of the unreleased MDQ specification.
   (`foreign-choice-marker`) and `UndefinedBlankError` (`undefined-blank`).
 - Zod schemas and validators for questions and exams.
 - Types for student responses.
-- `resolveExam`, which replaces the `include` and `include-all` entries of an
+- `resolveExam`, which replaces the `include` and `includeAll` entries of an
   exam with the questions a `QuestionBank` holds, with `DictLoader` as the
-  in-memory bank, `selectRandom` as the default `include-all` choice, an
+  in-memory bank, `selectRandom` as the default `includeAll` choice, an
   `empty-include-all` warning through `ResolveOptions.warnings`, and
-  `IncludeNotFoundError`. The `include-all` query language: `parseQuery`,
+  `IncludeNotFoundError`. The `includeAll` query language: `parseQuery`,
   `Query`, `isStandardQuery` and `QuerySyntaxError`.
 
 ### Changed
@@ -64,7 +65,7 @@ Implements part of the unreleased MDQ specification.
 - A numeric question's or fill-in blank's `answer` now also accepts a
   string in the numeric body's grammar (e.g. `"1/3"`, `"-0.25"`), not just
   a number.
-- `id`, `include` and `include-all` keep their YAML type: the parser no
+- `id`, `include` and `includeAll` keep their YAML type: the parser no
   longer converts `id: 2024` to `"2024"`, so the schema rejects it. A null
   `id` counts as absent.
 - Grammar whitespace is only spaces and tabs, as the spec now defines it.

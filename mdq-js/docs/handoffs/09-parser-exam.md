@@ -12,7 +12,7 @@ relatedTo: [mdq-js/docs/sync/roadmap.md, mdq-js/docs/handoffs/08-parser-fill-in.
 Port the exam parser: the H1 title, the frontmatter (with `start` and
 `duration`), the instructions, the `===`/`---` blocks, and one entry per
 block, so that every `examples/valid/exam/*.mdq.md` parses to exactly its
-`.yaml`. `include` and `include-all` blocks stay unresolved entries; cycle
+`.yaml`. `include` and `includeAll` blocks stay unresolved entries; cycle
 F4.2 (`10-banks.md`) resolves them.
 
 Out of scope: `unknown-frontmatter-key` and `separator-before-include`
@@ -148,7 +148,7 @@ Batch 2:
 
 Batch 3:
 
-7. Entries: a block whose frontmatter has `include-all` (checked first) or
+7. Entries: a block whose frontmatter has `includeAll` (checked first) or
    `include` is the frontmatter mapping with that key's value as a string,
    every other key kept; any other block is `parseQuestionDocument` of the
    block without its leading `===`, plus `locale` and `author` from the exam

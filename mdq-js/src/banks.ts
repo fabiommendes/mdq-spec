@@ -1,5 +1,5 @@
 /**
- * Question banks: where the `include` and `include-all` blocks of an exam
+ * Question banks: where the `include` and `includeAll` blocks of an exam
  * find their questions, and `resolveExam`, which replaces those blocks.
  *
  * A port of `mdq-py/mdq/_banks.py` without `FileLoader` (the file-system
@@ -30,7 +30,7 @@ export type QuestionSource = string | Readonly<Record<string, unknown>>;
 
 /**
  * The questions an exam can include, by id and by tag. `tagged` and `ids`
- * are what an `include-all` query reads (see `Query.select`).
+ * are what an `includeAll` query reads (see `Query.select`).
  */
 export interface QuestionBank extends TagIndex {
 	/**
@@ -133,7 +133,7 @@ function sourceTags(source: QuestionSource): string[] | undefined {
 }
 
 /**
- * Chooses the questions of an `include-all` block. It receives the ids that
+ * Chooses the questions of an `includeAll` block. It receives the ids that
  * match the query and are not in the exam yet, sorted, and the block's
  * `max`. It returns the chosen ids in the order the exam shows them: at most
  * `max` distinct ids, all from `candidates`.
@@ -167,25 +167,25 @@ export function selectRandom(
 
 /** Options of `resolveExam`. */
 export interface ResolveOptions {
-	/** Chooses the questions of each `include-all` block. Default: `selectRandom`. */
+	/** Chooses the questions of each `includeAll` block. Default: `selectRandom`. */
 	readonly select?: Select;
 	/**
 	 * When given, `resolveExam` appends an `empty-include-all` warning for
-	 * every `include-all` block that adds nothing.
+	 * every `includeAll` block that adds nothing.
 	 */
 	readonly warnings?: Diagnostic[];
 }
 
 /**
- * A copy of `exam` in which every `include` and `include-all` entry is
+ * A copy of `exam` in which every `include` and `includeAll` entry is
  * replaced by the questions it selects from `bank` (`docs/exam.md`,
  * "Include" and "Include all"). `exam` does not change.
  *
  * * An `include` adds the question that `bank.load` returns. A text source
  *   is parsed with `parseQuestionDocument`.
- * * An `include-all` adds the ids that its query selects, sorted, minus the
+ * * An `includeAll` adds the ids that its query selects, sorted, minus the
  *   ids the exam already has: the target of any `include` (also a later
- *   one), a declared inline id, and the ids an earlier `include-all` added.
+ *   one), a declared inline id, and the ids an earlier `includeAll` added.
  *   `select` chooses among them. A query that `parseQuery` rejects adds
  *   nothing.
  * * An included question keeps its own `id`, or takes the id it was loaded
@@ -194,7 +194,7 @@ export interface ResolveOptions {
  * When `options.warnings` is given, an `empty-include-all` warning
  * (`the query '<q>' adds no question to the exam`, path `["questions",
  * index]`, `index` being the position of the block in `exam.questions`
- * before the resolution) is appended for every `include-all` block that adds
+ * before the resolution) is appended for every `includeAll` block that adds
  * nothing.
  *
  * Unique question ids are a model rule (F5) and are not checked here.
@@ -219,7 +219,7 @@ export function resolveExam(
 	for (const entry of exam.questions) {
 		if ("include" in entry) {
 			taken.add(entry.include);
-		} else if (!("include-all" in entry) && typeof entry.id === "string") {
+		} else if (!("includeAll" in entry) && typeof entry.id === "string") {
 			taken.add(entry.id);
 		}
 	}
@@ -228,8 +228,8 @@ export function resolveExam(
 	exam.questions.forEach((entry, index) => {
 		if ("include" in entry) {
 			questions.push(loadIncluded(exam, bank, entry.include));
-		} else if ("include-all" in entry) {
-			const query = entry["include-all"];
+		} else if ("includeAll" in entry) {
+			const query = entry["includeAll"];
 			const candidates = [...queryIds(bank, query)]
 				.filter((id) => !taken.has(id))
 				.sort(compareCodePoints);

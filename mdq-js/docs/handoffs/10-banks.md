@@ -1,7 +1,7 @@
 ---
 type: handoff
 status: completed
-tags: [mdq, mdq-js, exam, include, include-all, question-bank, query, tdd]
+tags: [mdq, mdq-js, exam, include, includeAll, question-bank, query, tdd]
 relatedTo: [mdq-js/docs/sync/roadmap.md, mdq-js/docs/handoffs/09-parser-exam.md]
 ---
 
@@ -9,8 +9,8 @@ relatedTo: [mdq-js/docs/sync/roadmap.md, mdq-js/docs/handoffs/09-parser-exam.md]
 
 ## Goal
 
-Port the `include-all` query language, the in-memory question bank and the
-resolution of `include`/`include-all` entries, so that a host can turn a
+Port the `includeAll` query language, the in-memory question bank and the
+resolution of `include`/`includeAll` entries, so that a host can turn a
 parsed exam into an exam with inline questions only. This finishes phase F4.
 Depends on F4.1 (`09-parser-exam.md`).
 
@@ -114,7 +114,7 @@ Batch 2:
 Batch 3:
 
 7. `resolveExam` replaces `include` entries (own `id` kept, else the
-   loaded id; `locale`/`author` inherited) and `include-all` entries
+   loaded id; `locale`/`author` inherited) and `includeAll` entries
    (sorted candidates minus the taken ids, `select` called with the
    candidates and `max`, a nonstandard query adds nothing), as in the
    "Resolution" tests of `test_include_all.py`. `exam` is not changed.
@@ -122,7 +122,7 @@ Batch 3:
    candidate, the same id twice, more than `max`).
 9. With a `DictLoader` over the corpus bank, `midterm` resolves as in
    `test_exam.py` (essay `recursion-01`, title `Base cases`, locale
-   `pt-BR`), and `include-all` with a `select` that keeps the first `max`
+   `pt-BR`), and `includeAll` with a `select` that keeps the first `max`
    candidates gives `cerrado-01`, `amazonia-01`, `pantanal-01` and the
    inline question, as its `.yaml` comment says. Update the F4 row of
    `docs/sync/roadmap.md` to done.

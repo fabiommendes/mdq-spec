@@ -1,5 +1,5 @@
 /**
- * The query language that `docs/exam.md` recommends for `include-all`.
+ * The query language that `docs/exam.md` recommends for `includeAll`.
  *
  *     query     : logic ("EXCEPT" slugs)?
  *     logic     : logic "OR" logic_and | logic_and
@@ -19,8 +19,8 @@ import { MdqError } from "./errors.js";
 import { UNICODE_SPACE } from "./parser/text.js";
 
 /**
- * An `include-all` query does not follow the language. The message is
- * `invalid include-all query '<text>': <detail>`, as in Python.
+ * An `includeAll` query does not follow the language. The message is
+ * `invalid includeAll query '<text>': <detail>`, as in Python.
  */
 export class QuerySyntaxError extends MdqError {}
 
@@ -50,7 +50,7 @@ export type QueryExpr =
 			readonly right: QueryExpr;
 	  };
 
-/** A parsed `include-all` query. Build it with `parseQuery`. */
+/** A parsed `includeAll` query. Build it with `parseQuery`. */
 export class Query {
 	constructor(
 		readonly expr: QueryExpr,
@@ -81,7 +81,7 @@ export class Query {
 }
 
 /**
- * Parse an `include-all` query. Tokens are `(`, `)`, `,`, and each run of
+ * Parse an `includeAll` query. Tokens are `(`, `)`, `,`, and each run of
  * other characters that are not whitespace (Python `\s`, the `SPACE` class
  * of `parser/text`).
  *
@@ -293,7 +293,7 @@ class QueryParser {
 
 	private fail(detail: string): never {
 		throw new QuerySyntaxError(
-			`invalid include-all query '${this.text}': ${detail}`,
+			`invalid includeAll query '${this.text}': ${detail}`,
 		);
 	}
 }

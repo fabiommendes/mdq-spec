@@ -1,5 +1,5 @@
 /**
- * `id`, `include` and `include-all` keep their YAML type: the parser never
+ * `id`, `include` and `includeAll` keep their YAML type: the parser never
  * converts them, and a null `id` counts as absent (root `40591e2`, mdq-py
  * `4409033`). The model layer rejects a non-string value (F5). Expected
  * values come from `parse_question` and `parse_exam`.
@@ -29,16 +29,16 @@ describe("string-only fields pass through unconverted", () => {
 		});
 	});
 
-	it("an exam id, include and include-all keep their YAML type", () => {
+	it("an exam id, include and includeAll keep their YAML type", () => {
 		// `yes` is a string in the YAML 1.2 Core schema (base.md,
 		// "Frontmatter"); `true` and `7` keep their types.
 		const source =
-			"---\nid: 2024\n---\n# Prova\n\n===\n\n---\ninclude: true\n---\n\n===\n\n---\ninclude-all: 7\n---\n\n===\n\n---\ninclude: yes\n---\n";
+			"---\nid: 2024\n---\n# Prova\n\n===\n\n---\ninclude: true\n---\n\n===\n\n---\nincludeAll: 7\n---\n\n===\n\n---\ninclude: yes\n---\n";
 		expect(parseExamDocument(source)).toEqual({
 			type: "exam",
 			title: "Prova",
 			id: 2024,
-			questions: [{ include: true }, { "include-all": 7 }, { include: "yes" }],
+			questions: [{ include: true }, { includeAll: 7 }, { include: "yes" }],
 		});
 	});
 

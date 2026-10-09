@@ -83,7 +83,7 @@ export class ForeignChoiceMarkerError extends ParseError {
 
 /**
  * A question bank has no question with the id an `include` or an
- * `include-all` asks for. Mirrors `IncludeNotFound` in `mdq-py/mdq/errors.py`.
+ * `includeAll` asks for. Mirrors `IncludeNotFound` in `mdq-py/mdq/errors.py`.
  *
  * The message is `cannot resolve included question '<id>'`, followed by
  * `: <detail>` when `detail` is not empty.

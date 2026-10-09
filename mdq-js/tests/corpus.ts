@@ -41,7 +41,7 @@ const DOCUMENT_SUFFIXES = [".yaml", ".yml", ".json"];
 export const LINT_SUFFIX = ".lint.json";
 
 /**
- * The expected resolution of an exam with `include`/`include-all`: the ids
+ * The expected resolution of an exam with `include`/`includeAll`: the ids
  * of its questions after `resolve` against `examples/valid/exam/`, and the
  * diagnostics `resolve` reports. Not a document.
  */

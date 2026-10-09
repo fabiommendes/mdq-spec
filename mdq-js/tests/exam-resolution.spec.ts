@@ -81,7 +81,7 @@ function hasIncludes(document: unknown): boolean {
 			(entry) =>
 				typeof entry === "object" &&
 				entry !== null &&
-				("include" in entry || "include-all" in entry),
+				("include" in entry || "includeAll" in entry),
 		)
 	);
 }

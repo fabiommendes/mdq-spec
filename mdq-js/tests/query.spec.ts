@@ -1,5 +1,5 @@
 /**
- * The `include-all` query language: `parseQuery`, `Query.matches`,
+ * The `includeAll` query language: `parseQuery`, `Query.matches`,
  * `Query.select` and `isStandardQuery`. Port of the "Query language" section
  * of `mdq-py/tests/test_include_all.py`, plus the error messages and the
  * Unicode-space rule of `docs/exam.md`.
@@ -69,30 +69,30 @@ describe("parseQuery errors", () => {
 	});
 
 	it.each<[string, string]>([
-		["a b", "invalid include-all query 'a b': unexpected 'b'"],
-		["biome)", "invalid include-all query 'biome)': unexpected ')'"],
-		["(a", "invalid include-all query '(a': missing ')'"],
+		["a b", "invalid includeAll query 'a b': unexpected 'b'"],
+		["biome)", "invalid includeAll query 'biome)': unexpected ')'"],
+		["(a", "invalid includeAll query '(a': missing ')'"],
 		[
 			"a AND",
-			"invalid include-all query 'a AND': expected a tag, found 'the end'",
+			"invalid includeAll query 'a AND': expected a tag, found 'the end'",
 		],
-		["", "invalid include-all query '': expected a tag, found 'the end'"],
-		["AND", "invalid include-all query 'AND': expected a tag, found 'AND'"],
+		["", "invalid includeAll query '': expected a tag, found 'the end'"],
+		["AND", "invalid includeAll query 'AND': expected a tag, found 'AND'"],
 		[
 			"a AND )",
-			"invalid include-all query 'a AND )': expected a tag, found ')'",
+			"invalid includeAll query 'a AND )': expected a tag, found ')'",
 		],
 		[
 			"a EXCEPT",
-			"invalid include-all query 'a EXCEPT': expected a question id, found 'the end'",
+			"invalid includeAll query 'a EXCEPT': expected a question id, found 'the end'",
 		],
 		[
 			"a EXCEPT b, OR",
-			"invalid include-all query 'a EXCEPT b, OR': expected a question id, found 'OR'",
+			"invalid includeAll query 'a EXCEPT b, OR': expected a question id, found 'OR'",
 		],
 		[
 			"a EXCEPT b EXCEPT c",
-			"invalid include-all query 'a EXCEPT b EXCEPT c': unexpected 'EXCEPT'",
+			"invalid includeAll query 'a EXCEPT b EXCEPT c': unexpected 'EXCEPT'",
 		],
 	])("%j fails with a precise message", (query, message) => {
 		expect(() => parseQuery(query)).toThrow(message);

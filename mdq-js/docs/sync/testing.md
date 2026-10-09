@@ -32,7 +32,7 @@ Four file shapes appear under `valid/`:
   parser produces (`PARSER_ONLY_CODES` in `mdq-py/tests/_corpus.py`).
   Python writes these files with its lint snapshot script (see
   `mdq-py/AGENTS.md`); do not edit them by hand.
-* `exam/<name>.resolved.yaml` -- for an exam with `include`/`include-all`:
+* `exam/<name>.resolved.yaml` -- for an exam with `include`/`includeAll`:
   the ids of its questions after resolution against `examples/valid/exam/`
   and `with_ids`, and the diagnostics of the resolution. Not a document;
   `collectFiles` leaves it out.
