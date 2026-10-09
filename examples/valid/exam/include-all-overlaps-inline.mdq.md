@@ -1,7 +1,7 @@
 # [florestas] Florestas
 
 ---
-include-all: forest AND NOT draft
+includeAll: forest AND NOT draft
 ---
 
 ---

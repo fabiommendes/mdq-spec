@@ -15,6 +15,7 @@ First version of the specification.
 
 ### Changed
 
+- The exam include block key `include-all` is renamed to `includeAll`: properties are camelCase. `include-all` is now an unknown field of an include block (`unknown-include-field`). Values, type names and lint codes keep their dash-case.
 - `docs/exam.md`: the frontmatter table now says `grading` is a strategy or a map from question type to strategy, as `schema/exam.yaml` already accepts. In `schema/ordering.yaml` the normalization enum moves to `$defs/Normalization` (no semantic change).
 - One severity per lint code. A Unicode space in prose (not U+0085, U+2028, U+2029, and not in a syntax position) now reports the new `non-ascii-whitespace-in-prose` code (`info`); `non-ascii-whitespace` is always `warning`. A blank `preamble`, `epilogue` or `stem` now reports the new `blank-content-field` code (`error`); `blank-text-field` is always `warning`.
 - Free-text fields (`comment`, `preamble`, `epilogue`, `answerKey`, `instructions`, feedback and choice/pattern comments) must not be the empty string (`minLength: 1`). Whitespace only stays the `blank-text-field` warning. An empty frontmatter comment string is not stored.
@@ -66,7 +67,7 @@ First version of the specification.
   `error` now, not a `warning`.
 - `multiple-choice-many-correct-choices` is an `info` now, not a `warning`:
   a question MAY mark any number of choices as correct.
-- An extra field in an `include`/`include-all` exam block is an `error`
+- An extra field in an `include`/`includeAll` exam block is an `error`
   now (`unknown-include-field`), not a dropped-and-warned key.
 - `locale` and `uuid`, when present, MUST be well-formed (`malformed-locale`,
   `malformed-uuid`), for both questions and exams. The `locale` BCP 47
@@ -142,7 +143,7 @@ First version of the specification.
   single letter). New examples `invalid/model-only/exam-zero-duration` and
   `invalid/model-only/true-false-non-letter-marker`.
 - A frontmatter value keeps its YAML type (base.md, exam.md): `id`, and an
-  exam block's `include`/`include-all`, MUST be YAML strings. `id: 2024` or
+  exam block's `include`/`includeAll`, MUST be YAML strings. `id: 2024` or
   `include: yes` is an error (`schema-error`), not the string `"2024"` or
   `"True"`. A null `id` is absent. The `essay/numeric-id` example is gone;
   new invalid examples `question-id-not-string` and `exam-ids-not-strings`.
@@ -423,7 +424,7 @@ First version of the specification.
   schema bound of the YAML form, and an accept/reject overlap that appears
   only after `dedent`.
 - Corpus for exams: `***` in a question epilogue, `===` before an include,
-  `id` and `title` in both places, an H1 without slug, an `include-all` that
+  `id` and `title` in both places, an H1 without slug, an `includeAll` that
   overlaps an inline question, the query language (`OR`, parentheses, `NOT
   NOT`, `EXCEPT` with two slugs, keyword-prefixed tags, a Unicode space),
   `grading` as a string and as a mapping, `penalty: full` and `none`, every
@@ -431,7 +432,7 @@ First version of the specification.
   inheritance of `author` and `locale`, an unsafe exam id, a blank title, an
   unknown UUID version, and one exam with every question type. Invalid:
   `---` in an epilogue, duplicate ids in all four forms, `include` with
-  `include-all` or `max`, `max` alone or out of range, unknown `grading` key
+  `includeAll` or `max`, `max` alone or out of range, unknown `grading` key
   or `inherit`, unknown `penalty`, six bad durations from Markdown, an
   impossible `start`, a malformed exam UUID, `type: exam` without an H1, and
   a second H1.

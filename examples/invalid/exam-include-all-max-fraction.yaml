@@ -3,5 +3,5 @@ type: exam
 id: biomes
 title: Biomes
 questions:
-  - include-all: biome
+  - includeAll: biome
     max: 2.5

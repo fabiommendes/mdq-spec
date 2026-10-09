@@ -1,8 +1,8 @@
-# The exam `id`, `include` and `include-all` take only a YAML string. A
+# The exam `id`, `include` and `includeAll` take only a YAML string. A
 # number is not converted to a string. (`include: yes` would be the string
 # "yes": YAML 1.2 has no `yes` boolean, see base.md, "Frontmatter".)
 type: exam
 id: 2024
 title: Prova de Geografia
 questions:
-  - include-all: 7
+  - includeAll: 7

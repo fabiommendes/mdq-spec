@@ -12,7 +12,7 @@
     "path": [
       "questions",
       0,
-      "include-all"
+      "includeAll"
     ]
   }
 ]

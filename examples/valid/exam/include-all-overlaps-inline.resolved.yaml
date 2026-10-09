@@ -1,5 +1,5 @@
 # The inline question declares `amazonia-01`, the only match of the query, so
-# the `include-all` adds nothing: not an error, only `empty-include-all`.
+# the `includeAll` adds nothing: not an error, only `empty-include-all`.
 questions:
 - amazonia-01
 diagnostics:

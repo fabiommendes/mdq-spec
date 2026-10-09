@@ -265,7 +265,7 @@ def test_expand_braces() -> None:
             "questions[].{stem,epilogue}",
             [["questions", "[]", "stem"], ["questions", "[]", "epilogue"]],
         ),
-        ("include-all", [["include-all"]]),
+        ("includeAll", [["includeAll"]]),
     ],
 )
 def test_parse_field_paths(text: str, expected: list) -> None:

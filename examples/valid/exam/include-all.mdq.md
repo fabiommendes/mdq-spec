@@ -7,12 +7,12 @@ include: cerrado-01
 ---
 
 ---
-include-all: biome AND NOT draft EXCEPT pantanal-02
+includeAll: biome AND NOT draft EXCEPT pantanal-02
 max: 2
 ---
 
 ---
-include-all: forest AND NOT draft
+includeAll: forest AND NOT draft
 ---
 
 ===

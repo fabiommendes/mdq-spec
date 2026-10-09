@@ -1,11 +1,11 @@
 # An inline question with the declared id of the only question the query
-# matches. The overlap is not an error: the `include-all` leaves it out
+# matches. The overlap is not an error: the `includeAll` leaves it out
 # (see `include-all-overlaps-inline.resolved.yaml`).
 id: florestas
 title: Florestas
 type: exam
 questions:
-- include-all: forest AND NOT draft
+- includeAll: forest AND NOT draft
 - id: amazonia-01
   stem: Which river drains most of the Amazon rainforest?
   accept:

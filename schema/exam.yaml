@@ -220,12 +220,12 @@ additionalProperties: false
     description: >-
       A query for questions defined outside this exam. Adds every question
       that matches it, except the ones the exam already contains through
-      an `include`, a declared inline id, or an earlier `include-all`.
+      an `include`, a declared inline id, or an earlier `includeAll`.
       Resolving the query is the host system's job; a document that
       merely fails to resolve is still well-formed.
     additionalProperties: false
     properties:
-      include-all:
+      includeAll:
         type: string
         minLength: 1
         description: >-
@@ -241,4 +241,4 @@ additionalProperties: false
           The maximum number of questions to add. Which ones are kept is
           implementation-defined.
     required:
-      - include-all
+      - includeAll

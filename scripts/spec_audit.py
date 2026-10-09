@@ -145,9 +145,7 @@ POLYMORPHIC_PROPERTIES: dict[str, str] = {
 }
 
 #: Property names that are not camelCase on purpose, with the reason.
-NAMING_EXCEPTIONS: dict[str, str] = {
-    "include-all": "pending decision: deliberate kebab-case key of an include block",
-}
+NAMING_EXCEPTIONS: dict[str, str] = {}
 
 #: Literal that questions accept for `grading` and `shuffle`, to take the value
 #: of the exam. The exam is the top of the chain, so its schema lacks it.

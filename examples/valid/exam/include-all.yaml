@@ -1,10 +1,10 @@
-# `include` and `include-all` blocks stay unresolved: the host resolves
+# `include` and `includeAll` blocks stay unresolved: the host resolves
 # them with `Exam.resolve`. Against bank/, the first query matches
 # amazonia-01, cerrado-01 and pantanal-01. cerrado-01 is already included
 # and skipped, so it adds amazonia-01 and pantanal-01 (`max` is 2). The
 # second query only matches amazonia-01, which is already taken, so the
 # block adds nothing (`empty-include-all`, reported by `Exam.resolve`). The last question has
-# no id and comes after an `include-all`, so its derived id depends on the
+# no id and comes after an `includeAll`, so its derived id depends on the
 # bank (`undeclared-id-after-include-all`).
 type: exam
 id: biomes
@@ -12,9 +12,9 @@ title: Biomes of Brazil
 instructions: Answer every question.
 questions:
 - include: cerrado-01
-- include-all: biome AND NOT draft EXCEPT pantanal-02
+- includeAll: biome AND NOT draft EXCEPT pantanal-02
   max: 2
-- include-all: forest AND NOT draft
+- includeAll: forest AND NOT draft
 - stem: Which Brazilian biome covers the largest area?
   accept:
   - Amazônia

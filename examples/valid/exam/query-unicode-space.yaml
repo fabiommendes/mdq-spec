@@ -5,4 +5,4 @@ type: exam
 id: consultas
 title: Consultas
 questions:
-  - include-all: "biome\u00a0AND savanna"
+  - includeAll: "biome\u00a0AND savanna"

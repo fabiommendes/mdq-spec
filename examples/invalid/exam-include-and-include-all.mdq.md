@@ -2,5 +2,5 @@
 
 ---
 include: cerrado-01
-include-all: biome
+includeAll: biome
 ---

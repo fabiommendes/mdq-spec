@@ -6,7 +6,7 @@ id: nonstandard-query-quiz
 title: Nonstandard query quiz
 instructions: Answer every question.
 questions:
-- include-all: recursion and draft
+- includeAll: recursion and draft
 - stem: Qual é a capital do Brasil?
   accept:
   - Brasília

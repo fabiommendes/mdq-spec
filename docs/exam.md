@@ -20,7 +20,7 @@ include: recursion-01
 ---
 
 ---
-include-all: recursion AND NOT draft EXCEPT recursion-07
+includeAll: recursion AND NOT draft EXCEPT recursion-07
 max: 2
 ---
 
@@ -87,9 +87,9 @@ frontmatter takes precedence, consistently with the rule for questions.
 
 As for a question, a mapping MUST NOT repeat a key, in the exam frontmatter
 and in the frontmatter of every block (`yaml-syntax-error`). A value keeps its
-YAML type and is never converted: `id`, and the `include` and `include-all` of
-a block, MUST be YAML strings (`id: "2024"`, not `id: 2024`; `include-all: "7"`,
-not `include-all: 7`). See [Frontmatter](question-types/question-base.md#frontmatter)
+YAML type and is never converted: `id`, and the `include` and `includeAll` of
+a block, MUST be YAML strings (`id: "2024"`, not `id: 2024`; `includeAll: "7"`,
+not `includeAll: 7`). See [Frontmatter](question-types/question-base.md#frontmatter)
 for the YAML schema.
 
 
@@ -181,10 +181,10 @@ allowed.
 
 | Field       | Type    | Description                                              |
 | ----------- | ------- | -------------------------------------------------------- |
-| include-all | string  | A query. Adds all questions that match it.               |
+| includeAll | string  | A query. Adds all questions that match it.               |
 | max         | integer | Optional. The maximum number of questions to add. Min 1. |
 
-`include-all` adds every question that matches a query. MDQ does not enforce a
+`includeAll` adds every question that matches a query. MDQ does not enforce a
 query language, but it recommends the language below. A query that does not
 follow it is a warning, not an error. An implementation that cannot read the
 query adds no questions for that block.
@@ -226,9 +226,9 @@ Tags do not use a `#` prefix: YAML reads an unquoted value that starts with
 `#` as a comment. A tag that contains a `UNICODE_SPACE`, a comma or a
 parenthesis cannot be written in a query.
 
-An `include-all` never adds a question that the exam already contains by
+An `includeAll` never adds a question that the exam already contains by
 other means: the target of an `include`, an inline question with the same
-declared `id`, or a question added by an earlier `include-all`. This lets an
+declared `id`, or a question added by an earlier `includeAll`. This lets an
 author include some questions explicitly and fill the remaining positions with
 a query. `max` applies after these questions are removed.
 
@@ -244,20 +244,20 @@ ids are only derived when a consumer needs an addressable exam (grading, say):
 `q1` for the first question, `q2` for the second, and so on.
 
 Every question occupies a position, including an included one. An `include`
-occupies one position, and an `include-all` occupies one position for each
-question it adds. So in an exam whose first block is an `include-all` that adds
+occupies one position, and an `includeAll` occupies one position for each
+question it adds. So in an exam whose first block is an `includeAll` that adds
 three questions and whose second block is an inline question, the inline
 question's derived id is `q4` -- it always matches the position the student
 sees, never a separate count of inline questions only.
 
-Since an `include-all` can add a different number of questions each time it
+Since an `includeAll` can add a different number of questions each time it
 resolves, the derived id of an inline question after it is not stable. Such a
 question SHOULD declare its own `id`.
 
 An included question already has an identity of its own, so it is never
 renamed by this rule. A question in the bank that declares no `id` takes the
 id the bank found it by, whether it came in through `include` or
-`include-all`.
+`includeAll`.
 
 Question ids MUST be unique within the exam. The rule applies after includes
 resolve, and accounts for the derived id a question with no declared `id`
@@ -271,8 +271,8 @@ would get, so all of these make the exam malformed:
   its derived id `q2`. A derived id always matches the position, so it is
   never renamed to avoid a collision.
 
-The overlap of an `include-all` with other blocks is not an error: the
-`include-all` leaves out those questions, see [Include all](#include-all).
+The overlap of an `includeAll` with other blocks is not an error: the
+`includeAll` leaves out those questions, see [Include all](#include-all).
 
 
 ## Inheritance
@@ -446,17 +446,17 @@ exam frontmatter.
 | duration        | critical | invalid-duration                | must be a positive ISO 8601 duration without years or months, `HH:MM` or `Xd Yh Zm`                                                                                                                               |
 | instructions    | critical | blank-content-field             | must have at least one visible character                                                                                                                                                                          |
 | questions[].epilogue | critical | parse-error                     | must not use `---` as a thematic break inside an exam                                                                                                                                                             |
-| questions[]     | critical | unknown-include-field           | an include block allows only `include`, or `include-all` with `max`                                                                                                                                               |
+| questions[]     | critical | unknown-include-field           | an include block allows only `include`, or `includeAll` with `max`                                                                                                                                               |
 | questions[].max | critical | schema-error                    | must be a positive integer (schema)                                                                                                                                                                               |
 | questions       | warning  | exam-without-questions          | should contain at least one question[^10]                                                                                                                                                                         |
 | instructions, questions[].{preamble,stem,epilogue} | warning  | setext-heading                  | should not contain a setext heading, see [Question and include blocks](#question-and-include-blocks)                                                                                                              |
 | instructions    | warning  | unsafe-thematic-break           | should not write a thematic break with `-`, see [Question and include blocks](#question-and-include-blocks); the same rule for questions is in [generic fields](question-types/question-base.md#additional-rules) |
-| questions[].include-all | warning  | empty-include-all               | should add at least one question when it resolves                                                                                                                                                                 |
-| questions[].id  | warning  | undeclared-id-after-include-all | should be declared on an inline question after `include-all`                                                                                                                                                      |
+| questions[].includeAll | warning  | empty-include-all               | should add at least one question when it resolves                                                                                                                                                                 |
+| questions[].id  | warning  | undeclared-id-after-include-all | should be declared on an inline question after `includeAll`                                                                                                                                                      |
 | questions[]     | warning  | separator-before-include        | an include block should not be preceded by `===`                                                                                                                                                                  |
-| questions[].include-all | warning  | nonstandard-include-query       | should follow the recommended query language                                                                                                                                                                      |
+| questions[].includeAll | warning  | nonstandard-include-query       | should follow the recommended query language                                                                                                                                                                      |
 
-[^9]: See [Question ids](#question-ids). Overlap with an `include-all` is not
-    a violation, since the `include-all` leaves out the repeated questions.
+[^9]: See [Question ids](#question-ids). Overlap with an `includeAll` is not
+    a violation, since the `includeAll` leaves out the repeated questions.
 [^10]: See [Empty exams](#empty-exams).
 
