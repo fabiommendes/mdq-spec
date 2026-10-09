@@ -14,5 +14,6 @@ prompt/
 __pycache__/
 .pytest_cache/
 
-# Claude Code worktree
-.claude/
+# Claude Code local files; project skills are tracked
+.claude/*
+!.claude/skills/
