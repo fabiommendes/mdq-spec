@@ -64,7 +64,7 @@ Exams accept the following arguments in the frontmatter
 | tags        | string[] or string         | A list of strings or a single comma delimited string.                         |
 | meta        | object                     | Mapping of strings to arbitrary JSON.                                         |
 | penalty     | "none", "capped" or "full" | The exam's clamping policy. Defaults to "none".[^5]                           |
-| grading     | grading                    | The grading strategy to use for the exam. Defaults to "symmetric".[^6]        |
+| grading     | grading or map             | A grading strategy, or a map from question type to strategy. Defaults to "symmetric".[^6] |
 | shuffle     | boolean                    | Whether the choices of the questions can be shuffled. Defaults to false.[^6]  |
 | start       | string                     | The start time of the exam (e.g., "2024-06-01T09:00:00").[^7]                 |
 | duration    | string                     | The duration of the exam (e.g., "90m" for 90 minutes).[^8]                    |

@@ -30,6 +30,10 @@ The audit runs these steps in order and reports every problem it finds:
    list each code once.
 7. The files of `examples/invalid/` are complete, every code they report is
    declared, and every `critical` code has an invalid example.
+8. The `## Frontmatter` table of each question type and of `exam.md` agrees
+   with its schema: every field is a property, the `type` row matches the
+   schema `const`, the Type column matches the schema type, and every schema
+   property is in the table or mentioned in the text.
 
 Run it from the repository root with `uv run scripts/spec_audit.py`.
 `--fail-fast` stops at the first step that fails. A step that fails still
@@ -44,6 +48,7 @@ import re
 import sys
 from collections import defaultdict
 from dataclasses import dataclass, field
+from functools import cache
 from pathlib import Path
 from typing import Any, Callable
 
@@ -76,12 +81,29 @@ LEVELS = {"critical": "error", "warning": "warning", "info": "info"}
 RULES_HEADER = ["Field", "Level", "Code", "Rule"]
 LINT_TABLE_HEADER = ["Code", "Severity", "Question types", "Description"]
 ERROR_TABLE_HEADER = ["Code", "Question types", "Description"]
+FRONTMATTER_HEADER = ["Field", "Type", "Description"]
+BASE_SCHEMA = "question-base"
+#: The type names of the Type column of a frontmatter table that are JSON
+#: Schema types, and the ones that are aliases of them.
+JSON_TYPES = {"string", "integer", "number", "boolean", "object", "array", "null"}
+TYPE_ALIASES = {"map": "object"}
 
 CODE_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
 #: Declared codes that no corpus example can report, with the reason.
 NO_CORPUS_EXAMPLE = {
     "empty-include-all": "only Exam.resolve reports it, never load",
+}
+
+#: Frontmatter fields that the table documents with a shorthand the schema
+#: does not describe, as (doc stem, field) with the reason. The table
+#: describes the frontmatter and the schema describes the AST.
+FRONTMATTER_SHORTHANDS = {
+    ("question-base", "tags"): "comma-delimited string shorthand",
+    ("exam", "tags"): "comma-delimited string shorthand",
+    ("fill-in", "preAccept"): "map shorthand, a field of each blank in the AST",
+    ("fill-in", "preReject"): "map shorthand, a field of each blank in the AST",
+    ("question-base", "type"): "each question type schema declares its own",
 }
 
 
@@ -757,6 +779,260 @@ def step_invalid_corpus(audit: Audit) -> str:
     return f"{len(groups)} examples, {len(produced)} (code, severity) pairs"
 
 
+# Schema types. An atom is a hashable `(kind, value)` pair that stands for one
+# alternative of a type: `("type", "string")`, `("lit", "inherit")`,
+# `("array", frozenset_of_atoms)` or `("ref", "patternlist")`.
+
+Atom = tuple[str, Any]
+
+
+def norm_name(name: str) -> str:
+    """Normalize a named type for comparison: case and `-` do not matter."""
+    return name.replace("-", "").casefold()
+
+
+def parse_doc_type(text: str) -> frozenset[Atom]:
+    """Parse a cell of the Type column of a frontmatter table.
+
+    The vocabulary is a list of alternatives, separated by `,` or `or`. An
+    alternative is a JSON type name, `map` (an object), `"literal"`, a named
+    type (`grading`, `pattern-list`) or any of them followed by `[]` (an array
+    of it). Raises `ValueError` for anything else.
+    """
+    atoms: set[Atom] = set()
+    for item in re.split(r"\s*,\s*(?:or\s+)?|\s+or\s+", text.strip()):
+        atoms.add(_parse_doc_alternative(item.strip(), text))
+    return frozenset(atoms)
+
+
+def _parse_doc_alternative(item: str, text: str) -> Atom:
+    if item.endswith("[]"):
+        return ("array", frozenset({_parse_doc_alternative(item[:-2], text)}))
+    if re.fullmatch(r'"[^"]+"', item):
+        return ("lit", item[1:-1])
+    item = TYPE_ALIASES.get(item, item)
+    if item in JSON_TYPES:
+        return ("type", item)
+    if re.fullmatch(r"[A-Za-z][\w-]*", item):
+        return ("ref", norm_name(item))
+    raise ValueError(f"cannot parse the type {text!r}")
+
+
+@cache
+def load_schema(path: Path) -> Any:
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
+
+
+def resolve_ref(ref: str, base: Path) -> tuple[Any, Path, str]:
+    """Follow a `$ref` found in the schema file `base`.
+
+    Returns the target node, the file it lives in and its name: the last
+    segment of the fragment (`#/$defs/Tolerance`) or the file stem.
+    """
+    file_part, _, fragment = ref.partition("#")
+    path = (base.parent / file_part).resolve() if file_part else base
+    node = load_schema(path)
+    name = path.stem
+    for segment in [s for s in fragment.split("/") if s]:
+        node = node[segment]
+        name = segment
+    return node, path, name
+
+
+def schema_atoms(
+    node: Any, path: Path, deref: bool, _seen: frozenset[int] = frozenset()
+) -> frozenset[Atom]:
+    """The alternatives a schema node accepts.
+
+    A `$ref` is a single named atom, or its target's atoms if `deref`.
+    """
+    if not isinstance(node, dict) or id(node) in _seen:
+        return frozenset()
+    seen = _seen | {id(node)}
+    atoms: set[Atom] = set()
+    if "$ref" in node:
+        target, target_path, name = resolve_ref(node["$ref"], path)
+        if deref:
+            atoms |= schema_atoms(target, target_path, deref, seen)
+        else:
+            atoms.add(("ref", norm_name(name)))
+    if "const" in node:
+        atoms.add(("lit", node["const"]))
+    for value in node.get("enum", []):
+        atoms.add(("lit", value))
+    types = node.get("type", [])
+    for name in [types] if isinstance(types, str) else types:
+        if name == "array":
+            items = schema_atoms(node.get("items"), path, deref, seen)
+            atoms.add(("array", items))
+        else:
+            atoms.add(("type", name))
+    for key in ("oneOf", "anyOf", "allOf"):
+        for option in node.get(key, []):
+            atoms |= schema_atoms(option, path, deref, seen)
+    return frozenset(atoms)
+
+
+def schema_properties(
+    node: Any, path: Path, inherit: bool = True
+) -> dict[str, tuple[Any, Path]]:
+    """Property -> (schema node, file) of an object schema.
+
+    Collects `properties` and, through `allOf`, the ones of inline entries.
+    A `$ref` entry is followed only if `inherit`.
+    """
+    result: dict[str, tuple[Any, Path]] = {}
+    for entry in node.get("allOf", []):
+        if "$ref" in entry:
+            if inherit:
+                target, target_path, _ = resolve_ref(entry["$ref"], path)
+                result |= schema_properties(target, target_path, inherit)
+        else:
+            result |= schema_properties(entry, path, inherit)
+    for name, value in (node.get("properties") or {}).items():
+        result[name] = (value, path)
+    return result
+
+
+def types_agree(doc: frozenset[Atom], schema: frozenset[Atom], prop: str) -> bool:
+    """Whether the Type column `doc` describes the schema type `schema`.
+
+    Two leniencies: `string` stands for an enum of strings (the description
+    lists the values), and a named type that is the name of the property
+    stands for an enum declared inline.
+    """
+    docs, schemas = set(doc), set(schema)
+    str_lits = {a for a in schemas if a[0] == "lit" and isinstance(a[1], str)}
+    if ("type", "string") in docs:
+        schemas = (schemas - str_lits) | ({("type", "string")} if str_lits else set())
+    elif ("ref", norm_name(prop)) in docs and not any(a[0] == "ref" for a in schemas):
+        docs.discard(("ref", norm_name(prop)))
+        schemas -= str_lits
+    doc_arrays = {a for a in docs if a[0] == "array"}
+    schema_arrays = {a for a in schemas if a[0] == "array"}
+    if len(doc_arrays) == len(schema_arrays) == 1:
+        if not types_agree(
+            doc_arrays.copy().pop()[1], schema_arrays.copy().pop()[1], ""
+        ):
+            return False
+        docs -= doc_arrays
+        schemas -= schema_arrays
+    return docs == schemas
+
+
+def describe(atoms: frozenset[Atom]) -> str:
+    parts = []
+    for kind, value in sorted(atoms, key=repr):
+        if kind == "array":
+            parts.append(f"[{describe(value)}]")
+        elif kind == "lit":
+            parts.append(json.dumps(value))
+        else:
+            parts.append(str(value))
+    return " | ".join(parts) or "(none)"
+
+
+def either_values(description: str) -> set[str]:
+    """The quoted values of a description that starts like `Either "a" or "b"`."""
+    match = re.match(r"Either\s+(.*?)(?:[.:\[]|$)", description)
+    return set(re.findall(r'"([^"]+)"', match.group(1))) if match else set()
+
+
+def check_frontmatter(path: Path, problems: list[str]) -> None:
+    name = rel(path)
+    source = path.read_text(encoding="utf-8")
+    tokens = markdown().parse(source)
+    bounds = section(tokens, "Frontmatter", level=2)
+    if bounds is None:
+        problems.append(f"{name}: has no `## Frontmatter` section")
+        return
+    found = tables(tokens, *bounds)
+    if len(found) != 1 or found[0].header != FRONTMATTER_HEADER:
+        problems.append(
+            f"{name}:{tokens[bounds[0]].map[0] + 1}: `## Frontmatter` needs "
+            f"exactly one `{' | '.join(FRONTMATTER_HEADER)}` table"
+        )
+        return
+    table = found[0]
+    schema_path = SCHEMA_DIR / f"{path.stem}.yaml"
+    schema = load_schema(schema_path)
+    properties = schema_properties(schema, schema_path)
+    own = schema_properties(schema, schema_path, inherit=False)
+    base = path.stem == BASE_SCHEMA
+    used_shorthands: set[tuple[str, str]] = set()
+
+    for line, (field_, type_cell, description) in table.rows:
+        where = f"{name}:{line}"
+        if (path.stem, field_) in FRONTMATTER_SHORTHANDS:
+            used_shorthands.add((path.stem, field_))
+            continue
+        if field_ not in properties:
+            problems.append(f"{where}: `{field_}` is not a property of the schema")
+            continue
+        try:
+            doc_type = parse_doc_type(type_cell)
+        except ValueError as error:
+            problems.append(f"{where}: `{field_}`: {error}")
+            continue
+        node, node_path = properties[field_]
+        if field_ == "type" and not base:
+            expected = schema_atoms(node, node_path, deref=True)
+            if doc_type != {("lit", path.stem)} or expected != {("lit", path.stem)}:
+                problems.append(
+                    f"{where}: `type` is {describe(doc_type)} in the table and "
+                    f"{describe(expected)} in the schema, expected "
+                    f"{json.dumps(path.stem)}"
+                )
+            continue
+        opaque = schema_atoms(node, node_path, deref=False)
+        full = schema_atoms(node, node_path, deref=True)
+        if not opaque:
+            continue
+        if not (
+            types_agree(doc_type, opaque, field_) or types_agree(doc_type, full, field_)
+        ):
+            problems.append(
+                f"{where}: `{field_}` is {type_cell!r} in the table, "
+                f"{describe(opaque)} in the schema"
+            )
+            continue
+        literals = {a[1] for a in full if a[0] == "lit"}
+        listed = either_values(description)
+        if ("type", "string") in doc_type and literals and len(listed) > 1:
+            if listed != literals:
+                problems.append(
+                    f"{where}: `{field_}` lists {sorted(listed)} in the "
+                    f"description, the schema enum is {sorted(literals)}"
+                )
+
+    for stem, field_ in sorted(FRONTMATTER_SHORTHANDS):
+        if stem == path.stem and (stem, field_) not in used_shorthands:
+            problems.append(
+                f"{name}:{table.line}: the allowlisted shorthand `{field_}` "
+                f"is not a row of the frontmatter table"
+            )
+
+    in_table = {cells[0] for _, cells in table.rows}
+    for prop in own:
+        mentioned = re.search(rf"(?<![\w-]){re.escape(prop)}(?![\w-])", source)
+        if prop not in in_table and not mentioned:
+            problems.append(
+                f"{name}:{table.line}: the schema property `{prop}` is neither "
+                f"in the frontmatter table nor mentioned in the text"
+            )
+
+
+def step_frontmatter(audit: Audit) -> str:
+    problems: list[str] = []
+    docs = rule_docs()
+    for path in docs:
+        if (SCHEMA_DIR / f"{path.stem}.yaml").is_file():
+            check_frontmatter(path, problems)
+    if problems:
+        raise AuditFailure(problems)
+    return f"{len(docs)} frontmatter tables agree with their schemas"
+
+
 STEPS: list[tuple[str, Callable[[Audit], str]]] = [
     ("schemas", step_schemas),
     ("docs", step_docs),
@@ -765,6 +1041,7 @@ STEPS: list[tuple[str, Callable[[Audit], str]]] = [
     ("valid corpus vs spec", step_valid_vs_spec),
     ("lint-codes.md", step_lint_codes),
     ("invalid corpus", step_invalid_corpus),
+    ("frontmatter tables", step_frontmatter),
 ]
 
 

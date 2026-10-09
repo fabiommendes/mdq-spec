@@ -104,9 +104,7 @@ allOf:
           the response and each answer key alike -- before they are
           matched. They never change what the student is shown.
         items:
-          enum:
-            - dedent
-            - skip-blanks
+          "$ref": "#/$defs/Normalization"
         default: []
 
     required:
@@ -122,6 +120,13 @@ allOf:
 unevaluatedProperties: false
 
 "$defs":
+  Normalization:
+    title: Normalization
+    description: A transformation applied before two lines are compared.
+    enum:
+      - dedent
+      - skip-blanks
+
   Lines:
     type: array
     title: Lines

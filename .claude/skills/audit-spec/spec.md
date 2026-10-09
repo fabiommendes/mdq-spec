@@ -119,7 +119,9 @@ Instruct it to:
    question type's specification.
 4. Read `schema/<type>.yaml` and record as `schema` every mismatch with the
    specification: properties declared in one but not the other, type or
-   format mismatches, and descriptions that disagree.
+   format mismatches, and descriptions that disagree. `scripts/spec_audit.py`
+   already checks property presence and types between the frontmatter table
+   and the schema, so focus on formats, constraints and descriptions.
 
 After each subagent finishes, review its findings as `audit-report` describes
 in "Reviewing subagent findings". When you disagree with a finding and

@@ -15,6 +15,7 @@ First version of the specification.
 
 ### Changed
 
+- `docs/exam.md`: the frontmatter table now says `grading` is a strategy or a map from question type to strategy, as `schema/exam.yaml` already accepts. In `schema/ordering.yaml` the normalization enum moves to `$defs/Normalization` (no semantic change).
 - One severity per lint code. A Unicode space in prose (not U+0085, U+2028, U+2029, and not in a syntax position) now reports the new `non-ascii-whitespace-in-prose` code (`info`); `non-ascii-whitespace` is always `warning`. A blank `preamble`, `epilogue` or `stem` now reports the new `blank-content-field` code (`error`); `blank-text-field` is always `warning`.
 - Free-text fields (`comment`, `preamble`, `epilogue`, `answerKey`, `instructions`, feedback and choice/pattern comments) must not be the empty string (`minLength: 1`). Whitespace only stays the `blank-text-field` warning. An empty frontmatter comment string is not stored.
 - A blank (whitespace-only) exam `instructions` now reports `blank-content-field` (`error`), like `preamble`, `epilogue` and `stem`.
