@@ -417,8 +417,7 @@ not settled shows no feedback, because nothing has decided it yet.
 | accept                               | warning  | detached-answer-list   | a list after a blank line is an epilogue element, not the pattern list              |
 | unmatched                            | critical | schema-error           | must be "incorrect" or "manual" (schema)                                            |
 | unmatched                            | warning  | no-correct-answer      | must not be "incorrect" when the question has no `accept` pattern[^8]               |
-| incorrectFeedback                    | warning  | blank-text-field       | if defined, must have at least one visible character                                |
-| incorrectFeedback                    | critical | schema-error           | must not be the empty string (schema)                                               |
+| incorrectFeedback                    | critical | blank-text             | if defined, must have at least one visible character                                |
 | accept, reject, preAccept, preReject | info     | redundant-regex-anchor | an anchor that is already implicit is redundant[^9]                                 |
 | accept, reject, preAccept, preReject | info     | ignored-regex-flag     | should not carry a flag that is accepted but ignored[^10]                           |
 

@@ -172,13 +172,11 @@ unevaluatedProperties: false
           Feedback text shown to the student whose response matched this
           ordering. An implementation MAY supply a generic message when
           it is absent.
-        minLength: 1
 
       comment:
         type: string
         description: >-
           An author-facing note. Never shown to students.
-        minLength: 1
 
     required:
       - lines

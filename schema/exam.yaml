@@ -39,25 +39,21 @@ properties:
     description: >-
       Human readable title, normally taken from the H1 heading. When the
       frontmatter also sets it, the frontmatter wins.
-    minLength: 1
 
   description:
     type: string
     description: >-
       A short summary shown in exam listings, giving a little more detail
       than the title alone. Not inherited by the questions.
-    minLength: 1
 
   course:
     type: string
     description: The course code the exam belongs to.
-    minLength: 1
 
   author:
     type: string
     description: >-
       The exam author. Inherited by any question that does not name one.
-    minLength: 1
 
   locale:
     type: string
@@ -75,7 +71,6 @@ properties:
     description: >-
       The paragraphs between the title and the first question, shown to
       the student before the assessment begins. May contain Markdown.
-    minLength: 1
 
   tags:
     type: array

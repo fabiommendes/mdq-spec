@@ -277,7 +277,8 @@ vary from question type.
 In all question types, all fields in the frontmatter are translated as-is to
 fields in the AST, with two exceptions: `tags` written as a single
 comma-delimited string becomes the list of its parts, each stripped of
-surrounding whitespace, and the per-type shorthands that each question type
+surrounding whitespace (an empty part after a final comma is dropped, so
+`"cerrado, bioma,"` is `[cerrado, bioma]`), and the per-type shorthands that each question type
 documents (`normalizations` as a bare string in ordering, the `preAccept` and
 `preReject` maps in fill in the blanks). The fields carry the same name,
 types, optionality and validation rules as in the frontmatter. Validation rules that can be described
@@ -318,25 +319,28 @@ is assigned a strictness level of "critical", "warning", "info".
   relevant to know for a user authoring a question, but still produces valid and
   usable documents.
 
-The JSON Schema is normative for the shape of a document. Two of its rules
-are easy to miss from the prose: every text field (`title`, `author`,
-`comment`, choice text, feedback and the like) MUST NOT be the empty string
-(`minLength: 1`), and a list field MUST have at least the number of items the
-schema states (`minItems`). Each question type lists its minimums below. A
-string of only whitespace passes the schema and is a blank-field diagnostic
-instead: the `blank-content-field` error on `preamble`, `epilogue` and `stem`,
-and the `blank-text-field` warning on the other text fields.
+The JSON Schema is normative for the shape of a document. It validates the
+document after the removal of each `null` value of an OPTIONAL field (see
+[Frontmatter](#frontmatter)). A list field MUST
+have at least the number of items the schema states (`minItems`). Each
+question type lists its minimums below. A free-text field (`title`, `author`,
+`comment`, `preamble`, `stem`, `epilogue`, choice text, feedback and the like)
+and each entry of `tags` MUST have at least one visible character when it is
+defined. The schema does not check this: an empty or whitespace-only string is
+the `blank-text` error. A `null` value is an absent field, or a
+`schema-error` in a required field. Identifiers and
+syntax fields, such as `id`, are not free text: the schema rejects their empty
+string.
 
 | Field                    | Level    | Code                      | Rule |
 | ------------------------ | -------- | ------------------------- | -------------------- |
-| preamble, epilogue, stem | critical | blank-content-field       | must have at least one visible character |
+| title, author, comment, preamble, epilogue, stem | critical | blank-text | if defined, must have at least one visible character |
 | preamble, epilogue, stem | critical | forbidden-block-element   | cannot have explicitly forbidden block elements[^7] |
 | locale                   | critical | malformed-locale          | must be a well-formed IETF BCP 47 tag[^4] |
 | id                       | warning  | unsafe-id                 | should be url-safe[^2] |
 | stem                     | warning  | stem-not-a-paragraph      | must be a markdown `p` block element |
-| tags                     | warning  | blank-tag                 | each entry must have at least one visible character |
+| tags                     | critical | blank-text                | each entry must have at least one visible character |
 | tags                     | warning  | unsplit-tag-list          | an entry containing a comma is only split when `tags` itself is a single string, not a list |
-| title, author, comment   | warning  | blank-text-field          | if defined, must have at least one visible character |
 | uuid                     | critical | malformed-uuid            | must be a well-formed UUID[^3] |
 | uuid                     | warning  | uuid-unknown-version      | the version nibble should correspond to an existing standard[^3] |
 | uuid                     | warning  | uuid-unknown-variant      | the variant nibble should correspond to an existing standard[^3] |

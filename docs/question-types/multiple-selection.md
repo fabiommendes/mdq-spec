@@ -47,7 +47,7 @@ value : ws
 `CHOICE_ID` is defined in [Common grammar rules](../references/grammar.md#tokens):
 a bracket right after the value that matches it is always the choice id. In
 `* [x] [brasilia]`, `brasilia` is the id and the text is empty, which is a
-`blank-choice-text` error.
+`blank-text` error.
 
 `md_inline` represents any markdown inline element except new lines. The rules
 `ws`, `nl`, `lazy_line`, `blank_line` and `observations` are defined in
@@ -142,14 +142,13 @@ is no way to explicitly leave it unmarked. If that is necessary, prefer using
 | choices            | critical | schema-error               | must have at least two choices (schema)                   |
 | choices[].id       | critical | schema-error               | must be a valid slug (schema)                             |
 | choices[].correct  | critical | schema-error               | must be declared in every choice (schema)                 |
-| choices[].feedback | critical | schema-error               | must not be an empty string (schema)                      |
 | choices[]          | critical | foreign-choice-marker      | must use a value allowed in a multiple selection list     |
-| choices[].text     | critical | blank-choice-text          | must not be empty                                         |
+| choices[].text     | critical | blank-text                 | must have at least one visible character                  |
+| choices[].feedback | critical | blank-text                 | must have at least one visible character                  |
+| choices[].comment  | critical | blank-text                 | must have at least one visible character                  |
 | choices[].text     | critical | duplicate-choice-text      | must be unique among the choices of the question          |
 | choices[].id       | critical | duplicate-choice-id        | must be unique among the choices of the question          |
 | choices[]          | critical | parse-error                | carries at most one feedback block and one comment block  |
-| choices[].feedback | warning  | blank-choice-feedback      | must have at least one visible character                  |
-| choices[].comment  | warning  | blank-choice-comment       | must have at least one visible character                  |
 | choices[].text     | info     | visually-identical-choices | should not be visually equivalent to another choice[^2]   |
 | choices[].correct  | info     | no-correct-choice          | at least one choice should be correct                     |
 | choices[].correct  | info     | all-choices-correct        | not every choice should be correct                        |

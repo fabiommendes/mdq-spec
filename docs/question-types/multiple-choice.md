@@ -48,7 +48,7 @@ percent       : ("+" | "-")? (INTEGER | DECIMAL) "%"
 `CHOICE_ID` is defined in [Common grammar rules](../references/grammar.md#tokens):
 a bracket right after the value that matches it is always the choice id. In
 `* [*] [brasilia]`, `brasilia` is the id and the text is empty, which is a
-`blank-choice-text` error.
+`blank-text` error.
 
 `md_inline` represents any markdown inline element except new lines (which are
 represented explicitly by `nl`). The rules `ws`, `nl`, `lazy_line`,
@@ -265,14 +265,13 @@ a declared fractional score still counts.
 | choices            | critical | schema-error                         | must have at least two choices (schema)                   |
 | choices[].id       | critical | schema-error                         | must be a valid slug (schema)                             |
 | choices[].score    | critical | schema-error                         | must be between -1 and 1 (schema)                         |
-| choices[].feedback | critical | schema-error                         | must not be an empty string (schema)                      |
 | choices[]          | critical | foreign-choice-marker                | must use a value allowed in a multiple choice list        |
-| choices[].text     | critical | blank-choice-text                    | must not be empty                                         |
+| choices[].text     | critical | blank-text                           | must have at least one visible character                  |
+| choices[].feedback | critical | blank-text                           | must have at least one visible character                  |
+| choices[].comment  | critical | blank-text                           | must have at least one visible character                  |
 | choices[].text     | critical | duplicate-choice-text                | must be unique among the choices of the question          |
 | choices[].id       | critical | duplicate-choice-id                  | must be unique among the choices of the question          |
 | choices[]          | critical | parse-error                          | carries at most one feedback block and one comment block  |
-| choices[].feedback | warning  | blank-choice-feedback                | must have at least one visible character                  |
-| choices[].comment  | warning  | blank-choice-comment                 | must have at least one visible character                  |
 | choices[].text     | info     | visually-identical-choices           | should not be visually equivalent to another choice[^3]   |
 | choices[].score    | info     | multiple-choice-no-correct-choice    | at least one choice should have a score of 1              |
 | choices[].score    | info     | all-choices-correct                  | not every choice should be correct                        |

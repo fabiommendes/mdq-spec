@@ -41,13 +41,11 @@ properties:
     description: >-
       Human readable title, e.g. shown in question listings, tables of
       contents, or instructor-facing question banks.
-    minLength: 1
 
   author:
     type: string
     description: >-
       The name of the author or authors. Just for reference.
-    minLength: 1
 
   stem:
     type: string
@@ -55,21 +53,18 @@ properties:
       The main command shown to the students (e.g. "Select all correct
       answers", "Write a program that..."). This is the sentence that
       tells the student what to do and is always shown to them.
-    minLength: 1
 
   preamble:
     type: string
     description: >-
       One or more paragraphs of context shown before the stem. May contain
       Markdown markup.
-    minLength: 1
 
   epilogue:
     type: string
     description: >-
       One or more paragraphs of text shown after the question body (e.g.
       after the list of choices). May contain Markdown markup.
-    minLength: 1
 
   comment:
     type: string
@@ -77,7 +72,6 @@ properties:
       Free-form text shown only to instructors, never to students. Used to
       explain the intent of the question, grading rationale, formatting
       decisions, etc.
-    minLength: 1
 
   locale:
     type: string
