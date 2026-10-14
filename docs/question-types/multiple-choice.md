@@ -38,19 +38,13 @@ exam. See [exam inheritance](../exam.md#inheritance).
 Body consists of an unordered list of items. Each item follows the grammar:
 
 ```lark
-item          : ws? "[" value "]" ws? (choice_id ws?)? md_inline+ nl extra_lines? (feedback? comments? | comments feedback)
+item          : ws? "[" value "]" ws? (choice_id ws?)? md_inline+ nl lazy_line* (blank_line* observations)?
 choice_id     : "[" SLUG "]"
 
 value         : ws
               | ws? "*" ws?
               | ws? percent ws?
 percent       : /[+-]?[0-9]+([.][0-9]+)?%/
-
-extra_lines   : (md_inline* nl)+
-feedback      : feedback_line+
-feedback_line : ">" md_inline+ nl extra_lines?
-comments      : comment_line+
-comment_line  : "!" md_inline+ nl extra_lines?
 ```
 
 A `choice_id` is a `SLUG` between square brackets, right after the value. A
@@ -59,14 +53,12 @@ character is not `(` or `[`, which open a markdown link (`[text](url)`,
 `[text][ref]`); such a bracket is part of the choice text. `SLUG` is defined in
 [Common grammar rules](../references/grammar.md).
 
-`md_inline` represents any markdown inline element except new lines (which are 
-represented explicitly by `nl`). The rules `ws` and `nl` are defined in
-[Common grammar rules](../references/grammar.md).
-
-A line of `extra_lines` MUST NOT start with `>` or `!`, after the indentation
-of the list item. Such a line is always a `feedback_line` or a
-`comment_line`, so it ends the choice text, or the feedback or comment before
-it.
+`md_inline` represents any markdown inline element except new lines (which are
+represented explicitly by `nl`). The rules `ws`, `nl`, `lazy_line`,
+`blank_line` and `observations` are defined in
+[Common grammar rules](../references/grammar.md). The choice text continues on
+the `lazy_line`s after its first line, so a `>` or `!` line always ends it, see
+[Feedback and comment lines](../references/grammar.md#feedback-and-comment-lines).
 
 
 ## Choices
@@ -78,8 +70,11 @@ Each choice may represent additional information besides its text.
   > Feedback text to the students.
   ! Comments to other instructors.
 ```
-Both the feedback and comments can span several lines, each one preceded by
-their corresponding punctuation. Both are optional.
+The feedback and the comment are optional, and each can span several lines.
+They follow the rules of
+[Feedback and comment lines](../references/grammar.md#feedback-and-comment-lines):
+a line without a marker continues the block before it, a blank line ends it,
+and a line that starts with `![` is an image, not a comment.
 
 ```md
 * [value] [choice-id] Choice text
@@ -107,14 +102,16 @@ choices:
 | `text`     | The text of the item, verbatim (see below).                                  |
 | `id`       | The `choice_id`, without the brackets. Absent if the item has none.          |
 | `score`    | Derived from `value`, see the score rules below. Absent for a blank value.   |
-| `feedback` | The `feedback` lines, each without `>` and the `ws` after it. Absent if none. |
-| `comment`  | The `comment_line`s, each without `!` and the `ws` after it. Absent if none. |
+| `feedback` | The value of the `feedback` block (see below). Absent if none.              |
+| `comment`  | The value of the `comment` block (see below). Absent if none.               |
 
 The `text` is the source of the item, verbatim, after the removal of the
 value, the choice id, the `ws` after them, the feedback and the comment.
 Continuation lines keep their line endings, without the indentation of the
 list item, and the line ending of the last line is removed. The `feedback`
-and `comment` are taken in the same way.
+and `comment` are the values of their blocks, as
+[Feedback and comment lines](../references/grammar.md#feedback-and-comment-lines)
+defines, joined in the same way.
 
 The choice text MUST NOT be empty. And all choice texts MUST be unique. Two
 texts are the same when they are equal after each run of whitespace outside
@@ -274,6 +271,7 @@ compatibility reasons with the other question types.
 | choices[].text     | critical | blank-choice-text                    | must not be empty                                         |
 | choices[].text     | critical | duplicate-choice-text                | must be unique among the choices of the question          |
 | choices[].id       | critical | duplicate-choice-id                  | must be unique among the choices of the question          |
+| choices[]          | critical | parse-error                          | carries at most one feedback block and one comment block  |
 | choices[].feedback | warning  | blank-choice-feedback                | must have at least one visible character                  |
 | choices[].comment  | warning  | blank-choice-comment                 | must have at least one visible character                  |
 | choices[].text     | info     | visually-identical-choices           | should not be visually equivalent to another choice[^3]   |

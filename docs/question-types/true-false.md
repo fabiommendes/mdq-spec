@@ -38,7 +38,7 @@ exam. See [exam inheritance](../exam.md#inheritance).
 Body consists of an unordered list of items. Each item follows the grammar:
 
 ```lark
-item      : ws? "[" value "]" ws? (choice_id ws?)? markdown+
+item      : ws? "[" value "]" ws? (choice_id ws?)? md_inline+ nl lazy_line* (blank_line* observations)?
 choice_id : "[" SLUG "]"
 value : ws? (true | false) ws?
 ```
@@ -49,8 +49,10 @@ character is not `(` or `[`, which open a markdown link (`[text](url)`,
 `[text][ref]`); such a bracket is part of the choice text. `SLUG` is defined in
 [Common grammar rules](../references/grammar.md).
 
-`markdown` represent any markdown element nested inside the item. The rule
-`ws` is defined in [Common grammar rules](../references/grammar.md). `true` and
+`md_inline` represents any markdown inline element except new lines. The rules
+`ws`, `nl`, `lazy_line`, `blank_line` and `observations` are defined in
+[Common grammar rules](../references/grammar.md). Feedback and comment lines
+follow [Feedback and comment lines](../references/grammar.md#feedback-and-comment-lines). `true` and
 `false` are single characters (case-insensitive) that represent each case. The
 most common choices are `T` and `F`, respectively. However all other letters
 except `X`, which is used to represent multiple-selection items, have one
@@ -240,6 +242,7 @@ of student markings and the resulting score for each grading strategy.
 | choices[].text     | critical | blank-choice-text                        | must not be empty                                          |
 | choices[].text     | critical | duplicate-choice-text                    | must be unique among the statements of the question        |
 | choices[].id       | critical | duplicate-choice-id                      | must be unique among the statements of the question        |
+| choices[]          | critical | parse-error                              | carries at most one feedback block and one comment block   |
 | choices[].marker   | warning  | unlisted-true-false-marker               | should not be a WARNING letter[^3]                         |
 | choices[].marker   | warning  | locale-mismatched-true-false-marker      | should be compatible with `locale`[^4]                     |
 | choices[].marker   | warning  | false-friend-true-false-marker           | should not be `S` under `locale: id`[^4]                   |

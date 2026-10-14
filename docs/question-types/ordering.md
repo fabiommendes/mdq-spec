@@ -144,19 +144,13 @@ content  : md_code_block | md_ul
 section : ordering_extra | ordering_accept | ordering_reject
 
 ordering_extra  : "##" ws "[" "extra" "]" nl+ content
-ordering_accept : "##" ws "[" "accept" "]" nl+ observations? content
-ordering_reject : "##" ws "[" "reject" "]" nl+ observations? content
-
-observations : feedback nl* comment? nl*
-             | comment nl* feedback? nl*
-
-feedback : (ws? ">" ws? md_inline* nl)+
-comment  : (ws? "!" ws? md_inline* nl)+
+ordering_accept : "##" ws "[" "accept" "]" nl+ (observations blank_line*)? content
+ordering_reject : "##" ws "[" "reject" "]" nl+ (observations blank_line*)? content
 ```
 
-`md_code_block`, `md_ul` and `md_inline` are respectively markdown
-representations of fenced code blocks, unordered lists and inline markdown. The
-rules `ws` and `nl` are defined in [Common grammar rules](../references/grammar.md).
+`md_code_block` and `md_ul` are respectively markdown representations of
+fenced code blocks and unordered lists. The rules `ws`, `nl`, `blank_line` and
+`observations` are defined in [Common grammar rules](../references/grammar.md).
 
 If the block following the `[ordering]` tag is a fenced code block, the
 question infers `content: "code"`, and the fence's language, if any, becomes
@@ -211,32 +205,12 @@ applied -- every entry of `normalizations`, plus whatever the `indentation`
 field implies -- and MUST NOT declare an accepted and a rejected section whose
 content blocks hold the same lines after that same normalization.
 
-The optional feedback message is provided in a markdown blockquote. The
-observation part MAY also contain instructor comments. It uses a syntax similar
-to blockquote sections, but prefixes each line with a `!` instead of a `>`.
-
-A section carries at most one feedback block and at most one comment block, in
-either order. They MUST NOT interleave: once both blocks have appeared, a further `>` or
-`!` line is a `parse-error`.
-
-Some markdown parsers accept indented blockquotes like below
-
-```md
-> Some
- > spurious
-  > indentation
-   > in the
-    > blockquote
-
-    > This is an indented code block. Confused?
-```
-
-It is up to the implementation to decide if it should ignore the indentation,
-issue a warning or even an error. Implementations MUST always accept blockquotes
-with no indentation. Regardless of how implementations handle indentation,
-they MUST handle comment blocks `!` in the same way.
-
-Authors SHOULD avoid indenting blockquotes and comment blocks with spaces.
+The optional feedback message is a markdown block quote (`>` lines). The
+observation part MAY also contain instructor comments (`!` lines). A section
+carries at most one feedback block and at most one comment block, in either
+order. Both follow the rules of
+[Feedback and comment lines](../references/grammar.md#feedback-and-comment-lines),
+which also define the indentation allowed before the markers.
 
 
 ## Indentation
@@ -372,8 +346,8 @@ submitted, in the order they submitted them, each written as an
 | lines, extra          | info     | visually-identical-lines     | two lines should not render alike while differing in source[^10]  |
 
 [^6]: A code block and a `ul` list cannot be compared line for line.
-[^7]: They may appear in either order but MUST NOT interleave, see
-[accepted/rejected answers](#acceptedrejected-answers).
+[^7]: They may appear in either order, see
+[Feedback and comment lines](../references/grammar.md#feedback-and-comment-lines).
 [^8]: `dedent` flattens every line to level 0, so nothing is left for
 `"strict"` to compare, and `"strict"` then grades exactly as `"lenient"`.
 `indentation: "lenient"` implies `dedent` and therefore never combines with

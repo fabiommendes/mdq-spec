@@ -177,7 +177,8 @@ pattern:
 * Lines that start with `!` are the comment.
 
 An item carries at most one feedback block and at most one comment block, in
-either order. They MUST NOT interleave.
+either order. Both follow the rules of
+[Feedback and comment lines](grammar.md#feedback-and-comment-lines).
 
 ```md
 [short-answer/reject]:
@@ -192,11 +193,12 @@ The pattern, the feedback and the comment of an item can each take more than
 one line:
 
 * A line that starts with `>` belongs to the feedback.
-* A line that starts with `!` belongs to the comment.
+* A line that starts with `!` (but not `![`) belongs to the comment.
 * Any other line continues the part that the line before it belongs to. A
   line after the pattern line continues the pattern, and a line after a
   feedback line continues the feedback.
-* A blank line inside the item is ignored.
+* A blank line ends the part before it. After it, only the feedback or the
+  comment can start. Any other line is a `parse-error`.
 
 To join the lines of a part, an implementation removes the `>` or `!` marker
 and the `ws` after it, and replaces each line ending, together with the

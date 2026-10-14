@@ -413,7 +413,7 @@ not settled shows no feedback, because nothing has decided it yet.
 | accept, reject                       | critical | parse-error            | each body block may be defined at most once[^11]                                    |
 | accept, reject                       | critical | parse-error            | a tag with content must not be followed by a list without a blank line              |
 | reject                               | critical | parse-error            | must declare at least one pattern; a list after a blank line is an epilogue element |
-| accept, reject                       | critical | parse-error            | feedback and comment lines of an item must not interleave                           |
+| accept, reject                       | critical | parse-error            | an item carries at most one feedback block and one comment block                    |
 | accept                               | warning  | detached-answer-list   | a list after a blank line is an epilogue element, not the pattern list              |
 | unmatched                            | critical | schema-error           | must be "incorrect" or "manual" (schema)                                            |
 | unmatched                            | warning  | no-correct-answer      | must not be "incorrect" when the question has no `accept` pattern[^8]               |

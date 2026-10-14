@@ -39,7 +39,7 @@ exam. See [exam inheritance](../exam.md#inheritance).
 Body consists of an unordered list of items. Each item follows the grammar:
 
 ```lark
-item      : ws? "[" value "]" ws? (choice_id ws?)? markdown+
+item      : ws? "[" value "]" ws? (choice_id ws?)? md_inline+ nl lazy_line* (blank_line* observations)?
 choice_id : "[" SLUG "]"
 value : ws
       | ws? ("x" | "X") ws?
@@ -51,8 +51,10 @@ character is not `(` or `[`, which open a markdown link (`[text](url)`,
 `[text][ref]`); such a bracket is part of the choice text. `SLUG` is defined in
 [Common grammar rules](../references/grammar.md).
 
-`markdown` represent any markdown element nested inside the item. The rule
-`ws` is defined in [Common grammar rules](../references/grammar.md).
+`md_inline` represents any markdown inline element except new lines. The rules
+`ws`, `nl`, `lazy_line`, `blank_line` and `observations` are defined in
+[Common grammar rules](../references/grammar.md). Feedback and comment lines
+follow [Feedback and comment lines](../references/grammar.md#feedback-and-comment-lines).
 
 
 ## Choices
@@ -147,6 +149,7 @@ is no way to explicitly leave it unmarked. If that is necessary, prefer using
 | choices[].text     | critical | blank-choice-text          | must not be empty                                         |
 | choices[].text     | critical | duplicate-choice-text      | must be unique among the choices of the question          |
 | choices[].id       | critical | duplicate-choice-id        | must be unique among the choices of the question          |
+| choices[]          | critical | parse-error                | carries at most one feedback block and one comment block  |
 | choices[].feedback | warning  | blank-choice-feedback      | must have at least one visible character                  |
 | choices[].comment  | warning  | blank-choice-comment       | must have at least one visible character                  |
 | choices[].text     | info     | visually-identical-choices | should not be visually equivalent to another choice[^2]   |

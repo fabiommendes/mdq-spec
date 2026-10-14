@@ -74,6 +74,61 @@ COMMENT_LINE : /#[^\r\n]*(\r\n|\r|\n)/
 * `COMMENT_LINE` is one line of the comment string of the frontmatter. See
   [Frontmatter](../question-types/question-base.md#frontmatter).
 
+## Feedback and comment lines
+
+Several bodies attach feedback for the student and a comment for other
+instructors to an element: a choice of [multiple choice](../question-types/multiple-choice.md#choices),
+[multiple selection](../question-types/multiple-selection.md#choices) and
+[true/false](../question-types/true-false.md), a choice of a fill-in
+[choice blank](../question-types/fill-in.md), a [pattern item](patterns.md#pattern-items)
+and a section of [ordering](../question-types/ordering.md). All of them use
+the rules below.
+
+```lark
+observations  : feedback (blank_line* comment)?
+              | comment (blank_line* feedback)?
+feedback      : feedback_line (feedback_line | lazy_line)*
+comment       : comment_line (comment_line | lazy_line)*
+feedback_line : ws? ">" ws? md_inline* nl
+comment_line  : ws? COMMENT_MARK ws? md_inline* nl
+lazy_line     : ws? md_inline+ nl
+blank_line    : ws? nl
+
+COMMENT_MARK  : /!(?!\[)/
+```
+
+`md_inline` is any markdown inline element except a line ending.
+
+A `feedback` block is a CommonMark block quote. A `comment` block follows the
+same rules, with `!` in place of `>`. MDQ adds the `!` block; CommonMark does
+not define it. The rules are:
+
+* **Marker.** A `>` line is a feedback line, and a `!` line is a comment line.
+  The `ws` after the marker is optional, as in CommonMark. Before the marker,
+  the line can have up to three spaces of indentation, relative to the content
+  of the list item that holds it. With four or more, the line is not a
+  feedback or comment line.
+* **Images.** A line that starts with `![` is not a comment line: `![` starts a
+  markdown image. A comment that starts with `[` needs a space after the
+  marker: `! [IBGE](https://www.ibge.gov.br)`.
+* **Empty marker lines.** A line with only the marker, such as `>`, is part of
+  the block. As in a block quote, it separates two paragraphs of the block.
+* **Lazy lines.** A line without a marker continues the block before it, as a
+  CommonMark lazy continuation line. This applies only if the line is not
+  blank and does not start a block that interrupts a paragraph: a list item, a
+  fenced code block, an ATX heading, a thematic break, an HTML block, a
+  feedback line or a comment line.
+* **Blank lines.** A blank line ends the block. Blank lines MAY separate the
+  element from its first block, and the two blocks from each other.
+* **One block of each kind.** An element has at most one feedback block and
+  at most one comment block, in either order. A second block of the same kind
+  is a `parse-error`. This is also true when a blank line separates the two
+  blocks, or when a block of the other kind is between them.
+
+The value of a block is its lines, each without the marker and the `ws` after
+it, and a lazy line without the `ws` at its start. Each question type states
+how these lines join into one string.
+
 ## Unicode spaces
 
 ```lark
