@@ -1,5 +1,0 @@
-# `blank-text-field` on the exam `title`: defined, but only whitespace.
-type: exam
-id: prova
-title: "   "
-questions: []

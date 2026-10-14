@@ -1,0 +1,14 @@
+# A choice `feedback` that is the empty string passes the schema and is
+# `blank-text`.
+type: multiple-selection
+id: q
+title: Biomas brasileiros
+stem: Quais destes são biomas brasileiros?
+choices:
+  - id: cerrado
+    text: Cerrado
+    correct: true
+    feedback: ""
+  - id: tundra
+    text: Tundra
+    correct: false

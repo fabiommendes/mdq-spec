@@ -1,0 +1,13 @@
+# A choice `text` has no visible character: `blank-text`. The schema accepts
+# a whitespace-only string.
+id: biomes-blank-text
+title: Biomes blank text
+type: multiple-selection
+stem: Quais destes são biomas brasileiros?
+choices:
+  - id: a
+    text: "   "
+    correct: false
+  - id: cerrado
+    text: Cerrado
+    correct: true

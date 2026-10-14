@@ -1,0 +1,14 @@
+# A choice `feedback`, if given, must have a visible character: whitespace
+# only is `blank-text`.
+id: biomes-blank-feedback
+title: Biomes blank feedback
+type: multiple-selection
+stem: Quais destes são biomas brasileiros?
+choices:
+  - id: cerrado
+    text: Cerrado
+    correct: true
+    feedback: "   "
+  - id: tundra
+    text: Tundra
+    correct: false

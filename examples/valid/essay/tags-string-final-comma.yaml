@@ -1,0 +1,9 @@
+# A comma-separated `tags` string with a final comma: the empty part after
+# the final comma is dropped, without a lint.
+id: ciclo-agua
+title: Ciclo da água
+type: essay
+tags:
+- agua
+- clima
+stem: Explique o ciclo da água.

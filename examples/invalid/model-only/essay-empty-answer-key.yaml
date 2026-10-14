@@ -1,0 +1,7 @@
+# An `answerKey` that is the empty string passes the schema (no `minLength`)
+# and is `blank-text`, like a whitespace-only one.
+type: essay
+id: q
+title: Ciclo da água
+stem: Explique o ciclo da água.
+answerKey: ""

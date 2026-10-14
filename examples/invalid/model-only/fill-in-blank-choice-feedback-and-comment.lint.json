@@ -1,0 +1,24 @@
+[
+  {
+    "code": "blank-text",
+    "severity": "error",
+    "path": [
+      "blanks",
+      0,
+      "choices",
+      0,
+      "feedback"
+    ]
+  },
+  {
+    "code": "blank-text",
+    "severity": "error",
+    "path": [
+      "blanks",
+      0,
+      "choices",
+      1,
+      "comment"
+    ]
+  }
+]

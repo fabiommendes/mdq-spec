@@ -27,28 +27,6 @@
     ]
   },
   {
-    "code": "blank-choice-feedback",
-    "severity": "warning",
-    "path": [
-      "blanks",
-      1,
-      "choices",
-      0,
-      "feedback"
-    ]
-  },
-  {
-    "code": "blank-choice-comment",
-    "severity": "warning",
-    "path": [
-      "blanks",
-      1,
-      "choices",
-      1,
-      "comment"
-    ]
-  },
-  {
     "code": "visually-identical-choices",
     "severity": "info",
     "path": [

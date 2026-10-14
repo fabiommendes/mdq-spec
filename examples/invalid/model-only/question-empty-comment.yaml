@@ -1,0 +1,6 @@
+# An empty `comment` passes the schema and is `blank-text`.
+type: essay
+id: q
+title: Rios do Brasil
+stem: Descreva a bacia do rio Amazonas.
+comment: ""

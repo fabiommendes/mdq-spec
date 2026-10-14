@@ -1,0 +1,12 @@
+# `blank-text` on the `feedback` and `comment` of the choices of a choice
+# blank: the fields are defined but hold only whitespace.
+id: fill-in-blank-choice-text
+title: Biomas
+type: fill-in
+stem: "O [^a] é um bioma brasileiro."
+blanks:
+  - id: a
+    type: multiple-choice
+    choices:
+      - { id: x, text: Cerrado, score: 1, feedback: "  " }
+      - { id: y, text: Tundra, comment: "  " }

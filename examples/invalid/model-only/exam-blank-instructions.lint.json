@@ -1,6 +1,6 @@
 [
   {
-    "code": "blank-content-field",
+    "code": "blank-text",
     "severity": "error",
     "path": [
       "instructions"

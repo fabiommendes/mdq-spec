@@ -1,0 +1,5 @@
+# An empty `description` passes the schema and is `blank-text`.
+type: exam
+title: Empty description
+description: ""
+questions: []

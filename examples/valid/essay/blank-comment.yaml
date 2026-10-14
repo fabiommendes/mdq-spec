@@ -1,8 +1,0 @@
-# A `#` line followed by spaces is a comment string of only whitespace:
-# `comment` is `"  "`, which `blank-text-field` warns about. A comment string
-# with no character at all is not stored (see `comment-bare-hash`).
-id: ciclo-agua
-title: Ciclo da água
-type: essay
-comment: "  "
-stem: Explique o ciclo da água.

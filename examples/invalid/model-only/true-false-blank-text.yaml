@@ -1,0 +1,11 @@
+# A choice `text` has no visible character: `blank-text`. The schema accepts
+# a whitespace-only string.
+type: true-false
+stem: Julgue as afirmações sobre o Pantanal.
+choices:
+  - text: "   "
+    correct: true
+    marker: T
+  - text: O Pantanal fica no litoral brasileiro.
+    correct: false
+    marker: F
