@@ -3,7 +3,10 @@
 ## Example
 
 Multiple choice questions are represented by an unordered list with an ASCII-art
-rendition of a radio button. Correct choices are marked with `[*]`.
+rendition of a radio button. Correct choices are marked with `[*]`. Without a
+`type` in the frontmatter, a list is multiple choice only when a value is `*`
+or a percentage (see [type inference](question-base.md#type-inference)). A list
+whose values are all blank needs `type: multiple-choice`.
 
 ```md
 What is the capital of Brazil?
@@ -35,7 +38,7 @@ exam. See [exam inheritance](../exam.md#inheritance).
 
 ## Body
 
-Body consists of an unordered list of items. Each item follows the grammar:
+Body consists of an unordered list of at least two items. Each item follows the grammar:
 
 ```lark
 item          : ws? "[" value "]" ws? (CHOICE_ID ws?)? md_inline* nl lazy_line* (blank_line* observations)?
@@ -68,6 +71,7 @@ Each choice may represent additional information besides its text.
   ! Comments to other instructors.
 ```
 The feedback and the comment are optional, and each can span several lines.
+When present, each MUST have at least one visible character (`blank-text`).
 They follow the rules of
 [Feedback and comment lines](../references/grammar.md#feedback-and-comment-lines):
 a line without a marker continues the block before it, a blank line ends it,
@@ -132,8 +136,10 @@ identical. `b` and `c` are visually different, but depending on formatting and
 the rendering system they might still appear equivalent to a human reader.
 
 A question MAY mark any number of choices as correct, and typically marks
-exactly one. There is no upper limit, although a question in which every choice
-is correct is unusual enough that implementations MAY warn about it. The count
+exactly one. A choice is correct when its score is 1. Implementations MAY
+report the unusual counts, at the `info` level: no correct choice
+(`no-correct-choice`), more than one (`many-correct-choices`), and every choice
+(`all-choices-correct`). The count
 does not change how the question is answered -- the student still picks a
 single choice -- only how it is graded, see [Grading](#grading).
 
@@ -155,7 +161,8 @@ The choice id is a slugified identifier for the choice so we can refer to it by
 content, and not by position. It follows the same rules for slugs mentioned
 before. If given, the choice ids for each choice MUST be unique.
 
-The id is not mandatory. An implementation MAY derive url-safe identifiers from
+The id is not mandatory. Implementations MAY report a choice without an id,
+at the `info` level (`missing-choice-id`). An implementation MAY derive url-safe identifiers from
 the text content when it needs an
 [addressable](../responses.md#addressability) document; but it is not part of
 the parse step itself. This transformation
@@ -260,23 +267,23 @@ a declared fractional score still counts.
 
 ## Additional Rules
 
-| Field              | Level    | Code                                 | Rule                                                      |
-| ------------------ | -------- | ------------------------------------ | --------------------------------------------------------- |
-| choices            | critical | schema-error                         | must have at least two choices (schema)                   |
-| choices[].id       | critical | schema-error                         | must be a valid slug (schema)                             |
-| choices[].score    | critical | schema-error                         | must be between -1 and 1 (schema)                         |
-| choices[]          | critical | foreign-choice-marker                | must use a value allowed in a multiple choice list        |
-| choices[].text     | critical | blank-text                           | must have at least one visible character                  |
-| choices[].feedback | critical | blank-text                           | must have at least one visible character                  |
-| choices[].comment  | critical | blank-text                           | must have at least one visible character                  |
-| choices[].text     | critical | duplicate-choice-text                | must be unique among the choices of the question          |
-| choices[].id       | critical | duplicate-choice-id                  | must be unique among the choices of the question          |
-| choices[]          | critical | parse-error                          | carries at most one feedback block and one comment block  |
-| choices[].text     | info     | visually-identical-choices           | should not be visually equivalent to another choice[^3]   |
-| choices[].score    | info     | multiple-choice-no-correct-choice    | at least one choice should have a score of 1              |
-| choices[].score    | info     | all-choices-correct                  | not every choice should be correct                        |
-| choices[].score    | info     | multiple-choice-many-correct-choices | more than one choice has a score of 1                     |
-| choices[].id       | info     | missing-choice-id                    | should be defined in the document, instead of derived[^4] |
+| Field              | Level    | Code                       | Rule                                                      |
+| ------------------ | -------- | -------------------------- | --------------------------------------------------------- |
+| choices            | critical | schema-error               | must have at least two choices (schema)                   |
+| choices[].id       | critical | schema-error               | must be a valid slug (schema)                             |
+| choices[].score    | critical | schema-error               | must be between -1 and 1 (schema)                         |
+| choices[]          | critical | foreign-choice-marker      | must use a value allowed in a multiple choice list        |
+| choices[].text     | critical | blank-text                 | must have at least one visible character                  |
+| choices[].feedback | critical | blank-text                 | must have at least one visible character                  |
+| choices[].comment  | critical | blank-text                 | must have at least one visible character                  |
+| choices[].text     | critical | duplicate-choice-text      | must be unique among the choices of the question          |
+| choices[].id       | critical | duplicate-choice-id        | must be unique among the choices of the question          |
+| choices[]          | critical | parse-error                | carries at most one feedback block and one comment block  |
+| choices[].text     | info     | visually-identical-choices | should not be visually equivalent to another choice[^3]   |
+| choices[].score    | info     | no-correct-choice          | at least one choice should have a score of 1              |
+| choices[].score    | info     | all-choices-correct        | not every choice should be correct                        |
+| choices[].score    | info     | many-correct-choices       | more than one choice has a score of 1                     |
+| choices[].id       | info     | missing-choice-id          | should be defined in the document, instead of derived[^4] |
 
 [^3]: Visual equivalence is not defined by this spec, see [choices](#choices).
 [^4]: Derived ids are only as stable as the slugifier that produced them.
