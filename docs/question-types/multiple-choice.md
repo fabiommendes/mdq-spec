@@ -99,19 +99,17 @@ choices:
 
 | Field      | Source in the item                                                           |
 | ---------- | ---------------------------------------------------------------------------- |
-| `text`     | The text of the item, verbatim (see below).                                  |
+| `text`     | The text of the item (see below).                                            |
 | `id`       | The `choice_id`, without the brackets. Absent if the item has none.          |
 | `score`    | Derived from `value`, see the score rules below. Absent for a blank value.   |
 | `feedback` | The value of the `feedback` block (see below). Absent if none.              |
 | `comment`  | The value of the `comment` block (see below). Absent if none.               |
 
-The `text` is the source of the item, verbatim, after the removal of the
-value, the choice id, the `ws` after them, the feedback and the comment.
-Continuation lines keep their line endings, without the indentation of the
-list item, and the line ending of the last line is removed. The `feedback`
-and `comment` are the values of their blocks, as
-[Feedback and comment lines](../references/grammar.md#feedback-and-comment-lines)
-defines, joined in the same way.
+The `text` is the source of the item after the removal of the value, the
+choice id, the `ws` after them, the feedback and the comment. Its lines join
+as the lines of a paragraph, and so do the lines of the `feedback` and
+`comment` blocks, see
+[Feedback and comment lines](../references/grammar.md#feedback-and-comment-lines).
 
 The choice text MUST NOT be empty. And all choice texts MUST be unique. Two
 texts are the same when they are equal after each run of whitespace outside

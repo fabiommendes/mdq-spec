@@ -126,8 +126,25 @@ not define it. The rules are:
   blocks, or when a block of the other kind is between them.
 
 The value of a block is its lines, each without the marker and the `ws` after
-it, and a lazy line without the `ws` at its start. Each question type states
-how these lines join into one string.
+it, and a lazy line without the `ws` at its start. The lines join into one
+string as markdown joins the lines of a paragraph:
+
+* A soft line break, with the `ws` before it and the indentation of the next
+  line, becomes one U+0020.
+* A hard line break (two or more spaces, or a backslash, at the end of the
+  line) keeps its line ending, and the spaces or the backslash before it.
+* An empty marker line becomes a blank line, which separates two paragraphs.
+
+```md
+* [ ] Nile
+  > The Amazon is larger
+  by water volume.
+  >
+  > Its length is still debated.
+```
+
+The feedback of this choice is `The Amazon is larger by water volume.`, a
+blank line, and `Its length is still debated.`
 
 ## Unicode spaces
 

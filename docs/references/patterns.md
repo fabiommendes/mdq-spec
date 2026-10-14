@@ -200,9 +200,11 @@ one line:
 * A blank line ends the part before it. After it, only the feedback or the
   comment can start. Any other line is a `parse-error`.
 
-To join the lines of a part, an implementation removes the `>` or `!` marker
-and the `ws` after it, and replaces each line ending, together with the
-indentation of the next line, with one U+0020.
+To join the lines of the pattern, an implementation replaces each line
+ending, together with the indentation of the next line, with one U+0020. The
+feedback and the comment join as
+[Feedback and comment lines](grammar.md#feedback-and-comment-lines) defines,
+which gives the same result for lines without a hard line break.
 
 ```md
 [short-answer/reject]:
