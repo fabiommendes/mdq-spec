@@ -1,6 +1,6 @@
 [
   {
-    "code": "multiple-choice-many-correct-choices",
+    "code": "many-correct-choices",
     "severity": "info",
     "path": [
       "choices"

@@ -1,6 +1,6 @@
 [
   {
-    "code": "multiple-choice-many-correct-choices",
+    "code": "many-correct-choices",
     "severity": "info",
     "path": [
       "blanks",
@@ -18,7 +18,7 @@
     ]
   },
   {
-    "code": "multiple-choice-no-correct-choice",
+    "code": "no-correct-choice",
     "severity": "info",
     "path": [
       "blanks",

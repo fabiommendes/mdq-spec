@@ -1,6 +1,6 @@
 # Every value is blank, which infers multiple-selection; `type:
 # multiple-choice` in the frontmatter wins over the inference. No choice has
-# a score, so the question gets `multiple-choice-no-correct-choice`.
+# a score, so the question gets `no-correct-choice`.
 id: mc-no-correct-answer
 title: Clima do Cerrado
 type: multiple-choice

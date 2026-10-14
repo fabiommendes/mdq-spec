@@ -1,6 +1,6 @@
 # The choice lint codes on blanks, reported under `blanks[i].choices`:
-# `all-choices-correct` with `multiple-choice-many-correct-choices`,
-# `multiple-choice-no-correct-choice` and `visually-identical-choices`.
+# `all-choices-correct` with `many-correct-choices`,
+# `no-correct-choice` and `visually-identical-choices`.
 id: fill-in-choice-lints
 title: Biomas
 type: fill-in

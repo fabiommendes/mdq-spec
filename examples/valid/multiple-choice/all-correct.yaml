@@ -1,5 +1,5 @@
 # Every choice is correct. The question is valid, with both
-# `multiple-choice-many-correct-choices` and `all-choices-correct`.
+# `many-correct-choices` and `all-choices-correct`.
 id: mc-all-correct
 title: Biomas brasileiros
 type: multiple-choice

@@ -7,7 +7,7 @@
     ]
   },
   {
-    "code": "multiple-choice-no-correct-choice",
+    "code": "no-correct-choice",
     "severity": "info",
     "path": [
       "choices"
