@@ -38,24 +38,21 @@ exam. See [exam inheritance](../exam.md#inheritance).
 Body consists of an unordered list of items. Each item follows the grammar:
 
 ```lark
-item          : ws? "[" value "]" ws? (choice_id ws?)? md_inline+ nl lazy_line* (blank_line* observations)?
-choice_id     : "[" SLUG "]"
-
+item          : ws? "[" value "]" ws? (CHOICE_ID ws?)? md_inline* nl lazy_line* (blank_line* observations)?
 value         : ws
               | ws? "*" ws?
               | ws? percent ws?
-percent       : /[+-]?[0-9]+([.][0-9]+)?%/
+percent       : ("+" | "-")? (INTEGER | DECIMAL) "%"
 ```
 
-A `choice_id` is a `SLUG` between square brackets, right after the value. A
-bracket there is a choice id only when its content is a `SLUG` and the next
-character is not `(` or `[`, which open a markdown link (`[text](url)`,
-`[text][ref]`); such a bracket is part of the choice text. `SLUG` is defined in
-[Common grammar rules](../references/grammar.md).
+`CHOICE_ID` is defined in [Common grammar rules](../references/grammar.md#tokens):
+a bracket right after the value that matches it is always the choice id. In
+`* [*] [brasilia]`, `brasilia` is the id and the text is empty, which is a
+`blank-choice-text` error.
 
 `md_inline` represents any markdown inline element except new lines (which are
 represented explicitly by `nl`). The rules `ws`, `nl`, `lazy_line`,
-`blank_line` and `observations` are defined in
+`blank_line`, `observations`, `INTEGER` and `DECIMAL` are defined in
 [Common grammar rules](../references/grammar.md). The choice text continues on
 the `lazy_line`s after its first line, so a `>` or `!` line always ends it, see
 [Feedback and comment lines](../references/grammar.md#feedback-and-comment-lines).
@@ -100,7 +97,7 @@ choices:
 | Field      | Source in the item                                                           |
 | ---------- | ---------------------------------------------------------------------------- |
 | `text`     | The text of the item (see below).                                            |
-| `id`       | The `choice_id`, without the brackets. Absent if the item has none.          |
+| `id`       | The `CHOICE_ID`, without the brackets. Absent if the item has none.          |
 | `score`    | Derived from `value`, see the score rules below. Absent for a blank value.   |
 | `feedback` | The value of the `feedback` block (see below). Absent if none.              |
 | `comment`  | The value of the `comment` block (see below). Absent if none.               |

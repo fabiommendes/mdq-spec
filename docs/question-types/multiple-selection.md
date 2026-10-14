@@ -39,17 +39,15 @@ exam. See [exam inheritance](../exam.md#inheritance).
 Body consists of an unordered list of items. Each item follows the grammar:
 
 ```lark
-item      : ws? "[" value "]" ws? (choice_id ws?)? md_inline+ nl lazy_line* (blank_line* observations)?
-choice_id : "[" SLUG "]"
+item      : ws? "[" value "]" ws? (CHOICE_ID ws?)? md_inline* nl lazy_line* (blank_line* observations)?
 value : ws
       | ws? ("x" | "X") ws?
 ```
 
-A `choice_id` is a `SLUG` between square brackets, right after the value. A
-bracket there is a choice id only when its content is a `SLUG` and the next
-character is not `(` or `[`, which open a markdown link (`[text](url)`,
-`[text][ref]`); such a bracket is part of the choice text. `SLUG` is defined in
-[Common grammar rules](../references/grammar.md).
+`CHOICE_ID` is defined in [Common grammar rules](../references/grammar.md#tokens):
+a bracket right after the value that matches it is always the choice id. In
+`* [x] [brasilia]`, `brasilia` is the id and the text is empty, which is a
+`blank-choice-text` error.
 
 `md_inline` represents any markdown inline element except new lines. The rules
 `ws`, `nl`, `lazy_line`, `blank_line` and `observations` are defined in

@@ -34,6 +34,9 @@ CommonMark. Implementations MUST NOT split lines on other characters. For
 example, Python `str.splitlines()` also splits on U+000C, U+0085 and U+2028, so
 it does not read MDQ lines correctly.
 
+The last line of a file can end without a line ending. Implementations read
+it as if it ended with `nl`.
+
 Where the grammar expects `ws` or `nl`, every other character is text. After
 `[short-answer]:`, a U+00A0 followed by `Brasília` is the answer U+00A0
 `Brasília`, and not the answer `Brasília`.
@@ -61,6 +64,7 @@ INTEGER      : /[1-9][0-9]*|0/
 DECIMAL      : /([1-9][0-9]*|0)[.][0-9]+/
 UNIT         : /[^()\[\]\t\n\v\f\r \x85\xa0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+/
 COMMENT_LINE : /#[^\r\n]*(\r\n|\r|\n)/
+CHOICE_ID    : /\[[a-zA-Z0-9]+([-_][a-zA-Z0-9]+)*\](?![(\[])/
 ```
 
 * `SLUG` is the format of question ids, choice ids, blank ids and exam slugs.
@@ -73,6 +77,13 @@ COMMENT_LINE : /#[^\r\n]*(\r\n|\r|\n)/
   [Unit conversion](../question-types/numeric.md#unit-conversion).
 * `COMMENT_LINE` is one line of the comment string of the frontmatter. See
   [Frontmatter](../question-types/question-base.md#frontmatter).
+* `CHOICE_ID` is a `SLUG` between square brackets, at the start of a choice
+  item, right after its value. Where the grammar of the item accepts a
+  `CHOICE_ID`, a bracket that matches it is always the choice id, and never
+  part of the choice text. A bracket followed by `(` or `[` does not match: it
+  starts a markdown link (`[text](url)`, `[text][ref]`) and is part of the
+  text. For a choice text that starts with a shortcut reference link, write it
+  as a collapsed one: `[brasilia][]`.
 
 ## Feedback and comment lines
 
