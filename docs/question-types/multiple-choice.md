@@ -137,7 +137,7 @@ is correct is unusual enough that implementations MAY warn about it. The count
 does not change how the question is answered -- the student still picks a
 single choice -- only how it is graded, see [Grading](#grading).
 
-Each choice carries a `score` on a scale from -1 to 1, derived from `value` in
+A choice can carry a `score` on a scale from -1 to 1, derived from `value` in
 the body syntax above: `*` is 1. A percentage is its own fraction, so `[50%]` is
 0.5 and `[-25%]` is -0.25. A percentage that would put `score` outside [-1, 1]
 -- `[150%]`, say -- makes the question malformed (`schema-error`, the score is out of range). `[0%]` is an explicit
@@ -156,8 +156,9 @@ content, and not by position. It follows the same rules for slugs mentioned
 before. If given, the choice ids for each choice MUST be unique.
 
 The id is not mandatory. An implementation MAY derive url-safe identifiers from
-the text content when it needs an addressable document (e.g., mdq-py:
-`with_ids()`); but it is not part of the parse step itself. This transformation
+the text content when it needs an
+[addressable](../responses.md#addressability) document; but it is not part of
+the parse step itself. This transformation
 SHOULD be stable in practical applications, although there might be edge cases
 where it cannot be guaranteed. A stable assignment should preserve the choice id
 assignments for the following operations:
@@ -216,8 +217,9 @@ Other question types trigger feedback differently: see
 ## Grading
 
 There are three grading strategies for multiple choice questions. The grading
-strategy is ignored if the marked choice defines a score, and the question is
-graded according to that score. Otherwise (i.e., for omitted scores), it uses the
+strategy is ignored if the picked choice defines a score, and the question is
+graded according to that score, under every strategy: a picked `[50%]` choice
+scores 0.5, also under all-or-nothing. Otherwise (i.e., for omitted scores), it uses the
 following rules:
 
 * **partial**: Unspecified scores are treated as 0.
@@ -234,9 +236,9 @@ following rules:
 
 **Examples**:
 
-Marking a choice with a score defined in the body of the question overrides the
+Picking a choice with a score defined in the body of the question overrides the
 grading strategy. Consider the following answer keys (a list with each choice
-score) and the effect of marking a choice with an omitted score.
+score) and the effect of picking a choice with an omitted score.
 
 | Answer Key       | "partial" | "all-or-nothing" | "symmetric" |
 | ---------------- | :-------: | :--------------: | :---------: |
@@ -251,8 +253,10 @@ score) and the effect of marking a choice with an omitted score.
 The results are truncated to 2 decimal places for clarity, but the actual 
 results should be computed with full precision.
 
-[^2]: This is identical to the "partial" strategy and only exists for 
-compatibility reasons with the other question types.
+[^2]: This is identical to the "partial" strategy and only exists for
+compatibility reasons with the other question types. In
+[multiple selection](multiple-selection.md#grading), any mistake gives 0; here,
+a declared fractional score still counts.
 
 ## Additional Rules
 
