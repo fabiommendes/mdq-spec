@@ -100,7 +100,7 @@ unevaluatedProperties: false
       comment:
         type: string
         description: >-
-          Optional comment for the instructor. Do not shown to students.
+          Optional comment for the instructor. Not shown to students.
         minLength: 1
 
     required:

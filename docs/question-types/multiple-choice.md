@@ -18,7 +18,7 @@ What is the capital of Brazil?
 ## Frontmatter
 
 Multiple choice questions accept the following extra arguments in the
-frontmatter
+frontmatter:
 
 | Field   | Type              | Description                      |
 | ------- | ----------------- | -------------------------------- |
@@ -59,9 +59,14 @@ character is not `(` or `[`, which open a markdown link (`[text](url)`,
 `[text][ref]`); such a bracket is part of the choice text. `SLUG` is defined in
 [Common grammar rules](../references/grammar.md).
 
-`md_inline` represent any markdown inline element except new lines (which are 
+`md_inline` represents any markdown inline element except new lines (which are 
 represented explicitly by `nl`). The rules `ws` and `nl` are defined in
 [Common grammar rules](../references/grammar.md).
+
+A line of `extra_lines` MUST NOT start with `>` or `!`, after the indentation
+of the list item. Such a line is always a `feedback_line` or a
+`comment_line`, so it ends the choice text, or the feedback or comment before
+it.
 
 
 ## Choices
@@ -85,8 +90,36 @@ their corresponding punctuation. Both are optional.
   ! Another line of comments.
 ```
 
-The choice text MUST NOT be empty. And all choice texts MUST be unique.
-Implementations MAY reject choices that have different textual representations,
+Each item becomes one object of the `choices` list in the AST:
+
+```yaml
+choices:
+  - id: brasilia
+    text: Brasília
+    score: 1
+    feedback: Brasília has been the capital since 1960.
+    comment: Students often pick Rio de Janeiro, the capital until 1960.
+  - text: São Paulo
+```
+
+| Field      | Source in the item                                                           |
+| ---------- | ---------------------------------------------------------------------------- |
+| `text`     | The text of the item, verbatim (see below).                                  |
+| `id`       | The `choice_id`, without the brackets. Absent if the item has none.          |
+| `score`    | Derived from `value`, see the score rules below. Absent for a blank value.   |
+| `feedback` | The `feedback` lines, each without `>` and the `ws` after it. Absent if none. |
+| `comment`  | The `comment_line`s, each without `!` and the `ws` after it. Absent if none. |
+
+The `text` is the source of the item, verbatim, after the removal of the
+value, the choice id, the `ws` after them, the feedback and the comment.
+Continuation lines keep their line endings, without the indentation of the
+list item, and the line ending of the last line is removed. The `feedback`
+and `comment` are taken in the same way.
+
+The choice text MUST NOT be empty. And all choice texts MUST be unique. Two
+texts are the same when they are equal after each run of whitespace outside
+code spans is replaced by one space (`duplicate-choice-text`).
+Implementations MAY report choices that have different textual representations,
 but that are visually identical when rendered to HTML. It is out of the scope of
 this document to define visual equivalence of markdown snippets, but we point to
 some obvious cases:
@@ -96,12 +129,15 @@ some obvious cases:
 * [ ] [b] foo  bar
 * [ ] [c] `foo bar`
 * [ ] [d] `foo  bar`
+* [ ] [e] *foo bar*
+* [ ] [f] _foo bar_
 ```
 
-In the example, `a` and `b` are visually equivalent (spaces are not meaningful
-in a markdown paragraph context), but `c` and `d` are clearly not. `b` and `c`
-are visually different, but depending on formating and the rendering system
-they might still appear equivalent to a human reader.
+In the example, `a` and `b` are duplicates (spaces are not meaningful in a
+markdown paragraph context), but `c` and `d` are not, since spaces are
+meaningful in a code span. `e` and `f` are not duplicates, but they are visually
+identical. `b` and `c` are visually different, but depending on formatting and
+the rendering system they might still appear equivalent to a human reader.
 
 A question MAY mark any number of choices as correct, and typically marks
 exactly one. There is no upper limit, although a question in which every choice
@@ -123,14 +159,14 @@ An omitted value is treated differently depending on the `grading` parameter in
 the frontmatter and will be discussed in detail in the [Grading](#grading)
 section.
 
-The choice id is a slugfied identifier for the choice so we can refer it by
+The choice id is a slugified identifier for the choice so we can refer to it by
 content, and not by position. It follows the same rules for slugs mentioned
 before. If given, the choice ids for each choice MUST be unique.
 
 The id is not mandatory. An implementation MAY derive url-safe identifiers from
 the text content when it needs an addressable document (e.g., mdq-py:
 `with_ids()`); but it is not part of the parse step itself. This transformation
-SHOULD be stable in practical applications, althogh there might be edge cases
+SHOULD be stable in practical applications, although there might be edge cases
 where it cannot be guaranteed. A stable assignment should preserve the choice id
 assignments for the following operations:
 
@@ -138,10 +174,10 @@ assignments for the following operations:
 * **Addition of new choices:** existing choices preserve their original ids.
 * **Removal of choices:** if a choice is removed, the remaining ones should keep
   their previous ids.
-* **Editing of feedback or comments:** any edition (inclusion, deletion or
-  modification) to the feedback and comments parts of the choice.
+* **Editing of feedback or comments:** any edit (inclusion, deletion or
+  modification) to the feedback and comments of a choice keeps its id.
 
-Since the transformation from an *arbitrary string* of text to an *url-safe
+Since the transformation from an *arbitrary string* of text to a *url-safe
 string* is inherently lossy, it is generally not possible to preserve those
 properties for all cases if we want practical slugs. For instance:
 
@@ -167,7 +203,7 @@ Which one is the largest river in the world?
 * [*] Amazon
 * [ ] Nile
   > Amazon is much larger by water volume, but it was recently discovered 
-  > that it might be also larger by length by quite a margin.
+  > that it might also be larger by length by quite a margin.
 * [ ] Mississippi
   > Not even close!
 * [ ] Yellow River
@@ -189,7 +225,7 @@ Other question types trigger feedback differently: see
 
 There are three grading strategies for multiple choice questions. The grading
 strategy is ignored if the marked choice defines a score, and the question is
-graded according to that score. Otherwise, (i.e., omitted scores) it uses the
+graded according to that score. Otherwise (i.e., for omitted scores), it uses the
 following rules:
 
 * **partial**: Unspecified scores are treated as 0.
@@ -199,6 +235,10 @@ following rules:
   number of choices and the number of choices with specified scores. The value
   derived this way is clamped to the range `[-1, 0]`. The clamp applies to the
   score assigned to each unspecified choice, not to the question's final grade.
+  With `S` the sum of the specified scores and `u` the number of choices with
+  an unspecified score, each unspecified choice scores
+  `min(0, max(-1, -S / u))`. An explicit `[0%]` is a specified score: it
+  counts in `S` and not in `u`.
 
 **Examples**:
 
@@ -211,6 +251,7 @@ score) and the effect of marking a choice with an omitted score.
 | `[1, _, _, _]`   |   0.00    |       0.00       |    -0.33    |
 | `[1, 1, _, _]`   |   0.00    |       0.00       |    -1.00    |
 | `[1, 0.5, _, _]` |   0.00    |       0.00       |    -0.75    |
+| `[1, 0, _, _]`   |   0.00    |       0.00       |    -0.50    |
 | `[1, 1, 1, _]`   |   0.00    |       0.00       |    -1.00    |
 | `[1, -1, _, _]`  |   0.00    |       0.00       |    0.00     |
 | `[1, -1, -1, _]` |   0.00    |       0.00       |    0.00     |
@@ -218,7 +259,7 @@ score) and the effect of marking a choice with an omitted score.
 The results are truncated to 2 decimal places for clarity, but the actual 
 results should be computed with full precision.
 
-[^2]: This is identical to the "partial" strategy and only exist for 
+[^2]: This is identical to the "partial" strategy and only exists for 
 compatibility reasons with the other question types.
 
 ## Additional Rules

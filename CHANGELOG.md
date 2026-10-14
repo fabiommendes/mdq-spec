@@ -15,6 +15,7 @@ First version of the specification.
 
 ### Changed
 
+- `docs/question-types/multiple-choice.md`: a line of `extra_lines` must not start with `>` or `!`, so it is always feedback or a comment. The section on choices now gives the AST of a choice: `text`, `feedback` and `comment` are the verbatim source, without the value, the choice id and the markers. The symmetric grading section now gives the formula for an unspecified score: `min(0, max(-1, -S / u))`. An explicit `[0%]` counts as a specified score. The text now states the `duplicate-choice-text` comparison of `docs/lint-codes.md`: `foo bar` and `foo  bar` are duplicates, not only visually identical.
 - `examples/invalid/exam-misspelled-include-all.mdq.md`: an exam block whose frontmatter has `include-all` and no body is a `parse-error`.
 - `examples/invalid/essay-snake-case-key.yaml`: a snake_case property (`answer_key`) in YAML/JSON is an unknown property, a `schema-error`.
 - `examples/invalid/exam-entry-misspelled-include-all.yaml`: an exam entry with no `type` and no `include`/`includeAll` key is a `schema-error`.
