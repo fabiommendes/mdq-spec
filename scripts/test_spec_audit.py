@@ -329,7 +329,7 @@ def test_check_rule_field(
     monkeypatch.setattr(spec_audit, "FRONTMATTER_SHORTHANDS", {("doc", "short"): "x"})
 
     def check(field: str) -> str | None:
-        return check_rule_field(Rule(doc, field, "critical", "c", "r", 7), path, root)
+        return check_rule_field(Rule(doc, field, "error", "c", "r", 7), path, root)
 
     assert check("answer, blanks[].unit") is None
     assert check("body") is None

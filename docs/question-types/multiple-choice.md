@@ -223,15 +223,21 @@ Other question types trigger feedback differently: see
 
 ## Grading
 
-There are three grading strategies for multiple choice questions. The grading
-strategy is ignored if the picked choice defines a score, and the question is
+The `grading` field of the frontmatter selects one of the three strategies
+below. It can be set in the question, or left as `"inherit"`, the default,
+which takes the strategy from the exam: the exam's `grading`, or its entry for
+`multiple-choice` when it is a map (see [exam grading](../exam.md#grading)). When neither
+the question nor the exam sets a strategy, and outside an exam, the strategy
+is `"symmetric"`.
+
+The grading strategy is ignored if the picked choice defines a score, and the question is
 graded according to that score, under every strategy: a picked `[50%]` choice
 scores 0.5, also under all-or-nothing. Otherwise (i.e., for omitted scores), it uses the
 following rules:
 
 * **partial**: Unspecified scores are treated as 0.
 * **all-or-nothing**: Unspecified scores are treated as 0[^2].
-* **symmetric** (default): Unspecified scores are computed in such a way that
+* **symmetric**: Unspecified scores are computed in such a way that
   the average score of randomly picking choices is zero. This depends on the
   number of choices and the number of choices with specified scores. The value
   derived this way is clamped to the range `[-1, 0]`. The clamp applies to the
@@ -269,16 +275,16 @@ a declared fractional score still counts.
 
 | Field              | Level    | Code                       | Rule                                                      |
 | ------------------ | -------- | -------------------------- | --------------------------------------------------------- |
-| choices            | critical | schema-error               | must have at least two choices (schema)                   |
-| choices[].id       | critical | schema-error               | must be a valid slug (schema)                             |
-| choices[].score    | critical | schema-error               | must be between -1 and 1 (schema)                         |
-| choices[]          | critical | foreign-choice-marker      | must use a value allowed in a multiple choice list        |
-| choices[].text     | critical | blank-text                 | must have at least one visible character                  |
-| choices[].feedback | critical | blank-text                 | must have at least one visible character                  |
-| choices[].comment  | critical | blank-text                 | must have at least one visible character                  |
-| choices[].text     | critical | duplicate-choice-text      | must be unique among the choices of the question          |
-| choices[].id       | critical | duplicate-choice-id        | must be unique among the choices of the question          |
-| choices[]          | critical | parse-error                | carries at most one feedback block and one comment block  |
+| choices            | error    | schema-error               | must have at least two choices (schema)                   |
+| choices[].id       | error    | schema-error               | must be a valid slug (schema)                             |
+| choices[].score    | error    | schema-error               | must be between -1 and 1 (schema)                         |
+| choices[]          | error    | foreign-choice-marker      | must use a value allowed in a multiple choice list        |
+| choices[].text     | error    | blank-text                 | must have at least one visible character                  |
+| choices[].feedback | error    | blank-text                 | must have at least one visible character                  |
+| choices[].comment  | error    | blank-text                 | must have at least one visible character                  |
+| choices[].text     | error    | duplicate-choice-text      | must be unique among the choices of the question          |
+| choices[].id       | error    | duplicate-choice-id        | must be unique among the choices of the question          |
+| choices[]          | error    | parse-error                | carries at most one feedback block and one comment block  |
 | choices[].text     | info     | visually-identical-choices | should not be visually equivalent to another choice[^3]   |
 | choices[].score    | info     | no-correct-choice          | at least one choice should have a score of 1              |
 | choices[].score    | info     | all-choices-correct        | not every choice should be correct                        |

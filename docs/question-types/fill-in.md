@@ -296,6 +296,13 @@ produces a score in the range `[-1, 1]`. The question's `grading` field selects
 both how each blank is scored and how those scores are combined into the
 question's score.
 
+The `grading` field of the frontmatter selects one of the three strategies
+below. It can be set in the question, or left as `"inherit"`, the default,
+which takes the strategy from the exam: the exam's `grading`, or its entry for
+`fill-in` when it is a map (see [exam grading](../exam.md#grading)). When neither
+the question nor the exam sets a strategy, and outside an exam, the strategy
+is `"symmetric"`.
+
 A blank the student left empty scores 0 under every strategy. 
 
 What each kind of blank can score:
@@ -360,17 +367,17 @@ of [numeric](numeric.md#additional-rules), and a short answer blank those of
 
 | Field                | Level    | Code               | Rule                                                               |
 | -------------------- | -------- | ------------------ | ------------------------------------------------------------------ |
-| blanks               | critical | schema-error       | must have at least one blank (schema)                              |
-| blanks[].id          | critical | schema-error       | must be present and a slug: letters, digits, `-` and `_` (schema)  |
-| blanks[].choices     | critical | schema-error       | a choice blank must have at least two choices (schema)             |
-| blanks[].unit        | critical | schema-error       | only a numeric blank may have a `unit` (schema)                    |
-| blanks[].id          | critical | duplicate-blank-id | must be unique within the question[^3]                             |
-| stem                 | critical | undefined-blank    | every `[^id]` marker must name a declared blank                    |
-| blanks[].id          | critical | unreferenced-blank | must be referenced by an `[^id]` marker in the stem                |
-| stem                 | critical | misplaced-blank    | blanks may only appear in a plain text run of a paragraph[^4]      |
-| blanks[]             | critical | parse-error        | a short answer blank defines each block at most once[^5]           |
-| preAccept, preReject | critical | undefined-blank    | every key must be the id of a declared blank[^8]                   |
-| preAccept, preReject | critical | schema-error       | a key must not be the id of a choice or numeric blank (schema)[^8] |
+| blanks               | error    | schema-error       | must have at least one blank (schema)                              |
+| blanks[].id          | error    | schema-error       | must be present and a slug: letters, digits, `-` and `_` (schema)  |
+| blanks[].choices     | error    | schema-error       | a choice blank must have at least two choices (schema)             |
+| blanks[].unit        | error    | schema-error       | only a numeric blank may have a `unit` (schema)                    |
+| blanks[].id          | error    | duplicate-blank-id | must be unique within the question[^3]                             |
+| stem                 | error    | undefined-blank    | every `[^id]` marker must name a declared blank                    |
+| blanks[].id          | error    | unreferenced-blank | must be referenced by an `[^id]` marker in the stem                |
+| stem                 | error    | misplaced-blank    | blanks may only appear in a plain text run of a paragraph[^4]      |
+| blanks[]             | error    | parse-error        | a short answer blank defines each block at most once[^5]           |
+| preAccept, preReject | error    | undefined-blank    | every key must be the id of a declared blank[^8]                   |
+| preAccept, preReject | error    | schema-error       | a key must not be the id of a choice or numeric blank (schema)[^8] |
 
 [^3]: Otherwise the stem's `[^id]` marker is ambiguous.
 [^4]: See [where blanks may appear](#where-blanks-may-appear). A `[^id]` found

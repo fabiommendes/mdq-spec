@@ -94,7 +94,12 @@ because its grading formula never runs.
 
 ## Grading
 
-The grading strategy is set in the frontmatter.
+The `grading` field of the frontmatter selects one of the three strategies
+below. It can be set in the question, or left as `"inherit"`, the default,
+which takes the strategy from the exam: the exam's `grading`, or its entry for
+`multiple-selection` when it is a map (see [exam grading](../exam.md#grading)). When neither
+the question nor the exam sets a strategy, and outside an exam, the strategy
+is `"symmetric"`.
 
 A choice is **judged correctly** when the student ticked it and it is correct,
 or left it unticked and it is incorrect. Every choice is judged, since an
@@ -139,16 +144,16 @@ is no way to explicitly leave it unmarked. If that is necessary, prefer using
 
 | Field              | Level    | Code                       | Rule                                                      |
 | ------------------ | -------- | -------------------------- | --------------------------------------------------------- |
-| choices            | critical | schema-error               | must have at least two choices (schema)                   |
-| choices[].id       | critical | schema-error               | must be a valid slug (schema)                             |
-| choices[].correct  | critical | schema-error               | must be declared in every choice (schema)                 |
-| choices[]          | critical | foreign-choice-marker      | must use a value allowed in a multiple selection list     |
-| choices[].text     | critical | blank-text                 | must have at least one visible character                  |
-| choices[].feedback | critical | blank-text                 | must have at least one visible character                  |
-| choices[].comment  | critical | blank-text                 | must have at least one visible character                  |
-| choices[].text     | critical | duplicate-choice-text      | must be unique among the choices of the question          |
-| choices[].id       | critical | duplicate-choice-id        | must be unique among the choices of the question          |
-| choices[]          | critical | parse-error                | carries at most one feedback block and one comment block  |
+| choices            | error    | schema-error               | must have at least two choices (schema)                   |
+| choices[].id       | error    | schema-error               | must be a valid slug (schema)                             |
+| choices[].correct  | error    | schema-error               | must be declared in every choice (schema)                 |
+| choices[]          | error    | foreign-choice-marker      | must use a value allowed in a multiple selection list     |
+| choices[].text     | error    | blank-text                 | must have at least one visible character                  |
+| choices[].feedback | error    | blank-text                 | must have at least one visible character                  |
+| choices[].comment  | error    | blank-text                 | must have at least one visible character                  |
+| choices[].text     | error    | duplicate-choice-text      | must be unique among the choices of the question          |
+| choices[].id       | error    | duplicate-choice-id        | must be unique among the choices of the question          |
+| choices[]          | error    | parse-error                | carries at most one feedback block and one comment block  |
 | choices[].text     | info     | visually-identical-choices | should not be visually equivalent to another choice[^2]   |
 | choices[].correct  | info     | no-correct-choice          | at least one choice should be correct                     |
 | choices[].correct  | info     | all-choices-correct        | not every choice should be correct                        |

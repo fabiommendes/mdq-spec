@@ -196,7 +196,12 @@ its grading formula never runs.
 
 ## Grading
 
-The grading strategy is set in the frontmatter.
+The `grading` field of the frontmatter selects one of the three strategies
+below. It can be set in the question, or left as `"inherit"`, the default,
+which takes the strategy from the exam: the exam's `grading`, or its entry for
+`true-false` when it is a map (see [exam grading](../exam.md#grading)). When neither
+the question nor the exam sets a strategy, and outside an exam, the strategy
+is `"symmetric"`.
 
 * **partial**: Each correct marking gives a point, and each incorrect or missing
   marking is ignored. The total is normalized to the range `[0, 1]` by dividing
@@ -229,19 +234,19 @@ of student markings and the resulting score for each grading strategy.
 
 | Field              | Level    | Code                                     | Rule                                                       |
 | ------------------ | -------- | ---------------------------------------- | ---------------------------------------------------------- |
-| choices            | critical | schema-error                             | must have at least two statements (schema)                 |
-| choices[].id       | critical | schema-error                             | must be a valid slug (schema)                              |
-| choices[].correct  | critical | schema-error                             | must be declared in every statement (schema)               |
-| choices[]          | critical | foreign-choice-marker                    | must use a value allowed in a true/false list              |
-| choices[].marker   | critical | malformed-true-false-marker              | must be a single letter[^2]                                |
-| choices[].marker   | critical | reserved-true-false-marker               | must not be `X` or `x`[^2]                                 |
-| choices[].marker   | critical | true-false-marker-disagrees-with-correct | must agree with `correct` according to its category[^3]    |
-| choices[].text     | critical | blank-text                               | must have at least one visible character                   |
-| choices[].feedback | critical | blank-text                               | must have at least one visible character                   |
-| choices[].comment  | critical | blank-text                               | must have at least one visible character                   |
-| choices[].text     | critical | duplicate-choice-text                    | must be unique among the statements of the question        |
-| choices[].id       | critical | duplicate-choice-id                      | must be unique among the statements of the question        |
-| choices[]          | critical | parse-error                              | carries at most one feedback block and one comment block   |
+| choices            | error    | schema-error                             | must have at least two statements (schema)                 |
+| choices[].id       | error    | schema-error                             | must be a valid slug (schema)                              |
+| choices[].correct  | error    | schema-error                             | must be declared in every statement (schema)               |
+| choices[]          | error    | foreign-choice-marker                    | must use a value allowed in a true/false list              |
+| choices[].marker   | error    | malformed-true-false-marker              | must be a single letter[^2]                                |
+| choices[].marker   | error    | reserved-true-false-marker               | must not be `X` or `x`[^2]                                 |
+| choices[].marker   | error    | true-false-marker-disagrees-with-correct | must agree with `correct` according to its category[^3]    |
+| choices[].text     | error    | blank-text                               | must have at least one visible character                   |
+| choices[].feedback | error    | blank-text                               | must have at least one visible character                   |
+| choices[].comment  | error    | blank-text                               | must have at least one visible character                   |
+| choices[].text     | error    | duplicate-choice-text                    | must be unique among the statements of the question        |
+| choices[].id       | error    | duplicate-choice-id                      | must be unique among the statements of the question        |
+| choices[]          | error    | parse-error                              | carries at most one feedback block and one comment block   |
 | choices[].marker   | warning  | unlisted-true-false-marker               | should not be a WARNING letter[^3]                         |
 | choices[].marker   | warning  | locale-mismatched-true-false-marker      | should be compatible with `locale`[^4]                     |
 | choices[].marker   | warning  | false-friend-true-false-marker           | should not be `S` under `locale: id`[^4]                   |

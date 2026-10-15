@@ -310,9 +310,9 @@ additional fields. Those rules are covered in their own dedicated document.
 
 This section documents only the rules that are NOT captured by the JSON schema and
 requires additional programatic support in compliant implementations. Each rule
-is assigned a strictness level of "critical", "warning", "info". 
+is assigned a strictness level of "error", "warning", "info". 
 
-* **critical:** MUST be enforced on compliant documents. 
+* **error:** MUST be enforced on compliant documents. 
 * **warning**: considered to be bad practices, but still can produce usable
   documents. SHOULD be enforced on compliant documents under some optional flag.
 * **info**: violations that may indicate flaws in the document and might be
@@ -321,27 +321,27 @@ is assigned a strictness level of "critical", "warning", "info".
 
 The JSON Schema is normative for the shape of a document. It validates the
 document after the removal of each `null` value of an OPTIONAL field (see
-[Frontmatter](#frontmatter)). A list field MUST
-have at least the number of items the schema states (`minItems`). Each
-question type lists its minimums below. A free-text field (`title`, `author`,
-`comment`, `preamble`, `stem`, `epilogue`, choice text, feedback and the like)
-and each entry of `tags` MUST have at least one visible character when it is
-defined. The schema does not check this: an empty or whitespace-only string is
-the `blank-text` error. A `null` value is an absent field, or a
-`schema-error` in a required field. Identifiers and
-syntax fields, such as `id`, are not free text: the schema rejects their empty
-string.
+[Frontmatter](#frontmatter)). A list field MUST have at least the number of
+items the schema states (`minItems`). Each question type lists its minimums
+below. A free-text field (`title`, `author`, `comment`, `preamble`, `stem`,
+`epilogue`, choice text, feedback and the like) and each entry of `tags` MUST
+have at least one [visible
+character](../references/grammar.md#visible-characters) when it is defined. The
+schema does not check this: an empty or whitespace-only string is the
+`blank-text` error. A `null` value is an absent field, or a `schema-error` in a
+required field. Identifiers and syntax fields, such as `id`, are not free text:
+the schema rejects their empty string.
 
 | Field                    | Level    | Code                      | Rule |
 | ------------------------ | -------- | ------------------------- | -------------------- |
-| title, author, comment, preamble, epilogue, stem | critical | blank-text | if defined, must have at least one visible character |
-| preamble, epilogue, stem | critical | forbidden-block-element   | cannot have explicitly forbidden block elements[^7] |
-| locale                   | critical | malformed-locale          | must be a well-formed IETF BCP 47 tag[^4] |
+| title, author, comment, preamble, epilogue, stem | error    | blank-text | if defined, must have at least one visible character |
+| preamble, epilogue, stem | error    | forbidden-block-element   | cannot have explicitly forbidden block elements[^7] |
+| locale                   | error    | malformed-locale          | must be a well-formed IETF BCP 47 tag[^4] |
 | id                       | warning  | unsafe-id                 | should be url-safe[^2] |
 | stem                     | warning  | stem-not-a-paragraph      | must be a markdown `p` block element |
-| tags                     | critical | blank-text                | each entry must have at least one visible character |
+| tags                     | error    | blank-text                | each entry must have at least one visible character |
 | tags                     | warning  | unsplit-tag-list          | an entry containing a comma is only split when `tags` itself is a single string, not a list |
-| uuid                     | critical | malformed-uuid            | must be a well-formed UUID[^3] |
+| uuid                     | error    | malformed-uuid            | must be a well-formed UUID[^3] |
 | uuid                     | warning  | uuid-unknown-version      | the version nibble should correspond to an existing standard[^3] |
 | uuid                     | warning  | uuid-unknown-variant      | the variant nibble should correspond to an existing standard[^3] |
 | id                       | info     | missing-id                | field must be defined in the document |

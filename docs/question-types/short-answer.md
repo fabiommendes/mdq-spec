@@ -406,18 +406,18 @@ not settled shows no feedback, because nothing has decided it yet.
 
 | Field                                | Level    | Code                   | Rule                                                                                |
 | ------------------------------------ | -------- | ---------------------- | ----------------------------------------------------------------------------------- |
-| accept, reject, preAccept, preReject | critical | schema-error           | a pattern list, when present, has at least one pattern (schema)                     |
-| accept, reject, preAccept, preReject | critical | invalid-regex          | every `/`-delimited pattern must be a valid MDQ regex[^6]                           |
-| accept, reject, preAccept, preReject | critical | invalid-regex          | a regex flag must be a supported or an ignored flag, and must not repeat[^12]       |
-| accept, reject                       | critical | conflicting-accept     | must not be written as a body block and a frontmatter field[^7]                     |
-| accept, reject                       | critical | parse-error            | each body block may be defined at most once[^11]                                    |
-| accept, reject                       | critical | parse-error            | a tag with content must not be followed by a list without a blank line              |
-| reject                               | critical | parse-error            | must declare at least one pattern; a list after a blank line is an epilogue element |
-| accept, reject                       | critical | parse-error            | an item carries at most one feedback block and one comment block                    |
+| accept, reject, preAccept, preReject | error    | schema-error           | a pattern list, when present, has at least one pattern (schema)                     |
+| accept, reject, preAccept, preReject | error    | invalid-regex          | every `/`-delimited pattern must be a valid MDQ regex[^6]                           |
+| accept, reject, preAccept, preReject | error    | invalid-regex          | a regex flag must be a supported or an ignored flag, and must not repeat[^12]       |
+| accept, reject                       | error    | conflicting-accept     | must not be written as a body block and a frontmatter field[^7]                     |
+| accept, reject                       | error    | parse-error            | each body block may be defined at most once[^11]                                    |
+| accept, reject                       | error    | parse-error            | a tag with content must not be followed by a list without a blank line              |
+| reject                               | error    | parse-error            | must declare at least one pattern; a list after a blank line is an epilogue element |
+| accept, reject                       | error    | parse-error            | an item carries at most one feedback block and one comment block                    |
 | accept                               | warning  | detached-answer-list   | a list after a blank line is an epilogue element, not the pattern list              |
-| unmatched                            | critical | schema-error           | must be "incorrect" or "manual" (schema)                                            |
+| unmatched                            | error    | schema-error           | must be "incorrect" or "manual" (schema)                                            |
 | unmatched                            | warning  | no-correct-answer      | must not be "incorrect" when the question has no `accept` pattern[^8]               |
-| incorrectFeedback                    | critical | blank-text             | if defined, must have at least one visible character                                |
+| incorrectFeedback                    | error    | blank-text             | if defined, must have at least one visible character                                |
 | accept, reject, preAccept, preReject | info     | redundant-regex-anchor | an anchor that is already implicit is redundant[^9]                                 |
 | accept, reject, preAccept, preReject | info     | ignored-regex-flag     | should not carry a flag that is accepted but ignored[^10]                           |
 

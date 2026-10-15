@@ -325,17 +325,17 @@ submitted, in the order they submitted them, each written as an
 
 | Field                 | Level    | Code                         | Rule                                                              |
 | --------------------- | -------- | ---------------------------- | ----------------------------------------------------------------- |
-| lines                 | critical | schema-error                 | must have at least two lines (schema)                             |
-| lines[]               | critical | schema-error                 | each line must be a `[level, text]` pair (schema)                 |
-| lines[]               | critical | schema-error                 | `level` must be a non-negative integer (schema)                   |
-| accept, reject        | critical | schema-error                 | an alternative must have at least one line (schema)               |
-| accept, reject        | critical | accept-reject-overlap        | the same lines must not be both accepted and rejected[^9]         |
-| extra, accept, reject | critical | parse-error                  | must use the same content block type as `[ordering]`[^6]          |
-| extra                 | critical | parse-error                  | at most one `## [extra]` section may be declared                  |
-| accept, reject        | critical | parse-error                  | a section carries at most one feedback and one comment block[^7]  |
-| content               | critical | schema-error                 | must be a known content type (schema)                             |
-| indentation           | critical | schema-error                 | must be a known indentation mode (schema)                         |
-| normalizations        | critical | schema-error                 | must list known normalizations, each at most once (schema)        |
+| lines                 | error    | schema-error                 | must have at least two lines (schema)                             |
+| lines[]               | error    | schema-error                 | each line must be a `[level, text]` pair (schema)                 |
+| lines[]               | error    | schema-error                 | `level` must be a non-negative integer (schema)                   |
+| accept, reject        | error    | schema-error                 | an alternative must have at least one line (schema)               |
+| accept, reject        | error    | accept-reject-overlap        | the same lines must not be both accepted and rejected[^9]         |
+| extra, accept, reject | error    | parse-error                  | must use the same content block type as `[ordering]`[^6]          |
+| extra                 | error    | parse-error                  | at most one `## [extra]` section may be declared                  |
+| accept, reject        | error    | parse-error                  | a section carries at most one feedback and one comment block[^7]  |
+| content               | error    | schema-error                 | must be a known content type (schema)                             |
+| indentation           | error    | schema-error                 | must be a known indentation mode (schema)                         |
+| normalizations        | error    | schema-error                 | must list known normalizations, each at most once (schema)        |
 | highlight             | warning  | ignored-highlight            | must be omitted unless `content` is "code"                        |
 | accept, reject        | warning  | duplicate-alternative-lines  | two sections should not hold the same lines, fully normalized[^9] |
 | accept                | warning  | accept-repeats-answer-key    | should not repeat the `[ordering]` block's own lines              |

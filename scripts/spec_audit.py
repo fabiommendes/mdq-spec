@@ -34,7 +34,7 @@ Then it runs these steps in order and reports every problem it finds:
 6. The tables of `docs/lint-codes.md` agree with the tables of step 4, and
    list each code once.
 7. The files of `examples/invalid/` are complete, every code they report is
-   declared, and every `critical` code has an invalid example.
+   declared, and every `error` code has an invalid example.
 8. The `## Frontmatter` table of each question type and of `exam.md` agrees
    with its schema: every field is a property, the `type` row matches the
    schema `const`, the Type column matches the schema type, and every schema
@@ -99,7 +99,7 @@ DOCUMENT_SUFFIXES = (SOURCE_SUFFIX, ".yaml", ".json")
 SEVERITIES = ("error", "warning", "info")
 #: The "Level" column of an "Additional Rules" table, mapped to the severity
 #: of the diagnostic.
-LEVELS = {"critical": "error", "warning": "warning", "info": "info"}
+LEVELS = {"error": "error", "warning": "warning", "info": "info"}
 RULES_HEADER = ["Field", "Level", "Code", "Rule"]
 LINT_TABLE_HEADER = ["Code", "Severity", "Question types", "Description"]
 ERROR_TABLE_HEADER = ["Code", "Question types", "Description"]

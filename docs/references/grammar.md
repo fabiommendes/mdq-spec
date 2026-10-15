@@ -171,6 +171,13 @@ A **Unicode space** is a character of `UNICODE_SPACE` outside ASCII. That is,
 every character of the class except tab, line feed, vertical tab, form feed,
 carriage return and space.
 
+### Visible characters
+
+A **visible character** is a character that is not in `UNICODE_SPACE` and
+whose Unicode general category is not `Cc` (control) or `Cf` (format). U+200B,
+U+00AD and U+FEFF are format characters, so a string of only these characters
+has no visible character. Rules such as `blank-text` use this definition.
+
 ### The `non-ascii-whitespace` lint
 
 The grammar reads a Unicode space as text. Markdown parsers, editors and the
