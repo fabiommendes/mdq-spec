@@ -1,0 +1,19 @@
+# Choice text, feedback and comment that span several lines. The lines join
+# as the lines of a paragraph, and an empty `>` line separates two paragraphs
+# of the feedback (grammar.md, "Feedback and comment lines").
+id: ms-multi-line
+title: Mudanças climáticas
+type: multiple-selection
+stem: Quais destas afirmações sobre o efeito estufa estão corretas?
+choices:
+- id: natural
+  text: O efeito estufa é um processo natural que mantém a Terra habitável.
+  correct: true
+  feedback: "Sem ele, a temperatura média do planeta seria de cerca de -18 °C.\n\nO problema é a sua intensificação."
+- id: co2
+  text: A queima de combustíveis fósseis aumenta a concentração de CO₂ na atmosfera.
+  correct: true
+- id: ozonio
+  text: O buraco na camada de ozônio é a causa principal do aquecimento global.
+  correct: false
+  comment: Confusão frequente entre dois problemas ambientais distintos.

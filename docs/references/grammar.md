@@ -56,6 +56,25 @@ read the source text and accept only spaces and tabs there. A paragraph that
 starts with U+00A0 followed by `[short-answer]: Brasília` is text. It is not a
 short-answer tag.
 
+### Content of a list item
+
+The grammar of a list item, such as a choice or a pattern item, applies to the
+content of the item as CommonMark gives it: after the removal of the list
+marker and its padding. The `ws?` at the start of the item, and before the
+marker of a feedback or comment line, stands for the indentation that
+CommonMark allows there: at most three spaces, with a tab expanded to the next
+multiple of four columns. More indentation makes the line code, or a
+continuation line, as in CommonMark.
+
+```md
+*      [x] Rio
+* [ ] Santos
+```
+
+With five or more spaces after the list marker, the content of the first item
+is an indented code block, so the item is not a choice and the list is not a
+choice list.
+
 ## Tokens
 
 ```lark
@@ -78,7 +97,7 @@ CHOICE_ID    : /\[[a-zA-Z0-9]+([-_][a-zA-Z0-9]+)*\](?![(\[])/
 * `COMMENT_LINE` is one line of the comment string of the frontmatter. See
   [Frontmatter](../question-types/question-base.md#frontmatter).
 * `CHOICE_ID` is a `SLUG` between square brackets, at the start of a choice
-  item, right after its value. Where the grammar of the item accepts a
+  item, right after its value (see [Choice lists](choices.md)). Where the grammar of the item accepts a
   `CHOICE_ID`, a bracket that matches it is always the choice id, and never
   part of the choice text. A bracket followed by `(` or `[` does not match: it
   starts a markdown link (`[text](url)`, `[text][ref]`) and is part of the
@@ -88,9 +107,8 @@ CHOICE_ID    : /\[[a-zA-Z0-9]+([-_][a-zA-Z0-9]+)*\](?![(\[])/
 ## Feedback and comment lines
 
 Several bodies attach feedback for the student and a comment for other
-instructors to an element: a choice of [multiple choice](../question-types/multiple-choice.md#choices),
-[multiple selection](../question-types/multiple-selection.md#choices) and
-[true/false](../question-types/true-false.md), a choice of a fill-in
+instructors to an element: a choice of a [choice list](choices.md) (multiple
+choice, multiple selection and true/false), a choice of a fill-in
 [choice blank](../question-types/fill-in.md), a [pattern item](patterns.md#pattern-items)
 and a section of [ordering](../question-types/ordering.md). All of them use
 the rules below.
@@ -102,13 +120,19 @@ feedback      : feedback_line (feedback_line | lazy_line)*
 comment       : comment_line (comment_line | lazy_line)*
 feedback_line : ws? ">" ws? md_inline* nl
 comment_line  : ws? COMMENT_MARK ws? md_inline* nl
-lazy_line     : ws? md_inline+ nl
+lazy_line     : ws? LAZY_START md_inline* nl
 blank_line    : ws? nl
 
 COMMENT_MARK  : /!(?!\[)/
+LAZY_START    : /(?!>|!(?!\[)|[*+-][ \t]|1[.)][ \t]|#{1,6}([ \t]|(?=[\r\n]))|`{3}|~{3}|(\*[ \t]*){3,}(?=[\r\n])|(-[ \t]*){3,}(?=[\r\n])|(_[ \t]*){3,}(?=[\r\n]))[^ \t\r\n]/
 ```
 
 `md_inline` is any markdown inline element except a line ending.
+`LAZY_START` is the first character of a lazy line. It is not a feedback or
+comment marker, and it does not start a block that interrupts a paragraph: a
+bullet list item, an ordered list item that starts with `1`, an ATX heading, a
+fenced code block or a thematic break. An HTML block also interrupts a
+paragraph; the terminal does not test it.
 
 A `feedback` block is a CommonMark block quote. A `comment` block follows the
 same rules, with `!` in place of `>`. MDQ adds the `!` block; CommonMark does

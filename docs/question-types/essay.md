@@ -90,9 +90,9 @@ Essay questions are graded manually.
 | body      | error    | foreign-choice-marker        | the `[essay]` tag cannot be a list item[^4]                |
 | highlight | warning  | ignored-highlight            | must be omitted unless `input` is "code"                   |
 | answerKey | error    | blank-text                   | if defined, must have at least one visible character       |
-| highlight | info     | unknown-highlight-language   | should be a recognized language identifier[^3]             |
-| highlight | info     | code-input-without-highlight | should be defined when `input` is "code"                   |
-| answerKey | info     | missing-answer-key           | should be defined in the document                          |
+| highlight | info     | unknown-highlight-language   | is not a recognized language identifier[^3]                |
+| highlight | info     | code-input-without-highlight | is not defined when `input` is "code"                      |
+| answerKey | info     | missing-answer-key           | is not defined in the document                             |
 
 [^3]: Any alias of a [Pygments](https://pygments.org/) lexer is a recognized
 language identifier -- Pygments' own lexer aliases are the reference list.

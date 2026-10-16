@@ -1,0 +1,19 @@
+# A list in the epilogue with some items that start with a choice value and
+# one that starts with a link. It is not a choice list, so it is valid, but
+# each item with a choice value is a `stray-choice-marker` warning
+# (question-base.md, "Forbidden elements").
+id: ms-stray-choice-marker
+title: Rios da bacia amazônica
+type: multiple-selection
+stem: Quais destes rios estão na bacia amazônica?
+choices:
+- id: negro
+  text: Negro
+  correct: true
+- id: tapajos
+  text: Tapajós
+  correct: true
+- id: sao-francisco
+  text: São Francisco
+  correct: false
+epilogue: "Leia também:\n\n* [x] Rio Madeira\n* [Bacia amazônica](https://www.ana.gov.br)\n* [ ] Rio Paraná"

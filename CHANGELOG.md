@@ -31,6 +31,14 @@ First version of the specification.
   `COMMENT_LINE`, `CHOICE_ID`, `UNICODE_SPACE`), the feedback and comment
   lines, the definition of a visible character, and a regex dialect that
   matches the same characters in Python, JavaScript and JSON Schema.
+- Choice lists (`docs/references/choices.md`): the choice marker, the item
+  grammar, the AST fields, and the text and id rules that multiple choice,
+  multiple selection, true/false and choice blanks share. A bracket followed
+  by `(` or `[` is a link, so a list of links is valid outside the body; the
+  empty marker `[]` is a `parse-error`.
+- Lint code `stray-choice-marker` (`warning`): a list outside the body with
+  some items that start with a choice value is almost always a broken choice
+  list.
 - Lint codes `non-ascii-whitespace` and `non-ascii-whitespace-in-prose`: a
   Unicode space outside code is a `warning` in a syntax position and an
   `info` inside prose.

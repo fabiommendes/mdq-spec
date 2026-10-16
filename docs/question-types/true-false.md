@@ -35,22 +35,15 @@ exam. See [exam inheritance](../exam.md#inheritance).
 
 ## Body
 
-Body consists of an unordered list of items. Each item follows the grammar:
+Body consists of a [choice list](../references/choices.md) of at least two
+items. Each item follows the `item` rule of
+[Choice lists](../references/choices.md#item), with the values:
 
 ```lark
-item      : ws? "[" value "]" ws? (CHOICE_ID ws?)? md_inline* nl lazy_line* (blank_line* observations)?
 value : ws? (true | false) ws?
 ```
 
-`CHOICE_ID` is defined in [Common grammar rules](../references/grammar.md#tokens):
-a bracket right after the value that matches it is always the choice id. In
-`* [T] [cerrado]`, `cerrado` is the id and the text is empty, which is a
-`blank-text` error.
-
-`md_inline` represents any markdown inline element except new lines. The rules
-`ws`, `nl`, `lazy_line`, `blank_line` and `observations` are defined in
-[Common grammar rules](../references/grammar.md). Feedback and comment lines
-follow [Feedback and comment lines](../references/grammar.md#feedback-and-comment-lines). `true` and
+`true` and
 `false` are single characters (case-insensitive) that represent each case. The
 most common choices are `T` and `F`, respectively. However all other letters
 except `X`, which is used to represent multiple-selection items, have one
@@ -70,8 +63,9 @@ Two consequences follow:
   `×` (U+00D7) is `Sm`, `○` (U+25CB) is `So`, and `〇` (U+3007) is `Nl`.
   Digits are `Nd` and are likewise excluded.
 * "One code point", not one grapheme cluster. A base letter followed by a
-  combining mark is two code points and is not a valid marker. Documents SHOULD
-  be written in NFC so that precomposed forms are single code points.
+  combining mark is two code points and is not a valid marker. Implementations
+  MAY report, at the info level, a marker that is not in NFC form: in NFC,
+  precomposed forms are single code points.
 
 The letters are divided into 3 categories: TRUE, FALSE and WARNING. The
 first ALWAYS represent true, the second ALWAYS represent false and the third
@@ -106,8 +100,9 @@ as-is.
 
 ## Choices
 
-Choices follow the same structure from [Multiple choice questions](multiple-choice.md#choices),
-respecting the rules for the allowed `values` inside the initial square brackets.
+Choices follow [Choice lists](../references/choices.md): the item layout, the
+`text`, `id`, `feedback` and `comment` fields, and the rules for duplicate
+texts, duplicate ids and derived ids.
 
 A True/False choice records the bracket letter in two fields, which answer two
 different questions:
@@ -247,17 +242,18 @@ of student markings and the resulting score for each grading strategy.
 | choices[].text     | error    | duplicate-choice-text                    | must be unique among the statements of the question        |
 | choices[].id       | error    | duplicate-choice-id                      | must be unique among the statements of the question        |
 | choices[]          | error    | parse-error                              | carries at most one feedback block and one comment block   |
+| choices[]          | error    | parse-error                              | must not use the empty marker `[]`                         |
 | choices[].marker   | warning  | unlisted-true-false-marker               | should not be a WARNING letter[^3]                         |
 | choices[].marker   | warning  | locale-mismatched-true-false-marker      | should be compatible with `locale`[^4]                     |
 | choices[].marker   | warning  | false-friend-true-false-marker           | should not be `S` under `locale: id`[^4]                   |
-| choices[].text     | info     | visually-identical-choices               | should not be visually equivalent to another statement[^5] |
-| choices[].correct  | info     | uniform-true-false-answers               | statements should not be all true or all false             |
-| choices[].marker   | info     | non-nfc-true-false-marker                | should be a single code point in NFC form[^2]              |
-| choices[].id       | info     | missing-choice-id                        | should be defined in the document, instead of derived      |
+| choices[].text     | info     | visually-identical-choices               | is visually equivalent to another statement[^5]            |
+| choices[].correct  | info     | uniform-true-false-answers               | the statements are all true or all false                   |
+| choices[].marker   | info     | non-nfc-true-false-marker                | is not a single code point in NFC form[^2]                 |
+| choices[].id       | info     | missing-choice-id                        | has no id in the document                                  |
 
 [^2]: A letter is one code point in `\p{L}`, see [body](#body).
 [^3]: The TRUE, FALSE and WARNING categories are listed in [body](#body).
 [^4]: An `S` marker meaning false under `locale: id` SHOULD get
 `false-friend-true-false-marker`, see [locale](#locale).
 [^5]: Visual equivalence is not defined by this spec, see
-[multiple choice](multiple-choice.md#choices).
+[choice text](../references/choices.md#choice-text).

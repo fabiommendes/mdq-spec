@@ -15,7 +15,7 @@
 # representation would be inexact. An unticked choice asserts false, so
 # `ticks: []` is a full answer, not an abstention.
 questions:
-  # The table in multiple-selection.md, "Grading": answer key [T, F, T, F].
+  # The table in multiple-selection.md, "Grading": answer key {a, c}.
   - name: "Spec table"
     choices: { a: true, b: false, c: true, d: false }
     grading: "partial"
@@ -113,3 +113,63 @@ questions:
         score: "1/3"
       - ticks: ["a", "c"]
         score: "-1/3"
+
+  # Two choices, none correct: the empty response judges every choice
+  # correctly (multiple-selection.md, "Choices", no-correct-choice).
+  - name: "No correct choice"
+    choices: { a: false, b: false }
+    grading: "partial"
+    examples:
+      - ticks: []
+        score: 1.0
+      - ticks: ["a"]
+        score: 0.5
+  - name: "No correct choice"
+    choices: { a: false, b: false }
+    grading: "all-or-nothing"
+    examples:
+      - ticks: []
+        score: 1.0
+      - ticks: ["a"]
+        score: 0.0
+  - name: "No correct choice"
+    choices: { a: false, b: false }
+    grading: "symmetric"
+    examples:
+      - ticks: []
+        score: 1.0
+      - ticks: ["a"]
+        score: 0.0
+      - ticks: ["a", "b"]
+        score: -1.0
+
+  # Two choices, both correct: ticking every choice scores 1
+  # (multiple-selection.md, "Choices", all-choices-correct).
+  - name: "Every choice correct"
+    choices: { a: true, b: true }
+    grading: "partial"
+    examples:
+      - ticks: ["a", "b"]
+        score: 1.0
+      - ticks: ["a"]
+        score: 0.5
+      - ticks: []
+        score: 0.0
+  - name: "Every choice correct"
+    choices: { a: true, b: true }
+    grading: "all-or-nothing"
+    examples:
+      - ticks: ["a", "b"]
+        score: 1.0
+      - ticks: ["a"]
+        score: 0.0
+  - name: "Every choice correct"
+    choices: { a: true, b: true }
+    grading: "symmetric"
+    examples:
+      - ticks: ["a", "b"]
+        score: 1.0
+      - ticks: ["a"]
+        score: 0.0
+      - ticks: []
+        score: -1.0

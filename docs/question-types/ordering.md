@@ -162,8 +162,8 @@ An item is exactly one line: an item with a continuation line or a second
 paragraph is an error (`parse-error`), whatever the rendered markdown shows.
 That source is what a response is compared against, so two lines that render
 identically but are written differently -- `*emphasis*` and `_emphasis_`, say
--- are two distinct lines. Implementations SHOULD raise an info-level notice
-when a question holds such a pair, since a student ordering the rendered text
+-- are two distinct lines. Implementations MAY report, at the info level,
+a question that holds such a pair, since a student ordering the rendered text
 cannot tell them apart.
 
 Each line carries an indentation level -- a non-negative integer, not a count
@@ -340,10 +340,10 @@ submitted, in the order they submitted them, each written as an
 | accept, reject        | warning  | duplicate-alternative-lines  | two sections should not hold the same lines, fully normalized[^9] |
 | accept                | warning  | accept-repeats-answer-key    | should not repeat the `[ordering]` block's own lines              |
 | indentation           | warning  | redundant-strict-indentation | `"strict"` is pointless when `dedent` is normalized away[^8]      |
-| lines, extra          | info     | blank-ordering-line          | a line should not be blank unless `skip-blanks` is normalized     |
-| highlight             | info     | unknown-highlight-language   | should be a recognized language identifier[^11]                   |
-| reject                | info     | reject-without-feedback      | should declare feedback, which is its whole purpose               |
-| lines, extra          | info     | visually-identical-lines     | two lines should not render alike while differing in source[^10]  |
+| lines, extra          | info     | blank-ordering-line          | a line is blank and `skip-blanks` is not normalized               |
+| highlight             | info     | unknown-highlight-language   | is not a recognized language identifier[^11]                      |
+| reject                | info     | reject-without-feedback      | declares no feedback, which is its whole purpose                  |
+| lines, extra          | info     | visually-identical-lines     | two lines render alike but differ in source[^10]                  |
 
 [^6]: A code block and a `ul` list cannot be compared line for line.
 [^7]: They may appear in either order, see

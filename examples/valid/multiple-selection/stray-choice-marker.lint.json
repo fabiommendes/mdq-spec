@@ -1,0 +1,16 @@
+[
+  {
+    "code": "stray-choice-marker",
+    "severity": "warning",
+    "path": [
+      "epilogue"
+    ]
+  },
+  {
+    "code": "stray-choice-marker",
+    "severity": "warning",
+    "path": [
+      "epilogue"
+    ]
+  }
+]

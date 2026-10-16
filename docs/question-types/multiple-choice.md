@@ -38,55 +38,26 @@ exam. See [exam inheritance](../exam.md#inheritance).
 
 ## Body
 
-Body consists of an unordered list of at least two items. Each item follows the grammar:
+Body consists of a [choice list](../references/choices.md) of at least two
+items. Each item follows the `item` rule of
+[Choice lists](../references/choices.md#item), with the values:
 
 ```lark
-item          : ws? "[" value "]" ws? (CHOICE_ID ws?)? md_inline* nl lazy_line* (blank_line* observations)?
 value         : ws
               | ws? "*" ws?
               | ws? percent ws?
 percent       : ("+" | "-")? (INTEGER | DECIMAL) "%"
 ```
 
-`CHOICE_ID` is defined in [Common grammar rules](../references/grammar.md#tokens):
-a bracket right after the value that matches it is always the choice id. In
-`* [*] [brasilia]`, `brasilia` is the id and the text is empty, which is a
-`blank-text` error.
-
-`md_inline` represents any markdown inline element except new lines (which are
-represented explicitly by `nl`). The rules `ws`, `nl`, `lazy_line`,
-`blank_line`, `observations`, `INTEGER` and `DECIMAL` are defined in
-[Common grammar rules](../references/grammar.md). The choice text continues on
-the `lazy_line`s after its first line, so a `>` or `!` line always ends it, see
-[Feedback and comment lines](../references/grammar.md#feedback-and-comment-lines).
+`INTEGER` and `DECIMAL` are defined in
+[Common grammar rules](../references/grammar.md#tokens).
 
 
 ## Choices
 
-Each choice may represent additional information besides its text.
-
-```md
-* [value] [choice-id] Choice text
-  > Feedback text to the students.
-  ! Comments to other instructors.
-```
-The feedback and the comment are optional, and each can span several lines.
-When present, each MUST have at least one visible character (`blank-text`).
-They follow the rules of
-[Feedback and comment lines](../references/grammar.md#feedback-and-comment-lines):
-a line without a marker continues the block before it, a blank line ends it,
-and a line that starts with `![` is an image, not a comment.
-
-```md
-* [value] [choice-id] Choice text
-  > Multi
-  > line
-  > feedback.
-  ! Comments to other instructors.
-  ! Another line of comments.
-```
-
-Each item becomes one object of the `choices` list in the AST:
+Choices follow [Choice lists](../references/choices.md): the item layout, the
+`text`, `id`, `feedback` and `comment` fields, and the rules for duplicate
+texts, duplicate ids and derived ids. Multiple choice adds the field `score`:
 
 ```yaml
 choices:
@@ -97,43 +68,6 @@ choices:
     comment: Students often pick Rio de Janeiro, the capital until 1960.
   - text: São Paulo
 ```
-
-| Field      | Source in the item                                                           |
-| ---------- | ---------------------------------------------------------------------------- |
-| `text`     | The text of the item (see below).                                            |
-| `id`       | The `CHOICE_ID`, without the brackets. Absent if the item has none.          |
-| `score`    | Derived from `value`, see the score rules below. Absent for a blank value.   |
-| `feedback` | The value of the `feedback` block (see below). Absent if none.              |
-| `comment`  | The value of the `comment` block (see below). Absent if none.               |
-
-The `text` is the source of the item after the removal of the value, the
-choice id, the `ws` after them, the feedback and the comment. Its lines join
-as the lines of a paragraph, and so do the lines of the `feedback` and
-`comment` blocks, see
-[Feedback and comment lines](../references/grammar.md#feedback-and-comment-lines).
-
-The choice text MUST NOT be empty. And all choice texts MUST be unique. Two
-texts are the same when they are equal after each run of whitespace outside
-code spans is replaced by one space (`duplicate-choice-text`).
-Implementations MAY report choices that have different textual representations,
-but that are visually identical when rendered to HTML. It is out of the scope of
-this document to define visual equivalence of markdown snippets, but we point to
-some obvious cases:
-
-```md
-* [ ] [a] foo bar
-* [ ] [b] foo  bar
-* [ ] [c] `foo bar`
-* [ ] [d] `foo  bar`
-* [ ] [e] *foo bar*
-* [ ] [f] _foo bar_
-```
-
-In the example, `a` and `b` are duplicates (spaces are not meaningful in a
-markdown paragraph context), but `c` and `d` are not, since spaces are
-meaningful in a code span. `e` and `f` are not duplicates, but they are visually
-identical. `b` and `c` are visually different, but depending on formatting and
-the rendering system they might still appear equivalent to a human reader.
 
 A question MAY mark any number of choices as correct, and typically marks
 exactly one. A choice is correct when its score is 1. Implementations MAY
@@ -156,58 +90,6 @@ no control over this (see [exam](../exam.md#penalty)).
 An omitted value is treated differently depending on the `grading` parameter in
 the frontmatter and will be discussed in detail in the [Grading](#grading)
 section.
-
-The choice id is a slugified identifier for the choice so we can refer to it by
-content, and not by position. It follows the same rules for slugs mentioned
-before. If given, the choice ids for each choice MUST be unique.
-
-The id is not mandatory. Implementations MAY report a choice without an id,
-at the `info` level (`missing-choice-id`). An implementation MAY derive url-safe identifiers from
-the text content when it needs an
-[addressable](../responses.md#addressability) document; but it is not part of
-the parse step itself. This transformation
-SHOULD be stable in practical applications, although there might be edge cases
-where it cannot be guaranteed. A stable assignment should preserve the choice id
-assignments for the following operations:
-
-* **Reordering of choices:** each choice preserves its original id.
-* **Addition of new choices:** existing choices preserve their original ids.
-* **Removal of choices:** if a choice is removed, the remaining ones should keep
-  their previous ids.
-* **Editing of feedback or comments:** any edit (inclusion, deletion or
-  modification) to the feedback and comments of a choice keeps its id.
-
-Since the transformation from an *arbitrary string* of text to a *url-safe
-string* is inherently lossy, it is generally not possible to preserve those
-properties for all cases if we want practical slugs. For instance:
-
-```md
-Which one is the exclamation mark?
-* [*] !
-* [ ] ?
-* [ ] ¿
-* [ ] ¡
-```
-
-Most slugifiers will remove punctuation marks, making all the options above
-coalesce to the empty string. It is easy to envision encoding schemes like
-replacing the symbol by a description -- e.g., `! -> bang`, `? -> question` --,
-that will work in this case. However, those generally make the slug larger than
-the subsumed text, which is rarely what we want.
-
-The slugifiers should therefore work for all "typical cases", but we keep it
-intentionally vague what a "typical" case means. You know when you see it:
-
-```md
-Which one is the largest river in the world?
-* [*] Amazon
-* [ ] Nile
-  > Amazon is much larger by water volume, but it was recently discovered 
-  > that it might also be larger by length by quite a margin.
-* [ ] Mississippi
-  > Not even close!
-* [ ] Yellow River
-```
 
 ## Feedback
 
@@ -285,11 +167,12 @@ a declared fractional score still counts.
 | choices[].text     | error    | duplicate-choice-text      | must be unique among the choices of the question          |
 | choices[].id       | error    | duplicate-choice-id        | must be unique among the choices of the question          |
 | choices[]          | error    | parse-error                | carries at most one feedback block and one comment block  |
-| choices[].text     | info     | visually-identical-choices | should not be visually equivalent to another choice[^3]   |
-| choices[].score    | info     | no-correct-choice          | at least one choice should have a score of 1              |
-| choices[].score    | info     | all-choices-correct        | not every choice should be correct                        |
+| choices[]          | error    | parse-error                | must not use the empty marker `[]`                        |
+| choices[].text     | info     | visually-identical-choices | is visually equivalent to another choice[^3]              |
+| choices[].score    | info     | no-correct-choice          | no choice has a score of 1                                |
+| choices[].score    | info     | all-choices-correct        | every choice is correct                                   |
 | choices[].score    | info     | many-correct-choices       | more than one choice has a score of 1                     |
-| choices[].id       | info     | missing-choice-id          | should be defined in the document, instead of derived[^4] |
+| choices[].id       | info     | missing-choice-id          | has no id in the document[^4]                             |
 
-[^3]: Visual equivalence is not defined by this spec, see [choices](#choices).
+[^3]: Visual equivalence is not defined by this spec, see [choice text](../references/choices.md#choice-text).
 [^4]: Derived ids are only as stable as the slugifier that produced them.

@@ -208,11 +208,11 @@ tolerance test, as does the rounding to [`decimalPlaces`](#decimal-places).
 | tolerance.absolute | error    | schema-error                   | must not be negative (schema)                                      |
 | tolerance.relative | warning  | relative-tolerance-around-zero | must not be given when `answer` is zero[^2]                        |
 | tolerance.relative | info     | relative-tolerance-over-one    | is a fraction, so a value above 1 is likely a mistake[^4]          |
-| domain             | info     | domain-mismatch                | when declared, should not be narrower than the values[^3]          |
+| domain             | info     | domain-mismatch                | is declared and narrower than the values[^3]                       |
 | decimalPlaces      | error    | schema-error                   | must not be negative (schema)                                      |
 | decimalPlaces      | info     | ignored-decimal-places         | is ignored unless `domain` is "decimal"[^7]                        |
 | unit               | error    | schema-error                   | must not contain whitespace or brackets (schema)                   |
-| tolerance          | info     | missing-tolerance              | should be defined for a `decimal` or `fraction` answer[^5]         |
+| tolerance          | info     | missing-tolerance              | is not defined for a `decimal` or `fraction` answer[^5]            |
 
 [^2]: The relative tolerance is `|answer| ⨉ relative`, which is 0 for a zero
 answer, so only an exact 0 would be accepted.

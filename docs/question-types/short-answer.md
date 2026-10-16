@@ -419,7 +419,7 @@ not settled shows no feedback, because nothing has decided it yet.
 | unmatched                            | warning  | no-correct-answer      | must not be "incorrect" when the question has no `accept` pattern[^8]               |
 | incorrectFeedback                    | error    | blank-text             | if defined, must have at least one visible character                                |
 | accept, reject, preAccept, preReject | info     | redundant-regex-anchor | an anchor that is already implicit is redundant[^9]                                 |
-| accept, reject, preAccept, preReject | info     | ignored-regex-flag     | should not carry a flag that is accepted but ignored[^10]                           |
+| accept, reject, preAccept, preReject | info     | ignored-regex-flag     | carries a flag that is accepted but ignored[^10]                                    |
 
 [^6]: The supported syntax is the subset described in
 [Regex](../references/patterns.md#regex): the pattern must compile and must

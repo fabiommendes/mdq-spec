@@ -19,6 +19,17 @@ An entry in an exam that references a question defined elsewhere, rather than
 carrying it inline.
 _Avoid_: reference, link, import
 
+### Choice list
+An unordered list whose every item starts with a choice marker. The body of
+multiple choice, multiple selection and true/false. See
+`docs/references/choices.md`.
+_Avoid_: checkbox list, option list
+
+### Choice marker
+The bracket at the start of a choice item, such as `[x]` or `[ ]`, not
+followed by `(` or `[`. Its content is the value.
+_Avoid_: checkbox, checkmark
+
 ### Diagnostic
 A problem found while loading a document, with a severity (error, warning,
 info), a code and a location. An error means no document was built.

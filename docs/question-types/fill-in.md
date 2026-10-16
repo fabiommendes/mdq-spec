@@ -164,8 +164,9 @@ choice_def : blank ":" ws? nl choice_list
 choice_list : item+
 ```
 
-The `item` rule is defined in the [multiple-choice](multiple-choice.md#body)
-section, and `choice_list` is the unordered list those items form. The list
+The `item` rule is defined in [Choice lists](../references/choices.md#item),
+with the `value` rule of [multiple choice](multiple-choice.md#body), and
+`choice_list` is the unordered list those items form. The list
 must start on the following line, with no blank lines in between. The `blank`
 slug MUST be present in the stem.
 

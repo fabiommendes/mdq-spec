@@ -313,11 +313,11 @@ floors nothing, at either level.
 
 The floor does not make the grading strategies agree. For a
 multiple-selection question, `"symmetric"` is `2 * partial - 1`, so the two
-differ whenever the score is positive: the markings `[T, F, _, _]` of the
+differ whenever the score is positive: the ticked set `{a}` of the
 example in [multiple selection](question-types/multiple-selection.md#grading)
 score 0.75 under `"partial"` and 0.5 under `"symmetric"`, with any `penalty`.
 Under `"none"` the floor only removes the negative part of a `"symmetric"`
-score, so `[F, T, _, _]` scores 0.25 under `"partial"` and 0 under
+score, so `{b}` scores 0.25 under `"partial"` and 0 under
 `"symmetric"`.
 
 A question scored outside an exam -- from a question bank, say, with no exam

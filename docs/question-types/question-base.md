@@ -126,13 +126,30 @@ constructions are rejected because they may be mistaken for the body element.
 For multiple choice questions, for instances, the body is the unordered list
 starting with the `[ ]` checkmarks.
 
-Below is the list of invalid elements.
+Below is the list of invalid elements. In each, a bracket that starts a
+markdown link (`[text](url)`, `[text][ref]`) does not count: a paragraph, a
+heading or a list item can start with a link. A link reference definition
+(`[ref]: url`) is not a paragraph, so it is valid too, unless it is an MDQ tag
+line such as `[numeric]: 42`.
 
 * Unordered lists if all elements start with optional `ws` + `[`.
 * Paragraph that starts with optional `ws` + `[`, except the first paragraph, or
   if the `[` character is immediately followed by a `^` character[^6].
 * H1 headings.
 * Heading starting with optional `ws` + `[`.
+
+An unordered list in which only some items start with a
+[choice marker](../references/choices.md#choice-marker) is valid, but it is
+almost always a broken choice list: a typo in one item makes the whole list
+prose, and the question can lose its body. Implementations SHOULD report each
+item of such a list whose marker is a value of a choice type (`[ ]`, `[x]`,
+`[*]`, a percentage or a letter) or is empty, `[]` (`stray-choice-marker`).
+
+```md
+* [x] Manaus
+* [IBGE](https://www.ibge.gov.br)
+* [ ] Santos
+```
 
 [^6]: This exception is for the reference-style syntax used to represent the
 blanks of a fill-in question. Without it, a fill-in question could not have a
@@ -207,13 +224,14 @@ REQUIRED.
 A question without `type` in the frontmatter takes its type from the body.
 Short answer, numeric, essay, ordering and fill in the blanks questions are
 identified by the bracketed tag that opens their body, see each type. A body
-that is an unordered list whose every item starts with `[value]` is a choice
-list, and its type comes from the values. The first rule that applies wins:
+that is a [choice list](../references/choices.md) takes its type from the
+values of its choice markers. The first rule that applies wins:
 
 1. a value is `*` or a percentage: multiple choice;
 2. a value is `x` or `X`: multiple selection;
 3. a value is a letter: true/false;
-4. every value is blank: multiple selection.
+4. otherwise: multiple selection. This covers a list whose values are all
+   blank, and a list of blank and unknown values such as `[ ]` and `[?]`.
 
 Once the type is known, inferred or forced by `type`, every value MUST belong
 to the `value` rule of that type: `[x]` in a multiple choice list, `[ ]` in a
@@ -344,10 +362,11 @@ the schema rejects their empty string.
 | uuid                     | error    | malformed-uuid            | must be a well-formed UUID[^3] |
 | uuid                     | warning  | uuid-unknown-version      | the version nibble should correspond to an existing standard[^3] |
 | uuid                     | warning  | uuid-unknown-variant      | the variant nibble should correspond to an existing standard[^3] |
-| id                       | info     | missing-id                | field must be defined in the document |
-| title                    | info     | missing-title             | field must be defined in the document |
-| locale                   | info     | locale-lookalike-language | the language subtag SHOULD NOT look like a country code[^8] |
+| id                       | info     | missing-id                | the field is not defined in the document |
+| title                    | info     | missing-title             | the field is not defined in the document |
+| locale                   | info     | locale-lookalike-language | the language subtag looks like a country code[^8]           |
 | preamble, epilogue, stem | warning  | unsafe-thematic-break     | a thematic break should be `***` or `___`, not `---`[^9] |
+| preamble, epilogue, stem | warning  | stray-choice-marker       | a list item outside the body should not start with a choice value[^7] |
 | any frontmatter key      | warning  | unknown-frontmatter-key   | a key not recognized for the document or question type is dropped |
 | any text                 | warning  | non-ascii-whitespace      | U+0085, U+2028, U+2029, or a Unicode space in a syntax position[^10] |
 | any text                 | info     | non-ascii-whitespace-in-prose | any other Unicode space outside ASCII[^10]                       |
