@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MDQ Specification Audit: multiple-selection: mdq-spec</title>
+<style>
+:root { --border: #D1D5DB; --muted: #6B7280; --bg-soft: #F3F4F6; }
+* { box-sizing: border-box; }
+body { margin: 0; font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #111827; }
+main { max-width: 60rem; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+header { border-bottom: 3px solid #111827; padding-bottom: 1rem; margin-bottom: 1.5rem; }
+header h1 { margin: 0 0 .5rem; font-size: 2rem; line-height: 1.2; }
+.meta { color: var(--muted); margin: .2rem 0; }
+nav { background: var(--bg-soft); border-radius: 6px; padding: .6rem 1rem; margin-bottom: 2rem; }
+nav a { margin-right: 1.2rem; color: #1F2937; text-decoration: none; font-weight: 600; }
+nav a:hover { text-decoration: underline; }
+h2 { margin-top: 2.5rem; border-bottom: 1px solid var(--border); padding-bottom: .3rem; }
+h3 { margin-top: 1.8rem; }
+code, pre { font-family: ui-monospace, "DejaVu Sans Mono", Menlo, Consolas, monospace; font-size: .85em; }
+code { background: var(--bg-soft); padding: .05em .3em; border-radius: 3px; }
+pre { background: #F9FAFB; border: 1px solid var(--border); border-radius: 6px; padding: .8rem;
+      overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+table { border-collapse: collapse; width: 100%; margin: .8rem 0; font-size: .92em; }
+th, td { border: 1px solid var(--border); padding: .4rem .6rem; text-align: left; vertical-align: top; }
+th { background: var(--bg-soft); }
+.chip { display: inline-block; min-width: 5.5rem; padding: .1rem .5rem; border-radius: 4px; color: #fff;
+        font-size: .75rem; font-weight: 700; text-align: center; text-transform: uppercase; letter-spacing: .03em; }
+.cards { display: flex; flex-wrap: wrap; gap: .8rem; margin: 1rem 0; }
+.card { flex: 1 1 7rem; border: 1px solid var(--border); border-top: 5px solid; border-radius: 6px;
+        padding: .6rem .8rem; }
+.card .n { font-size: 1.8rem; font-weight: 700; }
+.card .label { color: var(--muted); text-transform: uppercase; font-size: .75rem; letter-spacing: .05em; }
+.charts { display: flex; flex-wrap: wrap; gap: 2.5rem; align-items: flex-start; }
+.donut { width: 11rem; height: 11rem; border-radius: 50%; position: relative; flex: none; }
+.donut::after { content: ""; position: absolute; inset: 25%; background: #fff; border-radius: 50%; }
+.donut span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+              font-size: 1.6rem; font-weight: 700; z-index: 1; }
+.legend { list-style: none; padding: 0; margin: 0; }
+.legend li { margin: .25rem 0; }
+.swatch { display: inline-block; width: .8rem; height: .8rem; border-radius: 2px; margin-right: .4rem;
+          vertical-align: -1px; }
+.bars { flex: 1 1 22rem; }
+.bar-row { display: grid; grid-template-columns: 12rem 1fr 2rem; gap: .6rem; align-items: center; margin: .35rem 0; }
+.bar-row .name { font-size: .9em; text-align: right; }
+.bar { display: flex; height: 1.1rem; border-radius: 3px; overflow: hidden; background: var(--bg-soft); }
+.bar span { display: block; height: 100%; }
+.strengths li::marker { content: "✓  "; color: #059669; font-weight: 700; }
+.evidence { color: #059669; }
+.na { color: var(--muted); font-style: italic; }
+.finding { border: 1px solid var(--border); border-left: 5px solid; border-radius: 6px;
+           padding: .2rem 1rem .6rem; margin: 1rem 0; }
+.finding h4 { margin: .6rem 0 .3rem; font-size: 1.05rem; }
+.finding img { max-width: 100%; border: 1px solid var(--border); border-radius: 4px; }
+.recs li { margin: .4rem 0; }
+.prio { font-weight: 700; margin-right: .4rem; }
+.refs { color: var(--muted); font-size: .85em; }
+.issue { position: relative; margin: 1rem 0; }
+.issue button { position: absolute; top: .5rem; right: .5rem; border: 1px solid var(--border); background: #fff;
+                border-radius: 4px; padding: .2rem .7rem; cursor: pointer; font: inherit; font-size: .8rem; }
+footer { margin-top: 3rem; color: var(--muted); font-size: .85em; border-top: 1px solid var(--border);
+         padding-top: .8rem; }
+@media print {
+  @page { size: A4; margin: 2cm; }
+  body { font-size: 10.5pt; }
+  main { max-width: none; padding: 0; }
+  nav, .issue button { display: none; }
+  h2 { break-after: avoid; }
+  .finding, .issue, tr { break-inside: avoid; }
+  #summary, #issues { break-before: page; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>MDQ Specification Audit: multiple-selection: mdq-spec</h1>
+<p class="meta"><strong>Date:</strong> 2026-10-15</p>
+<p class="meta"><strong>Scope:</strong> The <code>multiple-selection</code> question type: <code>docs/question-types/multiple-selection.md</code>, <code>schema/multiple-selection.yaml</code>, its grammar, and the shared specs it depends on (<code>docs/references/grammar.md</code>, <code>docs/references/patterns.md</code>, <code>docs/question-types/question-base.md</code>, <code>docs/exam.md</code>, <code>docs/responses.md</code>).</p>
+</header>
+<nav><a href=#summary>Executive summary</a><a href=#strengths>Strengths and weaknesses</a><a href=#findings>Detailed findings</a><a href=#recommendations>Prioritized recommendations</a><a href=#issues>GitHub issues</a></nav><h2>Methodology</h2><p><code>scripts/spec_audit.py</code> passed all 14 steps before the audit (schema bundle, docs, corpus, Additional Rules tables, lint codes, frontmatter tables, schema agreement of mdq-py).</p><p>The lead auditor read the shared specs and <code>docs/question-types/multiple-selection.md</code> and recorded contradictions, ambiguities, omissions and inconsistencies.</p><p>One subagent turned the grammars of <code>docs/references/grammar.md</code> and of multiple selection into Lark grammars and tested them with accepted and rejected inputs derived from the stated rules.</p><p>An independent subagent reviewed the multiple-selection document against <code>schema/multiple-selection.yaml</code>, ran each complete example through <code>mdq validate</code>, and checked the Additional Rules table against the MUST, SHOULD and MAY statements of the text.</p><section id="summary"><h2>Executive summary</h2><div class="cards"><div class="card" style="border-top-color:#B91C1C"><div class="n">0</div><div class="label">critical</div></div><div class="card" style="border-top-color:#EA580C"><div class="n">0</div><div class="label">high</div></div><div class="card" style="border-top-color:#D97706"><div class="n">7</div><div class="label">medium</div></div><div class="card" style="border-top-color:#2563EB"><div class="n">13</div><div class="label">low</div></div><div class="card" style="border-top-color:#6B7280"><div class="n">1</div><div class="label">info</div></div><div class="card" style="border-top-color:#111827"><div class="n">21</div><div class="label">Total findings</div></div></div><div class="charts"><div><h3>Findings by severity</h3><div class="charts"><div class="donut" style="background:conic-gradient(#D97706 0.00% 33.33%, #2563EB 33.33% 95.24%, #6B7280 95.24% 100.00%)"><span>21</span></div><ul class="legend"><li><span class="swatch" style="background:#D97706"></span>medium (7)</li><li><span class="swatch" style="background:#2563EB"></span>low (13)</li><li><span class="swatch" style="background:#6B7280"></span>info (1)</li></ul></div></div><div class="bars"><h3>Findings by category</h3><div class="bars"><div class="bar-row"><div class="name">Ambiguities</div><div class="bar"><span style="width:14.29%;background:#D97706" title="medium: 1"></span><span style="width:42.86%;background:#2563EB" title="low: 3"></span></div><div>4</div></div><div class="bar-row"><div class="name">Omissions</div><div class="bar"><span style="width:57.14%;background:#D97706" title="medium: 4"></span><span style="width:42.86%;background:#2563EB" title="low: 3"></span></div><div>7</div></div><div class="bar-row"><div class="name">Inconsistencies</div><div class="bar"><span style="width:42.86%;background:#2563EB" title="low: 3"></span></div><div>3</div></div><div class="bar-row"><div class="name">Grammar violations</div><div class="bar"><span style="width:28.57%;background:#D97706" title="medium: 2"></span><span style="width:42.86%;background:#2563EB" title="low: 3"></span></div><div>5</div></div><div class="bar-row"><div class="name">Schema mismatches</div><div class="bar"><span style="width:14.29%;background:#2563EB" title="low: 1"></span><span style="width:14.29%;background:#6B7280" title="info: 1"></span></div><div>2</div></div></div></div></div></section><section id="strengths"><h2>Strengths and weaknesses</h2><h3>Strengths</h3><ul class="strengths"><li><strong>Contradictions:</strong> The grading table of multiple selection agrees with its formulas in every row, with exam.md#penalty (symmetric = 2 * partial - 1) and with the grading corpus. <span class="evidence">(docs/question-types/multiple-selection.md:125-135, docs/exam.md:314-321, examples/grading/multiple-selection.yaml)</span></li><li><strong>Omissions:</strong> Responses state the unticked-means-false rule, the equivalence of an absent key and <code>false</code>, and the difference between <code>null</code> (skipped) and <code>{}</code> (answered none), consistently with the Feedback and Grading sections. <span class="evidence">(docs/responses.md:49-72, docs/responses.md:192-210, docs/question-types/multiple-selection.md:76-92)</span></li><li><strong>Inconsistencies:</strong> The <code>grading</code> and <code>shuffle</code> inheritance of multiple selection uses the same wording, defaults and exam-map key as multiple choice and exam.md. <span class="evidence">(docs/question-types/multiple-selection.md:30-34, docs/exam.md:278-300, docs/exam.md:327-352)</span></li><li><strong>Grammar violations:</strong> The multiple-selection <code>value</code> rule matches the stated markers exactly. Tested with Lark: it accepts <code>[ ]</code>, <code>[  ]</code>, <code>[\t]</code>, <code>[x]</code>, <code>[X]</code>, <code>[ x ]</code>, <code>[ X ]</code> and <code>[\tx\t]</code> (every form in examples/valid/multiple-selection/uppercase-x.mdq.md), and rejects <code>[*]</code>, <code>[?]</code>, <code>[50%]</code>, <code>[v]</code>, <code>[y]</code>, <code>[xx]</code>, <code>[ x x ]</code>, <code>[U+00A0]</code> and <code>[U+00A0x]</code>, which agrees with the <code>foreign-choice-marker</code> examples (examples/invalid/multiple-selection-forced-star.mdq.md, multiple-selection-unknown-marker.mdq.md) and with the rule that U+00A0 is text, not <code>ws</code>. <span class="evidence">(docs/question-types/multiple-selection.md:41-45)</span></li><li><strong>Grammar violations:</strong> The CHOICE_ID token and its position in the item rule behave as the prose states. Tested with Lark: <code>[x] [amazonas] Amazonas</code> gives id <code>amazonas</code>; <code>[x] [brasilia]</code> gives id <code>brasilia</code> and empty text (the documented <code>blank-text</code> case); <code>[x] [IBGE](https://ibge.gov.br) site</code>, <code>[x] [amazonas][1] text</code> and the collapsed link <code>[x] [brasilia][]</code> give no id; <code>[x] [a b] text</code> and <code>[x] [-a] text</code> give no id because the content is not a SLUG. <span class="evidence">(docs/references/grammar.md:62-86)</span></li><li><strong>Grammar violations:</strong> With a stub <code>lazy_line</code> that excludes marker lines (see F10), the shared <code>observations</code> rules accept and reject what the prose states. Tested with Lark as the tail of the multiple-selection item: feedback only, comment only, feedback then comment, comment then feedback, a blank line between the text and the first block and between the two blocks, the grammar.md example with a lazy line and an empty <code>&gt;</code> marker line, a <code>![img](x.png)</code> line as a lazy line of the feedback, and <code>! [IBGE](...)</code> as a comment are accepted. Two feedback blocks separated by a blank line, feedback-comment-feedback, two comment blocks, and a paragraph after the feedback are rejected. <span class="evidence">(docs/references/grammar.md:98-137)</span></li><li><strong>Grammar violations:</strong> The <code>nl</code> and <code>ws</code> rules hold for the multiple-selection item. Tested with Lark: items with LF, CRLF and CR line endings parse identically, and <code>ws</code> does not match U+00A0. A last line without a line ending is rejected by the grammar, which the prose covers by reading it as if it ended with <code>nl</code>. <span class="evidence">(docs/references/grammar.md:27-38)</span></li><li><strong>Schema mismatches:</strong> The schema Choice requires <code>text</code> and <code>correct</code>, matching the REQUIRED <code>correct</code> in the spec, and its feedback description matches the wrongly-judged rule of the Feedback section. <span class="evidence">(schema/multiple-selection.yaml:77-100)</span></li><li><strong>Inconsistencies:</strong> The grading table values match examples/grading/multiple-selection.yaml for all three strategies, and exam.md Penalty quotes the same values. <span class="evidence">(docs/question-types/multiple-selection.md:125-132)</span></li><li><strong>Omissions:</strong> The corpus covers uppercase and spaced <code>x</code> values, an all-blank list inferred without <code>type</code>, forced <code>[*]</code> and unknown <code>[?]</code> foreign markers, and every schema rule of the table. <span class="evidence">(examples/valid/multiple-selection/uppercase-x.mdq.md:8-12)</span></li><li><strong>Omissions:</strong> The complete example document of the spec validates with mdq-py without errors or warnings. <span class="evidence">(docs/question-types/multiple-selection.md:9-17)</span></li></ul><h3>Central risks</h3><ul><li>The choice-item grammars leave to prose the rules that decide whether a line is a choice, a feedback line or text (indentation limits, lazy lines, the generic value bracket). mdq-py follows the looser grammar in several of these cases, so the prose is the only defense against drift between implementations.</li><li>multiple-selection.md imports multiple-choice.md#choices by reference. An edit to the multiple-choice text can change the rules of multiple selection without anyone reviewing that effect.</li></ul></section><section id="findings"><h2>Detailed findings</h2><h3>Contradictions</h3><p>No findings in this category.</p><h3>Ambiguities</h3><table><tr><th>Severity</th><th>Location</th><th>Description</th></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/question-types/multiple-selection.md:60-61</code></td><td><a href="#F3"><strong>F3</strong></a> Choices section does not say which parts of multiple-choice#choices apply</td></tr><tr><td><span class="chip" style="background:#2563EB">low</span></td><td><code>docs/question-types/multiple-selection.md:120-132</code></td><td><a href="#F5"><strong>F5</strong></a> The T, F and _ notation of the grading table is not defined</td></tr><tr><td><span class="chip" style="background:#2563EB">low</span></td><td><code>docs/question-types/multiple-selection.md:137-141</code></td><td><a href="#F6"><strong>F6</strong></a> &#x27;no way to explicitly leave it unmarked&#x27; reads as the opposite of its intent</td></tr><tr><td><span class="chip" style="background:#2563EB">low</span></td><td><code>docs/question-types/multiple-selection.md:100-102</code></td><td><a href="#F7"><strong>F7</strong></a> &#x27;When neither ... and outside an exam&#x27; joins two cases with &#x27;and&#x27;</td></tr></table><article class="finding" id="F3" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F3: Choices section does not say which parts of multiple-choice#choices apply</h4><p><strong>Location:</strong> <code>docs/question-types/multiple-selection.md:60-61</code></p><pre><code>Choices follow the same structure as [Multiple choice questions](multiple-choice.md#choices),
+respecting the rules for the allowed `values` inside the initial square brackets.</code></pre><p><strong>Description:</strong> The referenced section mixes shared rules (text, id, feedback, comment, AST mapping table, duplicate text, visual equivalence, derived ids) with rules that are only true for multiple choice: the <code>score</code> row of the AST table, &#x27;A choice is correct when its score is 1&#x27;, &#x27;the student still picks a single choice&#x27;, the score scale and the <code>many-correct-choices</code> lint. The sentence &#x27;respecting the rules for the allowed values&#x27; excludes only the value rule. A reader must guess that <code>score</code> is replaced by <code>correct</code> and that the single-pick sentence does not apply.</p><p><strong>Impact:</strong> Readers and porters can apply multiple-choice-only rules (score derivation, single pick, many-correct-choices) to multiple selection.</p><p><strong>Suggested fix:</strong> List the shared rules explicitly (text, id, feedback, comment, duplicates, visual equivalence, derived ids) and say that <code>correct</code> replaces the <code>score</code> row of the AST table; or move the shared choice rules to one shared section that both types reference.</p></article><article class="finding" id="F5" style="border-left-color:#2563EB"><h4><span class="chip" style="background:#2563EB">low</span> F5: The T, F and _ notation of the grading table is not defined</h4><p><strong>Location:</strong> <code>docs/question-types/multiple-selection.md:120-132</code></p><pre><code>| `[T, F, _, _]` | `[T, F, F, F]` |        3         |   0.75    |       0.0        |     0.5     |</code></pre><p><strong>Description:</strong> The table writes markings with <code>T</code>, <code>F</code> and <code>_</code>, and expands <code>_</code> to <code>F</code>. The document says (line 140) that a student has no way to leave a choice unmarked, so a reader cannot tell what <code>F</code> is as opposed to <code>_</code>. The distinction only makes sense with responses.md, where <code>F</code> is an explicit <code>false</code> key and <code>_</code> is an absent key. The document does not say so.</p><p><strong>Impact:</strong> Readers can think that multiple selection has a third state, which the same document denies.</p><p><strong>Suggested fix:</strong> Either write the markings as ticked sets (<code>{a, c}</code>, <code>{a}</code>, <code>{}</code>) and drop the &#x27;Expands to&#x27; column, or say before the table that <code>T</code> and <code>F</code> are the <code>true</code> and <code>false</code> values of the response mapping and <code>_</code> is an absent key (see responses.md#multiple-selection). Recommended: ticked sets, since both forms are the same response.</p></article><article class="finding" id="F6" style="border-left-color:#2563EB"><h4><span class="chip" style="background:#2563EB">low</span> F6: &#x27;no way to explicitly leave it unmarked&#x27; reads as the opposite of its intent</h4><p><strong>Location:</strong> <code>docs/question-types/multiple-selection.md:137-141</code></p><p class="meta"><em>Mechanical fix</em></p><pre><code>There
+is no way to explicitly leave it unmarked. If that is necessary, prefer using
+[true/false](true-false.md) questions.</code></pre><p><strong>Description:</strong> Leaving a choice unmarked is exactly what an unticked checkbox does. The intended meaning is that a student cannot abstain on a choice: every choice gets a verdict. &#x27;it&#x27; also has no clear referent (the choice? the question?).</p><p><strong>Impact:</strong> Minor confusion about the meaning of an unticked choice.</p><p><strong>Suggested fix:</strong> Reword: &#x27;A student cannot abstain on a single choice: an unticked choice is a false verdict. If abstention is needed, use true/false questions.&#x27;</p></article><article class="finding" id="F7" style="border-left-color:#2563EB"><h4><span class="chip" style="background:#2563EB">low</span> F7: &#x27;When neither ... and outside an exam&#x27; joins two cases with &#x27;and&#x27;</h4><p><strong>Location:</strong> <code>docs/question-types/multiple-selection.md:100-102</code></p><p class="meta"><em>Mechanical fix</em></p><pre><code>When neither
+the question nor the exam sets a strategy, and outside an exam, the strategy
+is `&quot;symmetric&quot;`.</code></pre><p><strong>Description:</strong> Read literally, the default applies only when both conditions hold: no strategy is set and the question is outside an exam. These are separate cases: an exam that sets nothing, and no exam. The sentence also does not cover an exam whose <code>grading</code> is a map without a <code>multiple-selection</code> key, which exam.md resolves to <code>symmetric</code>. The same sentence is in multiple-choice.md:229-231.</p><p><strong>Impact:</strong> Minor; the footnote settles it.</p><p><strong>Suggested fix:</strong> Write: &#x27;The strategy is <code>&quot;symmetric&quot;</code> outside an exam, and in an exam that does not set one for multiple selection (no <code>grading</code>, or a map without a <code>multiple-selection</code> key).&#x27; Apply the same wording in multiple-choice.md.</p></article><h3>Omissions</h3><table><tr><th>Severity</th><th>Location</th><th>Description</th></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/question-types/question-base.md:213-216</code></td><td><a href="#F1"><strong>F1</strong></a> Type inference has no rule for a list of blank and unknown values</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/question-types/multiple-selection.md:42-44</code></td><td><a href="#F2"><strong>F2</strong></a> Empty brackets <code>[]</code> in a choice list have no rule</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/question-types/multiple-selection.md:5-7</code></td><td><a href="#F14"><strong>F14</strong></a> Multiple selection does not state how a choice list is inferred as multiple selection</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/question-types/multiple-selection.md:156</code></td><td><a href="#F25"><strong>F25</strong></a> No multiple-selection example has a second feedback or comment block, and mdq-py merges them</td></tr><tr><td><span class="chip" style="background:#2563EB">low</span></td><td><code>docs/question-types/multiple-selection.md:158-159</code></td><td><a href="#F4"><strong>F4</strong></a> Text never states the no-correct-choice and all-choices-correct lints</td></tr><tr><td><span class="chip" style="background:#2563EB">low</span></td><td><code>docs/question-types/multiple-selection.md:48-50</code></td><td><a href="#F26"><strong>F26</strong></a> Markdown-level blank-text and text-normalization cases are only covered by YAML examples</td></tr><tr><td><span class="chip" style="background:#2563EB">low</span></td><td><code>examples/grading/multiple-selection.yaml:17-115</code></td><td><a href="#F27"><strong>F27</strong></a> Grading corpus has no question with zero or all correct choices, or with two choices</td></tr></table><article class="finding" id="F1" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F1: Type inference has no rule for a list of blank and unknown values</h4><p><strong>Location:</strong> <code>docs/question-types/question-base.md:213-216</code></p><pre><code>1. a value is `*` or a percentage: multiple choice;
+2. a value is `x` or `X`: multiple selection;
+3. a value is a letter: true/false;
+4. every value is blank: multiple selection.</code></pre><p><strong>Description:</strong> A list such as <code>* [ ] Manaus</code> / <code>* [?] Santos</code> matches none of the four rules: no value is <code>*</code>, a percentage, <code>x</code> or a letter, and not every value is blank. The spec does not say which type the list takes, so it does not say against which <code>value</code> rule <code>[?]</code> is checked. mdq-py reads it as multiple selection and reports <code>foreign-choice-marker</code> on <code>[?]</code>. The corpus only covers <code>[?]</code> next to an <code>[x]</code> (<code>examples/invalid/multiple-selection-unknown-marker.mdq.md</code>), where rule 2 applies.</p><p><strong>Impact:</strong> Two implementations can infer different types, or none, and report different codes for the same document.</p><p><strong>Suggested fix:</strong> Relax rule 4 to &#x27;no other rule applies: multiple selection&#x27; (what mdq-py does), and add an invalid example with only blank and unknown values.</p><p><strong>Exploitability conditions:</strong> A choice list without <code>type</code>, whose only values are blank and unknown markers.</p></article><article class="finding" id="F2" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F2: Empty brackets <code>[]</code> in a choice list have no rule</h4><p><strong>Location:</strong> <code>docs/question-types/multiple-selection.md:42-44</code></p><pre><code>value : ws
+      | ws? (&quot;x&quot; | &quot;X&quot;) ws?</code></pre><p><strong>Description:</strong> <code>value</code> needs at least one <code>ws</code>, so <code>* [] Santos</code> has no value. The spec does not say what such an item is: a foreign marker (<code>foreign-choice-marker</code>), an item that makes the list not a choice list (then a forbidden list in the stem, <code>forbidden-block-element</code>), or a <code>parse-error</code>. mdq-py and the corpus (<code>examples/invalid/multiple-choice-empty-brackets.mdq.md</code>) use <code>parse-error</code>, which no text of the spec states. There is no multiple-selection example.</p><p><strong>Impact:</strong> <code>[]</code> is a likely typo for <code>[ ]</code>. Implementations can disagree on the code, and one could read the list as prose and drop the question body.</p><p><strong>Suggested fix:</strong> State in question-base.md, Type inference, that <code>[]</code> in a choice list is a <code>parse-error</code>, as mdq-py does, and add a multiple-selection invalid example.</p></article><article class="finding" id="F14" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F14: Multiple selection does not state how a choice list is inferred as multiple selection</h4><p><strong>Location:</strong> <code>docs/question-types/multiple-selection.md:5-7</code></p><pre><code>Multiple selection questions are represented by an unordered list with an ASCII-art
+rendition of a checkbox. The correct answers are marked with `[x]` and incorrect
+ones are left blank.</code></pre><p><strong>Description:</strong> multiple-choice.md:6-9 says when a list is inferred as multiple choice and links to type inference. multiple-selection.md says nothing: it does not state that a list with an <code>x</code>/<code>X</code> value, or a list whose values are all blank, is inferred as multiple selection (question-base.md:214-216), nor that a <code>*</code> or percentage value makes the list multiple choice instead. The all-blank case is used by examples/valid/multiple-selection/none-correct.mdq.md, which has no <code>type</code>.</p><p><strong>Impact:</strong> A reader of this page cannot tell that a list with no <code>[x]</code> is still multiple selection, or that one <code>[*]</code> turns the whole list into multiple choice.</p><p><strong>Suggested fix:</strong> Add a sentence after the example that summarizes the inference rules for multiple selection and links to question-base.md#type-inference, as multiple-choice.md does.</p></article><article class="finding" id="F25" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F25: No multiple-selection example has a second feedback or comment block, and mdq-py merges them</h4><p><strong>Location:</strong> <code>docs/question-types/multiple-selection.md:156</code></p><pre><code>| choices[]          | error    | parse-error                | carries at most one feedback block and one comment block  |</code></pre><p><strong>Description:</strong> grammar.md (One block of each kind) says a second block of the same kind is a <code>parse-error</code>, also when a blank line or a block of the other kind separates them. No example under examples/invalid/ exercises this for a multiple-selection choice (only ordering-two-feedback-blocks exists). mdq-py accepts both <code>&gt; one</code> / blank line / <code>&gt; three</code> and <code>&gt; one</code> / <code>! c</code> / <code>&gt; three</code> under one choice and joins the feedback into &#x27;one three&#x27;, with no error.</p><p><strong>Impact:</strong> The rule is not tested, and the reference implementation violates it without the suite noticing.</p><p><strong>Suggested fix:</strong> Add invalid examples for a choice with two feedback blocks (separated by a blank line, and by a comment block), expecting <code>parse-error</code>.</p><p><strong>Exploitability conditions:</strong> mdq-py <code>mdq validate</code> on a choice with two <code>&gt;</code> blocks.</p></article><article class="finding" id="F4" style="border-left-color:#2563EB"><h4><span class="chip" style="background:#2563EB">low</span> F4: Text never states the no-correct-choice and all-choices-correct lints</h4><p><strong>Location:</strong> <code>docs/question-types/multiple-selection.md:158-159</code></p><pre><code>| choices[].correct  | info     | no-correct-choice          | at least one choice should be correct                     |
+| choices[].correct  | info     | all-choices-correct        | not every choice should be correct                        |</code></pre><p><strong>Description:</strong> The Additional Rules table lists both info rules, but no sentence of multiple-selection.md states them with a MAY or explains why they matter. The text in multiple-choice.md about these codes refers to scores and to a single pick, so it does not carry over. For multiple selection the reason differs: with no correct choice, the empty response <code>{}</code> scores 1; with every choice correct, ticking all scores 1.</p><p><strong>Impact:</strong> The rule exists only in the table; the level and the rationale cannot be checked against the text.</p><p><strong>Suggested fix:</strong> Add a paragraph to Choices: any number of choices MAY be correct, including none or all; implementations MAY report <code>no-correct-choice</code> and <code>all-choices-correct</code> at the info level, with the reason above.</p></article><article class="finding" id="F26" style="border-left-color:#2563EB"><h4><span class="chip" style="background:#2563EB">low</span> F26: Markdown-level blank-text and text-normalization cases are only covered by YAML examples</h4><p><strong>Location:</strong> <code>docs/question-types/multiple-selection.md:48-50</code></p><pre><code>In
+`* [x] [brasilia]`, `brasilia` is the id and the text is empty, which is a
+`blank-text` error.</code></pre><p><strong>Description:</strong> The corpus has blank-text and duplicate-choice-text examples for multiple selection only in YAML (examples/invalid/model-only/multiple-selection-*.yaml). No <code>.mdq.md</code> example covers the <code>* [x] [brasilia]</code> case the spec gives, a choice with only feedback markers, two texts that differ only in whitespace, a multi-line (lazy line) choice text, or multi-line feedback. multiple-choice has <code>.mdq.md</code> examples for the blank-text cases.</p><p><strong>Impact:</strong> The parser path that produces these values for multiple selection is not tested.</p><p><strong>Suggested fix:</strong> Add <code>.mdq.md</code> invalid examples for <code>* [x] [id]</code> with no text and for whitespace-only duplicate texts, and a valid example with multi-line choice text and feedback.</p></article><article class="finding" id="F27" style="border-left-color:#2563EB"><h4><span class="chip" style="background:#2563EB">low</span> F27: Grading corpus has no question with zero or all correct choices, or with two choices</h4><p><strong>Location:</strong> <code>examples/grading/multiple-selection.yaml:17-115</code></p><pre><code>questions:
+  # The table in multiple-selection.md, &quot;Grading&quot;: answer key [T, F, T, F].</code></pre><p><strong>Description:</strong> All grading cases have at least one correct and one incorrect choice. No case covers an answer key with no correct choice (where <code>ticks: []</code> scores 1 under every strategy) or with every choice correct, both of which the spec allows (rules at multiple-selection.md:158-159 are only info), nor the two-choice minimum.</p><p><strong>Impact:</strong> Edge cases of the grading formulas that the spec allows are not checked against implementations.</p><p><strong>Suggested fix:</strong> Add grading cases with keys <code>{a: false, b: false}</code> and <code>{a: true, b: true}</code> for the three strategies.</p></article><h3>Inconsistencies</h3><table><tr><th>Severity</th><th>Location</th><th>Description</th></tr><tr><td><span class="chip" style="background:#2563EB">low</span></td><td><code>docs/question-types/multiple-selection.md:39</code></td><td><a href="#F8"><strong>F8</strong></a> Body does not state the two-choice minimum, unlike multiple choice</td></tr><tr><td><span class="chip" style="background:#2563EB">low</span></td><td><code>docs/question-types/multiple-selection.md:157-160</code></td><td><a href="#F21"><strong>F21</strong></a> Rules table uses &#x27;should&#x27; for info-level rules</td></tr><tr><td><span class="chip" style="background:#2563EB">low</span></td><td><code>docs/question-types/multiple-selection.md:158-159</code></td><td><a href="#F22"><strong>F22</strong></a> Rules table field for count rules is a choice field, but the code reports on the list</td></tr></table><article class="finding" id="F8" style="border-left-color:#2563EB"><h4><span class="chip" style="background:#2563EB">low</span> F8: Body does not state the two-choice minimum, unlike multiple choice</h4><p><strong>Location:</strong> <code>docs/question-types/multiple-selection.md:39</code></p><p class="meta"><em>Mechanical fix</em></p><pre><code>Body consists of an unordered list of items. Each item follows the grammar:</code></pre><p><strong>Description:</strong> multiple-choice.md:41 says &#x27;an unordered list of at least two items&#x27;. multiple-selection.md states the minimum only in the Additional Rules table (schema <code>minItems: 2</code>).</p><p><strong>Impact:</strong> Minor inconsistency between parallel documents.</p><p><strong>Suggested fix:</strong> Write &#x27;an unordered list of at least two items&#x27;.</p></article><article class="finding" id="F21" style="border-left-color:#2563EB"><h4><span class="chip" style="background:#2563EB">low</span> F21: Rules table uses &#x27;should&#x27; for info-level rules</h4><p><strong>Location:</strong> <code>docs/question-types/multiple-selection.md:157-160</code></p><pre><code>| choices[].text     | info     | visually-identical-choices | should not be visually equivalent to another choice[^2]   |
+| choices[].correct  | info     | no-correct-choice          | at least one choice should be correct                     |
+| choices[].correct  | info     | all-choices-correct        | not every choice should be correct                        |
+| choices[].id       | info     | missing-choice-id          | should be defined in the document, instead of derived[^3] |</code></pre><p><strong>Description:</strong> By the spec convention, SHOULD maps to <code>warning</code> and MAY to <code>info</code>. The source prose (multiple-choice.md:118, 140, 164) says implementations MAY report these cases, so the level is info, but the Rule column phrases them as &#x27;should&#x27;. The same phrasing is in multiple-choice.md:288-292.</p><p><strong>Impact:</strong> A reader that maps the wording to a level gets <code>warning</code>, not <code>info</code>.</p><p><strong>Suggested fix:</strong> Phrase the info rules as observations, for example &#x27;is visually equivalent to another choice&#x27;, &#x27;no choice is correct&#x27;, &#x27;every choice is correct&#x27;, &#x27;has no id of its own&#x27;.</p></article><article class="finding" id="F22" style="border-left-color:#2563EB"><h4><span class="chip" style="background:#2563EB">low</span> F22: Rules table field for count rules is a choice field, but the code reports on the list</h4><p><strong>Location:</strong> <code>docs/question-types/multiple-selection.md:158-159</code></p><p class="meta"><em>Mechanical fix</em></p><pre><code>| choices[].correct  | info     | no-correct-choice          | at least one choice should be correct                     |</code></pre><p><strong>Description:</strong> <code>no-correct-choice</code> and <code>all-choices-correct</code> are properties of the whole list. The Field column gives <code>choices[].correct</code>, but the corpus reports them at path <code>[&quot;choices&quot;]</code> (examples/valid/multiple-selection/none-correct.lint.json, all-correct.lint.json).</p><p><strong>Impact:</strong> The Field column does not match the path that implementations report.</p><p><strong>Suggested fix:</strong> Use <code>choices</code> in the Field column for both rows.</p></article><h3>Grammar violations</h3><table><tr><th>Severity</th><th>Location</th><th>Description</th></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/references/grammar.md:105</code></td><td><a href="#F10"><strong>F10</strong></a> lazy_line accepts feedback and comment lines, so the item grammar accepts two feedback blocks</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/question-types/multiple-selection.md:43-44</code></td><td><a href="#F11"><strong>F11</strong></a> No grammar defines the generic bracket that counts as a value for type inference and foreign-choice-marker</td></tr><tr><td><span class="chip" style="background:#2563EB">low</span></td><td><code>docs/references/grammar.md:103-104</code></td><td><a href="#F9"><strong>F9</strong></a> feedback_line and comment_line accept any indentation before the marker</td></tr><tr><td><span class="chip" style="background:#2563EB">low</span></td><td><code>docs/question-types/multiple-selection.md:42</code></td><td><a href="#F12"><strong>F12</strong></a> The value bracket is read as a value when a link destination or reference follows it</td></tr><tr><td><span class="chip" style="background:#2563EB">low</span></td><td><code>docs/question-types/multiple-selection.md:42</code></td><td><a href="#F13"><strong>F13</strong></a> The item rule accepts any indentation before the value</td></tr></table><article class="finding" id="F10" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F10: lazy_line accepts feedback and comment lines, so the item grammar accepts two feedback blocks</h4><p><strong>Location:</strong> <code>docs/references/grammar.md:105</code></p><pre><code>lazy_line     : ws? md_inline+ nl</code></pre><p><strong>Description:</strong> <code>md_inline</code> is any inline element, and a <code>&gt;</code> or <code>!</code> character is inline text, so <code>lazy_line</code> matches a feedback line, a comment line, a list item or a heading. In the multiple-selection <code>item</code> rule (<code>md_inline* nl lazy_line* (blank_line* observations)?</code>), the lines of a first feedback block can then parse as lazy lines of the choice text. Counter-example, tested with Lark: <code>[ ] Nile</code> / <code>  &gt; fb1</code> / blank line / <code>  &gt; fb2</code> parses, with <code>&gt; fb1</code> as choice text and <code>&gt; fb2</code> as the feedback. <code>[ ] Nile</code> / <code>  &gt; fb1</code> / <code>  ! c</code> / <code>  &gt; fb2</code> also parses. The prose forbids both: a lazy line is a line without a marker (docs/references/grammar.md:127-131) and a second block of the same kind is a <code>parse-error</code> (docs/references/grammar.md:134-137, docs/question-types/multiple-selection.md:156). With a stub <code>lazy_line</code> that excludes lines starting with <code>&gt;</code>, <code>!</code> (not <code>![</code>), list markers, <code>#</code> and fences, the grammar rejects both inputs as the prose requires.</p><p><strong>Impact:</strong> The grammar does not encode the one-block-of-each-kind rule that it appears to encode; the restriction exists only in prose.</p><p><strong>Suggested fix:</strong> Make <code>lazy_line</code> exclude lines that start a feedback line, a comment line or a block that interrupts a paragraph, for example with a terminal that has a negative lookahead for these starts.</p><p><strong>Exploitability conditions:</strong> Item with a feedback or comment block.</p></article><article class="finding" id="F11" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F11: No grammar defines the generic bracket that counts as a value for type inference and foreign-choice-marker</h4><p><strong>Location:</strong> <code>docs/question-types/multiple-selection.md:43-44</code></p><pre><code>value : ws
+      | ws? (&quot;x&quot; | &quot;X&quot;) ws?</code></pre><p><strong>Description:</strong> The <code>value</code> rule rejects <code>[]</code>, <code>[xx]</code>, <code>[ x x ]</code>, <code>[*]</code>, <code>[50%]</code>, <code>[v]</code> and <code>[U+00A0]</code> (tested with Lark). docs/question-types/question-base.md:217-222 says a value outside the <code>value</code> rule of the type is a <code>foreign-choice-marker</code>, and gives <code>[?]</code> as an example, and type inference reads &quot;every item starts with <code>[value]</code>&quot; before the type is known. No grammar defines that generic <code>[value]</code>: it is not stated whether <code>[xx]</code>, <code>[x x]</code>, <code>[Brasília]</code> or <code>[a b c]</code> at the start of an item is a foreign value (the list stays a choice list) or text (the list is not a choice list). The Python implementation reports <code>foreign-choice-marker</code> for <code>[xx]</code> and <code>[ x x ]</code>. The <code>[]</code> case is a special case of this gap (see F2).</p><p><strong>Impact:</strong> Implementations can report different codes, or infer a different body, for the same malformed marker.</p><p><strong>Suggested fix:</strong> Declare a shared rule for the bracket at the start of a choice item (for example <code>&quot;[&quot; /[^\]\r\n]*/ &quot;]&quot;</code>, minus what CHOICE_ID or a link would take) that type inference and <code>foreign-choice-marker</code> use.</p></article><article class="finding" id="F9" style="border-left-color:#2563EB"><h4><span class="chip" style="background:#2563EB">low</span> F9: feedback_line and comment_line accept any indentation before the marker</h4><p><strong>Location:</strong> <code>docs/references/grammar.md:103-104</code></p><pre><code>feedback_line : ws? &quot;&gt;&quot; ws? md_inline* nl
+comment_line  : ws? COMMENT_MARK ws? md_inline* nl</code></pre><p><strong>Description:</strong> The prose (docs/references/grammar.md:117-121) allows at most three spaces of indentation before <code>&gt;</code> or <code>!</code>, relative to the list item content, and says that with four or more the line is not a feedback or comment line. The leading <code>ws?</code> has no bound. Counter-example: the item <code>* [x] Rio</code> followed by the line <code>      &gt; fb</code> (four spaces relative to the item content). Tested with Lark: the grammar parses the line as a <code>feedback_line</code>. Under CommonMark, the line is a paragraph continuation, so <code>&gt; fb</code> is part of the choice text. The same applies to <code>!</code> lines and to a tab before the marker.</p><p><strong>Impact:</strong> A reader of the grammar alone gets a different choice text and feedback than the prose and CommonMark give. The Python implementation also reads the over-indented line as feedback, which suggests the grammar is what implementers follow.</p><p><strong>Suggested fix:</strong> Bound the indentation in the rule (for example <code>INDENT: / {0,3}/</code>, with a note on how a tab counts), or state next to the snippet that <code>ws?</code> before a marker is limited by the Marker rule.</p><p><strong>Exploitability conditions:</strong> Feedback or comment line indented four or more columns relative to the item content.</p></article><article class="finding" id="F12" style="border-left-color:#2563EB"><h4><span class="chip" style="background:#2563EB">low</span> F12: The value bracket is read as a value when a link destination or reference follows it</h4><p><strong>Location:</strong> <code>docs/question-types/multiple-selection.md:42</code></p><pre><code>item      : ws? &quot;[&quot; value &quot;]&quot; ws? (CHOICE_ID ws?)? md_inline* nl lazy_line* (blank_line* observations)?</code></pre><p><strong>Description:</strong> <code>CHOICE_ID</code> has the lookahead <code>(?![(\[])</code> because a bracket followed by <code>(</code> or <code>[</code> starts a markdown link (docs/references/grammar.md:83-86). The value bracket has no such lookahead. Counter-examples, tested with Lark: <code>* [x](https://ibge.gov.br) Brasília</code> parses as a correct choice with the text <code>(https://ibge.gov.br) Brasília</code>, and <code>* [x][ref] Brasília</code> parses as a correct choice with the id <code>ref</code>. CommonMark reads <code>[x](https://ibge.gov.br)</code> as an inline link and <code>[x][ref]</code> as a full reference link when <code>ref</code> is defined. The Python implementation reads the first as a choice and the second as an epilogue paragraph (<code>forbidden-block-element</code>).</p><p><strong>Impact:</strong> Contrived input, but the grammar and the markdown layer disagree on whether the item is a choice.</p><p><strong>Suggested fix:</strong> State that a value bracket followed by <code>(</code> or <code>[</code> is still the value (and the rest is text), or add the same lookahead to the value bracket and define the result.</p></article><article class="finding" id="F13" style="border-left-color:#2563EB"><h4><span class="chip" style="background:#2563EB">low</span> F13: The item rule accepts any indentation before the value</h4><p><strong>Location:</strong> <code>docs/question-types/multiple-selection.md:42</code></p><pre><code>item      : ws? &quot;[&quot; value &quot;]&quot;</code></pre><p><strong>Description:</strong> docs/references/grammar.md:54-57 says the source text is read at the start of a block and only spaces and tabs are accepted, but sets no limit. Counter-example, tested with Lark: <code>*      [x] Rio</code> (six spaces after the list marker) parses as a correct choice. Under CommonMark, five or more spaces after the marker make the item content an indented code block, so the item has no paragraph that starts with <code>[x]</code>. The feedback rules state a three-space limit; the item has none. The Python implementation accepts the input as a choice.</p><p><strong>Impact:</strong> The grammar accepts a choice that a markdown renderer shows as code.</p><p><strong>Suggested fix:</strong> State the limit for the <code>ws?</code> before the value (CommonMark: at most four spaces after the list marker), or state that the grammar applies to the item content after CommonMark removes the marker and its padding.</p></article><h3>Schema mismatches</h3><table><tr><th>Severity</th><th>Location</th><th>Description</th></tr><tr><td><span class="chip" style="background:#2563EB">low</span></td><td><code>schema/multiple-selection.yaml:33-34</code></td><td><a href="#F23"><strong>F23</strong></a> Schema grading description omits the per-type map of the exam</td></tr><tr><td><span class="chip" style="background:#6B7280">info</span></td><td><code>schema/multiple-selection.yaml:7</code></td><td><a href="#F24"><strong>F24</strong></a> Schema top-level description lists only <code>choices</code> as an extension</td></tr></table><article class="finding" id="F23" style="border-left-color:#2563EB"><h4><span class="chip" style="background:#2563EB">low</span> F23: Schema grading description omits the per-type map of the exam</h4><p><strong>Location:</strong> <code>schema/multiple-selection.yaml:33-34</code></p><p class="meta"><em>Mechanical fix</em></p><pre><code>`inherit`, the default, takes the exam&#x27;s `grading` value, and
+          is `symmetric` outside an exam.</code></pre><p><strong>Description:</strong> multiple-selection.md:99-100 and exam.md (Grading) say that <code>inherit</code> takes the exam&#x27;s <code>grading</code>, or its <code>multiple-selection</code> entry when it is a map, and that a missing key is <code>symmetric</code>. The schema description only mentions &#x27;the exam&#x27;s <code>grading</code> value&#x27;, which is wrong when that value is a map.</p><p><strong>Impact:</strong> A reader of the schema alone cannot resolve <code>inherit</code> against a map-valued exam <code>grading</code>.</p><p><strong>Suggested fix:</strong> Write: &#x27;<code>inherit</code>, the default, takes the exam&#x27;s <code>grading</code> (its <code>multiple-selection</code> entry when it is a map, <code>symmetric</code> if the entry is missing), and is <code>symmetric</code> outside an exam.&#x27;</p></article><article class="finding" id="F24" style="border-left-color:#6B7280"><h4><span class="chip" style="background:#6B7280">info</span> F24: Schema top-level description lists only <code>choices</code> as an extension</h4><p><strong>Location:</strong> <code>schema/multiple-selection.yaml:7</code></p><p class="meta"><em>Mechanical fix</em></p><pre><code>Extends the common question-base schema with a `choices` field.</code></pre><p><strong>Description:</strong> The schema also adds <code>grading</code> and <code>shuffle</code> (lines 23-44), which question-base.yaml does not declare, and which the Frontmatter table of multiple-selection.md lists.</p><p><strong>Impact:</strong> Minor: the description understates the fields of the type.</p><p><strong>Suggested fix:</strong> Write &#x27;with <code>choices</code>, <code>grading</code> and <code>shuffle</code> fields&#x27;.</p></article></section><section id="recommendations"><h2>Prioritized recommendations</h2><ul class="recs"><li><span class="prio">P1</span>Define the leading bracket of a choice item and the type inference fallback, so every malformed marker has one stated result. <span class="refs">(Findings: <a href="#F1">F1</a>, <a href="#F2">F2</a>, <a href="#F11">F11</a>, <a href="#F12">F12</a>)</span></li><li><span class="prio">P2</span>Tighten the shared item grammar: lazy lines without markers, and a stated indentation bound; add the matching invalid examples. <span class="refs">(Findings: <a href="#F10">F10</a>, <a href="#F25">F25</a>, <a href="#F9">F9</a>, <a href="#F13">F13</a>)</span></li><li><span class="prio">P2</span>Make the Choices section of multiple selection self-contained, preferably by moving the shared choice rules to one section. <span class="refs">(Findings: <a href="#F3">F3</a>, <a href="#F4">F4</a>, <a href="#F14">F14</a>)</span></li><li><span class="prio">P3</span>Apply the mechanical text and schema fixes in one pass. <span class="refs">(Findings: <a href="#F6">F6</a>, <a href="#F7">F7</a>, <a href="#F8">F8</a>, <a href="#F22">F22</a>, <a href="#F23">F23</a>, <a href="#F24">F24</a>)</span></li><li><span class="prio">P3</span>Clarify the grading table notation, rephrase info rules, and fill the corpus gaps. <span class="refs">(Findings: <a href="#F5">F5</a>, <a href="#F21">F21</a>, <a href="#F26">F26</a>, <a href="#F27">F27</a>)</span></li></ul></section><section id="issues"><h2>GitHub issues</h2><p>Each block below is a complete issue, ready to paste.</p><div class="issue"><button type="button" data-target="issue-1" data-copied="Copied">Copy</button><pre id="issue-1">--- ISSUE 1 ---
+# [Spec] Define the bracket at the start of a choice item
+
+**Labels:** medium, low
+
+## Problem
+
+The spec defines each type&#x27;s `value` rule, but not the generic bracket that type inference and `foreign-choice-marker` read before the type is known. So `[]`, `[xx]`, a list of only blank and `[?]` values, and `[x](url)` have no stated result. Options: (a) declare one shared rule for the leading bracket in grammar.md, relax type inference rule 4 to &#x27;no other rule applies: multiple selection&#x27;, and state that `[]` is a `parse-error` (what mdq-py does); (b) treat any non-matching bracket as text, so the list is not a choice list. Recommended: (a), since it matches mdq-py and the corpus and never drops a body in silence.
+
+## Evidence
+
+- `docs/question-types/question-base.md:213-216`: Type inference has no rule for a list of blank and unknown values
+
+  ```md
+  1. a value is `*` or a percentage: multiple choice;
+  2. a value is `x` or `X`: multiple selection;
+  3. a value is a letter: true/false;
+  4. every value is blank: multiple selection.
+  ```
+- `docs/question-types/multiple-selection.md:42-44`: Empty brackets `[]` in a choice list have no rule
+
+  ```lark
+  value : ws
+        | ws? (&quot;x&quot; | &quot;X&quot;) ws?
+  ```
+- `docs/question-types/multiple-selection.md:43-44`: No grammar defines the generic bracket that counts as a value for type inference and foreign-choice-marker
+
+  ```lark
+  value : ws
+        | ws? (&quot;x&quot; | &quot;X&quot;) ws?
+  ```
+- `docs/question-types/multiple-selection.md:42`: The value bracket is read as a value when a link destination or reference follows it
+
+  ```lark
+  item      : ws? &quot;[&quot; value &quot;]&quot; ws? (CHOICE_ID ws?)? md_inline* nl lazy_line* (blank_line* observations)?
+  ```
+
+## Impact
+
+- **Type inference has no rule for a list of blank and unknown values:** Two implementations can infer different types, or none, and report different codes for the same document.
+- **Empty brackets `[]` in a choice list have no rule:** `[]` is a likely typo for `[ ]`. Implementations can disagree on the code, and one could read the list as prose and drop the question body.
+- **No grammar defines the generic bracket that counts as a value for type inference and foreign-choice-marker:** Implementations can report different codes, or infer a different body, for the same malformed marker.
+- **The value bracket is read as a value when a link destination or reference follows it:** Contrived input, but the grammar and the markdown layer disagree on whether the item is a choice.
+
+## Suggested fix
+
+- **Type inference has no rule for a list of blank and unknown values:** Relax rule 4 to &#x27;no other rule applies: multiple selection&#x27; (what mdq-py does), and add an invalid example with only blank and unknown values.
+- **Empty brackets `[]` in a choice list have no rule:** State in question-base.md, Type inference, that `[]` in a choice list is a `parse-error`, as mdq-py does, and add a multiple-selection invalid example.
+- **No grammar defines the generic bracket that counts as a value for type inference and foreign-choice-marker:** Declare a shared rule for the bracket at the start of a choice item (for example `&quot;[&quot; /[^\]\r\n]*/ &quot;]&quot;`, minus what CHOICE_ID or a link would take) that type inference and `foreign-choice-marker` use.
+- **The value bracket is read as a value when a link destination or reference follows it:** State that a value bracket followed by `(` or `[` is still the value (and the rest is text), or add the same lookahead to the value bracket and define the result.
+
+## Acceptance criteria
+
+- [ ] grammar.md declares the leading bracket rule used by type inference and foreign-choice-marker
+- [ ] question-base.md type inference covers a list of blank and unknown values
+- [ ] The spec states the code for `[]` and for a value bracket followed by `(` or `[`
+- [ ] Invalid examples cover `[]` and blank-plus-`[?]` in a multiple-selection list
+
+--- END ISSUE 1 ---</pre></div><div class="issue"><button type="button" data-target="issue-2" data-copied="Copied">Copy</button><pre id="issue-2">--- ISSUE 2 ---
+# [Spec] Make lazy_line exclude marker lines and test the one-block rule
+
+**Labels:** medium
+
+## Problem
+
+`lazy_line` matches `&gt;` and `!` lines, so the item grammar accepts two feedback blocks, which the prose forbids; no multiple-selection example tests it, and mdq-py merges the blocks. Fix the terminal with a negative lookahead for marker and block-start lines, and add invalid examples.
+
+## Evidence
+
+- `docs/references/grammar.md:105`: lazy_line accepts feedback and comment lines, so the item grammar accepts two feedback blocks
+
+  ```lark
+  lazy_line     : ws? md_inline+ nl
+  ```
+- `docs/question-types/multiple-selection.md:156`: No multiple-selection example has a second feedback or comment block, and mdq-py merges them
+
+  ```markdown
+  | choices[]          | error    | parse-error                | carries at most one feedback block and one comment block  |
+  ```
+
+## Impact
+
+- **lazy_line accepts feedback and comment lines, so the item grammar accepts two feedback blocks:** The grammar does not encode the one-block-of-each-kind rule that it appears to encode; the restriction exists only in prose.
+- **No multiple-selection example has a second feedback or comment block, and mdq-py merges them:** The rule is not tested, and the reference implementation violates it without the suite noticing.
+
+## Suggested fix
+
+- **lazy_line accepts feedback and comment lines, so the item grammar accepts two feedback blocks:** Make `lazy_line` exclude lines that start a feedback line, a comment line or a block that interrupts a paragraph, for example with a terminal that has a negative lookahead for these starts.
+- **No multiple-selection example has a second feedback or comment block, and mdq-py merges them:** Add invalid examples for a choice with two feedback blocks (separated by a blank line, and by a comment block), expecting `parse-error`.
+
+## Acceptance criteria
+
+- [ ] lazy_line in grammar.md rejects lines that start with `&gt;`, `!` (not `![`), a list marker, `#` or a fence
+- [ ] Invalid multiple-selection examples with two feedback blocks (separated by a blank line, and by a comment) expect parse-error
+- [ ] spec_audit.py passes
+
+--- END ISSUE 2 ---</pre></div><div class="issue"><button type="button" data-target="issue-3" data-copied="Copied">Copy</button><pre id="issue-3">--- ISSUE 3 ---
+# [Spec] Bound the indentation in the choice item and feedback grammars
+
+**Labels:** low
+
+## Problem
+
+`ws?` before the value and before `&gt;`/`!` is unbounded, while the prose and CommonMark limit it. Options: (a) bound it in the rules; (b) state once in grammar.md that item grammars apply to the item content after CommonMark removes the list marker and its padding, and keep the three-space rule for markers. Recommended: (b), it keeps the snippets short and matches what markdown-it gives the implementations.
+
+## Evidence
+
+- `docs/references/grammar.md:103-104`: feedback_line and comment_line accept any indentation before the marker
+
+  ```lark
+  feedback_line : ws? &quot;&gt;&quot; ws? md_inline* nl
+  comment_line  : ws? COMMENT_MARK ws? md_inline* nl
+  ```
+- `docs/question-types/multiple-selection.md:42`: The item rule accepts any indentation before the value
+
+  ```lark
+  item      : ws? &quot;[&quot; value &quot;]&quot;
+  ```
+
+## Impact
+
+- **feedback_line and comment_line accept any indentation before the marker:** A reader of the grammar alone gets a different choice text and feedback than the prose and CommonMark give. The Python implementation also reads the over-indented line as feedback, which suggests the grammar is what implementers follow.
+- **The item rule accepts any indentation before the value:** The grammar accepts a choice that a markdown renderer shows as code.
+
+## Suggested fix
+
+- **feedback_line and comment_line accept any indentation before the marker:** Bound the indentation in the rule (for example `INDENT: / {0,3}/`, with a note on how a tab counts), or state next to the snippet that `ws?` before a marker is limited by the Marker rule.
+- **The item rule accepts any indentation before the value:** State the limit for the `ws?` before the value (CommonMark: at most four spaces after the list marker), or state that the grammar applies to the item content after CommonMark removes the marker and its padding.
+
+## Acceptance criteria
+
+- [ ] grammar.md states how indentation before the value and the markers is bounded
+- [ ] A choice indented as code and a feedback line indented four columns have a stated result
+
+--- END ISSUE 3 ---</pre></div><div class="issue"><button type="button" data-target="issue-4" data-copied="Copied">Copy</button><pre id="issue-4">--- ISSUE 4 ---
+# [Spec] Make the multiple-selection Choices section self-contained
+
+**Labels:** medium, low
+
+## Problem
+
+Choices imports multiple-choice#choices without saying which parts apply, the info rules on the count of correct choices exist only in the table, and the page does not say when a list is inferred as multiple selection. Options: (a) list the shared parts and add the missing paragraphs to multiple-selection.md; (b) move the shared choice rules (text, id, feedback, comment, duplicates, visual equivalence, derived ids) to one shared section that multiple choice, multiple selection and true/false reference. Recommended: (b), it also removes the risk that an edit to multiple choice changes multiple selection.
+
+## Evidence
+
+- `docs/question-types/multiple-selection.md:60-61`: Choices section does not say which parts of multiple-choice#choices apply
+
+  ```md
+  Choices follow the same structure as [Multiple choice questions](multiple-choice.md#choices),
+  respecting the rules for the allowed `values` inside the initial square brackets.
+  ```
+- `docs/question-types/multiple-selection.md:158-159`: Text never states the no-correct-choice and all-choices-correct lints
+
+  ```md
+  | choices[].correct  | info     | no-correct-choice          | at least one choice should be correct                     |
+  | choices[].correct  | info     | all-choices-correct        | not every choice should be correct                        |
+  ```
+- `docs/question-types/multiple-selection.md:5-7`: Multiple selection does not state how a choice list is inferred as multiple selection
+
+  ```markdown
+  Multiple selection questions are represented by an unordered list with an ASCII-art
+  rendition of a checkbox. The correct answers are marked with `[x]` and incorrect
+  ones are left blank.
+  ```
+
+## Impact
+
+- **Choices section does not say which parts of multiple-choice#choices apply:** Readers and porters can apply multiple-choice-only rules (score derivation, single pick, many-correct-choices) to multiple selection.
+- **Text never states the no-correct-choice and all-choices-correct lints:** The rule exists only in the table; the level and the rationale cannot be checked against the text.
+- **Multiple selection does not state how a choice list is inferred as multiple selection:** A reader of this page cannot tell that a list with no `[x]` is still multiple selection, or that one `[*]` turns the whole list into multiple choice.
+
+## Suggested fix
+
+- **Choices section does not say which parts of multiple-choice#choices apply:** List the shared rules explicitly (text, id, feedback, comment, duplicates, visual equivalence, derived ids) and say that `correct` replaces the `score` row of the AST table; or move the shared choice rules to one shared section that both types reference.
+- **Text never states the no-correct-choice and all-choices-correct lints:** Add a paragraph to Choices: any number of choices MAY be correct, including none or all; implementations MAY report `no-correct-choice` and `all-choices-correct` at the info level, with the reason above.
+- **Multiple selection does not state how a choice list is inferred as multiple selection:** Add a sentence after the example that summarizes the inference rules for multiple selection and links to question-base.md#type-inference, as multiple-choice.md does.
+
+## Acceptance criteria
+
+- [ ] multiple-selection.md states which choice rules apply and that score rules do not
+- [ ] The text states no-correct-choice and all-choices-correct with MAY at the info level
+- [ ] multiple-selection.md summarizes its type inference and links to question-base.md#type-inference
+
+--- END ISSUE 4 ---</pre></div><div class="issue"><button type="button" data-target="issue-5" data-copied="Copied">Copy</button><pre id="issue-5">--- ISSUE 5 ---
+# [Spec] Clarify the grading table notation of multiple selection
+
+**Labels:** low
+
+## Problem
+
+The table uses T, F and _ for a two-state question. Recommended: write markings as ticked sets and drop the &#x27;Expands to&#x27; column.
+
+## Evidence
+
+- `docs/question-types/multiple-selection.md:120-132`: The T, F and _ notation of the grading table is not defined
+
+  ```md
+  | `[T, F, _, _]` | `[T, F, F, F]` |        3         |   0.75    |       0.0        |     0.5     |
+  ```
+
+## Impact
+
+Readers can think that multiple selection has a third state, which the same document denies.
+
+## Suggested fix
+
+Either write the markings as ticked sets (`{a, c}`, `{a}`, `{}`) and drop the &#x27;Expands to&#x27; column, or say before the table that `T` and `F` are the `true` and `false` values of the response mapping and `_` is an absent key (see responses.md#multiple-selection). Recommended: ticked sets, since both forms are the same response.
+
+## Acceptance criteria
+
+- [ ] The grading table uses a notation the page defines
+- [ ] examples/grading/multiple-selection.yaml still agrees with the table
+
+--- END ISSUE 5 ---</pre></div><div class="issue"><button type="button" data-target="issue-6" data-copied="Copied">Copy</button><pre id="issue-6">--- ISSUE 6 ---
+# [Spec] Phrase info-level rules without &#x27;should&#x27;
+
+**Labels:** low
+
+## Problem
+
+The Rule column says &#x27;should&#x27; for info rules, which by convention maps to warning. Rephrase them as observations in multiple-selection.md and multiple-choice.md.
+
+## Evidence
+
+- `docs/question-types/multiple-selection.md:157-160`: Rules table uses &#x27;should&#x27; for info-level rules
+
+  ```markdown
+  | choices[].text     | info     | visually-identical-choices | should not be visually equivalent to another choice[^2]   |
+  | choices[].correct  | info     | no-correct-choice          | at least one choice should be correct                     |
+  | choices[].correct  | info     | all-choices-correct        | not every choice should be correct                        |
+  | choices[].id       | info     | missing-choice-id          | should be defined in the document, instead of derived[^3] |
+  ```
+
+## Impact
+
+A reader that maps the wording to a level gets `warning`, not `info`.
+
+## Suggested fix
+
+Phrase the info rules as observations, for example &#x27;is visually equivalent to another choice&#x27;, &#x27;no choice is correct&#x27;, &#x27;every choice is correct&#x27;, &#x27;has no id of its own&#x27;.
+
+## Acceptance criteria
+
+- [ ] No info row of the two tables uses &#x27;should&#x27; or &#x27;must&#x27;
+
+--- END ISSUE 6 ---</pre></div><div class="issue"><button type="button" data-target="issue-7" data-copied="Copied">Copy</button><pre id="issue-7">--- ISSUE 7 ---
+# [Spec] Fill the multiple-selection corpus gaps
+
+**Labels:** low
+
+## Problem
+
+Add `.mdq.md` examples for blank text, whitespace-only duplicate texts and multi-line text and feedback, and grading cases with no or all correct choices and with two choices.
+
+## Evidence
+
+- `docs/question-types/multiple-selection.md:48-50`: Markdown-level blank-text and text-normalization cases are only covered by YAML examples
+
+  ```markdown
+  In
+  `* [x] [brasilia]`, `brasilia` is the id and the text is empty, which is a
+  `blank-text` error.
+  ```
+- `examples/grading/multiple-selection.yaml:17-115`: Grading corpus has no question with zero or all correct choices, or with two choices
+
+  ```yaml
+  questions:
+    # The table in multiple-selection.md, &quot;Grading&quot;: answer key [T, F, T, F].
+  ```
+
+## Impact
+
+- **Markdown-level blank-text and text-normalization cases are only covered by YAML examples:** The parser path that produces these values for multiple selection is not tested.
+- **Grading corpus has no question with zero or all correct choices, or with two choices:** Edge cases of the grading formulas that the spec allows are not checked against implementations.
+
+## Suggested fix
+
+- **Markdown-level blank-text and text-normalization cases are only covered by YAML examples:** Add `.mdq.md` invalid examples for `* [x] [id]` with no text and for whitespace-only duplicate texts, and a valid example with multi-line choice text and feedback.
+- **Grading corpus has no question with zero or all correct choices, or with two choices:** Add grading cases with keys `{a: false, b: false}` and `{a: true, b: true}` for the three strategies.
+
+## Acceptance criteria
+
+- [ ] The new examples exist and spec_audit.py passes
+- [ ] Grading cases cover {a: false, b: false} and {a: true, b: true} under the three strategies
+
+--- END ISSUE 7 ---</pre></div><div class="issue"><button type="button" data-target="issue-8" data-copied="Copied">Copy</button><pre id="issue-8">--- ISSUE 8 ---
+# Mechanical fixes
+
+**Labels:** mechanical, low, info
+
+## Problem
+
+Each fix below follows from its finding and needs no design decision, so they can be applied together in one pass and reviewed by reading the diff. Severity still applies: a mechanical fix can matter a lot.
+
+### F6 (low): &#x27;no way to explicitly leave it unmarked&#x27; reads as the opposite of its intent
+
+`docs/question-types/multiple-selection.md:137-141`
+
+```md
+There
+is no way to explicitly leave it unmarked. If that is necessary, prefer using
+[true/false](true-false.md) questions.
+```
+
+**Suggested fix:** Reword: &#x27;A student cannot abstain on a single choice: an unticked choice is a false verdict. If abstention is needed, use true/false questions.&#x27;
+
+### F7 (low): &#x27;When neither ... and outside an exam&#x27; joins two cases with &#x27;and&#x27;
+
+`docs/question-types/multiple-selection.md:100-102`
+
+```md
+When neither
+the question nor the exam sets a strategy, and outside an exam, the strategy
+is `&quot;symmetric&quot;`.
+```
+
+**Suggested fix:** Write: &#x27;The strategy is `&quot;symmetric&quot;` outside an exam, and in an exam that does not set one for multiple selection (no `grading`, or a map without a `multiple-selection` key).&#x27; Apply the same wording in multiple-choice.md.
+
+### F8 (low): Body does not state the two-choice minimum, unlike multiple choice
+
+`docs/question-types/multiple-selection.md:39`
+
+```md
+Body consists of an unordered list of items. Each item follows the grammar:
+```
+
+**Suggested fix:** Write &#x27;an unordered list of at least two items&#x27;.
+
+### F22 (low): Rules table field for count rules is a choice field, but the code reports on the list
+
+`docs/question-types/multiple-selection.md:158-159`
+
+```markdown
+| choices[].correct  | info     | no-correct-choice          | at least one choice should be correct                     |
+```
+
+**Suggested fix:** Use `choices` in the Field column for both rows.
+
+### F23 (low): Schema grading description omits the per-type map of the exam
+
+`schema/multiple-selection.yaml:33-34`
+
+```yaml
+`inherit`, the default, takes the exam&#x27;s `grading` value, and
+          is `symmetric` outside an exam.
+```
+
+**Suggested fix:** Write: &#x27;`inherit`, the default, takes the exam&#x27;s `grading` (its `multiple-selection` entry when it is a map, `symmetric` if the entry is missing), and is `symmetric` outside an exam.&#x27;
+
+### F24 (info): Schema top-level description lists only `choices` as an extension
+
+`schema/multiple-selection.yaml:7`
+
+```yaml
+Extends the common question-base schema with a `choices` field.
+```
+
+**Suggested fix:** Write &#x27;with `choices`, `grading` and `shuffle` fields&#x27;.
+
+## Acceptance criteria
+
+- [ ] F6: &#x27;no way to explicitly leave it unmarked&#x27; reads as the opposite of its intent
+- [ ] F7: &#x27;When neither ... and outside an exam&#x27; joins two cases with &#x27;and&#x27;
+- [ ] F8: Body does not state the two-choice minimum, unlike multiple choice
+- [ ] F22: Rules table field for count rules is a choice field, but the code reports on the list
+- [ ] F23: Schema grading description omits the per-type map of the exam
+- [ ] F24: Schema top-level description lists only `choices` as an extension
+
+--- END ISSUE 8 ---</pre></div></section>
+<footer>MDQ Specification Audit: multiple-selection: mdq-spec · 2026-10-15</footer>
+</main>
+<script>
+document.querySelectorAll(".issue button").forEach((button) => {
+  button.addEventListener("click", async () => {
+    const text = document.getElementById(button.dataset.target).textContent;
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const range = document.createRange();
+      range.selectNodeContents(document.getElementById(button.dataset.target));
+      getSelection().removeAllRanges();
+      getSelection().addRange(range);
+      document.execCommand("copy");
+    }
+    const label = button.textContent;
+    button.textContent = button.dataset.copied;
+    setTimeout(() => (button.textContent = label), 1500);
+  });
+});
+</script>
+</body>
+</html>

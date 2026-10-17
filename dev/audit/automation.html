@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<title>MDQ: remover openEnded, propriedade automation</title>
+<style>
+body{font:15px/1.5 system-ui,sans-serif;max-width:1000px;margin:2em auto;padding:0 1em;color:#222}
+table{border-collapse:collapse;width:100%;margin:1em 0}
+td,th{border:1px solid #ccc;padding:4px 8px;vertical-align:top;text-align:left}
+th{background:#eee}
+code{background:#f0f0f0;padding:0 3px}
+pre{background:#f7f7f7;padding:1em;overflow:auto;white-space:pre-wrap;font-size:13px;margin:.5em 0}
+.draft{border-left:4px solid #3b6ea5;padding:0 1.2em;margin:1.5em 0;background:#fbfcfe}
+.dec{border:1px solid #c9a227;background:#fffbea;padding:.6em 1em;margin:1em 0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:1em}
+h2{margin-top:2em;border-bottom:1px solid #ddd}
+.ok{color:#1b6e1b}.no{color:#b00020}.mid{color:#b26a00}
+</style></head><body>
+<h1>Remover <code>openEnded</code> e o curinga; campo <code>unmatched</code>; propriedade <code>automation</code></h1>
+<p><b>Status:</b> rascunho 2, para validação. Nada disto foi aplicado ao spec nem ao código.</p>
+
+<h2>1. O que mudou desde o rascunho 1</h2>
+<ul>
+<li><b>Decidido:</b> short-answer ganha o campo <code>unmatched</code>, como ordering. Some a regra implícita "ter lista <code>reject</code> cancela o curinga". Lista <code>reject</code> vazia volta a ser erro.</li>
+<li><b>Proposto aqui:</b> remover o curinga <code>*</code>. A seção abaixo já está escrita sem ele.</li>
+<li><b>Correção ao rascunho 1:</b> ordering não é sempre <code>automatic</code>. Com <code>unmatched: manual</code>, que é o default dele, é <code>semi-automatic</code>.</li>
+</ul>
+
+<h2>2. Seção proposta para <code>short-answer.md</code></h2>
+<div class="draft">
+<h3>Automation</h3>
+
+<p><b>The score is always binary</b>: a response is either correct or incorrect, worth 1 or 0, and nothing in between. An instructor who wants to award partial credit has to grade manually.</p>
+
+<p>A response is <b>settled</b> when the question decides if it is correct. An implementation MUST apply the rules below in order, and stop at the first one that applies:</p>
+<ol>
+<li>The response matches a pattern of <code>accept</code>: it is correct.</li>
+<li>The response matches a pattern of <code>reject</code>: it is incorrect.</li>
+<li>The response matches no pattern. The <code>unmatched</code> field decides: with <code>"incorrect"</code> the response is incorrect, and with <code>"manual"</code> it is not settled and the instructor grades it.</li>
+</ol>
+
+<p><code>unmatched</code> is a frontmatter field. If a question does not declare it, its value is <code>"incorrect"</code> when the question has at least one <code>accept</code> pattern, and <code>"manual"</code> when it has none. A question with no correct answer to compare with cannot mark a response as correct, so it leaves the responses to the instructor.</p>
+
+<p>The <code>reject</code> list only says which responses are known to be incorrect, usually to give them a feedback. It does not change what happens to the other responses.</p>
+
+<p>The <b>automation</b> of a question tells how many responses it settles:</p>
+<table>
+<tr><th>Automation</th><th>The question settles</th><th>Condition</th></tr>
+<tr><td><code>automatic</code></td><td>every response</td><td><code>unmatched</code> is <code>"incorrect"</code></td></tr>
+<tr><td><code>semi-automatic</code></td><td>the responses that match a pattern</td><td><code>unmatched</code> is <code>"manual"</code> and the question has at least one <code>accept</code> or <code>reject</code> pattern</td></tr>
+<tr><td><code>manual</code></td><td>no response</td><td><code>unmatched</code> is <code>"manual"</code> and the question has no pattern</td></tr>
+</table>
+
+<p><code>automation</code> is not a field of the document. It MUST NOT appear in the frontmatter of a question, or in its YAML or JSON form. An implementation computes it from <code>accept</code>, <code>reject</code> and <code>unmatched</code>, and SHOULD offer it as a read-only property of the question. <code>preAccept</code> and <code>preReject</code> validate a submission and play no part in it.</p>
+
+<p>An implementation that scores responses MUST NOT give a score to a response that is not settled. It reports the response as pending, in the same way as a response to an essay question (see responses.md).</p>
+
+<h4>Automatic: the instructor knows the correct answers</h4>
+<div class="two">
+<pre>[short-answer]: Brasília</pre>
+<pre>accept:
+  - Brasília</pre>
+</div>
+<p><code>Salvador</code> matches no pattern. The question has an <code>accept</code> pattern, so <code>unmatched</code> is <code>"incorrect"</code>.</p>
+
+<h4>Automatic: with feedback for known incorrect answers</h4>
+<div class="two">
+<pre>[short-answer]: Brasília
+
+[short-answer/reject]:
+* Rio de Janeiro
+  &gt; It was the capital until 1960.</pre>
+<pre>accept:
+  - Brasília
+reject:
+  - pattern: Rio de Janeiro
+    feedback: It was the capital until 1960.</pre>
+</div>
+<p><code>Rio de Janeiro</code> is incorrect and gets the feedback. <code>Salvador</code> is incorrect with no feedback. To give a feedback to every other incorrect response, end the <code>reject</code> list with a regex that matches any text:</p>
+<pre>[short-answer/reject]:
+* Rio de Janeiro
+  &gt; It was the capital until 1960.
+* /.*/
+  &gt; This city was never the capital.</pre>
+
+<h4>Semi-automatic: the instructor knows some correct and some incorrect answers</h4>
+<div class="two">
+<pre>---
+unmatched: manual
+---
+Name a biome of central Brazil.
+
+[short-answer]:
+* Cerrado
+* Pantanal
+
+[short-answer/reject]:
+* Savana
+  &gt; Savanna is the general term.</pre>
+<pre>unmatched: manual
+accept:
+  - Cerrado
+  - Pantanal
+reject:
+  - pattern: Savana
+    feedback: Savanna is the general term.</pre>
+</div>
+<p><code>Cerrado</code> is correct and <code>Savana</code> is incorrect. <code>Mata Atlântica</code> matches no pattern and goes to the instructor.</p>
+
+<h4>Semi-automatic: the instructor knows only some correct answers</h4>
+<div class="two">
+<pre>---
+unmatched: manual
+---
+Name a biome of central Brazil.
+
+[short-answer]:
+* Cerrado
+* Pantanal</pre>
+<pre>unmatched: manual
+accept:
+  - Cerrado
+  - Pantanal</pre>
+</div>
+
+<h4>Semi-automatic: the instructor knows only some incorrect answers</h4>
+<div class="two">
+<pre>Name a biome of central Brazil.
+
+[short-answer]:
+
+[short-answer/reject]:
+* Savana
+  &gt; Savanna is the general term.</pre>
+<pre>reject:
+  - pattern: Savana
+    feedback: Savanna is the general term.</pre>
+</div>
+<p>There is no <code>accept</code> pattern, so <code>unmatched</code> is <code>"manual"</code>. <code>Savana</code> is incorrect, and the instructor grades every other response.</p>
+
+<h4>Manual</h4>
+<div class="two">
+<pre>[short-answer]:</pre>
+<pre># no accept and no reject</pre>
+</div>
+<p>No response is settled. The question works like a one-line essay.</p>
+</div>
+
+<p>Em <code>fill-in.md</code>:</p>
+<div class="draft">
+<p>The <code>unmatched</code> field of a fill-in question applies to each of its short answer blanks, like <code>diacritics</code>. If the question does not declare it, each blank takes its own default: <code>"incorrect"</code> if the blank has an <code>accept</code> pattern, <code>"manual"</code> if it has none. A short answer blank has an automation, by the rules of a short answer question. Choice blanks and numeric blanks are always <code>automatic</code>. A fill-in question is <code>automatic</code> if every blank is automatic, <code>manual</code> if every blank is manual, and <code>semi-automatic</code> in every other case.</p>
+</div>
+
+<h2>3. Todas as combinações</h2>
+<table>
+<tr><th><code>accept</code></th><th><code>reject</code></th><th><code>unmatched</code></th><th>Proposta</th></tr>
+<tr><td>padrões</td><td>qualquer</td><td>ausente ou <code>incorrect</code></td><td class="ok">automatic</td></tr>
+<tr><td>padrões</td><td>qualquer</td><td><code>manual</code></td><td class="mid">semi-automatic</td></tr>
+<tr><td>ausente</td><td>padrões</td><td>ausente ou <code>manual</code></td><td class="mid">semi-automatic</td></tr>
+<tr><td>ausente</td><td>ausente</td><td>ausente ou <code>manual</code></td><td>manual</td></tr>
+<tr><td>ausente</td><td>qualquer</td><td><code>incorrect</code></td><td class="no">automatic, nenhuma resposta pode estar certa. Warning (reaproveita <code>short-answer-not-gradable</code>).</td></tr>
+<tr><td>qualquer</td><td>vazio (<code>[]</code> ou bloco sem padrão)</td><td>qualquer</td><td class="no">erro, como hoje</td></tr>
+</table>
+
+<h2>4. Remover o curinga <code>*</code></h2>
+<p>Concordo: com <code>unmatched</code>, o curinga perde a função principal e vira um caso especial que só gera regras em volta dele.</p>
+<table>
+<tr><th>Uso do <code>*</code> hoje</th><th>Sem o curinga</th></tr>
+<tr><td>Último item de <code>reject</code>: fecha a questão</td><td><code>unmatched: incorrect</code>, que já é o default</td></tr>
+<tr><td>Último item de <code>reject</code>: feedback padrão para resposta errada</td><td>Regex <code>/.*/</code> como último item, com o feedback. É um padrão comum, sem regra especial.</td></tr>
+<tr><td>Em <code>accept</code>: aceita tudo</td><td><code>/.*/</code>. Hoje já gera warning.</td></tr>
+<tr><td>Em <code>preAccept</code>/<code>preReject</code></td><td>Sem uso real</td></tr>
+</table>
+<p><b>O que some junto:</b></p>
+<ul>
+<li>A seção "Wildcard" de <code>patterns.md</code> e a regra "um <code>*</code> literal exige crases".</li>
+<li>Os códigos de lint <code>accept-wildcard</code> e <code>unreachable-reject</code> (inclusive a extensão a <code>preAccept</code>/<code>preReject</code> feita no D11; a parte de âncora e flag fica).</li>
+<li>Exemplos do corpus: <code>accept-wildcard</code>, <code>unreachable-reject</code>, <code>pre-validation-wildcard</code>; e o <code>*</code> final em <code>accept-reject</code>, <code>fill-in/short-answer-patterns</code>, <code>fill-in/pre-validation-lints</code>.</li>
+<li>Conversores GIFT/Moodle: a importação deixa de pôr crases em <code>*</code>.</li>
+</ul>
+<p><b>Custo honesto:</b></p>
+<ul>
+<li><code>/.*/</code> é menos legível que <code>*</code> para quem não conhece regex. O spec documenta a forma como receita.</li>
+<li><code>.</code> não casa com quebra de linha. Para resposta de uma linha não importa.</li>
+<li>Uma questão com <code>unmatched: manual</code> e um <code>/.*/</code> no fim de <code>reject</code> decide tudo, mas <code>automation</code> diz <code>semi-automatic</code>: a propriedade olha os campos, não analisa regex.</li>
+</ul>
+
+<h2>5. Decisão pendente</h2>
+<div class="dec"><b>W1. Remover o curinga <code>*</code>.</b> Recomendo sim. <code>*</code> passa a ser um literal comum.</div>
+
+<h2>6. O que muda, se aprovado</h2>
+<ul>
+<li><b>Spec:</b> <code>short-answer.md</code> (campo <code>unmatched</code> na tabela, seção nova, somem "Open-ended questions" e <code>openEnded</code>), <code>patterns.md</code> (some "Wildcard"), <code>fill-in.md</code>, <code>ordering.md</code> (frase sobre automation), <code>responses.md</code>, <code>lint-codes.md</code>, glossário (entrada "Automation").</li>
+<li><b>Schema:</b> sai <code>openEnded</code> e o <code>if/then</code>; entra <code>unmatched</code> em short-answer e em fill-in.</li>
+<li><b>Corpus:</b> 6 exemplos perdem <code>openEnded</code>; exemplos novos para os três casos semi-automáticos; os exemplos de curinga saem ou são reescritos.</li>
+<li><b>mdq-py:</b> sai <code>open_ended</code> do construtor; campo <code>unmatched</code>; propriedade <code>automation</code> em todos os tipos; <code>score_response</code> reporta pendência por resposta; parser, render, <code>mdq show</code>, lints, conversores.</li>
+<li><b>mdq-js:</b> fica para o port.</li>
+<li><b>Backlog:</b> <code>automation: semi-automatic</code> para essay, para rejeitar respostas inválidas pela forma (ideia sua, para depois).</li>
+</ul>
+</body></html>

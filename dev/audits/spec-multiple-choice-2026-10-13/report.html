@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MDQ Specification Audit: multiple-choice: mdq-spec</title>
+<style>
+:root { --border: #D1D5DB; --muted: #6B7280; --bg-soft: #F3F4F6; }
+* { box-sizing: border-box; }
+body { margin: 0; font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #111827; }
+main { max-width: 60rem; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+header { border-bottom: 3px solid #111827; padding-bottom: 1rem; margin-bottom: 1.5rem; }
+header h1 { margin: 0 0 .5rem; font-size: 2rem; line-height: 1.2; }
+.meta { color: var(--muted); margin: .2rem 0; }
+nav { background: var(--bg-soft); border-radius: 6px; padding: .6rem 1rem; margin-bottom: 2rem; }
+nav a { margin-right: 1.2rem; color: #1F2937; text-decoration: none; font-weight: 600; }
+nav a:hover { text-decoration: underline; }
+h2 { margin-top: 2.5rem; border-bottom: 1px solid var(--border); padding-bottom: .3rem; }
+h3 { margin-top: 1.8rem; }
+code, pre { font-family: ui-monospace, "DejaVu Sans Mono", Menlo, Consolas, monospace; font-size: .85em; }
+code { background: var(--bg-soft); padding: .05em .3em; border-radius: 3px; }
+pre { background: #F9FAFB; border: 1px solid var(--border); border-radius: 6px; padding: .8rem;
+      overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+table { border-collapse: collapse; width: 100%; margin: .8rem 0; font-size: .92em; }
+th, td { border: 1px solid var(--border); padding: .4rem .6rem; text-align: left; vertical-align: top; }
+th { background: var(--bg-soft); }
+.chip { display: inline-block; min-width: 5.5rem; padding: .1rem .5rem; border-radius: 4px; color: #fff;
+        font-size: .75rem; font-weight: 700; text-align: center; text-transform: uppercase; letter-spacing: .03em; }
+.cards { display: flex; flex-wrap: wrap; gap: .8rem; margin: 1rem 0; }
+.card { flex: 1 1 7rem; border: 1px solid var(--border); border-top: 5px solid; border-radius: 6px;
+        padding: .6rem .8rem; }
+.card .n { font-size: 1.8rem; font-weight: 700; }
+.card .label { color: var(--muted); text-transform: uppercase; font-size: .75rem; letter-spacing: .05em; }
+.charts { display: flex; flex-wrap: wrap; gap: 2.5rem; align-items: flex-start; }
+.donut { width: 11rem; height: 11rem; border-radius: 50%; position: relative; flex: none; }
+.donut::after { content: ""; position: absolute; inset: 25%; background: #fff; border-radius: 50%; }
+.donut span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+              font-size: 1.6rem; font-weight: 700; z-index: 1; }
+.legend { list-style: none; padding: 0; margin: 0; }
+.legend li { margin: .25rem 0; }
+.swatch { display: inline-block; width: .8rem; height: .8rem; border-radius: 2px; margin-right: .4rem;
+          vertical-align: -1px; }
+.bars { flex: 1 1 22rem; }
+.bar-row { display: grid; grid-template-columns: 12rem 1fr 2rem; gap: .6rem; align-items: center; margin: .35rem 0; }
+.bar-row .name { font-size: .9em; text-align: right; }
+.bar { display: flex; height: 1.1rem; border-radius: 3px; overflow: hidden; background: var(--bg-soft); }
+.bar span { display: block; height: 100%; }
+.strengths li::marker { content: "✓  "; color: #059669; font-weight: 700; }
+.evidence { color: #059669; }
+.na { color: var(--muted); font-style: italic; }
+.finding { border: 1px solid var(--border); border-left: 5px solid; border-radius: 6px;
+           padding: .2rem 1rem .6rem; margin: 1rem 0; }
+.finding h4 { margin: .6rem 0 .3rem; font-size: 1.05rem; }
+.finding img { max-width: 100%; border: 1px solid var(--border); border-radius: 4px; }
+.recs li { margin: .4rem 0; }
+.prio { font-weight: 700; margin-right: .4rem; }
+.refs { color: var(--muted); font-size: .85em; }
+.issue { position: relative; margin: 1rem 0; }
+.issue button { position: absolute; top: .5rem; right: .5rem; border: 1px solid var(--border); background: #fff;
+                border-radius: 4px; padding: .2rem .7rem; cursor: pointer; font: inherit; font-size: .8rem; }
+footer { margin-top: 3rem; color: var(--muted); font-size: .85em; border-top: 1px solid var(--border);
+         padding-top: .8rem; }
+@media print {
+  @page { size: A4; margin: 2cm; }
+  body { font-size: 10.5pt; }
+  main { max-width: none; padding: 0; }
+  nav, .issue button { display: none; }
+  h2 { break-after: avoid; }
+  .finding, .issue, tr { break-inside: avoid; }
+  #summary, #issues { break-before: page; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>MDQ Specification Audit: multiple-choice: mdq-spec</h1>
+<p class="meta"><strong>Date:</strong> 2026-10-13</p>
+<p class="meta"><strong>Scope:</strong> The <code>multiple-choice</code> question type: <code>docs/question-types/multiple-choice.md</code>, <code>schema/multiple-choice.yaml</code>, its grammar, and the shared specs it depends on (<code>docs/references/grammar.md</code>, <code>docs/references/patterns.md</code>, <code>docs/question-types/question-base.md</code>, <code>docs/exam.md</code>, <code>docs/responses.md</code>).</p>
+</header>
+<nav><a href=#summary>Executive summary</a><a href=#strengths>Strengths and weaknesses</a><a href=#findings>Detailed findings</a><a href=#recommendations>Prioritized recommendations</a><a href=#issues>GitHub issues</a></nav><h2>Methodology</h2><p>Automated checks: <code>uv run scripts/spec_audit.py</code> passed all 14 steps before the audit (schema bundle, docs, Additional Rules, lint codes, valid and invalid corpus, frontmatter tables, property consistency, code blocks, schema agreement).</p><p>Manual review: the lead auditor read the shared specs and the multiple-choice spec and recorded contradictions, ambiguities, omissions and inconsistencies. A grammar subagent turned the multiple-choice grammar and the shared grammar into Lark grammars and tested what they accept and reject against the stated rules. A second, independent subagent reviewed the multiple-choice spec against <code>schema/multiple-choice.yaml</code>, ran every complete example through <code>mdq validate</code>, and checked the Additional Rules table against the MUST/SHOULD/MAY statements of the text.</p><section id="summary"><h2>Executive summary</h2><div class="cards"><div class="card" style="border-top-color:#B91C1C"><div class="n">0</div><div class="label">critical</div></div><div class="card" style="border-top-color:#EA580C"><div class="n">0</div><div class="label">high</div></div><div class="card" style="border-top-color:#D97706"><div class="n">0</div><div class="label">medium</div></div><div class="card" style="border-top-color:#2563EB"><div class="n">0</div><div class="label">low</div></div><div class="card" style="border-top-color:#6B7280"><div class="n">0</div><div class="label">info</div></div><div class="card" style="border-top-color:#111827"><div class="n">0</div><div class="label">Total findings</div></div></div><p>No findings.</p></section><section id="strengths"><h2>Strengths and weaknesses</h2><h3>Strengths</h3><ul class="strengths"><li><strong>Schema mismatches:</strong> The <code>score</code> range, the <code>choices</code> minimum, the <code>id</code> SLUG pattern, and the <code>grading</code>/<code>shuffle</code> enums and <code>inherit</code> defaults agree between multiple-choice.md and schema/multiple-choice.yaml. <span class="evidence">(schema/multiple-choice.yaml:16-45, schema/multiple-choice.yaml:66-91)</span></li><li><strong>Contradictions:</strong> The <code>grading</code> and <code>shuffle</code> inheritance rules agree between multiple-choice.md, exam.md and the schema descriptions (<code>inherit</code> default, <code>symmetric</code>/<code>false</code> outside an exam). <span class="evidence">(docs/question-types/multiple-choice.md:29-33, docs/exam.md:293-296)</span></li><li><strong>Ambiguities:</strong> The six rows of the grading table match the formula u = clamp(-Σspecified / #unspecified, -1, 0), including both clamp cases. <span class="evidence">(docs/question-types/multiple-choice.md:209-216)</span></li><li><strong>Grammar violations:</strong> The <code>value</code> and <code>percent</code> rules of the multiple-choice item match the prose and the examples. Tested with Lark: accepted <code>[*]</code>, <code>[ ]</code>, <code>[\t]</code>, <code>[  ]</code>, <code>[ * ]</code>, <code>[ 50% ]</code>, <code>[100%]</code>, <code>[+50%]</code>, <code>[33.5%]</code>, <code>[-100%]</code>, <code>[150%]</code> (left to the schema range check, as the prose says); rejected <code>[]</code> (parse-error, as in examples/invalid/multiple-choice-empty-brackets), <code>[x]</code>, <code>[**]</code>, <code>[.5%]</code>, <code>[5.%]</code>, <code>[U+00A0]</code> and <code>[U+000B]</code>. Each of these accepted values has exactly one semantic parse. <span class="evidence">(docs/question-types/multiple-choice.md:44-47)</span></li><li><strong>Grammar violations:</strong> The shared rules <code>ws</code>, <code>nl</code> and <code>SLUG</code> hold. <code>ws</code> accepts space, tab and mixes, and rejects U+00A0, U+3000, U+000B, U+000C and U+FEFF. <code>nl</code> accepts LF, CR and CRLF (CRLF as one line ending), and rejects U+000B, U+000C, U+0085, U+2028 and U+2029. <code>SLUG</code> accepts <code>Q1</code>, <code>ipe-amarelo</code>, <code>a_b</code>, <code>a-b_c</code> and <code>1</code>, and rejects <code>a--b</code>, <code>-a</code>, <code>a-</code>, <code>a_</code>, <code>ipê</code>, <code>a b</code>, <code>a.b</code> and the empty string, in Python <code>re</code> (Lark) and JavaScript <code>RegExp</code>. A U+00A0 before the item and in the value is rejected, and a U+2028 inside choice text stays text, as the prose of grammar.md requires. <span class="evidence">(docs/references/grammar.md:27-64)</span></li><li><strong>Grammar violations:</strong> <code>UNICODE_SPACE</code> matches exactly the 25 code points of the Unicode White_Space property (Python <code>str.isspace()</code> minus U+001C to U+001F) in Python <code>re</code>, and 25 code points in JavaScript <code>RegExp</code> with and without the <code>u</code> flag. <code>UNIT</code> excludes exactly <code>UNICODE_SPACE</code> plus <code>(</code>, <code>)</code>, <code>[</code>, <code>]</code>. The regex-dialect claims hold: JavaScript <code>\s</code> matches U+FEFF and not U+0085 or U+001C; Python <code>\s</code> matches U+0085 and U+001C and not U+FEFF. <span class="evidence">(docs/references/grammar.md:9-19, docs/references/grammar.md:77-89)</span></li><li><strong>Inconsistencies:</strong> Every row of the multiple-choice symmetric grading table matches the formula -(sum of declared scores)/(unspecified count) clamped to [-1, 0], and examples/grading/multiple-choice.yaml repeats each row as a test case. <span class="evidence">(docs/question-types/multiple-choice.md:209-216, examples/grading/multiple-choice.yaml)</span></li><li><strong>Schema mismatches:</strong> The multiple-choice schema agrees with the prose on score range [-1, 1] (malformed, not clamped), the choice id pattern (the SLUG terminal of grammar.md), minItems 2, and the grading/shuffle enums and <code>inherit</code> defaults of exam.md Inheritance. <span class="evidence">(schema/multiple-choice.yaml:16-91, docs/question-types/multiple-choice.md:112-116, docs/references/grammar.md:59, docs/exam.md:293-296)</span></li><li><strong>Omissions:</strong> The three complete multiple-choice documents in the spec (capital of Brazil, exclamation mark, largest river) validate with mdq-py without errors or warnings. <span class="evidence">(docs/question-types/multiple-choice.md:9-15, docs/question-types/multiple-choice.md:149-153, docs/question-types/multiple-choice.md:166-173)</span></li><li><strong>Omissions:</strong> The corpus covers most multiple-choice edge cases: percent forms (+50%, 33.5%, 0%, -100%), spaced and tab values, both feedback/comment orders, continuation lines, link at choice start, out-of-range score, empty brackets, foreign marker, single choice, duplicate id/text, all-correct and no-correct cases. <span class="evidence">(examples/valid/multiple-choice/percent-forms.mdq.md, examples/valid/multiple-choice/comments.mdq.md, examples/invalid/multiple-choice-score-out-of-range.mdq.md, examples/invalid/multiple-choice-empty-brackets.mdq.md)</span></li></ul><h3>Central risks</h3><ul><li>The multiple-choice item is specified three times (grammar, prose, Additional Rules) and the three disagree on empty text, empty feedback, interleaving, continuation lines and choice ids; mdq-py follows a fourth reading in some cases, so mdq-js has no single source to port.</li><li>The choice item has no Markdown-to-AST mapping, so the JSON/YAML form of a question is defined only by the corpus and by mdq-py.</li><li>Lint severities and verbs (MAY reject, MAY warn, critical vs warning for blanks) do not match between the type spec, question-base and lint-codes.md, so the reported level depends on which document an implementer reads.</li></ul></section><section id="findings"><h2>Detailed findings</h2><h3>Contradictions</h3><p>No findings in this category.</p><h3>Ambiguities</h3><p>No findings in this category.</p><h3>Omissions</h3><p>No findings in this category.</p><h3>Inconsistencies</h3><p>No findings in this category.</p><h3>Grammar violations</h3><p>No findings in this category.</p><h3>Schema mismatches</h3><p>No findings in this category.</p></section><section id="recommendations"><h2>Prioritized recommendations</h2><ul class="recs"></ul></section><section id="issues"><h2>GitHub issues</h2><p>Each block below is a complete issue, ready to paste.</p></section>
+<footer>MDQ Specification Audit: multiple-choice: mdq-spec · 2026-10-13</footer>
+</main>
+<script>
+document.querySelectorAll(".issue button").forEach((button) => {
+  button.addEventListener("click", async () => {
+    const text = document.getElementById(button.dataset.target).textContent;
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const range = document.createRange();
+      range.selectNodeContents(document.getElementById(button.dataset.target));
+      getSelection().removeAllRanges();
+      getSelection().addRange(range);
+      document.execCommand("copy");
+    }
+    const label = button.textContent;
+    button.textContent = button.dataset.copied;
+    setTimeout(() => (button.textContent = label), 1500);
+  });
+});
+</script>
+</body>
+</html>

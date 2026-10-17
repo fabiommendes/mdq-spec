@@ -1,0 +1,127 @@
+<h2 id="spec">1. Specs: contradições e omissões</h2>
+<p>Leitura de <code>docs/**</code> cruzada com <code>schema/*.yaml</code>. Sev: <b class="a">A</b> alta, <b class="m">M</b> média, <b class="b">B</b> baixa.</p>
+
+<h3>1.1 Contradições</h3>
+<table>
+<tr><th>ID</th><th>Sev</th><th>Onde</th><th>Problema</th></tr>
+
+<tr><td>S1</td><td class="a">A</td><td>short-answer.md:149-226, 377-388<br>schema/short-answer.yaml:16-36</td>
+<td>Spec diz que <code>[short-answer]: X</code> equivale a ser o único item de <code>accept</code>. Schema e exemplos gravam em <code>oneOf</code> (literal) ou <code>regex</code> (<code>/.../</code>). <code>oneOf</code>, <code>regex</code> e <code>openEnded</code> não aparecem na tabela de frontmatter nem em nenhuma seção de prosa, só na tabela de regras. A forma de lista (<code>[short-answer]:</code> + <code>ul</code>, exemplo <code>short-answer/list</code>) não existe na gramática. Parte já registrada em <code>dev/issues/lint-spec-open-decisions.md</code>.</td></tr>
+
+<tr><td>S2</td><td class="a">A</td><td>multiple-choice.md:102-103 vs 174-200</td>
+<td>"an omitted value is 0" contra a seção Grading, que trata valor omitido como "unspecified" (<code>_</code>) e deriva score negativo em <code>symmetric</code>. Os exemplos gravam <code>score: 0</code> para <code>[ ]</code>, então o AST vindo de markdown não distingue <code>[ ]</code> de <code>[0%]</code> e <code>symmetric</code> nunca penaliza. <code>examples/grading/multiple-choice.yaml</code> distingue <code>null</code> de <code>0.0</code>. Schema permite omitir <code>score</code>.</td></tr>
+
+<tr><td>S3</td><td class="a">A</td><td>multiple-choice.md:196</td>
+<td>Tabela de grading: linha <code>[1, 1, _, _]</code> symmetric = -0.50. Pela regra (média zero) é -1.00: 2 + 2x = 0. A linha seguinte <code>[1, 0.5, _, _]</code> = -0.75 segue a regra, então a linha 2 está errada.</td></tr>
+
+<tr><td>S4</td><td class="a">A</td><td>exam.md:275-278 vs multiple-selection.md:96-106</td>
+<td>"Under the default none, symmetric and partial produce identical exam totals" é falso. <code>[T, F, _, _]</code> dá 0.75 em partial e 0.5 em symmetric, ambos positivos. O piso em 0 só iguala os casos negativos.</td></tr>
+
+<tr><td>S5</td><td class="a">A</td><td>fill-in.md:170-172, 206-215 vs 221-225</td>
+<td>"only choice blanks can carry [feedback] ... short answer blanks have no feedback syntax" contra <code>pattern_item</code> "including its &gt; feedback and ! comment lines" e o exemplo do planeta, que tem feedback em blank short-answer.</td></tr>
+
+<tr><td>S6</td><td class="m">M</td><td>responses.md:129-136</td>
+<td>Unidade incompatível: "MUST reject ... with grade zero" (linha 130) contra "a unit other than the declared one" é resposta malformada, "never a wrong answer" (linha 133).</td></tr>
+
+<tr><td>S7</td><td class="m">M</td><td>numeric.md:70 vs 117-124</td>
+<td>Gramática só permite <code>abstol</code> INTEGER ou DECIMAL. A tabela de domínio tem linhas com abstol <code>fraction</code>. Schema: <code>tolerance.absolute</code> é <code>number</code>, então fração também não entra por YAML.</td></tr>
+
+<tr><td>S8</td><td class="m">M</td><td>base.md:85-88, exam.md:88-91, 310, 331 vs examples/valid/exam/scheduled</td>
+<td>"A value keeps its YAML type and is never converted" contra <code>start: 2026-03-10 09:00:00-03:00</code> sem aspas (timestamp YAML, separador espaço, não é ISO 8601), aceito e convertido para string. Spec só cobre a exceção <code>1:30</code>. Falta dizer se timestamp YAML é aceito em <code>start</code>.</td></tr>
+
+<tr><td>S9</td><td class="m">M</td><td>base.md:179-181 vs numeric.md:62, fill-in.md:92-95</td>
+<td>base.md: tag seguida de <code>:</code> pode ter espaços em volta do dois-pontos. Gramáticas de numeric e fill-in não têm <code>ws?</code> antes do <code>:</code>; short-answer tem.</td></tr>
+
+<tr><td>S10</td><td class="m">M</td><td>ordering.md:268-269 vs 350</td>
+<td><code>dedent</code>: "removes the common leading whitespace" (preserva indentação relativa) contra "reducing every line to indentation level 0". São duas semânticas diferentes na mesma frase.</td></tr>
+
+<tr><td>S11</td><td class="m">M</td><td>short-answer.md:220-226</td>
+<td><code>[short-answer]</code> pode ser combinado com <code>[short-answer/accept]</code>, mas é interpretado "as if its content were the only pattern of the accept block". Não diz como os dois se combinam nem a ordem, que importa para feedback.</td></tr>
+
+<tr><td>S12</td><td class="m">M</td><td>schema/exam.yaml:24-25, schema/question-base.yaml (id)</td>
+<td>Descrições desatualizadas: "A number written in the frontmatter is read as its decimal string form" contra exam.md:88-91 (nunca converte). <code>id</code> de questão: "may be derived from position or title".</td></tr>
+
+<tr><td>S13</td><td class="b">B</td><td>base.md:103-104 vs 275</td>
+<td>Reticências no stem: recurso oferecido (implementação MAY expandir) e ao mesmo tempo lint info pedindo para o autor não usar. Não define se o AST guarda <code>...</code> ou o texto expandido. lint-codes aceita <code>…</code> (U+2026); base.md não menciona.</td></tr>
+
+<tr><td>S14</td><td class="b">B</td><td>base.md:224-225 vs ordering.md:124-128</td>
+<td>"all fields in the frontmatter are translated as-is" contra <code>tags</code> string virar lista (só dito de passagem em ordering.md). Não define trim dos itens após o split.</td></tr>
+
+<tr><td>S15</td><td class="b">B</td><td>base.md:278-280</td>
+<td>Nota 8 cita "the locale pattern in Frontmatter". Não existe pattern nessa seção nem no schema.</td></tr>
+
+<tr><td>S16</td><td class="b">B</td><td>short-answer.md:382</td>
+<td>"accept, reject, oneOf: each body block may be defined at most once". <code>oneOf</code> não é bloco do corpo.</td></tr>
+
+<tr><td>S17</td><td class="b">B</td><td>numeric.md:11, essay.md:10</td>
+<td>Exemplos com espaço no fim da linha (<code>1000 </code>, <code>[essay] </code>) que as gramáticas não aceitam.</td></tr>
+</table>
+
+<h3>1.2 Omissões</h3>
+<table>
+<tr><th>ID</th><th>Sev</th><th>Onde</th><th>Problema</th></tr>
+
+<tr><td>O1</td><td class="a">A</td><td>base.md:65, docs/question-types/*</td>
+<td>Inferência de tipo não especificada. Lista só com <code>[ ]</code>: multiple-choice ou multiple-selection? O exemplo <code>multiple-selection/none-correct</code> infere multiple-selection, regra que só existe no comentário do YAML. Também indefinido: marcadores misturados (<code>[*]</code> com <code>[x]</code>, <code>[T]</code> com <code>[ ]</code>, <code>[50%]</code> com <code>[x]</code>).</td></tr>
+
+<tr><td>O2</td><td class="a">A</td><td>schema/exam.yaml:178-187</td>
+<td><code>Entry</code> do exame não inclui <code>ordering.yaml</code>. Exame com questão de ordenação falha no schema. exam.md:296-300 também não lista <code>ordering</code> (coerente, grading é binário), mas a questão em si deveria ser aceita.</td></tr>
+
+<tr><td>O3</td><td class="a">A</td><td>todos os tipos</td>
+<td>Mapeamento markdown para AST não está em prosa na maioria dos tipos. Campos que só aparecem no schema ou nas tabelas de regras: <code>choices[].score/correct</code>, <code>answer</code>, <code>tolerance.absolute/relative</code>, <code>lines</code>, <code>extra</code>, <code>accept/reject</code> (ordering), <code>blanks[]</code>, <code>answerKey</code>, <code>comment</code> (comment string), <code>instructions</code> e <code>questions</code> (exam), forma do bloco include no AST.</td></tr>
+
+<tr><td>O4</td><td class="m">M</td><td>base.md:140-166, multiple-choice.md:36-49, 61</td>
+<td>Gramática de parse do slug e do <code>[choice-id]</code> não definida. O regex é SHOULD, então não diz o que conta como slug. <code>[link](url) texto</code> no primeiro parágrafo ou no início de uma choice: slug ou link? A gramática de <code>item</code> nem tem o <code>[choice-id]</code>.</td></tr>
+
+<tr><td>O5</td><td class="m">M</td><td>exam.md, base.md:79</td>
+<td>Fórmula da nota do exame só aparece numa nota de rodapé de base.md ("weighted mean"). exam.md não define: média ponderada, questões pendentes de correção manual, soma de pesos igual a 0.</td></tr>
+
+<tr><td>O6</td><td class="m">M</td><td>short-answer.md:13-15 vs grammar.md:11-23</td>
+<td>Normalização usa <code>/\s+/</code>, a classe que grammar.md proíbe por divergir entre Python e JS (U+FEFF, U+0085, U+001C-1F). Também não define o algoritmo de case folding (lower vs casefold) nem o de remoção de diacríticos (<code>ø</code>, <code>ß</code>, <code>đ</code>).</td></tr>
+
+<tr><td>O7</td><td class="m">M</td><td>short-answer.md:231-255</td>
+<td>Literal que começa com <code>/</code> não tem escape. <code>/usr/bin</code> é lido como regex <code>usr</code> com flags <code>b</code>, <code>i</code>, <code>n</code>, todas válidas. Só sobra a forma exata com crases. Falta também o que fazer com flag desconhecida e flag repetida.</td></tr>
+
+<tr><td>O8</td><td class="m">M</td><td>exam.md:134-138, 356; lint-codes.md</td>
+<td>Regra crítica "epilogue must not use --- as thematic break" não tem código de erro e não diz como o parser detecta. O exemplo <code>exam/thematic-break-in-question</code> usa <code>---</code> no preâmbulo; a regra só cita o epílogo. Falta definir <code>---</code> seguido de texto que não é mapping YAML.</td></tr>
+
+<tr><td>O9</td><td class="m">M</td><td>lint-codes.md vs tabelas de regras</td>
+<td>Regras críticas sem código: fill-in "at most one of each form"; ordering "at most one extra", "same content block type", "at most one feedback and one comment block"; short-answer "each body block at most once". Se são <code>parse-error</code>, o spec deve dizer. Outras já estão em <code>lint-spec-open-decisions.md</code>.</td></tr>
+
+<tr><td>O10</td><td class="m">M</td><td>numeric.md:24, responses.md:135</td>
+<td><code>decimalPlaces</code> sem semântica: arredonda a resposta, valida a entrada, é inferido do número de casas do <code>answer</code>? O lint <code>ignored-decimal-places-inferred</code> sugere inferência que o spec não descreve.</td></tr>
+
+<tr><td>O11</td><td class="m">M</td><td>ordering.md:236-260, 295-301; responses.md:186-187</td>
+<td>Em <code>fixed</code> o nível é ignorado na correção, mas "same text and same level are the same line". Duas linhas com mesmo texto e níveis diferentes ficam indistinguíveis na correção. Nível de indentação para conteúdo <code>ul</code> (lista aninhada?) não definido.</td></tr>
+
+<tr><td>O12</td><td class="m">M</td><td>fill-in.md:39-80, base.md:129-137</td>
+<td>Blank fora do stem: <code>[^id]</code> em preâmbulo ou epílogo é blank, texto ou erro? O stem é um parágrafo só. Já existe <code>dev/issues/blank-placement.md</code>.</td></tr>
+
+<tr><td>O13</td><td class="b">B</td><td>exam.md:322-338</td>
+<td>Gramática de duração aceita string vazia, <code>P</code> e <code>PT</code> (a prosa proíbe). Forma canônica ambígua para semanas: <code>P7D</code> vira <code>P1W</code>? Forma canônica de <code>start</code> só com data não definida.</td></tr>
+
+<tr><td>O14</td><td class="b">B</td><td>exam.md:126-132</td>
+<td><code>---</code> logo após parágrafo é setext H2 em CommonMark. O spec exige linha em branco antes de <code>===</code>, mas não antes do <code>---</code> de um bloco.</td></tr>
+
+<tr><td>O15</td><td class="b">B</td><td>exam.md:200-229</td>
+<td>Questão do banco sem <code>id</code> selecionada por <code>include-all</code>: não diz se entra, nem com que id.</td></tr>
+
+<tr><td>O16</td><td class="b">B</td><td>essay.md:21, true-false.md:143-157</td>
+<td>Default de <code>input</code> não definido. Letras esperadas por locale não definidas (a tabela de referência só tem as palavras), então <code>locale-mismatched-true-false-marker</code> varia por implementação.</td></tr>
+
+<tr><td>O17</td><td class="b">B</td><td>true-false.md:79-90</td>
+<td>PROVISIONAL significa true. Toda inicial nativa de "falso" fora da lista é lida como true: <code>Н</code> (ru), <code>अ</code> (hi), <code>ম</code> (bn), <code>خ</code> (ar), <code>ج</code> (ur). Só <code>S</code> em <code>id</code> tem aviso dedicado; os outros caem no aviso genérico de PROVISIONAL. A justificativa do <code>S</code> usa romanização.</td></tr>
+
+<tr><td>O18</td><td class="b">B</td><td>base.md:87-88</td>
+<td><code>null</code> só é definido para <code>id</code> e <code>tags</code>. Demais campos (<code>title: </code> vazio) sem regra.</td></tr>
+<tr><td>O19</td><td class="a">A</td><td>base.md:85-88, exam.md:88-91, 331</td>
+<td>Versão do YAML e resolução de escalares não definidas. O spec depende de YAML 1.1 para <code>include: yes</code> ser booleano (erro) e para o timestamp de <code>start</code>, mas rejeita YAML 1.1 para <code>1:30</code>. Um parser YAML 1.2 (default em JS) lê <code>yes</code> como string e aceita <code>invalid/exam-ids-not-strings</code>. Achado do agente de exam.</td></tr>
+<tr><td>O20</td><td class="m">M</td><td>exam.md:247-260</td>
+<td>Não diz se o AST mostra <code>locale</code>/<code>author</code> herdados. Os exemplos mostram. Ids derivados têm o tratamento oposto (fora do AST).</td></tr>
+<tr><td>O21</td><td class="m">M</td><td>base.md:78, 265 vs lint-codes.md:85</td>
+<td><code>locale</code>: base.md diz "valid", lint-codes diz "well-formed". São termos distintos na RFC 5646 (ver M24).</td></tr>
+<tr><td>O22</td><td class="m">M</td><td>base.md:270 vs schema (minLength: 1)</td>
+<td><code>title: ""</code> é erro de schema; <code>title: " "</code> é warning. A prosa só tem a regra de warning. Mesmo para <code>author</code>, <code>description</code>, <code>course</code>. "Pelo menos 2 choices" também só existe no schema.</td></tr>
+<tr><td>O23</td><td class="m">M</td><td>fill-in.md:197-199 vs schema/fill-in.yaml</td>
+<td>Blank short-answer aberto é válido na prosa e não tem forma no AST: o schema do blank não tem <code>openEnded</code>.</td></tr>
+</table>

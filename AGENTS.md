@@ -114,7 +114,7 @@ for the undefined rules and terminals.
 | Typescript        | `mdq-js/`              | Typescript implementation of the MDQ parser and Components |
 | GLOSSARY          | `GLOSSARY.md`          | Glossary of terms                                          |
 | BACKLOG           | `BACKLOG.md`           | List of pending tasks and features for the project         |
-| Issue tracker     | `dev/issues/`          | Local issue tracker (not in git). Delete issue when done.  |
+| Issue tracker     | `dev/issues/`          | Issue tracker of the project. Delete issue when done.      |
 | Specs             | `dev/specs/to-do`      | Specifications for features that should be implemented     |
 | Review            | `dev/specs/to-review/` | Specs that were implemented, but need review               |
 | Skills            | `skills/`              | Tell agents how to write mdq documents correctly           |
@@ -205,7 +205,8 @@ Rules:
   (`mdq-py/` or `mdq-js/`). A commit that also touches the root is split
   correctly, but its message then appears in the subtree repository and
   describes changes that are not there.
-- `dev/` is ignored and stays local. Never commit it.
+- `dev/` is committed with the root repository. Keep each commit of `dev/`
+  in the root, never mixed with a subtree commit.
 - Push and pull only when the human asks. Push the root first, then each
   subtree that changed:
 
