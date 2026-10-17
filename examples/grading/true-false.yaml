@@ -146,3 +146,12 @@ questions:
         score: "malformed"
       - marks: { a: 1, b: false, c: true, d: false }
         score: "malformed"
+
+  # A key that names no statement of the question is a malformed response,
+  # never ignored.
+  - name: "Unknown statement id"
+    choices: { a: true, b: false, c: true, d: false }
+    grading: "symmetric"
+    examples:
+      - marks: { a: true, b: false, c: true, d: false, e: true }
+        score: "malformed"

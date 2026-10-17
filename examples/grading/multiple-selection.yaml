@@ -8,7 +8,7 @@
 #   choices: { [key of string]: boolean }
 #
 #   // Mapping of examples to their scores
-#   examples: { ticks: string[], score: number | Fraction }[]
+#   examples: { ticks: (string | number)[], score: number | Fraction | "malformed" }[]
 # }
 #
 # Some scores are represented as fractions because the floating point
@@ -173,3 +173,16 @@ questions:
         score: 0.0
       - ticks: []
         score: -1.0
+
+  # A tick that names no choice, or that is not a string, is a malformed
+  # response, never ignored.
+  - name: "Malformed tick"
+    choices: { a: true, b: false, c: true, d: false }
+    grading: "symmetric"
+    examples:
+      - ticks: ["a", "c", "e"]
+        score: "malformed"
+      - ticks: ["e"]
+        score: "malformed"
+      - ticks: ["a", 1]
+        score: "malformed"

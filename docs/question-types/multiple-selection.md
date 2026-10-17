@@ -71,7 +71,7 @@ choices:
 
 A question MAY mark any number of choices as correct, including none or all.
 Implementations MAY report, at the `info` level, a question with no correct
-choice (`no-correct-choice`), since the empty response `{}` then scores 1, and
+choice (`no-correct-choice`), since the empty response (`[]`, nothing ticked) then scores 1, and
 a question with every choice correct (`all-choices-correct`), since ticking
 every choice then scores 1.
 

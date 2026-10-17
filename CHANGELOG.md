@@ -56,9 +56,11 @@ First version of the specification.
   a statement is judged correctly, judged wrongly or an abstention. The info
   `uniform-true-false-answers` covers every statement with the same `correct`
   value, reported at `choices`.
-- Responses (`docs/responses.md`): in a multiple selection or true/false
-  response, `null` is the same as an absent key, and any other non-boolean
-  value (`"T"`, `1`) is a malformed response.
+- Responses (`docs/responses.md`): a multiple selection response is the list
+  of ticked choice ids. In a true/false response, `null` is the same as an
+  absent key, and any other non-boolean value (`"T"`, `1`) is a malformed
+  response. An id not present in the question is a malformed response for
+  every type that uses ids.
 - Choice items (`docs/references/choices.md`, "Item"): a block other than the
   first paragraph, the feedback and the comment is a `parse-error`.
 - True/false locale table and rules (`docs/question-types/true-false.md`,

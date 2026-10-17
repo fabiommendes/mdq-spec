@@ -20,12 +20,18 @@ carries an id is called **addressable**. Grading refuse a document that is not,
 but implementations MAY provide schemes for filling in ids automatically, when
 possible.
 
+An id in a response that is not present in the question MUST be rejected as a
+malformed response. This applies to every response that is keyed by id or
+refers to ids: multiple choice, multiple selection, true/false, fill in the
+blanks, and the choice blank of a fill in. An unknown id is always a logic
+error in the application, so it is never ignored and never scored as wrong.
+
 ## Response by question type
 
 | Question type      | Response                                           |
 | ------------------ | -------------------------------------------------- |
 | multiple-choice    | the id of the chosen choice                        |
-| multiple-selection | a mapping of choice id to boolean                  |
+| multiple-selection | the set of ticked choice ids, as a list            |
 | true-false         | a mapping of statement id to boolean               |
 | numeric            | a number, or a string holding an exact rational    |
 | short-answer       | the text the student wrote                         |
@@ -42,39 +48,27 @@ The id of the choice the student picked.
 response: paris
 ```
 
-An id that names a choice not present in the question MUST be rejected as a
-malformed response, not scored as wrong.
+An id not present in the question is a malformed response, see
+[Addressability](#addressability).
 
 
 ### Multiple selection
 
-A mapping from choice id to what the student marked. Given a question whose
-choices are `lisbon`, `brasilia`, `sao-paulo` and `rio-de-janeiro`:
+The set of choice ids the student ticked, written as a list. Given a question
+whose choices are `lisbon`, `brasilia`, `sao-paulo` and `rio-de-janeiro`:
 
 ```yaml
-response:
-  brasilia: true
-  rio-de-janeiro: true
+response: [brasilia, rio-de-janeiro]
 ```
 
-An absent key means the student did not tick that choice, and in a
+An id absent from the list means the student did not tick that choice, and in a
 multiple-selection question **not ticking asserts false**. The response above
-is therefore exactly equivalent to spelling every choice out:
+therefore judges `lisbon` and `sao-paulo` as false. Order does not matter. An
+id that appears more than once counts as one tick.
 
-```yaml
-response:
-  lisbon: false
-  brasilia: true
-  sao-paulo: false
-  rio-de-janeiro: true
-```
-
-Like before, if an id is not present in the question, it MUST be rejected as a
-malformed response.
-
-A `null` value is the same as an absent key: the student did not tick that
-choice, which asserts false. Any other value that is not a boolean, such as
-`"T"` or `1`, makes the response a malformed response.
+An id not present in the question is a malformed response, see
+[Addressability](#addressability). A value that is not a list of ids, such as
+a mapping, is also a malformed response.
 
 
 ### True/false
@@ -91,8 +85,8 @@ response:
   # light-travels-instantly-through-space is abstained, so simply absent
 ```
 
-Like before, if an id is not present in the question, it MUST be rejected as a
-malformed response.
+An id not present in the question is a malformed response, see
+[Addressability](#addressability).
 
 A `null` value is the same as an absent key: an abstention. Any other value that
 is not a boolean, such as `"T"` or `1`, makes the response a malformed response,
@@ -176,6 +170,10 @@ response:
   size: 2750000
 ```
 
+A blank id not present in the question is a malformed response, see
+[Addressability](#addressability). The same holds for a choice blank: the value
+must be the id of one of its choices.
+
 
 ### Ordering
 
@@ -212,15 +210,15 @@ grading formula running, and therefore triggers no feedback.
 response: null
 ```
 
-`null` is not the same as an empty mapping. On a multiple-selection question,
-`{}` means the student considered the question and ticked nothing -- an
+`null` is not the same as an empty list. On a multiple-selection question,
+`[]` means the student considered the question and ticked nothing -- an
 assertion that every choice is false, which under symmetric grading may score
 below zero and will explain every answer they missed. `null` means they never
 engaged with it at all.
 
 ```yaml
 response: null   # skipped: scores 0, no feedback
-response: {}     # answered "none of these": graded normally
+response: []     # answered "none of these": graded normally
 ```
 
 
@@ -230,9 +228,7 @@ An exam attempt is a mapping from question id to response.
 
 ```yaml
 response:
-  ms-capitals:
-    brasilia: true
-    rio-de-janeiro: true
+  ms-capitals: [brasilia, rio-de-janeiro]
   essay-answer-key: "The greenhouse effect is a natural process that..."
   num-unit: null
 ```
@@ -268,5 +264,6 @@ answered badly" -- a wrong answer is a score, not an error.
 | a question or choice has no id                    | `MissingIdError`    |
 | an exam still holds an unresolved `include`       | `UnresolvedInclude` |
 | a response the question cannot represent          | `ResponseError`     |
+| an id in a response not present in the question   | `ResponseError`     |
 | a key naming no question in the exam              | `ResponseError`     |
 | a score asked of a pending response                | `NotAutoGradable`   |

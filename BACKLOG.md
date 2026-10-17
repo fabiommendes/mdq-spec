@@ -83,7 +83,7 @@ Those need discussion and design.
 * [x] Create the test function that reads examples/grading/*.yaml files and run the corresponding tests
 * [ ] `examples/grading/`: add tables for ordering, fill-in, and the exam
   penalty policies (`none`, `capped`, `full`), including a `null` response
-  against `{}` (responses.md, "Skipping").
+  against `[]` (responses.md, "Skipping").
 * [ ] `scripts/spec_audit.py`: check that each "Additional Rules" row with the
   code `schema-error` has a matching constraint (`minimum`, `pattern`, `enum`,
   ...) at its field path in the schema, and that the rule text ends in
