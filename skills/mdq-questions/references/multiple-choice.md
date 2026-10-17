@@ -40,7 +40,7 @@ What is the capital of Brazil?
 | Field   | Values                                             |
 | ------- | -------------------------------------------------- |
 | shuffle | `inherit` (default: the exam's value, else `false`), `true`, `false` |
-| grading | `inherit` (default: the exam's value, else `symmetric`), `symmetric`, `partial`, `all-or-nothing` |
+| grading | `inherit` (default: the exam's value, else `symmetric`), `symmetric`, `partial` |
 
 Unless explicitly requested, avoid setting those parameters. If left unset, the
 instructor can define exam-wide values.
@@ -52,7 +52,7 @@ An explicit percentage on the picked choice always wins. Otherwise:
 `[ ]` omits the score; the grading strategy decides its value. `[0%]` is an
 explicit zero and always scores 0.
 
-* `partial` / `all-or-nothing`: unmarked choices score 0.
+* `partial`: unmarked choices score 0.
 * `symmetric`: unmarked choices get a negative score so that guessing at random
   averages zero (4 choices, one correct → a wrong pick scores -0.33).
 

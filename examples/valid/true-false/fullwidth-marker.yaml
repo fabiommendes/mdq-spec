@@ -1,0 +1,15 @@
+# U+FF26 (FULLWIDTH LATIN CAPITAL LETTER F) is NFKC-normalized to `f`
+# before it is read, so it means false. `marker` keeps the written letter.
+id: tf-fullwidth-marker
+title: Fatos sobre o Brasil
+type: true-false
+stem: Julgue as afirmações sobre o Brasil.
+choices:
+  - id: capital
+    text: A capital do Brasil é Buenos Aires.
+    correct: false
+    marker: "Ｆ"
+  - id: amazonia
+    text: A Floresta Amazônica fica no Brasil.
+    correct: true
+    marker: T

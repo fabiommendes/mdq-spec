@@ -1,6 +1,6 @@
 # Two statements whose texts differ only in the amount of whitespace. Texts
 # are compared with whitespace normalized, so this is `duplicate-choice-text`
-# (multiple-choice.md, "Choices"), which JSON Schema cannot express.
+# (references/choices.md, "Choice text"), which JSON Schema cannot express.
 type: true-false
 stem: Julgue as afirmações sobre o Pantanal.
 choices:

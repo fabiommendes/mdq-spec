@@ -30,6 +30,16 @@ values (see [type inference](../question-types/question-base.md#type-inference))
 and every value MUST then belong to the `value` rule of that type
 (`foreign-choice-marker`).
 
+The **normalized value** of a choice is its value after two steps: NFKC
+normalization, then ASCII lowercase (`A` to `Z` only, with no other case
+folding). The parser applies them to the value of every choice marker, in
+every choice list, before it infers the type of the question. Type inference,
+the `value` rules of each type and the meaning of the value all use the
+normalized value. So `[Ｘ]` (U+FF38) is `x`, `[＊]` is `*` and `[Ｆ]` (U+FF26)
+is `f`. A type that keeps the written letter (`marker` in
+[true/false](../question-types/true-false.md#choices)) keeps the original
+character.
+
 The empty marker, `[]`, is a `parse-error`. It is almost always a mistyped
 `[ ]`, and the message of the error can say so.
 
@@ -92,6 +102,32 @@ and a line that starts with `![` is an image, not a comment.
   ! Comments to other instructors.
   ! Another line of comments.
 ```
+
+An item holds only the first paragraph (with its lazy lines), the feedback and
+the comment. Any other block in an item is a `parse-error`. This covers:
+
+* a second paragraph, after a blank line;
+* a nested list;
+* a code block;
+* text after the feedback or the comment, separated from it by a blank line.
+
+````md
+* [x] Amazonas
+
+  A second paragraph is a `parse-error`.
+* [ ] Nilo
+  * A nested list is a `parse-error`.
+* [ ] Madeira
+  ```sh
+  ls -la
+  ```
+* [ ] Negro
+  > Feedback.
+
+  Text after the feedback is a `parse-error`.
+````
+
+Write a code span (`` `ls` ``) inside the first paragraph instead.
 
 ## AST
 

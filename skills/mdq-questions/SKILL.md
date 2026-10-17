@@ -87,7 +87,9 @@ take `grading` in the frontmatter:
 * `inherit` (default) — take the exam's `grading`; `symmetric` outside an exam.
 * `symmetric` — wrong answers subtract, so guessing averages zero.
 * `partial` — credit per correct item, never negative.
-* `all-or-nothing` — everything right or zero.
+* `no-mistakes` — any wrong answer gives zero, otherwise credit per correct
+  item (true/false and fill-in only).
+* `all-or-nothing` — everything right or zero (not for multiple choice).
 
 Short answer and numeric are always binary (1 or 0). Essay is always manual.
 

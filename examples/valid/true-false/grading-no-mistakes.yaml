@@ -1,0 +1,14 @@
+# `no-mistakes` is a true-false grading: a wrong marking gives 0, and an
+# unmarked statement is not a mistake.
+id: tf-grading-no-mistakes
+title: Cerrado facts
+type: true-false
+grading: no-mistakes
+stem: Judge the statements.
+choices:
+  - text: The Cerrado is the Brazilian savanna.
+    correct: true
+    marker: T
+  - text: The Cerrado covers the whole coast of Brazil.
+    correct: false
+    marker: F

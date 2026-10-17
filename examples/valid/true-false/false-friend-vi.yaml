@@ -1,0 +1,18 @@
+# `S` reads as true globally, but it is the initial letter of Vietnamese
+# "sai" (false), and `Đ` ("đúng", true) is the usual partner: the `vi` row lists `S`
+# as a false friend. `Đ` is accepted without a warning.
+id: tf-amazonia-vi
+title: Sự thật về Amazon
+type: true-false
+locale: vi
+stem: Đánh giá các phát biểu về sông Amazon.
+choices:
+- text: Sông Amazon chảy qua Brazil.
+  correct: true
+  marker: Đ
+- text: Sông Amazon chảy vào Thái Bình Dương.
+  correct: true
+  marker: S
+- text: Sông Amazon nằm ở châu Phi.
+  correct: false
+  marker: F

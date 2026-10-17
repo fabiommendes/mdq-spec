@@ -1,7 +1,7 @@
 ---
 id: mc-grading
 title: Longest river
-grading: all-or-nothing
+grading: partial
 ---
 
 Which river carries the largest volume of water in the world?

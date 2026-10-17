@@ -1,0 +1,18 @@
+# Cebraspe style: `C` (certo) is accepted under `locale: pt-BR` and gets no
+# warning. `E` (errado) is a WARNING letter that reads as true, so the `pt` row lists
+# it as a false friend: `false-friend-true-false-marker`. Write `F` for false.
+id: tf-cebraspe-brasil
+title: Julgamento de itens
+type: true-false
+locale: pt-BR
+stem: Julgue os itens a seguir sobre o Brasil.
+choices:
+- text: O Pantanal é a maior planície alagável do mundo.
+  correct: true
+  marker: C
+- text: O Brasil faz fronteira com o Equador.
+  correct: true
+  marker: E
+- text: A Chapada Diamantina fica no Rio Grande do Sul.
+  correct: false
+  marker: F

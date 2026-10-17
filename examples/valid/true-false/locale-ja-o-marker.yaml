@@ -1,0 +1,18 @@
+# The `ja` row accepts `真` and `偽`, and also `O`, a WARNING letter that reads as
+# true. The usual ○/× marks are not letters (`foreign-choice-marker`), and `[X]`
+# would make the list a multiple-selection list: write `O` for true and `偽` for false.
+id: tf-amazon-ja
+title: アマゾンの事実
+type: true-false
+locale: ja
+stem: アマゾン川に関する記述を判定しなさい。
+choices:
+- text: アマゾン川はブラジルを流れる。
+  correct: true
+  marker: 真
+- text: アマゾン川は世界で最も流量が多い。
+  correct: true
+  marker: O
+- text: アマゾン川は太平洋に注ぐ。
+  correct: false
+  marker: 偽

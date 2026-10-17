@@ -29,7 +29,7 @@ frontmatter:
 | shuffle | boolean or "inherit"           | True if choices can be shuffled[^1] |
 | grading | grading           | The grading strategy to use.[^1] |
 
-[^1]: Grading is `"partial" | "all-or-nothing" | "symmetric" | "inherit"`.
+[^1]: Grading is `"partial" | "symmetric" | "inherit"`.
 Default is `"inherit"`, which takes the strategy from the exam, and is
 `"symmetric"` outside an exam. `shuffle` is `boolean | "inherit"` with the
 same rule: `"inherit"` is the default and resolves to `false` outside an
@@ -105,7 +105,7 @@ Other question types trigger feedback differently: see
 
 ## Grading
 
-The `grading` field of the frontmatter selects one of the three strategies
+The `grading` field of the frontmatter selects one of the two strategies
 below. It can be set in the question, or left as `"inherit"`, the default,
 which takes the strategy from the exam: the exam's `grading`, or its entry for
 `multiple-choice` when it is a map (see [exam grading](../exam.md#grading)). When neither
@@ -114,11 +114,10 @@ is `"symmetric"`.
 
 The grading strategy is ignored if the picked choice defines a score, and the question is
 graded according to that score, under every strategy: a picked `[50%]` choice
-scores 0.5, also under all-or-nothing. Otherwise (i.e., for omitted scores), it uses the
+scores 0.5, also under partial. Otherwise (i.e., for omitted scores), it uses the
 following rules:
 
 * **partial**: Unspecified scores are treated as 0.
-* **all-or-nothing**: Unspecified scores are treated as 0[^2].
 * **symmetric**: Unspecified scores are computed in such a way that
   the average score of randomly picking choices is zero. This depends on the
   number of choices and the number of choices with specified scores. The value
@@ -135,23 +134,18 @@ Picking a choice with a score defined in the body of the question overrides the
 grading strategy. Consider the following answer keys (a list with each choice
 score) and the effect of picking a choice with an omitted score.
 
-| Answer Key       | "partial" | "all-or-nothing" | "symmetric" |
-| ---------------- | :-------: | :--------------: | :---------: |
-| `[1, _, _, _]`   |   0.00    |       0.00       |    -0.33    |
-| `[1, 1, _, _]`   |   0.00    |       0.00       |    -1.00    |
-| `[1, 0.5, _, _]` |   0.00    |       0.00       |    -0.75    |
-| `[1, 0, _, _]`   |   0.00    |       0.00       |    -0.50    |
-| `[1, 1, 1, _]`   |   0.00    |       0.00       |    -1.00    |
-| `[1, -1, _, _]`  |   0.00    |       0.00       |    0.00     |
-| `[1, -1, -1, _]` |   0.00    |       0.00       |    0.00     |
+| Answer Key       | "partial" | "symmetric" |
+| ---------------- | :-------: | :---------: |
+| `[1, _, _, _]`   |   0.00    |    -0.33    |
+| `[1, 1, _, _]`   |   0.00    |    -1.00    |
+| `[1, 0.5, _, _]` |   0.00    |    -0.75    |
+| `[1, 0, _, _]`   |   0.00    |    -0.50    |
+| `[1, 1, 1, _]`   |   0.00    |    -1.00    |
+| `[1, -1, _, _]`  |   0.00    |    0.00     |
+| `[1, -1, -1, _]` |   0.00    |    0.00     |
 
 The results are truncated to 2 decimal places for clarity, but the actual 
 results should be computed with full precision.
-
-[^2]: This is identical to the "partial" strategy and only exists for
-compatibility reasons with the other question types. In
-[multiple selection](multiple-selection.md#grading), any mistake gives 0; here,
-a declared fractional score still counts.
 
 ## Additional Rules
 
@@ -159,6 +153,7 @@ a declared fractional score still counts.
 | ------------------ | -------- | -------------------------- | --------------------------------------------------------- |
 | choices            | error    | schema-error               | must have at least two choices (schema)                   |
 | choices[].id       | error    | schema-error               | must be a valid slug (schema)                             |
+| grading            | error    | schema-error               | must be `partial`, `symmetric` or `inherit` (schema)      |
 | choices[].score    | error    | schema-error               | must be between -1 and 1 (schema)                         |
 | choices[]          | error    | foreign-choice-marker      | must use a value allowed in a multiple choice list        |
 | choices[].text     | error    | blank-text                 | must have at least one visible character                  |
@@ -168,11 +163,11 @@ a declared fractional score still counts.
 | choices[].id       | error    | duplicate-choice-id        | must be unique among the choices of the question          |
 | choices[]          | error    | parse-error                | carries at most one feedback block and one comment block  |
 | choices[]          | error    | parse-error                | must not use the empty marker `[]`                        |
-| choices[].text     | info     | visually-identical-choices | is visually equivalent to another choice[^3]              |
+| choices[].text     | info     | visually-identical-choices | is visually equivalent to another choice[^2]              |
 | choices[].score    | info     | no-correct-choice          | no choice has a score of 1                                |
 | choices[].score    | info     | all-choices-correct        | every choice is correct                                   |
 | choices[].score    | info     | many-correct-choices       | more than one choice has a score of 1                     |
-| choices[].id       | info     | missing-choice-id          | has no id in the document[^4]                             |
+| choices[].id       | info     | missing-choice-id          | has no id in the document[^3]                             |
 
-[^3]: Visual equivalence is not defined by this spec, see [choice text](../references/choices.md#choice-text).
-[^4]: Derived ids are only as stable as the slugifier that produced them.
+[^2]: Visual equivalence is not defined by this spec, see [choice text](../references/choices.md#choice-text).
+[^3]: Derived ids are only as stable as the slugifier that produced them.

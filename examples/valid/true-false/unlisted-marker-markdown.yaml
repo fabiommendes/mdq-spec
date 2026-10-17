@@ -1,0 +1,13 @@
+# The markdown form of `unlisted-marker`: `W` reads as true, but it is a
+# WARNING letter, so it gets `unlisted-true-false-marker`.
+id: tf-clima
+title: Climate claims
+type: true-false
+stem: "`W` is a WARNING letter: it reads as true, which is not what the author meant."
+choices:
+  - text: The Amazon rainforest is a source of rain for central Brazil.
+    correct: true
+    marker: W
+  - text: The greenhouse effect does not exist.
+    correct: false
+    marker: F

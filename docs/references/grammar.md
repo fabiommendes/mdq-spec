@@ -18,6 +18,10 @@ The terminals of this spec use only explicit character classes. Each class
 below matches the same characters in Python `re`, in JavaScript `RegExp` and in
 a JSON Schema `pattern`.
 
+One terminal is an exception: `LETTER` is defined by Unicode General_Category,
+which Python `re` does not support, see [Tokens](#tokens). A snippet uses the
+name and does not define it.
+
 This rule is about the grammar of MDQ. The regexes that authors write in
 short-answer patterns follow the subset of JavaScript defined in
 [patterns.md](patterns.md#regex).
@@ -96,6 +100,14 @@ CHOICE_ID    : /\[[a-zA-Z0-9]+([-_][a-zA-Z0-9]+)*\](?![(\[])/
   [Unit conversion](../question-types/numeric.md#unit-conversion).
 * `COMMENT_LINE` is one line of the comment string of the frontmatter. See
   [Frontmatter](../question-types/question-base.md#frontmatter).
+* `LETTER` is one code point whose Unicode General_Category is `Lu`, `Ll`,
+  `Lt` or `Lo`. It is not `Lm` (modifier letters, such as `ˇ` and `ー`), `Nl`
+  (`〇`), `Nd`, `So` or `Sm`. This is the only terminal that no explicit
+  character class can express, so it is an exception to the
+  [regex dialect](#regex-dialect): the snippets use the name without a
+  definition. The Unicode version is recent, and implementations use the tables
+  of their own platform. Two implementations MAY disagree on a letter that a
+  recent version of Unicode assigned.
 * `CHOICE_ID` is a `SLUG` between square brackets, at the start of a choice
   item, right after its value (see [Choice lists](choices.md)). Where the grammar of the item accepts a
   `CHOICE_ID`, a bracket that matches it is always the choice id, and never

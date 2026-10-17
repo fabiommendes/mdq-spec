@@ -1,5 +1,6 @@
-# Every letter of the TRUE list (`T`, `V`, `S`) and the FALSE list (`F`), in
-# both cases. `S` reads as true outside `locale: id`, with no warning.
+# Every ASCII letter of the TRUE list (`T`, `V`, `B`, `D`) and of the FALSE
+# list (`F`, `M`), in both cases. There is no `locale`, so no letter gets a
+# locale warning. `S` is not here: it is a WARNING letter.
 id: tf-global-markers
 title: Fatos sobre a Mata Atlântica
 type: true-false
@@ -13,19 +14,31 @@ choices:
   marker: V
 - text: A Mata Atlântica abriga o mico-leão-dourado.
   correct: true
-  marker: S
+  marker: B
+- text: A Mata Atlântica alcança o Paraguai e a Argentina.
+  correct: true
+  marker: D
 - text: A Mata Atlântica tem alta biodiversidade.
   correct: true
   marker: t
-- text: A Mata Atlântica alcança o Paraguai e a Argentina.
-  correct: true
-  marker: v
 - text: A Mata Atlântica foi o primeiro bioma explorado pelos colonizadores.
   correct: true
-  marker: s
+  marker: v
+- text: A Mata Atlântica tem florestas de araucária.
+  correct: true
+  marker: b
+- text: A Mata Atlântica cobria cerca de 15% do território brasileiro.
+  correct: true
+  marker: d
 - text: A Mata Atlântica fica inteiramente na região Norte.
   correct: false
   marker: F
+- text: A Mata Atlântica é o maior bioma do Brasil.
+  correct: false
+  marker: M
 - text: A Mata Atlântica é um bioma desértico.
   correct: false
   marker: f
+- text: A Mata Atlântica não tem rios.
+  correct: false
+  marker: m

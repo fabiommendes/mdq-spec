@@ -1,0 +1,21 @@
+# Cyrillic `В` ("верно") is TRUE and `Н` ("неверно") is FALSE. NFKC does not map
+# them to the Latin `B` and `H`, and the normalized value lowercases ASCII only, so
+# both cases are listed in the letter sets. The `ru` row accepts them: no warning.
+id: tf-amazonia-ru
+title: Факты об Амазонке
+type: true-false
+locale: ru
+stem: Оцените утверждения об Амазонке.
+choices:
+- text: Амазонка течёт по территории Бразилии.
+  correct: true
+  marker: В
+- text: Амазонка впадает в Тихий океан.
+  correct: false
+  marker: Н
+- text: Амазонка — самая полноводная река мира.
+  correct: true
+  marker: в
+- text: Амазонка находится в Африке.
+  correct: false
+  marker: н

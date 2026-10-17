@@ -141,7 +141,7 @@ Explain why the Caatinga has a short rainy season.
 
 Choices and patterns take student feedback in indented `>` lines and
 instructor-only comments in `!` lines. Choice-based types accept a `grading`
-strategy (`symmetric`, `partial` or `all-or-nothing`). See
+strategy (`symmetric`, `partial`, `no-mistakes` or `all-or-nothing`, depending on the type). See
 [docs/responses.md](docs/responses.md) for how responses are represented and
 scored.
 

@@ -1,0 +1,17 @@
+# `W` ("wahr") and `R` ("richtig") are WARNING letters, but the `de` row accepts
+# them: no `unlisted-true-false-marker`. They still read as true.
+id: tf-regenwald-de
+title: Fakten über den Regenwald
+type: true-false
+locale: de
+stem: Beurteilen Sie die Aussagen über den Amazonas-Regenwald.
+choices:
+- text: Der Amazonas-Regenwald liegt überwiegend in Brasilien.
+  correct: true
+  marker: W
+- text: Der Amazonas mündet in den Atlantik.
+  correct: true
+  marker: R
+- text: Der Amazonas fließt durch Australien.
+  correct: false
+  marker: F

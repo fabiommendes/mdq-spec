@@ -1,0 +1,16 @@
+# `T`/`F` are canonical: no locale warning under `locale: pt-BR`, next to `V`.
+id: tf-locale-pt-canonical
+title: Geografia do Brasil
+type: true-false
+locale: pt-BR
+stem: Julgue as alternativas.
+choices:
+  - text: Brasília é a capital do Brasil.
+    correct: true
+    marker: T
+  - text: O Rio Amazonas deságua no Oceano Pacífico.
+    correct: false
+    marker: F
+  - text: O Brasil faz fronteira com a Argentina.
+    correct: true
+    marker: V

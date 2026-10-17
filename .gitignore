@@ -17,3 +17,4 @@ __pycache__/
 # Claude Code local files; project skills are tracked
 .claude/*
 !.claude/skills/
+.serena/

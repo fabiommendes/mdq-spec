@@ -21,22 +21,34 @@ Statements take the same `[choice-id]`, `>` feedback and `!` comment syntax as
 ### Markers
 
 Any single letter works, case-insensitive, except `x` (reserved for
-[multiple selection](multiple-selection.md)). Use the pair matching the
-document's language:
+[multiple selection](multiple-selection.md)). A letter is one code point of
+category `Lu`, `Ll`, `Lt` or `Lo`. Digits, symbols (`✓`, `×`), modifier
+letters (`ˇ`) and a letter plus a combining mark are errors. Fullwidth forms
+such as `Ｆ` read as their plain letter (`F`), but write plain letters. Use the
+pair matching the document's language:
 
-* Always true: `T`, `V`, `S`.
-* Always false: `F`.
-* Any other letter means true but raises a warning — avoid it.
+* Always true: `T`, `V`, `B`, `D`, `Đ`, and a few non-Latin letters (such as `对`, `真`, `是`, `В`, `स`).
+* Always false: `F`, `M`, and a few non-Latin letters (such as `错`, `偽`, `非`, `Н`, `ग`).
+* Any other letter means true but raises a warning, so avoid it. `S` is one of them: it means false in Indonesian, Vietnamese and Malay.
 
-For `locale: pt-BR` write `V`/`F`; for English `T`/`F`. The letter itself is
-kept in the parsed document, so `V` and `T` stay distinguishable.
+`T`/`F` are valid under every `locale`. For `locale: pt-BR` write `V`/`F`,
+`T`/`F` or `C` (Cebraspe style). `E` for false is a trap: it reads as true and
+gets `false-friend-true-false-marker`, so write `F`. Other TRUE or FALSE letters
+(`B` under `pt-BR`, `V` under `en`) get a `locale-mismatched-true-false-marker`
+warning. The letter itself is kept in the parsed document, without the spaces
+around it (`[ T ]` stores `T`), so `V` and `T` stay distinguishable. A `marker`
+field in YAML or JSON must agree with `correct`: `F` with `correct: true` is an
+error.
+
+The `○`/`×` marks are not letters, and `[X]` makes the list a multiple-selection
+list. In Japanese or Korean write `O` for true and `F` (or `偽`/`거`) for false.
 
 ### Frontmatter
 
 | Field   | Values                                             |
 | ------- | -------------------------------------------------- |
 | shuffle | `inherit` (default: the exam's value, else `false`), `true`, `false` |
-| grading | `inherit` (default: the exam's value, else `symmetric`), `symmetric`, `partial`, `all-or-nothing` |
+| grading | `inherit` (default: the exam's value, else `symmetric`), `symmetric`, `partial`, `no-mistakes`, `all-or-nothing` |
 
 ### Grading
 
@@ -44,7 +56,8 @@ Unlike multiple selection, a statement may be left **unmarked**, and unmarked
 never hurts:
 
 * `partial`: correct markings / total.
-* `all-or-nothing`: any wrong marking gives 0; otherwise correct markings / total.
+* `no-mistakes`: any wrong marking gives 0; otherwise correct markings / total.
+* `all-or-nothing`: 1 only if every statement is marked correctly; an unmarked one counts as wrong.
 * `symmetric`: (correct - wrong) / total; unmarked scores nothing either way.
 
 Feedback is shown for every statement judged wrongly **and** every statement

@@ -23,7 +23,6 @@ allOf:
       grading:
         enum:
           - partial
-          - all-or-nothing
           - symmetric
           - inherit
         default: inherit

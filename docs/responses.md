@@ -72,12 +72,16 @@ response:
 Like before, if an id is not present in the question, it MUST be rejected as a
 malformed response.
 
+A `null` value is the same as an absent key: the student did not tick that
+choice, which asserts false. Any other value that is not a boolean, such as
+`"T"` or `1`, makes the response a malformed response.
+
 
 ### True/false
 
 A mapping from statement id to the judgement the student made. Unlike multiple
 selection, an absent key is **not** a false: it is an abstention, and the
-student may deliberately leave a statement unjudged.
+student may deliberately abstain on a statement.
 
 ```yaml
 response:
@@ -89,6 +93,16 @@ response:
 
 Like before, if an id is not present in the question, it MUST be rejected as a
 malformed response.
+
+A `null` value is the same as an absent key: an abstention. Any other value that
+is not a boolean, such as `"T"` or `1`, makes the response a malformed response,
+not a statement judged wrongly.
+
+```yaml
+response:
+  earth-is-flat: false
+  humans-descend-from-apes: null  # same as an absent key
+```
 
 
 ### Numeric

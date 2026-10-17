@@ -1,0 +1,15 @@
+# Every statement is false: `uniform-true-false-answers`, at the info level.
+id: tf-fisica
+title: Physics claims
+type: true-false
+stem: Judge the alternatives.
+choices:
+  - text: Light travels instantly through space.
+    correct: false
+    marker: F
+  - text: A heavier body falls faster than a lighter one in a vacuum.
+    correct: false
+    marker: F
+  - text: Sound travels through the vacuum.
+    correct: false
+    marker: F

@@ -114,11 +114,14 @@ Those need discussion and design.
   and the `misplaced-blank` rule relaxed.
 
 
-* [ ] Block elements inside a choice (fenced code, nested list) in
-  multiple-choice, multiple-selection and true/false. The grammar accepts
-  inline markdown only and the parser folds the item into one line, so a
-  fenced block loses its line breaks. The example
-  `multiple-choice/fenced-code-choice` was removed until this is designed.
+* [ ] Choices with blocks: allow several blocks (paragraphs, code, lists) as
+  choice text, before the feedback. Useful for programming exams. Today any
+  block other than the first paragraph, the feedback and the comment is a
+  `parse-error` (references/choices.md, "Item"). Affects the grammar, the
+  `text` of the schemas, the render, and multiple choice, multiple selection,
+  true/false and fill-in. Additive change: documents valid today stay valid.
+  The example `multiple-choice/fenced-code-choice` was removed until this is
+  designed.
 
 
 ## Uncategorized issues

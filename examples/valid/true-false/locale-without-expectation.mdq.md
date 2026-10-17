@@ -1,11 +1,11 @@
 ---
-id: tf-locale-de
-title: Aussagen über Brasilien
-locale: de
+id: tf-locale-nl
+title: Uitspraken over Brazilië
+locale: nl
 ---
 
-Beurteilen Sie die Aussagen über Brasilien.
+Beurteilen Sie die Uitspraken over Brazilië.
 
-* [T] Brasilien ist das größte Land Südamerikas.
-* [F] Die Hauptstadt Brasiliens ist Rio de Janeiro.
-* [W] Der Amazonas fließt durch Brasilien.
+* [T] Brazilië is het grootste land van Zuid-Amerika.
+* [F] De hoofdstad van Brazilië is Rio de Janeiro.
+* [W] De Amazone stroomt door Brazilië.

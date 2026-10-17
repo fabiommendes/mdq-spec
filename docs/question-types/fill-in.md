@@ -33,7 +33,7 @@ frontmatter
 | preAccept  | map       | Blank id to the patterns a response must match[^7] |
 | preReject  | map       | Blank id to the patterns a response must not match[^7] |
 
-[^1]: Grading is `"partial" | "all-or-nothing" | "symmetric" | "inherit"`.
+[^1]: Grading is `"partial" | "no-mistakes" | "all-or-nothing" | "symmetric" | "inherit"`.
 Default is `"inherit"`, which takes the strategy from the exam, and is
 `"symmetric"` outside an exam. `shuffle` is `boolean | "inherit"` with the
 same rule: `"inherit"` is the default and resolves to `false` outside an
@@ -297,7 +297,7 @@ produces a score in the range `[-1, 1]`. The question's `grading` field selects
 both how each blank is scored and how those scores are combined into the
 question's score.
 
-The `grading` field of the frontmatter selects one of the three strategies
+The `grading` field of the frontmatter selects one of the four strategies
 below. It can be set in the question, or left as `"inherit"`, the default,
 which takes the strategy from the exam: the exam's `grading`, or its entry for
 `fill-in` when it is a map (see [exam grading](../exam.md#grading)). When neither
@@ -324,6 +324,10 @@ The strategies combine those blank scores as follows:
 
 * **partial**: the mean of the blank scores, with any negative blank score
   taken as 0. The result lies in the range `[0, 1]`.
+* **no-mistakes**: 0 if any blank the student filled scores below 1,
+  otherwise the mean of the blank scores, where an empty blank scores 0. An
+  empty blank is not a mistake, but a choice blank with a score below 1, even
+  a positive one such as 0.5, is.
 * **all-or-nothing**: 1 if every blank scores 1, and 0 otherwise. Any mistake
   anywhere gives zero points, including a single blank left empty.
 * **symmetric**: the mean of the blank scores as they stand, negatives
@@ -338,21 +342,23 @@ Consider a question with three blanks -- `river` (a short answer blank),
 The "blank scores" column lists what each blank scored on its own, in that
 order, and every strategy is computed from those three numbers.
 
-| Response                              | Blank scores   | "partial" | "all-or-nothing" | "symmetric" |
-| ------------------------------------- | -------------- | :-------: | :--------------: | :---------: |
-| all three right                       | `[1, 1, 1]`    |   1.00    |       1.00       |    1.00     |
-| wrong city, the rest right            | `[1, 1, -0.5]` |   0.67    |       0.00       |    0.50     |
-| wrong length, the rest right          | `[1, 0, 1]`    |   0.67    |       0.00       |    0.67     |
-| right river, wrong length, city empty | `[1, 0, 0]`    |   0.33    |       0.00       |    0.33     |
-| right length, wrong city, river empty | `[0, 1, -0.5]` |   0.33    |       0.00       |    0.17     |
-| everything wrong                      | `[0, 0, -0.5]` |   0.00    |       0.00       |    -0.17    |
-| everything left empty                 | `[0, 0, 0]`    |   0.00    |       0.00       |    0.00     |
+| Response                              | Blank scores   | "partial" | "no-mistakes" | "all-or-nothing" | "symmetric" |
+| ------------------------------------- | -------------- | :-------: | :-----------: | :--------------: | :---------: |
+| all three right                       | `[1, 1, 1]`    |   1.00    |     1.00      |       1.00       |    1.00     |
+| right river and length, city empty    | `[1, 1, 0]`    |   0.67    |     0.67      |       0.00       |    0.67     |
+| wrong city, the rest right            | `[1, 1, -0.5]` |   0.67    |     0.00      |       0.00       |    0.50     |
+| partial-credit city, the rest right   | `[1, 1, 0.5]`  |   0.83    |     0.00      |       0.00       |    0.83     |
+| wrong length, the rest right          | `[1, 0, 1]`    |   0.67    |     0.00      |       0.00       |    0.67     |
+| right river, wrong length, city empty | `[1, 0, 0]`    |   0.33    |     0.00      |       0.00       |    0.33     |
+| right length, wrong city, river empty | `[0, 1, -0.5]` |   0.33    |     0.00      |       0.00       |    0.17     |
+| everything wrong                      | `[0, 0, -0.5]` |   0.00    |     0.00      |       0.00       |    -0.17    |
+| everything left empty                 | `[0, 0, 0]`    |   0.00    |     0.00      |       0.00       |    0.00     |
 
 The `-0.5` is what a wrong pick scores in a three-choice blank under
 `symmetric`, where unspecified choice scores are derived so that picking at
-random averages zero. Under `partial` and `all-or-nothing` that same wrong pick
-scores 0, which is the only reason those two score columns ever differ from
-`symmetric` in the table above.
+random averages zero. Under `partial`, `no-mistakes` and `all-or-nothing` that
+same wrong pick scores 0. The `0.5` is a score the choice declares itself, so
+it holds under every strategy.
 
 The results are rounded to 2 decimal places for clarity, but the actual
 results should be computed with full precision.

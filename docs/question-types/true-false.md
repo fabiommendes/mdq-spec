@@ -1,10 +1,10 @@
-# True false
+# True/false
 
 ## Example
 
 True/False questions are represented by an unordered list with an ASCII-art
-rendition of a True or False marker. The correct answers are usually marked with
-`[T]` and incorrect ones are usually marked with an `[F]`. 
+rendition of a True or False marker. True statements are usually marked
+with `[T]` and false statements with `[F]`.
 
 ```md
 Judge the alternatives.
@@ -18,7 +18,7 @@ Judge the alternatives.
 ## Frontmatter
 
 True/False questions accept the following extra arguments in the
-frontmatter
+frontmatter:
 
 | Field   | Type         | Description                      |
 | ------- | ------------ | -------------------------------- |
@@ -26,7 +26,7 @@ frontmatter
 | shuffle | boolean or "inherit"      | True if choices can be shuffled[^1] |
 | grading | grading      | The grading strategy to use.[^1] |
 
-[^1]: Grading is `"partial" | "all-or-nothing" | "symmetric" | "inherit"`.
+[^1]: Grading is `"partial" | "no-mistakes" | "all-or-nothing" | "symmetric" | "inherit"`.
 Default is `"inherit"`, which takes the strategy from the exam, and is
 `"symmetric"` outside an exam. `shuffle` is `boolean | "inherit"` with the
 same rule: `"inherit"` is the default and resolves to `false` outside an
@@ -40,62 +40,111 @@ items. Each item follows the `item` rule of
 [Choice lists](../references/choices.md#item), with the values:
 
 ```lark
-value : ws? (true | false) ws?
+value          : ws? (TRUE_LETTER | FALSE_LETTER | WARNING_LETTER) ws?
+TRUE_LETTER    : /[tvbdđĐвВ对對真是참صसসबఒசถસ]/
+FALSE_LETTER   : /[fmнН错錯偽非거خغगমचతதผખ]/
+WARNING_LETTER : /(?![tvbdđĐвВfmнН对對真是참صसসबఒசถસ错錯偽非거خغगমचతதผખx])/ LETTER
 ```
 
-`true` and
-`false` are single characters (case-insensitive) that represent each case. The
-most common choices are `T` and `F`, respectively. However all other letters
-except `X`, which is used to represent multiple-selection items, have one
-truth value assigned to them.
+The terminals apply to the [normalized value](../references/choices.md#choice-marker)
+of the marker: NFKC, then ASCII lowercase. `[T]`, `[t]` and `[Ｔ]` (U+FF34) all
+read as `t`. `LETTER` is defined in [Tokens](../references/grammar.md#tokens).
+If the NFKC form of a letter has more than one code point, as in `ﬁ` (U+FB01),
+the letter is in the WARNING category.
 
-A **letter** is exactly one Unicode code point whose General_Category is one of
-`Lu`, `Ll`, `Lt`, `Lm` or `Lo` -- that is, the character class written `\p{L}`
-in regex engines that support Unicode properties. This covers the Latin letters
-used above (`T` is `Lu`, `t` is `Ll`) and the CJK ideographs, which are `Lo`:
-对 is U+5BF9, 真 is U+771F, 错 is U+9519, 偽 is U+507D, all four
+The most common letters are `T` and `F`. All other letters except `X`, which
+represents multiple-selection items, have one truth value assigned to them.
+
+A **letter** is exactly one code point of `LETTER`, as written, before
+normalization. `LETTER` is a General_Category (`Lu`, `Ll`, `Lt` or `Lo`), not a
+regex class: see [Tokens](../references/grammar.md#tokens). This covers the
+Latin letters used above (`T` is `Lu`, `t` is `Ll`) and the CJK ideographs,
+which are `Lo`: 对 is U+5BF9, 真 is U+771F, 错 is U+9519, 偽 is U+507D, all four
 `Lo` (Letter, other) in the Han script.
 
-Two consequences follow:
+Three consequences follow:
 
-* Marks that look like answers but are not letters are NOT valid markers,
-  because they fall outside `\p{L}`: `✓` (U+2713) and `✗` (U+2717) are `So`,
-  `×` (U+00D7) is `Sm`, `○` (U+25CB) is `So`, and `〇` (U+3007) is `Nl`.
-  Digits are `Nd` and are likewise excluded.
+* Marks that look like answers but are not letters are NOT valid markers:
+  `✓` (U+2713) and `✗` (U+2717) are `So`, `×` (U+00D7) is `Sm`, `○` (U+25CB)
+  is `So`, and `〇` (U+3007) is `Nl`. Digits are `Nd`. A modifier letter is
+  `Lm`, so `ˇ` (U+02C7) and `ー` (U+30FC) are not valid either. Each of them
+  is a `foreign-choice-marker`.
 * "One code point", not one grapheme cluster. A base letter followed by a
-  combining mark is two code points and is not a valid marker. Implementations
-  MAY report, at the info level, a marker that is not in NFC form: in NFC,
-  precomposed forms are single code points.
+  combining mark is two code points and is not a valid marker, even if its
+  NFKC form is one code point. A letter that is one code point stays valid
+  when its NFC form is longer, such as U+0958 (`Lo`).
+* Validity is measured on the written text. Meaning is measured on the
+  normalized value. `Ｆ` (U+FF26) is a valid marker and means false, and
+  U+212B (ANGSTROM SIGN) is a valid marker that is read as `Å` (U+00C5), a
+  WARNING letter. Implementations MAY report, at the info level, a marker that
+  is not its own NFKC form (`non-nfkc-true-false-marker`).
 
 The letters are divided into 3 categories: TRUE, FALSE and WARNING. The
-first ALWAYS represent true, the second ALWAYS represent false and the third
-represent true, but SHOULD trigger a warning from compliant implementations,
+first ALWAYS represents true, the second ALWAYS represents false and the third
+represents true, but SHOULD trigger a warning from compliant implementations,
 since the letter is not in either list and the author may have meant false.
 
 That warning is only possible for implementations that retain the letter itself:
 see the `marker` field under [Choices](#choices).
 
-The assignments were chosen to reflect the spelling of True and False in the
-most commonly used languages in the world. See
-[annex/true-false-spellings.md](../annex/true-false-spellings.md)
-for the source data and the rationale behind each addition.
+The assignments reflect the spelling of True and False in the most commonly
+used languages in the world. The meaning of a letter never depends on
+`locale`. See [annex/true-false-spellings.md](../annex/true-false-spellings.md)
+for the source data and the classification of each candidate letter.
 
-* **TRUE**: `TVS`, plus 对 (Mandarin "dui") and 真 (Japanese "shin")
-* **FALSE**: `F`, plus 错 (Mandarin "cuo") and 偽 (Japanese "gi")
-* **WARNING**: Every other letter, except `X` and `x`.
+* **TRUE** (`TRUE_LETTER`): `T`, `V`, `B`, `D`, `Đ`, `对`, `對`, `真`, `是`, `В`,
+  `참`, `ص`, `स`, `স`, `ब`, `ఒ`, `ச`, `ถ` and `સ`.
+* **FALSE** (`FALSE_LETTER`): `F`, `M`, `错`, `錯`, `偽`, `非`, `Н`, `거`, `خ`, `غ`,
+  `ग`, `ম`, `च`, `త`, `த`, `ผ` and `ખ`.
+* **WARNING** (`WARNING_LETTER`): Every other letter, except `X`. `S` is a
+  WARNING letter. Like every WARNING letter, it still means true.
 
-`S` was chosen for TRUE over FALSE deliberately: it is the initial letter for
-"true" in Hindi, Bengali, Arabic, Urdu and Japanese (सत्य, সত্য, صحيح, سچ, 真),
-but also the initial for "false" in Indonesian ("salah"). The larger,
-independently-converging group won; Indonesian documents should use `F` for
-false rather than `S`, see [Locale](#locale) below. Other language-specific
-initials (e.g. `D`, `B`, `W`, `C`, `A`, `K`, `M`, `N`, `J`, `G`) are
-intentionally left in WARNING rather than promoted to TRUE or FALSE, to avoid
-repeating this kind of collision as more languages are considered.
+The terminals list the lower case versions of the ASCII letters, because they
+apply to the normalized value, which lowercases ASCII only. A cased non-ASCII
+letter appears in both cases: `Đ` and `đ`, `В` and `в`, `Н` and `н`. The other
+non-Latin letters have no case and are used as-is.
 
-We only show the upper case versions of each symbol. Each set must be expanded
-with lowercase versions as well; the CJK characters have no case and are used
-as-is.
+### Why a letter is TRUE, FALSE or WARNING
+
+A letter joins TRUE or FALSE only when it has no conflict in actual practice:
+no language writes it as the initial of the opposite word in tests, textbooks or
+learning platforms. A romanization alone does not count as practice. Nobody
+writes `[S]` for Hindi "सही": the author writes `स`. So a conflict that exists
+only in a romanization does not keep a letter out. A conflict in real practice
+does.
+
+`S` is the main case. It is true only by romanization (Hindi "sahi", Arabic
+"sahih", Urdu "sach", Tamil "sari", Japanese "shin"), but false in real
+practice: Indonesian and Malay "salah" (B/S in Indonesian school material),
+Vietnamese "sai" (Đ/S in mathematics textbooks). A document that used `S` for
+false in those languages was silently graded as true. Now `S` raises
+`unlisted-true-false-marker`, and `false-friend-true-false-marker` under the
+locales where it means false (see [Locale](#locale)).
+
+These letters have a conflict and stay in WARNING:
+
+| Letter | Reason                                                                                      |
+| ------ | ------------------------------------------------------------------------------------------- |
+| `W`    | True in German "wahr", but false in English "wrong".                                        |
+| `K`    | True in Swahili "kweli", but false in Arabic "khata".                                       |
+| `G`    | True in Hausa "gaskiya", but false in Hindi, Urdu and Persian "galat".                      |
+| `C`    | True in Portuguese "certo" (Cebraspe), but Mandarin "cuò" is 错, which is FALSE.            |
+| `E`    | False in Portuguese "errado" (Cebraspe), but "yes" in Turkish "evet".                       |
+| `N`    | True in Swahili "ndiyo", but "no" in English, German ("nein") and French ("non").           |
+| `Y`    | False in Turkish "yanlış" (D/Y), but "yes" in English and Indonesian.                       |
+| `H`    | False in Swahili "hapana", but "yes" in Hindi "haan".                                       |
+| `J`    | No practice as a marker, and "yes" in German and Dutch "ja".                                |
+| `P`    | True in Polish "prawda", but false in Thai "phit" (romanization only, a weak conflict).     |
+| `O`    | The O/X pair of Japanese and Korean needs `X`, which is reserved.                           |
+| `S`    | See above.                                                                                  |
+
+Two more notes:
+
+* NFKC does not map Cyrillic `В` and `Н` to Latin `B` and `H`. Confusables are
+  out of scope: each code point has its own category. Latin `H` stays WARNING
+  while Cyrillic `Н` is FALSE.
+* A letter with no practice at all stays in WARNING too, for example `A`
+  (Hindi "asatya", a form no test uses) and `L` (Russian "lozh").
 
 
 ## Choices
@@ -110,7 +159,7 @@ different questions:
 | Field   | Type    | Description                                             |
 | ------- | ------- | ------------------------------------------------------- |
 | correct | boolean | What the letter *means*: true if the statement is true. |
-| marker  | string  | The letter itself, exactly as it was written.           |
+| marker  | string  | The letter of the bracket value, without its `ws`.      |
 
 `correct` is REQUIRED: every statement states its verdict, even when the
 marker already spells it. It is what grading uses. `marker` is retained
@@ -134,95 +183,219 @@ choices:
     marker: V
 ```
 
-`marker` is a single character, stored verbatim including its case. Letters are
-case-insensitive for *meaning* -- `t` and `T` both mean true -- but a document
-that wrote `t` reads back as `t`.
+`marker` is the letter of the bracket value without the `ws` around it: `[ T ]`
+stores `T`. Only the letter and its case are kept, and the letter keeps its
+form before NFKC. Letters are case-insensitive for *meaning* -- `t` and `T`
+both mean true -- but a document that wrote `t` reads back as `t`, and one that
+wrote `Ｆ` reads back as `Ｆ`.
+
+When `marker` is present, these rules apply:
+
+* Its category MUST agree with `correct`. A FALSE letter requires
+  `correct: false`. A TRUE or WARNING letter requires `correct: true`.
+  `marker: F` with `correct: true` is an error, and so is `marker: K` with
+  `correct: false` (`true-false-marker-disagrees-with-correct`). The category
+  uses the [normalized value](../references/choices.md#choice-marker) of the
+  letter.
+* It MUST NOT be `X` or `x`, nor a letter that normalizes to `x`
+  (`reserved-true-false-marker`).
+* It MUST be one letter, as defined in [Body](#body)
+  (`malformed-true-false-marker`).
+
+These rules check the `marker` field of model input (YAML, JSON, dict). In a
+markdown document a bracket value that is not allowed in a true/false list
+(`[x]`, `[TF]`, `[✓]`, `[1]`) gets only `foreign-choice-marker`. It does not get
+`malformed-true-false-marker` or `reserved-true-false-marker`.
 
 `marker` is OPTIONAL. A document carrying only `correct` is well-formed and
 grades identically; it has simply lost the ability to be written back out
 unchanged, and neither the WARNING-category warning above nor the locale warning
-below can be issued for it.
+below can be issued for it. A writer (a serializer to Markdown) that needs a
+letter for a statement without `marker` SHOULD write `T` or `F`, by `correct`.
 
 
 ## Locale
 
-Implementations MAY issue warnings for True/False letters that are incompatible
-with the locale for the question. For instance, if `locale: pt-BR`, it may
-expect `V` and `F` -- for "verdadeiro" (true) and "falso" (false) -- and could
-issue a warning if `T` is used instead. The check reads `marker`, not `correct`:
-a `T` and a `V` are indistinguishable once reduced to a boolean.
+`locale` is metadata. An author can add `locale` to a question that already
+uses `T` and `F` without rewriting its markers. For this reason `T` and `F` are
+canonical: they are accepted under every locale and never get a locale warning.
 
-The letters expected for each language are listed below. A `locale` whose
-language subtag is not in the table has no expectation, and no warning is
-issued. The table follows the spellings in
-[True/False spellings](../annex/true-false-spellings.md).
+The meaning of a letter never depends on `locale`. The `locale` only tells an
+implementation which warning to give. Implementations SHOULD issue the locale
+warnings below. The check reads `marker`, not `correct`: a `T` and a `V` are
+indistinguishable once reduced to a boolean.
 
-| Language subtag | TRUE | FALSE | Words                 |
-| --------------- | ---- | ----- | --------------------- |
-| `en`            | `T`  | `F`   | true / false          |
-| `pt`            | `V`  | `F`   | verdadeiro / falso    |
-| `es`            | `V`  | `F`   | verdadero / falso     |
+The table has one row for each language. It follows the spellings in
+[True/False spellings](../annex/true-false-spellings.md). The lower case forms
+of the letters are implied, as in the sets of [Body](#body).
+
+* **TRUE accepted** and **FALSE accepted** are the letters an author writing in
+  that language can use with no warning. They can hold WARNING letters (`S`,
+  `C`, `W`, `R`, `O`, `K`). Under that locale such a letter is accepted without
+  `unlisted-true-false-marker`, and it still means true.
+* **False friends** are letters that mean false in that language but true
+  globally. They are WARNING letters, or TRUE letters.
+
+| Language subtag | TRUE accepted | FALSE accepted | False friends | Words                                  |
+| --------------- | ------------- | -------------- | ------------- | -------------------------------------- |
+| `en`            | `T`           | `F`            | `W`           | true / false (right / wrong)           |
+| `zh`            | `T` 对 對 是   | `F` 错 錯 非    | `C`           | 对/错, 是/非                            |
+| `yue`           | `T` 對         | `F` 錯          | `C`           | 對/錯                                   |
+| `hi`            | `T S` स        | `F` ग           | `G`           | सही / गलत                               |
+| `es`            | `T V`         | `F`            |               | verdadero / falso                      |
+| `ar`            | `T S` ص        | `F` خ           | `K`           | صح / خطأ                                |
+| `fr`            | `T V`         | `F`            |               | vrai / faux                            |
+| `bn`            | `T S` স        | `F M` ম         |               | সত্য / মিথ্যা                             |
+| `pt`            | `T V C`       | `F`            | `E`           | verdadeiro / falso, certo / errado     |
+| `id`            | `T B`         | `F`            | `S`           | benar / salah                          |
+| `ms`            | `T B`         | `F`            | `S`           | betul / salah                          |
+| `ur`            | `T S` ص        | `F` غ           | `G J`         | صحیح / غلط                              |
+| `ru`            | `T V` В        | `F` Н           | `N`           | верно / неверно                        |
+| `de`            | `T W R`       | `F`            |               | wahr, richtig / falsch                 |
+| `ja`            | `T` 真 `O`     | `F` 偽          |               | 真/偽, ○/×                               |
+| `mr`            | `T B` ब        | `F` च           | `C`           | बरोबर / चूक                             |
+| `vi`            | `T D` Đ        | `F`            | `S`           | đúng / sai                             |
+| `te`            | `T` ఒ          | `F` త           |               | ఒప్పు / తప్పు                             |
+| `sw`            | `T K`         | `F`            | `S H`         | kweli / sio kweli, hapana              |
+| `tr`            | `T D`         | `F`            | `Y`           | doğru / yanlış                         |
+| `tl`            | `T`           | `F M`          |               | tama / mali                            |
+| `ta`            | `T S` ச        | `F` த           |               | சரி / தவறு                              |
+| `fa`            | `T S D` ص      | `F` غ           | `G N`         | صحیح, درست / غلط                        |
+| `ko`            | `T` 참 `O`     | `F` 거          |               | 참/거짓, O/X                             |
+| `th`            | `T` ถ          | `F` ผ           | `P`           | ถูก / ผิด                               |
+| `gu`            | `T` સ          | `F` ખ           |               | સાચું / ખોટું                            |
+| `it`            | `T V`         | `F`            |               | vero / falso                           |
+
+The language subtag is the first subtag of `locale`: `pt-BR` has `pt`. The
+rules apply to the normalized value of the marker (see
+[Choice lists](../references/choices.md)), in this order. The first rule that
+matches decides:
+
+| # | Condition                                                               | Result                                |
+| - | ----------------------------------------------------------------------- | ------------------------------------- |
+| 1 | The value is a false friend of the row of the locale                    | Only `false-friend-true-false-marker` |
+| 2 | The value is in the TRUE accepted or the FALSE accepted list of the row | No warning                            |
+| 3 | The value is a WARNING letter                                           | Only `unlisted-true-false-marker`     |
+| 4 | The language subtag of `locale` has no row, or there is no `locale`     | No locale warning                     |
+| 5 | The value is a TRUE or FALSE letter that the row does not accept        | `locale-mismatched-true-false-marker` |
+
+Rule 3 applies when the locale has no row and when there is no locale. The
+message of `false-friend-true-false-marker` SHOULD say that the letter reads as
+true.
+
+| `locale` | Marker | Rule | Result                                                |
+| -------- | ------ | ---- | ----------------------------------------------------- |
+| `pt-BR`  | `V`    | 2    | No warning                                            |
+| `pt-BR`  | `F`    | 2    | No warning                                            |
+| `pt-BR`  | `T`    | 2    | No warning (`T` is canonical)                         |
+| `pt-BR`  | `C`    | 2    | No warning                                            |
+| `pt-BR`  | `E`    | 1    | Only `false-friend-true-false-marker`                 |
+| `pt-BR`  | `S`    | 3    | Only `unlisted-true-false-marker`                     |
+| `pt-BR`  | `B`    | 5    | `locale-mismatched-true-false-marker`                 |
+| `pt-BR`  | `K`    | 3    | Only `unlisted-true-false-marker`                     |
+| `de`     | `W`    | 2    | No warning                                            |
+| `en`     | `W`    | 1    | Only `false-friend-true-false-marker`                 |
+| (none)   | `W`    | 3    | Only `unlisted-true-false-marker`                     |
+| `id`     | `S`    | 1    | Only `false-friend-true-false-marker`                 |
+| `vi`     | `S`    | 1    | Only `false-friend-true-false-marker`                 |
+| `hi`     | `S`    | 2    | No warning                                            |
+| `ru`     | `Н`    | 2    | No warning (Cyrillic)                                 |
+| `en`     | `Н`    | 5    | `locale-mismatched-true-false-marker` (Cyrillic)      |
+| `fr`     | `V`    | 2    | No warning                                            |
+| `it-IT`  | `V`    | 2    | No warning                                            |
+| `ko`     | `O`    | 2    | No warning                                            |
+| `en`     | `Ｔ`    | 2    | No locale warning (only `non-nfkc-true-false-marker`) |
 
 Implementations MUST NOT reinterpret the values according to the locale. `marker`
 records which letter was written; it never changes what that letter means.
 
-This matters most for `locale: id` (Indonesian): "salah" (false) starts with
-`S`, but `S` is globally assigned to TRUE (see [Body](#body)). A document with
-`locale: id` using `[S]` to mean false is silently graded as true, not just
-mismatched -- implementations SHOULD warn about `S` under `id` with a
-dedicated warning, `false-friend-true-false-marker`. The `id` row has no
-mismatched form, so `locale-mismatched-true-false-marker` is never issued for
-it. Indonesian documents should use `F` for false instead.
+False friends exist because a letter that reads as true globally can be the
+initial of "false" in a language. In Indonesian, "salah" (false) starts with
+`S`. In Vietnamese, "sai" does. In Portuguese, "errado" starts with `E`, as in
+the Cebraspe tests (`C` for "certo", `E` for "errado"). A document that uses
+such a letter to mean false is silently graded as true, not just mismatched.
+For this reason a false friend gets its own warning, and no other. Write `F`
+for false in those languages.
+
+Japanese and Korean authors cannot use the ○/× convention. `○` and `×` are not
+letters (`foreign-choice-marker`), and `[X]` makes the list a multiple-selection
+list. Write `O` for true, and `F` (or `偽` or `거`) for false.
 
 ## Feedback
 
-A true/false question shows feedback for every statement the student got wrong
-**and** for every statement they left unjudged. A statement judged correctly
-shows nothing.
+A true/false question shows feedback for every statement judged wrongly
+**and** for every abstention. A statement judged correctly shows nothing.
 
-Including abstentions is deliberate: a student who skips a statement because
-they did not know it is exactly the student the explanation is written for.
+Including abstentions is deliberate: a student who abstains on a statement
+because they did not know it is exactly the student the explanation is
+written for.
 
 Feedback is listed in the order the statements appear in the document, never in
-the order the student marked them. A skipped question -- as opposed to one
-where individual statements were abstained -- shows no feedback at all, because
-its grading formula never runs.
+the order the student judged them. A skipped question -- as opposed to one
+with abstentions on some statements -- shows no feedback at all, because its
+grading formula never runs.
 
 
 ## Grading
 
-The `grading` field of the frontmatter selects one of the three strategies
+The `grading` field of the frontmatter selects one of the four strategies
 below. It can be set in the question, or left as `"inherit"`, the default,
 which takes the strategy from the exam: the exam's `grading`, or its entry for
 `true-false` when it is a map (see [exam grading](../exam.md#grading)). When neither
 the question nor the exam sets a strategy, and outside an exam, the strategy
 is `"symmetric"`.
 
-* **partial**: Each correct marking gives a point, and each incorrect or missing
-  marking is ignored. The total is normalized to the range `[0, 1]` by dividing
-  by the total number of choices.
-* **all-or-nothing**: The student must mark all choices with the correct marking
-  or abstain. Any mistake in the marked choices gives zero points. If all marked
-  choices are correct, the student gets a score proportional to the number of
-  correct markings (`correctly marked / total number of choices`).
-* **symmetric**: Each correctly marked choice gives a point, and each incorrectly
-  marked choice subtracts a point. The total is normalized to the range `[-1, 1]`
-  by dividing by the total number of choices. Choices
-  left unmarked neither add nor subtract points.
+The [response](../responses.md#truefalse) holds a value for each statement the
+student judged. Each statement is in exactly one of three states:
+
+* **judged correctly**: the response holds the `correct` value of the statement.
+* **judged wrongly**: the response holds the other value.
+* **abstention**: the response holds no value for the statement. The key is
+  absent or its value is `null`.
+
+An abstention is neither judged correctly nor judged wrongly. In the strategies,
+`n` is the number of statements.
+
+* **partial**: Each statement judged correctly gives a point. A statement judged
+  wrongly and an abstention give nothing. The total is normalized to the range
+  `[0, 1]` by dividing by `n`.
+* **no-mistakes**: Any statement judged wrongly gives zero points. Otherwise the
+  score is the number of statements judged correctly, divided by `n`. An
+  abstention is not judged wrongly.
+* **all-or-nothing**: Every statement must be judged correctly, otherwise the
+  score is zero. An abstention is not judged correctly.
+* **symmetric**: Each statement judged correctly gives a point, and each
+  statement judged wrongly subtracts a point. An abstention neither adds nor
+  subtracts points. The total is normalized to the range `[-1, 1]` by dividing
+  by `n`.
 
 **Examples**:
 
-Consider the answer key: `[T, F, T, F]`, the table shows a few combinations
-of student markings and the resulting score for each grading strategy.
+Consider the answer key `[T, F, T, F]`. In the table, each row is a response:
+`T` and `F` are the values the student gave to each statement, and `_` is an
+abstention. The table shows the score of each grading strategy.
 
-| Markings       | "partial" | "all-or-nothing" | "symmetric" |
-| -------------- | :-------: | :--------------: | :---------: |
-| `[T, F, T, F]` |    1.0    |       1.0        |     1.0     |
-| `[F, T, F, T]` |    0.0    |       0.0        |    -1.0     |
-| `[T, T, F, F]` |    0.5    |       0.0        |     0.0     |
-| `[T, F, _, _]` |    0.5    |       0.5        |     0.5     |
-| `[F, T, _, _]` |    0.0    |       0.0        |    -0.5     |
-| `[_, _, _, _]` |    0.0    |       0.0        |     0.0     |
+| Response       | "partial" | "no-mistakes" | "all-or-nothing" | "symmetric" |
+| -------------- | :-------: | :-----------: | :--------------: | :---------: |
+| `[T, F, T, F]` |    1.0    |      1.0      |       1.0        |     1.0     |
+| `[F, T, F, T]` |    0.0    |      0.0      |       0.0        |    -1.0     |
+| `[T, T, F, F]` |    0.5    |      0.0      |       0.0        |     0.0     |
+| `[T, F, _, _]` |    0.5    |      0.5      |       0.0        |     0.5     |
+| `[F, T, _, _]` |    0.0    |      0.0      |       0.0        |    -0.5     |
+| `[_, _, _, _]` |    0.0    |      0.0      |       0.0        |     0.0     |
+
+### Uniform answers
+
+Implementations MAY report, at the info level, a question whose statements
+all have the same `correct` value (`uniform-true-false-answers`). Such a
+question can be answered without reading the statements, and it often
+means that the author forgot to change a marker.
+
+True/false does not reuse `no-correct-choice` and `all-choices-correct` of
+multiple selection. In a true/false question every statement has an answer:
+`[F]` is a verdict, not a missing mark. "No correct choice" has no meaning
+here. Only the uniform pattern is suspicious, so one code covers both the
+all true and the all false cases.
 
 
 ## Additional Rules
@@ -232,10 +405,10 @@ of student markings and the resulting score for each grading strategy.
 | choices            | error    | schema-error                             | must have at least two statements (schema)                 |
 | choices[].id       | error    | schema-error                             | must be a valid slug (schema)                              |
 | choices[].correct  | error    | schema-error                             | must be declared in every statement (schema)               |
-| choices[]          | error    | foreign-choice-marker                    | must use a value allowed in a true/false list              |
-| choices[].marker   | error    | malformed-true-false-marker              | must be a single letter[^2]                                |
-| choices[].marker   | error    | reserved-true-false-marker               | must not be `X` or `x`[^2]                                 |
-| choices[].marker   | error    | true-false-marker-disagrees-with-correct | must agree with `correct` according to its category[^3]    |
+| choices[]          | error    | foreign-choice-marker                    | must use a value allowed in a true/false list[^7]          |
+| choices[].marker   | error    | malformed-true-false-marker              | must be a single letter[^2][^6]                            |
+| choices[].marker   | error    | reserved-true-false-marker               | must not be `X` or `x`[^2][^7]                             |
+| choices[].marker   | error    | true-false-marker-disagrees-with-correct | must agree with `correct` according to its category[^3][^7] |
 | choices[].text     | error    | blank-text                               | must have at least one visible character                   |
 | choices[].feedback | error    | blank-text                               | must have at least one visible character                   |
 | choices[].comment  | error    | blank-text                               | must have at least one visible character                   |
@@ -243,17 +416,26 @@ of student markings and the resulting score for each grading strategy.
 | choices[].id       | error    | duplicate-choice-id                      | must be unique among the statements of the question        |
 | choices[]          | error    | parse-error                              | carries at most one feedback block and one comment block   |
 | choices[]          | error    | parse-error                              | must not use the empty marker `[]`                         |
-| choices[].marker   | warning  | unlisted-true-false-marker               | should not be a WARNING letter[^3]                         |
-| choices[].marker   | warning  | locale-mismatched-true-false-marker      | should be compatible with `locale`[^4]                     |
-| choices[].marker   | warning  | false-friend-true-false-marker           | should not be `S` under `locale: id`[^4]                   |
+| choices[].marker   | warning  | unlisted-true-false-marker               | should not be a WARNING letter, unless the `locale` accepts it[^3][^4] |
+| choices[].marker   | warning  | locale-mismatched-true-false-marker      | should be `T`, `F` or a letter its `locale` accepts[^4]    |
+| choices[].marker   | warning  | false-friend-true-false-marker           | should not be a false friend of its `locale`[^4]           |
 | choices[].text     | info     | visually-identical-choices               | is visually equivalent to another statement[^5]            |
-| choices[].correct  | info     | uniform-true-false-answers               | the statements are all true or all false                   |
-| choices[].marker   | info     | non-nfc-true-false-marker                | is not a single code point in NFC form[^2]                 |
+| choices            | info     | uniform-true-false-answers               | the statements all have the same `correct` value[^8]       |
+| choices[].marker   | info     | non-nfkc-true-false-marker               | is not its own NFKC form; read as that form[^2]            |
 | choices[].id       | info     | missing-choice-id                        | has no id in the document                                  |
 
-[^2]: A letter is one code point in `\p{L}`, see [body](#body).
+[^2]: A letter is one code point in `LETTER` as written, see [body](#body).
+    `X` and `x` are also reserved in their compatibility forms, such as `Ｘ`.
 [^3]: The TRUE, FALSE and WARNING categories are listed in [body](#body).
-[^4]: An `S` marker meaning false under `locale: id` SHOULD get
-`false-friend-true-false-marker`, see [locale](#locale).
+[^4]: The `locale` table and the order of the rules are in [locale](#locale).
+    A false friend, such as `S` under `locale: id`, gets only
+    `false-friend-true-false-marker`.
 [^5]: Visual equivalence is not defined by this spec, see
 [choice text](../references/choices.md#choice-text).
+[^6]: The schema also checks the length (`minLength` and `maxLength` of 1). A
+    rule with its own code reports that code instead of `schema-error`, see
+    [lint codes](../lint-codes.md). The letter check is a lint rule only.
+[^7]: A `marker` rule applies to the `marker` field of model input. In a markdown
+    document, a bracket value that is not allowed in a true/false list gets only
+    `foreign-choice-marker`.
+[^8]: See [uniform answers](#uniform-answers).

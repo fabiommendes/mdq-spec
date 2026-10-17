@@ -1,7 +1,6 @@
 # `S` reads as true globally, but is the initial letter of Indonesian
 # "salah" (false) -- an author writing in Indonesian risks silent
-# misgrading, so this gets an escalated warning beyond the usual
-# locale-mismatch notice.
+# misgrading, so this gets `false-friend-true-false-marker`.
 id: fatos-amazonia
 title: Fatos sobre a Amazônia
 type: true-false

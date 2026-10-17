@@ -1,0 +1,15 @@
+# `S` is a WARNING letter and the `pt` row does not accept it, so it gets
+# `unlisted-true-false-marker` (true-false.md, "Locale", rule 3). It still
+# means true.
+id: tf-pantanal
+title: Pantanal
+type: true-false
+locale: pt-BR
+stem: Julgue as afirmações sobre o Pantanal.
+choices:
+  - text: O Pantanal é a maior planície alagável do planeta.
+    correct: true
+    marker: S
+  - text: O Pantanal fica no litoral brasileiro.
+    correct: false
+    marker: F

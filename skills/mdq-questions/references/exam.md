@@ -56,7 +56,7 @@ Besides the usual `title`, `id`, `uuid`, `tags`, `meta`:
 | course  | Course code                                                 |
 | author  | Inherited by the questions                                  |
 | locale  | Inherited by the questions, e.g. `pt-BR`                    |
-| grading | Grading strategy for the questions with `grading: inherit` (the default); may also be a mapping of question type to strategy |
+| grading | Grading strategy for the questions with `grading: inherit` (the default); may also be a mapping of question type to strategy. A single strategy is translated per type: `no-mistakes` becomes `partial` for multiple choice and `all-or-nothing` for multiple selection; `all-or-nothing` becomes `partial` for multiple choice |
 | shuffle | `shuffle` for the questions with `shuffle: inherit` (the default); `false` by default |
 | penalty | `none` (default), `capped` or `full`                         |
 
@@ -67,7 +67,7 @@ its own `inherit` value, which is the default, so a question that writes
 
 ```yaml
 grading:
-  multiple-choice: all-or-nothing
+  multiple-selection: all-or-nothing
   true-false: partial
 ```
 

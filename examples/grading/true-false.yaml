@@ -2,18 +2,20 @@
 #
 # Question {
 #   name: string
-#   grading: "symmetric" | "all-or-nothing" | "partial"
+#   grading: "symmetric" | "partial" | "no-mistakes" | "all-or-nothing"
 #
 #   // Mapping of scores
 #   choices: { [key of string]: boolean }
 #
 #   // Mapping of examples to their scores
-#   examples: { marks: { [key of string]: boolean | null }, score: number | Fraction }[]
+#   examples: { marks: { [key of string]: boolean | null | string | number }, score: number | Fraction | "malformed" }[]
 # }
 #
 # Some scores are represented as fractions because the floating point
 # representation would be inexact. A statement with no marking is an
-# abstention, written either as an absent key or as an explicit `null`.
+# abstention, written either as an absent key or as an explicit `null`. A
+# value that is neither a boolean nor `null` makes the response malformed
+# (responses.md, "True/false"): the score is "malformed".
 questions:
   # The table in true-false.md, "Grading": answer key [T, F, T, F].
   - name: "Spec table"
@@ -34,7 +36,7 @@ questions:
         score: 0.0
   - name: "Spec table"
     choices: { a: true, b: false, c: true, d: false }
-    grading: "all-or-nothing"
+    grading: "no-mistakes"
     examples:
       - marks: { a: true, b: false, c: true, d: false }
         score: 1.0
@@ -44,6 +46,22 @@ questions:
         score: 0.0
       - marks: { a: true, b: false }
         score: 0.5
+      - marks: { a: false, b: true }
+        score: 0.0
+      - marks: {}
+        score: 0.0
+  - name: "Spec table"
+    choices: { a: true, b: false, c: true, d: false }
+    grading: "all-or-nothing"
+    examples:
+      - marks: { a: true, b: false, c: true, d: false }
+        score: 1.0
+      - marks: { a: false, b: true, c: false, d: true }
+        score: 0.0
+      - marks: { a: true, b: true, c: false, d: false }
+        score: 0.0
+      - marks: { a: true, b: false }
+        score: 0.0
       - marks: { a: false, b: true }
         score: 0.0
       - marks: {}
@@ -76,12 +94,20 @@ questions:
         score: 0.0
   - name: "Explicit null"
     choices: { a: true, b: false, c: true, d: false }
-    grading: "all-or-nothing"
+    grading: "no-mistakes"
     examples:
       - marks: { a: true, b: null, c: null, d: null }
         score: 0.25
       - marks: { a: true, b: true, c: null, d: null }
         score: 0.0
+  - name: "Explicit null"
+    choices: { a: true, b: false, c: true, d: false }
+    grading: "all-or-nothing"
+    examples:
+      - marks: { a: true, b: null, c: null, d: null }
+        score: 0.0
+      - marks: { a: true, b: false, c: true, d: false }
+        score: 1.0
 
   # Three statements: scores that are not exact in binary floating point.
   - name: "Three statements"
@@ -100,3 +126,23 @@ questions:
         score: 0.0
       - marks: { a: false, b: false, c: true }
         score: -1.0
+  - name: "Three statements"
+    choices: { a: true, b: true, c: false }
+    grading: "all-or-nothing"
+    examples:
+      - marks: { a: true, b: true, c: false }
+        score: 1.0
+      - marks: { a: true, b: true }
+        score: 0.0
+      - marks: { a: null, b: null, c: null }
+        score: 0.0
+
+  # A value that is neither a boolean nor `null` is a malformed response.
+  - name: "Malformed value"
+    choices: { a: true, b: false, c: true, d: false }
+    grading: "symmetric"
+    examples:
+      - marks: { a: "T", b: false, c: true, d: false }
+        score: "malformed"
+      - marks: { a: 1, b: false, c: true, d: false }
+        score: "malformed"

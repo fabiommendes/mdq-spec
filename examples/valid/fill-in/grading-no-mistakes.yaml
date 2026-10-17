@@ -1,0 +1,20 @@
+id: fill-in-grading-no-mistakes
+title: Iguaçu Falls
+type: fill-in
+grading: no-mistakes
+stem: Iguaçu Falls sit on the border of Brazil and [^country]. The falls are approximately [^width] km wide.
+blanks:
+  - id: country
+    type: multiple-choice
+    choices:
+      - text: Argentina
+        score: 1
+      - text: Bolivia
+      - text: Uruguay
+  - id: width
+    type: numeric
+    answer: 2.7
+    domain: decimal
+    decimalPlaces: 1
+    tolerance:
+      absolute: 0.3

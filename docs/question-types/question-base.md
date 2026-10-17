@@ -225,11 +225,14 @@ A question without `type` in the frontmatter takes its type from the body.
 Short answer, numeric, essay, ordering and fill in the blanks questions are
 identified by the bracketed tag that opens their body, see each type. A body
 that is a [choice list](../references/choices.md) takes its type from the
-values of its choice markers. The first rule that applies wins:
+normalized values of its choice markers (see
+[Choice marker](../references/choices.md#choice-marker)). The first rule that
+applies wins. A value is read without the `ws` around it, so `[ T ]`, `[ x ]`
+and `[ * ]` have the values `T`, `x` and `*`:
 
 1. a value is `*` or a percentage: multiple choice;
 2. a value is `x` or `X`: multiple selection;
-3. a value is a letter: true/false;
+3. a value is a [letter](true-false.md#body), as written: true/false;
 4. otherwise: multiple selection. This covers a list whose values are all
    blank, and a list of blank and unknown values such as `[ ]` and `[?]`.
 

@@ -1,0 +1,35 @@
+# A scalar exam `grading` is translated for each question type, see the
+# table in exam.md, "Grading". With `no-mistakes`, the multiple choice
+# question is graded `partial`, the multiple selection one `all-or-nothing`
+# and the true-false one `no-mistakes`. The questions keep `inherit`, so
+# nothing is written on them.
+id: biomes-no-mistakes
+title: Biomes
+type: exam
+grading: no-mistakes
+questions:
+- stem: Which biome is known as the Brazilian savanna?
+  choices:
+  - text: Cerrado
+    score: 1
+  - text: Caatinga
+  - text: Pampa
+  type: multiple-choice
+- stem: Which of these are Brazilian biomes?
+  choices:
+  - text: Pantanal
+    correct: true
+  - text: Caatinga
+    correct: true
+  - text: Tundra
+    correct: false
+  type: multiple-selection
+- stem: Judge the statements.
+  choices:
+  - text: The Pantanal is a floodplain.
+    correct: true
+    marker: T
+  - text: The Pampa is in the north of Brazil.
+    correct: false
+    marker: F
+  type: true-false

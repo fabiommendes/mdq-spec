@@ -328,10 +328,26 @@ is no exam to apply one.
 
 The optional `grading` field in the exam frontmatter sets the grading strategy
 for all questions in the exam whose `grading` is `"inherit"`, the default. It
-accepts the three strategies of the `grading` field of a question, `"partial"`,
-`"all-or-nothing"` or `"symmetric"`, but not `"inherit"`. It can also be a
-mapping of question types to grading strategies, so that each question type can
-be graded differently.
+accepts `"partial"`, `"no-mistakes"`, `"all-or-nothing"` or `"symmetric"`, but
+not `"inherit"`. It can also be a mapping of question types to grading
+strategies, so that each question type can be graded differently.
+
+Each question type accepts its own set of strategies in its `grading` field
+(see the `Grading` section of each question type). A scalar exam `grading`
+maps to a strategy of each type by this table:
+
+| exam `grading`   | multiple-choice | multiple-selection | true-false       | fill-in          |
+| ---------------- | --------------- | ------------------ | ---------------- | ---------------- |
+| `partial`        | `partial`       | `partial`          | `partial`        | `partial`        |
+| `no-mistakes`    | `partial`       | `all-or-nothing`   | `no-mistakes`    | `no-mistakes`    |
+| `all-or-nothing` | `partial`       | `all-or-nothing`   | `all-or-nothing` | `all-or-nothing` |
+| `symmetric`      | `symmetric`     | `symmetric`        | `symmetric`      | `symmetric`      |
+
+A multiple choice question has one pick and accepts neither `no-mistakes` nor
+`all-or-nothing`: under `partial`, a wrong pick already scores 0. A multiple
+selection question has no abstention, since an unticked choice asserts that the
+choice is false. Every wrong verdict is then a mistake, so `no-mistakes` and
+`all-or-nothing` are the same strategy there, and only `all-or-nothing` exists.
 
 The mapping takes the shape:
 
@@ -344,8 +360,9 @@ grading:
 ```
 
 All keys are optional and missing keys are treated as `"symmetric"`. The value
-for each key is one of the three grading strategies. The exam's `grading` field
-is ignored if the question declares a strategy of its own.
+for each key is one of the strategies of that question type, used as it is,
+without the translation of the table above. The exam's `grading` field is
+ignored if the question declares a strategy of its own.
 
 The optional `shuffle` field works the same way for the `shuffle` field of the
 questions: a question with `shuffle: "inherit"` (the default) takes the exam's

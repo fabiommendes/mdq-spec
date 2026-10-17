@@ -9,7 +9,7 @@
     ]
   },
   {
-    "code": "non-nfc-true-false-marker",
+    "code": "non-nfkc-true-false-marker",
     "severity": "info",
     "path": [
       "choices",

@@ -1,5 +1,5 @@
-# The CJK markers of true-false.md, "Body": 对 and 真 are TRUE, 错 and 偽
-# are FALSE. `locale: zh-Hans-CN` has no marker expectation, so no warning.
+# The Han markers of true-false.md, "Body": 对, 對 and 是 are TRUE; 错, 錯 and
+# 非 are FALSE. The `zh` row of the locale table accepts all six: no warning.
 id: tf-cjk-markers
 title: 关于巴西的陈述
 type: true-false
@@ -15,7 +15,13 @@ choices:
   feedback: 巴西的首都是巴西利亚。
 - text: 亚马逊河流经巴西。
   correct: true
-  marker: 真
+  marker: 是
 - text: 巴西的官方语言是西班牙语。
   correct: false
-  marker: 偽
+  marker: 非
+- text: 巴西位于南半球。
+  correct: true
+  marker: 對
+- text: 巴西的首都是圣保罗。
+  correct: false
+  marker: 錯

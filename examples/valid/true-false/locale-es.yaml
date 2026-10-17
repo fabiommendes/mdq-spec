@@ -1,5 +1,4 @@
-# `locale: es` expects `V`/`F`, so `T` gets
-# `locale-mismatched-true-false-marker`; `V` and `F` do not.
+# `locale: es` accepts `T`/`F` (canonical) and `V`/`F`: no locale warning.
 id: tf-locale-es
 title: Hechos sobre el río Amazonas
 type: true-false

@@ -26,6 +26,7 @@ allOf:
       grading:
         enum:
           - partial
+          - no-mistakes
           - all-or-nothing
           - symmetric
           - inherit
@@ -33,8 +34,9 @@ allOf:
         description: >-
           The strategy used to grade the question, see the `Grading`
           section of the corresponding document in docs/question-types.
-          `inherit`, the default, takes the exam's `grading` value, and
-          is `symmetric` outside an exam.
+          `inherit`, the default, takes the exam's `grading` (its
+          `true-false` entry when it is a map), and is `symmetric`
+          outside an exam or when the exam sets none.
 
       shuffle:
         oneOf:
@@ -86,11 +88,17 @@ unevaluatedProperties: false
       marker:
         type: string
         description: >-
-          The single letter written between the brackets in the source
-          document (`T`, `F`, `V`, ...). Preserved verbatim: `correct`
-          carries the meaning, but the letter itself is needed to warn
-          about WARNING letters and locale mismatches, and to
-          round-trip the document unchanged.
+          The letter of the bracket value in the source document (`T`,
+          `F`, `V`, ...), without the whitespace around it. Only the letter
+          and its case are kept. `correct` carries the meaning, but the
+          letter itself is needed to warn about WARNING letters and
+          locale mismatches, and to round-trip the document. When
+          present, its category (TRUE, FALSE or WARNING) must agree with
+          `correct` (`true-false-marker-disagrees-with-correct`). The schema
+          checks only the length. The letter check (one code point of
+          category Lu, Ll, Lt or Lo, before NFKC normalization) and the
+          reserved `X` are lint rules (`malformed-true-false-marker`,
+          `reserved-true-false-marker`).
         minLength: 1
         maxLength: 1
 

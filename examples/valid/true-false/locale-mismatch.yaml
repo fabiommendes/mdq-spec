@@ -1,13 +1,13 @@
-# A pt-BR question written with the English letters. Valid, and graded
-# exactly as written -- the locale never reinterprets a marker -- but
-# worth flagging at the strict level.
+# A pt-BR question with `B` for true. Valid, and graded exactly as written --
+# the locale never reinterprets a marker -- but `B` is a TRUE letter that the
+# `pt` row does not accept, so it gets `locale-mismatched-true-false-marker`.
 type: true-false
 locale: pt-BR
 stem: Julgue as alternativas.
 choices:
   - text: Brasília é a capital do Brasil.
     correct: true
-    marker: T
+    marker: B
   - text: O Brasil faz fronteira com o Chile.
     correct: false
     marker: F

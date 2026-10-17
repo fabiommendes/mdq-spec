@@ -1,0 +1,17 @@
+# U+FF38 (FULLWIDTH LATIN CAPITAL LETTER X) is NFKC-normalized to `x`
+# before it is read, so it ticks the choice. A multiple-selection choice
+# has no `marker` field, and no diagnostic reports the written form.
+id: ms-fullwidth-x
+title: Rios da bacia Amazônica
+type: multiple-selection
+stem: Quais destes rios pertencem à bacia Amazônica?
+choices:
+  - id: negro
+    text: Rio Negro
+    correct: true
+  - id: paranaiba
+    text: Rio Paranaíba
+    correct: false
+  - id: madeira
+    text: Rio Madeira
+    correct: true

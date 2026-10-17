@@ -1,0 +1,17 @@
+# Devanagari `स` ("सही") is TRUE and `ग` ("गलत") is FALSE. The `hi` row also accepts
+# `S`, a WARNING letter that reads as true, without a warning.
+id: tf-amazon-hi
+title: अमेज़न के तथ्य
+type: true-false
+locale: hi
+stem: अमेज़न के बारे में कथनों का मूल्यांकन कीजिए।
+choices:
+- text: अमेज़न नदी ब्राज़ील से होकर बहती है।
+  correct: true
+  marker: स
+- text: अमेज़न नदी प्रशांत महासागर में गिरती है।
+  correct: false
+  marker: ग
+- text: अमेज़न दुनिया की सबसे अधिक जलप्रवाह वाली नदी है।
+  correct: true
+  marker: S

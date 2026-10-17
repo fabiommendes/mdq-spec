@@ -3,7 +3,7 @@
 id: mc-grading
 title: Longest river
 type: multiple-choice
-grading: all-or-nothing
+grading: partial
 stem: Which river carries the largest volume of water in the world?
 choices:
   - text: Amazon

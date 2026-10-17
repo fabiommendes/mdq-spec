@@ -113,6 +113,8 @@ table.
   normalized to the range `[0, 1]` by dividing by the total number of choices.
 * **all-or-nothing**: The student must tick all correct choices and leave all
   incorrect choices unticked to get a point. Any mistake gives zero points.
+  There is no `no-mistakes` strategy here: an unticked choice is a verdict,
+  not an abstention, so it would give the same scores.
 * **symmetric**: Each choice judged correctly gives a point, and each choice
   judged wrongly subtracts a point. The total is normalized to the range
   `[-1, 1]` by dividing by the total number of choices.
@@ -149,6 +151,7 @@ questions.
 | choices            | error    | schema-error               | must have at least two choices (schema)                   |
 | choices[].id       | error    | schema-error               | must be a valid slug (schema)                             |
 | choices[].correct  | error    | schema-error               | must be declared in every choice (schema)                 |
+| grading            | error    | schema-error               | must be one of the strategies above, or `inherit` (schema) |
 | choices[]          | error    | foreign-choice-marker      | must use a value allowed in a multiple selection list     |
 | choices[].text     | error    | blank-text                 | must have at least one visible character                  |
 | choices[].feedback | error    | blank-text                 | must have at least one visible character                  |

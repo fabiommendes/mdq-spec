@@ -67,7 +67,7 @@ around the blank.
 | Field      | Values                                                   |
 | ---------- | -------------------------------------------------------- |
 | shuffle    | `inherit` (default: the exam's value, else `false`), `true`, `false` |
-| grading    | `inherit` (default: the exam's value, else `symmetric`), `symmetric`, `partial`, `all-or-nothing` |
+| grading    | `inherit` (default: the exam's value, else `symmetric`), `symmetric`, `partial`, `no-mistakes`, `all-or-nothing` |
 | diacritics | `fold` (default) or `keep`, for every short answer blank |
 | unmatched  | `incorrect` or `manual`, for every short answer blank    |
 | preAccept  | map of blank id to pattern list, pre-validation only     |
@@ -91,5 +91,7 @@ Each blank is graded by its own type's rules and yields a score in -1..1 (only
 choice blanks can go negative). An empty blank scores 0. Then:
 
 * `partial`: mean of the blank scores, negatives taken as 0.
+* `no-mistakes`: 0 if any filled blank scores below 1; otherwise the mean, an
+  empty blank counting 0.
 * `all-or-nothing`: 1 only if every blank is fully correct.
 * `symmetric`: plain mean, negatives included.

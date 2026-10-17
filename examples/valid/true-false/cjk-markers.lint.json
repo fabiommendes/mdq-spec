@@ -34,5 +34,23 @@
       3,
       "id"
     ]
+  },
+  {
+    "code": "missing-choice-id",
+    "severity": "info",
+    "path": [
+      "choices",
+      4,
+      "id"
+    ]
+  },
+  {
+    "code": "missing-choice-id",
+    "severity": "info",
+    "path": [
+      "choices",
+      5,
+      "id"
+    ]
   }
 ]

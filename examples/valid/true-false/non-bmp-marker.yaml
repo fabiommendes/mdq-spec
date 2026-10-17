@@ -1,6 +1,7 @@
-# A mathematical bold capital T (U+1D413) is one code point of category
+# DESERET CAPITAL LETTER LONG I (U+10400) is one code point of category
 # `Lu`, so it is a valid marker, in the WARNING category. It takes two
-# UTF-16 code units: a `maxLength: 1` check must count code points.
+# UTF-16 code units: a `maxLength: 1` check must count code points. It
+# is its own NFKC form, so no info diagnostic is issued.
 id: tf-non-bmp-marker
 title: Fatos sobre o rio Amazonas
 type: true-false
@@ -9,7 +10,7 @@ choices:
   - id: a
     text: O rio Amazonas é o mais caudaloso do mundo.
     correct: true
-    marker: "𝐓"
+    marker: "𐐀"
   - id: b
     text: O rio Amazonas nasce no Brasil.
     correct: false

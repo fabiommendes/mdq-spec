@@ -25,14 +25,5 @@
       2,
       "id"
     ]
-  },
-  {
-    "code": "locale-mismatched-true-false-marker",
-    "severity": "warning",
-    "path": [
-      "choices",
-      0,
-      "marker"
-    ]
   }
 ]

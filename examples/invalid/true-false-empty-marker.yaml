@@ -1,0 +1,12 @@
+# An empty `marker` is `malformed-true-false-marker`. The schema's
+# `minLength: 1` rejects it too, but the code of the rule wins over
+# `schema-error`.
+type: true-false
+stem: Julgue as afirmações sobre o Pantanal.
+choices:
+  - text: O Pantanal é a maior planície alagável do planeta.
+    correct: true
+    marker: ""
+  - text: O Pantanal fica no litoral brasileiro.
+    correct: false
+    marker: F

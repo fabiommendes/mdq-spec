@@ -134,6 +134,11 @@ _Avoid_: proportional, weighted, partial credit
 A grading strategy scoring 1 only when every part is correct, and 0 otherwise.
 _Avoid_: strict, exact, binary
 
+### No-mistakes
+A grading strategy scoring 0 on any wrong judgement, and otherwise giving
+credit for the parts judged right. An abstention is not a wrong judgement.
+_Avoid_: strict partial, zero tolerance
+
 ### Inherit
 The default value of `grading` and `shuffle` in a question: take the exam's
 value, or `symmetric` and `false` outside an exam.

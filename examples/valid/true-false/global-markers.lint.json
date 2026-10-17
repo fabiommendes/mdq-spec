@@ -70,5 +70,41 @@
       7,
       "id"
     ]
+  },
+  {
+    "code": "missing-choice-id",
+    "severity": "info",
+    "path": [
+      "choices",
+      8,
+      "id"
+    ]
+  },
+  {
+    "code": "missing-choice-id",
+    "severity": "info",
+    "path": [
+      "choices",
+      9,
+      "id"
+    ]
+  },
+  {
+    "code": "missing-choice-id",
+    "severity": "info",
+    "path": [
+      "choices",
+      10,
+      "id"
+    ]
+  },
+  {
+    "code": "missing-choice-id",
+    "severity": "info",
+    "path": [
+      "choices",
+      11,
+      "id"
+    ]
   }
 ]
