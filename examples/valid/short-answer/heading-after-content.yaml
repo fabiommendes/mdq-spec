@@ -1,0 +1,10 @@
+# An ATX heading interrupts the paragraph, as in CommonMark. It ends the
+# block and goes to the epilogue with what follows it.
+id: sa-heading-after-content
+title: Largest island of Brazil
+type: short-answer
+stem: What is the largest river island in Brazil?
+accept:
+  - Ilha do Bananal
+epilogue: |-
+  ## Note

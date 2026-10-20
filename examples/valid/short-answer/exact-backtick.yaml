@@ -1,0 +1,13 @@
+# A longer fence holds a backtick: `` `date` `` is the exact literal
+# `date`, with its backticks (patterns.md, "Exact literals"). The two
+# spaces next to the fence are not part of it.
+id: sa-exact-backtick
+title: Command substitution
+type: short-answer
+stem: In Bash, the old syntax of command substitution encloses a command in
+  backticks. Write the form that runs `date` and uses its output.
+accept:
+- pattern: '`` `date` ``'
+  feedback: Correct -- the backticks are part of the answer.
+- pattern: '`$(date)`'
+  feedback: Correct -- this is the modern form.

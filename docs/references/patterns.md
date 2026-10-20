@@ -8,16 +8,31 @@ fill-in question. The same rules apply in the body and in the frontmatter.
 
 ## Pattern string
 
-A pattern string is written in a small mini-language. Its delimiters choose
-how it is matched:
+A pattern string is written in a small mini-language. Read it in these steps,
+in this order:
 
-| Pattern       | Matched as                                                |
-| ------------- | --------------------------------------------------------- |
-| `` `...` ``   | an [exact literal](#exact-literals)                       |
-| `/.../flags`  | a [regular expression](#regular-expressions)              |
-| anything else | a plain literal, compared [inexactly](#inexact-literals)  |
+1. Remove the spaces and tabs from the start and from the end of the string.
+   This applies to every pattern, so `"  `x`"` is the exact literal `x`.
+2. The delimiters of the result choose how the pattern is matched:
 
-A pattern string is plain text, never markdown. It cannot be empty.
+   | Pattern       | Matched as                                                |
+   | ------------- | --------------------------------------------------------- |
+   | `` `...` ``   | an [exact literal](#exact-literals), with N backticks on each side |
+   | `/.../flags`  | a [regular expression](#regular-expressions)              |
+   | anything else | a plain literal, compared [inexactly](#inexact-literals)  |
+
+A pattern string is plain text, never markdown. Three rules limit it:
+
+* It cannot be empty (`schema-error`).
+* It MUST have a visible character, see
+  [Visible characters](grammar.md#visible-characters). `"   "`, an exact
+  literal of one space (`` ` ` ``) and a lone U+200B have none, and the error
+  is `blank-text`. For an exact literal, the text between the backticks is
+  checked, after the removal of the space of a long fence. The rule holds for every pattern list, in the body and in the
+  frontmatter, and for the blanks of a fill-in question.
+* If it opens with a backtick, it MUST be a complete exact literal:
+  `` `math.isnan` (x) `` is a `schema-error`, and so is ``` ``x` ```. A pattern string never contains
+  a line ending.
 
 A literal answer that starts with `/` MUST be enclosed in backticks, otherwise
 it is read as a regex:
@@ -29,7 +44,8 @@ Where is the `env` program in a Linux system?
 ```
 
 Without the backticks, `/usr/bin` is the regex `usr` with the flags `b`, `i`
-and `n`.
+and `n`, because the last `/` closes the regex, see
+[Regular expressions](#regular-expressions).
 
 ### Inexact literals
 
@@ -123,9 +139,31 @@ In a fill-in question, it applies to all of its short answer blanks.
 
 ### Exact literals
 
-A pattern enclosed in backticks is matched **exactly**. An implementation MUST
-apply these steps to the declared answer and to the response, and then compare
-the two results literally -- code point for code point:
+A pattern enclosed in backticks is matched **exactly**. The literal follows the
+code span of CommonMark:
+
+* A run of N backticks opens the literal. The first run of exactly N backticks
+  after it closes it, and it MUST end the pattern (after the spaces and tabs
+  that step 1 of [Pattern string](#pattern-string) removes).
+* A run of another length inside the literal is text. This is the way to write
+  a backtick.
+* If the text between the two runs starts and ends with a space, and is not
+  only spaces, one space is removed from each end.
+
+| Pattern             | Exact literal |
+| ------------------- | ------------- |
+| `` `math.isnan` ``  | `math.isnan`  |
+| ``` `` `date` `` ```  | `` `date` `` |
+| ``` ``a`b`` ```     | `` a`b ``     |
+| ```` ```a``b``` ```` | ``` a``b ``` |
+| ``` `` ` `` ```    | `` ` ``       |
+
+A pattern that opens with a backtick and is not a complete literal is a
+`schema-error`: ``` ``x` ``` has no closing run of two backticks.
+
+An implementation MUST apply these steps to the text of the literal, as
+defined above, and to the response, and then compare the two results
+literally -- code point for code point:
 
 1. Normalize to NFC.
 2. Remove the `UNICODE_SPACE` code points from the start and from the end.
@@ -144,27 +182,57 @@ ligature `ﬁm`.
 
 ### Regular expressions
 
-A pattern is a regex if it starts with a `/` after stripping spaces and tabs.
-A regex must be closed by a `/` as well, and may include optional flags after
-the closing `/`. The syntax and the flags are described in the [Regex](#regex)
-section.
+Read a pattern string with the steps of [Pattern string](#pattern-string),
+which remove the spaces and tabs from both ends first. Then:
+
+1. The pattern is a regex if the result starts with `/`.
+2. The **last** `/` of the result closes the regex. The text between the first
+   and the last `/` is the regex body.
+3. The text after the last `/` is the flags. The [Regex flags](#regex-flags)
+   section says which flags are valid. No flags is valid.
+4. A result with only one `/` has no closing `/`. It is an unclosed regex, and
+   the error is `invalid-regex`.
+   The grammar of the [short answer body](../question-types/short-answer.md#body)
+   rejects it too, and a grammar failure on a pattern that starts with `/` is
+   reported as `invalid-regex`.
+
+An unescaped `/` in the body is valid, so `/a/b/` has the body `a/b` and no
+flags, and `/https?://www\.gov\.br/` has the body `https?://www\.gov\.br`.
+Authors write URLs and paths often, and the escape `\/` would make them hard
+to read. The same rule explains the `/usr/bin` example above: the last `/`
+closes the regex, so the body is `usr` and the flags are `bin`.
+
+This differs from a JavaScript regex literal, where an unescaped `/` ends the
+body. An implementation MUST NOT use a JavaScript literal parser to split the
+body from the flags. It MUST find the last `/` of the string. The escape `\/`
+in the body stays valid and means a `/`.
+
+The syntax of the body is described in the [Regex](#regex) section.
 
 ## Pattern lists
 
-A pattern list is an array of patterns, in the frontmatter or in a body block.
+A pattern list is an array of patterns: the `accept` and `reject` lists are
+set by body blocks in Markdown, and the `preAccept` and `preReject` lists by
+the frontmatter. In YAML and JSON all four are fields.
 The order of the entries matters for feedback, see
 [Feedback](../question-types/short-answer.md#feedback).
 
 ### Object form
 
-In the frontmatter, each entry is either a pattern string or an object:
+In the YAML and JSON form and in the frontmatter (`preAccept` and
+`preReject`), each entry is either a pattern string or an object. A body block
+has no object form, see [Pattern items](#pattern-items):
 
 ```json
 { "pattern": "string", "feedback": "string", "comment": "string" }
 ```
 
-Only `pattern` is required. `feedback` is shown to the student whose response
-the pattern decided, and `comment` is a note to other instructors.
+Only `pattern` is required. `feedback` is shown by the selection rule of
+[Feedback](../question-types/short-answer.md#feedback): the first pattern that
+matches and has feedback, in the list that decided the outcome. A `preAccept`
+or `preReject` pattern follows
+[Pre-validation](../question-types/short-answer.md#pre-validation). `comment`
+is a note to other instructors.
 
 ### Pattern items
 
@@ -179,6 +247,19 @@ pattern:
 An item carries at most one feedback block and at most one comment block, in
 either order. Both follow the rules of
 [Feedback and comment lines](grammar.md#feedback-and-comment-lines).
+
+```lark
+pattern_item : ws? LIST_MARK ws content nl (blank_line* observations)?
+
+LIST_MARK    : /[*+-]/
+```
+
+The `content` rule is the one of the
+[short answer body](../question-types/short-answer.md#body), with its
+continuation lines. It has three forms: `exact`, `regex` and `inexact`. The `observations` and `blank_line` rules are defined in
+[Feedback and comment lines](grammar.md#feedback-and-comment-lines). A short
+answer blank of a [fill-in](../question-types/fill-in.md#short-answer-blanks)
+question uses the same rule.
 
 ```md
 [short-answer/reject]:
@@ -220,10 +301,32 @@ This item has the pattern `Rio de Janeiro`, the feedback
 `It used to be, but it is not anymore.` and the comment
 `Capital until 1960, when Brasília replaced it.`
 
-The content of a single-line block continues in the same way. The lines after
-the tag line, up to the first blank line, continue the pattern:
-`[short-answer]: Rio` followed by a line with `Negro` is the pattern
-`Rio Negro`.
+The content of a single-line block continues with the same lazy lines. The
+rules are:
+
+* A line that is not a `>` line, a `!` line or a blank line, and that does not
+  start a block that interrupts a paragraph (a `LAZY_START` line, see
+  [Feedback and comment lines](grammar.md#feedback-and-comment-lines))
+  continues the content. It does so up to the first blank line. This holds
+  also after an empty tag line: the line after `[short-answer]:` is the
+  content, and the line after `[short-answer/reject]:` is its pattern.
+* A line that starts with `>`, or with `!` (but not `![`), right after the
+  content, or right after an empty tag line, is a `parse-error`. The message suggests the list form: `* pattern`
+  with the `>` or `!` lines indented under it.
+* A list item right after the content is a `parse-error`.
+* An ATX heading, a fenced code block, an HTML block or a thematic break
+  right after the content ends the block. It goes to the epilogue, as in
+  CommonMark.
+
+For example, `[short-answer]: Rio` followed by a line with `Negro` is the
+pattern `Rio Negro`, and `[short-answer]:` followed by a line with `Brasília`
+is the pattern `Brasília`.
+
+A `>` or `!` line is not feedback or a comment here. The single-line form has
+no container that holds observations, as the item of a list does. A blank
+line before the `>` line would not help: the block quote would then be
+ambiguous with a block quote of the epilogue. The list form gives each
+pattern its own container.
 
 A pattern is plain text, so a backslash or two spaces at the end of a line are
 part of the pattern and do not make a hard line break. The space that replaces
@@ -236,10 +339,11 @@ the [short answer body](../question-types/short-answer.md#body).
 
 ## Regex
 
-Regex patterns follow a subset of the JavaScript syntax, followed by optional
-flags (which might differ from JavaScript). The `/` delimiters are REQUIRED:
+Regex patterns follow a subset of the JavaScript syntax with the `u` flag,
+followed by optional flags (which might differ from JavaScript). The `/` delimiters are REQUIRED:
 they are what marks a pattern as a regex rather than a literal string, in a
-pattern line and in a frontmatter `pattern-list` alike. This section describes
+pattern line and in a frontmatter `pattern-list` alike. The last `/` of the
+pattern closes the regex, see [Regular expressions](#regular-expressions). This section describes
 the supported regex syntax and semantics, and the differences from the
 JavaScript syntax.
 
@@ -252,19 +356,20 @@ syntax that is widely supported.
   required. For example, the regex `/abc/` in MDQ is equivalent to `/^abc$/` in
   JavaScript and would not match `xabc` or `abcx`. The `f` and `b` flags remove
   implicit anchors -- see [Regex flags](#regex-flags) -- but an anchor the
-  author wrote is always honoured, so `/^abc/f` still matches only at the
+  author wrote is always honored, so `/^abc/f` still matches only at the
   start. 
 * Character class intersections: are NOT supported. Example:
   `/[a-z&&[^aeiou]]/`. This is an invalid MDQ regex. Other character classes are
   supported, including negated classes, e.g., `/[^aeiou]/`.
-* Special characters: are supported, including `\d`, `\D`, `\s`, `\S`, `\w`, and
-  `\W` and have the same semantics as in JavaScript.
-* Non-capturing groups: are supported, e.g., `/(?:abc)/`, but python-style 
+* Shorthand classes: are supported and are fixed explicit classes, see
+  [Shorthand classes](#shorthand-classes).
+* Non-capturing groups: are supported, e.g., `/(?:abc)/`, but Python-style 
   named groups are NOT supported, e.g., `/(?P<name>abc)/`.
-* Unicode: Unicode characters are allowed in the regex. Unicode escape sequences 
-  are also supported, e.g., `\u1234`, but users SHOULD NOT assume UTF-16 encoding
-  and surrogate pairs should not be relied upon. Write the unicode character 
-  directly in the regex, when possible.
+* Unicode: a regex runs in [code point mode](#code-point-mode). Unicode
+  characters are allowed in the regex. The escapes `\uXXXX` (four hex digits)
+  and `\u{X...}` (one to six hex digits, at most `10FFFF`) are supported.
+  Write the character directly, when possible. A surrogate pair such as
+  `\uD83D\uDE00` is NOT a code point: write `\u{1F600}`.
 * Standard hex escaping is supported, e.g., `\x12`, but other more obscure
   escape sequences are NOT supported (`invalid-regex`), e.g., `\cA`, `\123`,
   `\p{...}`, `\P{...}`, `\k<name>`.
@@ -272,8 +377,72 @@ syntax that is widely supported.
   `/(?!abc)/`, but positive and negative lookbehind assertions are NOT supported,
   e.g., `/(?<=abc)/` and `/(?<!abc)/`.
 
+### Code point mode
+
+An implementation MUST match a regex over code points, as JavaScript does with
+the `u` flag:
+
+* `.` matches one code point. An emoji is one character, so `/./` accepts
+  `😀` and `/../` does not.
+* `i` uses the simple case folding of Unicode. `/s/i` accepts `ſ` (U+017F) and
+  `/k/i` accepts U+212A KELVIN SIGN. The shorthand classes below are not
+  affected by `i`: `/\w/i` does not accept `ſ`.
+* `\u{1F600}` is one code point.
+
+A JavaScript implementation MUST compile every regex with the `u` flag.
+
+### Shorthand classes
+
+Python and JavaScript disagree on `\d`, `\w`, `\s` and `\b`. Python reads `\d`
+as any decimal digit of Unicode (`٣` is one) and `\s` differs from JavaScript
+on U+0085, U+001C to U+001F and U+FEFF. To give the same result in every
+runtime, an implementation MUST read the shorthand classes as the explicit
+classes below. They apply inside a character class too, so `[\d_]` is
+`[0-9_]`.
+
+| Escape    | Class                                                        |
+| --------- | ------------------------------------------------------------ |
+| `\d`, `\D` | `[0-9]` and its complement                                   |
+| `\w`, `\W` | `[A-Za-z0-9_]` and its complement                            |
+| `\s`, `\S` | `UNICODE_SPACE` and its complement                           |
+| `\b`, `\B` | a word boundary, and a position that is not one, both defined by `\w` |
+
+`UNICODE_SPACE` is the class of
+[grammar.md](grammar.md#unicode-spaces): 25 code points, without U+FEFF. A
+complement matches any code point outside the class, including a code point
+that is not a letter or a digit. In a character class, a shorthand class MUST
+NOT be the end of a range: `[a-\d]` is an `invalid-regex`.
+
+A consequence is that `/\w+/` does not accept `José`, because `é` is not in
+`[A-Za-z0-9_]`. Use the `n` flag (`/\w+/n`), which strips the diacritics of the
+response first, or an explicit class such as `[A-Za-zÀ-ÿ]`.
+
+U+FEFF is not in `UNICODE_SPACE`, so `/a\sb/` does not accept `a`, U+FEFF, `b`.
+Only the [regex subject](#regex-subject) steps trim the ends, and they trim
+`UNICODE_SPACE` only.
+
 This dialect is not the one the MDQ grammar itself uses. See
 [Regex dialect](grammar.md#regex-dialect).
+
+
+### Regex subject
+
+An implementation MUST prepare the response in these steps, in order, before
+it matches a regex against it:
+
+1. Normalize to NFC.
+2. Remove the `UNICODE_SPACE` code points from the start and from the end.
+3. If the `n` flag is set, strip the diacritics, see [Regex flags](#regex-flags).
+
+These are the two steps of an [exact literal](#exact-literals), followed by
+the `n` flag. The regex then matches the result. Interior whitespace is not
+changed, so `/Rio Negro/` does not accept `Rio  Negro`, and a regex that
+needs it can use `\s+`.
+
+The reason is that whitespace at the ends of a response and the NFC or NFD
+form depend on the keyboard and the operating system of the student, not on
+the answer. An author who needs specific spaces at the ends can ask for the
+answer in string notation, such as `" a "`, and match the quotes.
 
 
 ### Regex flags
@@ -286,12 +455,27 @@ matches, so it gets no implicit leniency.
 The following regex flags are supported:
 
 * `i`: Case-insensitive matching.
-* `n`: Strip diacritics from both the pattern and the response before
-  matching: normalize to NFD, remove each code point of the general category
-  `Mn`, and normalize to NFC. The `letters` table of the
-  [inexact comparison](#inexact-literals) does not apply, because a
-  replacement such as `æ` to `ae` changes what a regex means. Independent of
-  the question's `diacritics` field, which never reaches a regex.
+* `n`: Strip diacritics. To strip is to normalize to NFD, remove each code
+  point of the general category `Mn`, and normalize to NFC. The flag strips:
+  * the response, after the steps of the [regex subject](#regex-subject);
+  * the literal characters of the regex body, so `/água/n` accepts `agua` and
+    does not accept `água`.
+
+  The flag does not strip an escape that denotes a code point: `\uXXXX`,
+  `\xXX` and `\u{...}`. Such an escape is always that exact code point. No
+  other escape changes meaning either, so `\.` stays a literal dot.
+
+  The `letters` table of the [inexact comparison](#inexact-literals) does not
+  apply, because a replacement such as `æ` to `ae` changes what a regex means.
+  The flag is independent of the question's `diacritics` field, which never
+  reaches a regex.
+
+  An author who writes a code point has a specific intent, and the flag must
+  not change it. The consequence is that an escape for a code point that the
+  strip changes (a combining mark, or a letter such as U+00E1) cannot match
+  the stripped response. An implementation reports it with the info lint
+  `unmatchable-regex-escape`. It is info and not a warning because the escape
+  is harmless inside a class such as `[\u00E1a]`, where `a` still matches.
 * `f`: Substring (find) matching. Removes both implicit anchors, so the pattern
   matches anywhere in the response.
 * `b`: Beginning matching. Removes the implicit trailing anchor, so the pattern
@@ -303,7 +487,8 @@ as `f` alone. Neither removes an anchor written by the author: under `f`,
 
 The following flags are accepted, but ignored: `m`, `g`, `s`, `u`, `v`, `y`,
 `d`. Implementations MAY warn about those stale flags, but SHOULD accept the
-input. Note that `s` (dotAll) is ignored rather than honoured, so `.` never
+input. The `u` and `v` flags have no effect because the
+[code point mode](#code-point-mode) is always on. Note that `s` (dotAll) is ignored rather than honored, so `.` never
 matches a newline; a response spanning lines should be matched with an explicit
 class such as `[\s\S]`.
 

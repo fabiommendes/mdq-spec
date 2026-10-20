@@ -72,6 +72,7 @@ around the blank.
 | unmatched  | `incorrect` or `manual`, for every short answer blank    |
 | preAccept  | map of blank id to pattern list, pre-validation only     |
 | preReject  | map of blank id to pattern list, pre-validation only     |
+| incorrectFeedback | map of blank id to the feedback of an incorrect response with no pattern feedback |
 
 `preAccept` and `preReject` have no body block. Write them in the
 frontmatter, keyed by the blank id; every key must be a short answer blank:
@@ -83,7 +84,12 @@ preReject:
   season:
     - pattern: "/\\d+/"
       feedback: Write the season, not a month number.
+incorrectFeedback:
+  state: That is not a state of the Southeast.
 ```
+
+`incorrectFeedback` follows the same rule: the key is a short answer blank,
+and the text means what it means in a short answer question.
 
 ## Grading
 

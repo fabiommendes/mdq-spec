@@ -23,8 +23,9 @@ which Python `re` does not support, see [Tokens](#tokens). A snippet uses the
 name and does not define it.
 
 This rule is about the grammar of MDQ. The regexes that authors write in
-short-answer patterns follow the subset of JavaScript defined in
-[patterns.md](patterns.md#regex).
+short-answer patterns follow the dialect defined in
+[patterns.md](patterns.md#regex). It has its own explicit
+[shorthand classes](patterns.md#shorthand-classes).
 
 ## Whitespace and line endings
 

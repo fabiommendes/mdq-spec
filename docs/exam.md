@@ -85,6 +85,13 @@ All properties in the frontmatter are optional. `title` and `id` may be given
 either in the frontmatter or in the H1 heading; if both are set, the
 frontmatter takes precedence, consistently with the rule for questions.
 
+The frontmatter MAY hold only the fields of the table above. Any other key is
+the `invalid-frontmatter-field` error, as for a question, see
+[Frontmatter](question-types/question-base.md#frontmatter). This covers the
+fields that the body sets: `instructions` (the text before the first question)
+and `questions` (the question and include blocks). The rule is for Markdown;
+an exam written in YAML or JSON may use all the fields of its schema.
+
 As for a question, a mapping MUST NOT repeat a key, in the exam frontmatter
 and in the frontmatter of every block (`yaml-syntax-error`). A value keeps its
 YAML type and is never converted: `id`, and the `include` and `includeAll` of
@@ -348,6 +355,8 @@ A multiple choice question has one pick and accepts neither `no-mistakes` nor
 selection question has no abstention, since an unticked choice asserts that the
 choice is false. Every wrong verdict is then a mistake, so `no-mistakes` and
 `all-or-nothing` are the same strategy there, and only `all-or-nothing` exists.
+
+Short answer, numeric, essay and ordering questions have no `grading` field. The exam's `grading` does not apply to them: each scores in [0, 1] by the rules of its own type, and `penalty` then applies as to any other question. A `grading` mapping cannot have a key for these types: such a key is a `schema-error`.
 
 The mapping takes the shape:
 

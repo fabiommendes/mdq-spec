@@ -62,6 +62,19 @@ The frontmatter object is a mapping of fields and the corresponding values. The
 exact list of fields depends on the question type, but some are common to all
 questions. All fields are optional.
 
+The frontmatter MAY hold only the fields of the frontmatter table of its
+question type and the fields of the table below. Any other key is an error
+(`invalid-frontmatter-field`). This covers a field that the body sets (for
+example `stem`, `choices`, `answer`, `blanks`, `accept` or `reject`, and the
+`unit` of a numeric question) and a key that no question type defines. The
+message of the error says when the key is a field of the body, and shows the
+body syntax that sets it. Only `id` and `type` can be set both in the
+frontmatter and in the body.
+
+This rule is for Markdown. A question written in YAML or JSON has no
+frontmatter: all the fields of its schema are valid, and an unknown key is a
+`schema-error`.
+
 | Field  | Type               | Description                                                          |
 | ------ | ------------------ | -------------------------------------------------------------------- |
 | type   | string             | Force a question type (instead of inferring it)[^1]                  |
@@ -106,8 +119,10 @@ field: `weight: null` is `weight: 1`, and `title:` is no title. This applies
 to every document, in Markdown, YAML and JSON, and to nested objects such as
 choices and blanks.
 
-If there is a collision of a field that is specified both in the frontmatter and
-elsewhere, the frontmatter takes precedence.
+If `id` is set both in the frontmatter and as a [slug](#slug), the frontmatter
+takes precedence. An implementation SHOULD report `redundant-id` in this case,
+whether the two values are equal or not. When they are different, the message
+says that the frontmatter value wins.
 
 ## Introduction 
 
@@ -171,8 +186,8 @@ An example shows this:
 ``` 
 
 This marks the question with the slug `Q1`. This is equivalent to the
-frontmatter field `id: Q1`, and if both are set the frontmatter takes
-precedence.
+frontmatter field `id: Q1`. If both are set, the frontmatter takes precedence
+and the `redundant-id` warning is reported, see [Frontmatter](#frontmatter).
 
 The slug MUST match the `SLUG` terminal of
 [Common grammar rules](../references/grammar.md):
@@ -300,8 +315,8 @@ fields in the AST, with two exceptions: `tags` written as a single
 comma-delimited string becomes the list of its parts, each stripped of
 surrounding whitespace (an empty part after a final comma is dropped, so
 `"cerrado, bioma,"` is `[cerrado, bioma]`), and the per-type shorthands that each question type
-documents (`normalizations` as a bare string in ordering, the `preAccept` and
-`preReject` maps in fill in the blanks). The fields carry the same name,
+documents (`normalizations` as a bare string in ordering, the `preAccept`,
+`preReject` and `incorrectFeedback` maps in fill in the blanks). The fields carry the same name,
 types, optionality and validation rules as in the frontmatter. Validation rules that can be described
 by a JSON Schema are defined in the corresponding schema document. We only
 document here the validations that require additional processing.
@@ -370,10 +385,15 @@ the schema rejects their empty string.
 | locale                   | info     | locale-lookalike-language | the language subtag looks like a country code[^8]           |
 | preamble, epilogue, stem | warning  | unsafe-thematic-break     | a thematic break should be `***` or `___`, not `---`[^9] |
 | preamble, epilogue, stem | warning  | stray-choice-marker       | a list item outside the body should not start with a choice value[^7] |
-| any frontmatter key      | warning  | unknown-frontmatter-key   | a key not recognized for the document or question type is dropped |
+| any frontmatter key      | error    | invalid-frontmatter-field | must be a field of the frontmatter table of the question type or of the base table[^11] |
+| id                       | warning  | redundant-id              | should not be set both in the frontmatter and as a slug[^12] |
 | any text                 | warning  | non-ascii-whitespace      | U+0085, U+2028, U+2029, or a Unicode space in a syntax position[^10] |
 | any text                 | info     | non-ascii-whitespace-in-prose | any other Unicode space outside ASCII[^10]                       |
 
+[^11]: A field that the body sets, or a key that no question type defines,
+is not valid in the frontmatter. See [Frontmatter](#frontmatter).
+[^12]: The frontmatter value wins, whether the two values are equal or not.
+See [Slug](#slug).
 [^7]: Those elements are described in the section [forbidden elements](#forbidden-elements)
 [^8]: For example `cn` (a country code) instead of `zh` (the language). The
 `malformed-locale` check only tests that the tag is well-formed under BCP 47,

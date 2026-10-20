@@ -176,3 +176,198 @@ M1 a M6 da seção anterior (o item M4 e a tabela `en`/`pt`/`es`).
   ("Unknown statement id") e `examples/grading/multiple-selection.yaml`
   ("Malformed tick", `ticks` com id desconhecido e com número). O runner do
   mdq-js deve tratar `"malformed"` como erro também em MS.
+
+## Auditoria de short-answer (2026-10-17)
+
+- Q1. Conteúdo de uma linha (`[short-answer]`, `/accept`, `/reject` e
+  `[^id/short-answer]`) segue o parágrafo CommonMark. Linha lazy (as que
+  `LAZY_START` aceita) continua o padrão, até a linha em branco, também depois de
+  tag vazia: `[short-answer]:` + `Brasília` é `accept: [Brasília]`;
+  `[short-answer/reject]:` + `Rio` é reject válido. As linhas se juntam com um
+  U+0020, qualquer que seja a indentação da continuação (mdq-py:
+  `MDQParser._join_content_lines`).
+- Q2. Mudança de comportamento: linha que começa com `>` ou `!` (não `![`) logo
+  depois do conteúdo é `parse-error`, com mensagem que sugere a forma de lista.
+  Antes, `> x` ia para o epílogo e `! x` entrava no padrão (`Brasília ! note`).
+  `![` continua sendo continuação (imagem). Tag vazia + `!` também é erro; tag
+  vazia + `>` também é erro (J7, antes ia ao epílogo).
+- Q3. Sem mudança: item de lista logo depois do conteúdo é `parse-error`;
+  heading ATX, cerca, bloco HTML e thematic break encerram o bloco e vão ao
+  epílogo. Atenção: `---` logo depois do conteúdo é setext heading no
+  markdown-it, não thematic break.
+- Q4. Corpus novo: `valid/short-answer/{empty-tag-text-line,
+  empty-reject-text-line,heading-after-content}` e
+  `invalid/{short-answer-quote-after-content,short-answer-comment-after-content,
+  fill-in-short-answer-comment-after-content}`.
+- Q5. Gramática: `content` ganhou linhas de continuação (e o literal exato pode
+  atravessar linhas), `lazy_content` cobre a linha depois de tag vazia, e
+  `pattern_item` agora está em Lark em `docs/references/patterns.md`. O fill-in
+  usa as mesmas regras (o terminal `PATTERN` saiu).
+- Q6. D2: antes de a regex casar, a resposta vai a NFC e perde os
+  `UNICODE_SPACE` das duas pontas; a flag `n` vem depois (patterns.md, "Regex
+  subject"). Espaço interior não muda. mdq-py: `RegexPattern._subject`. Antes,
+  `/Brasília/` rejeitava `Brasília ` e a resposta em NFD.
+- Q7. B3: `[short-answer]: X` + `---`/`===` vira setext heading no markdown-it
+  e nenhum corpo é achado. A mensagem do `MissingField` agora diz isso e
+  sugere linha em branco (mdq-py: `MDQParser.find_body_start`). Sintaxe igual.
+- Q8. Corpus novo: `invalid/short-answer-quote-after-empty-tag`. Vetores novos
+  em `examples/grading/short-answer.yaml` ("Regex response preparation",
+  "Regex with the f flag and interior spaces").
+- Q9. D3 (F11): regex em modo code point e classes explícitas (patterns.md,
+  "Code point mode" e "Shorthand classes"). O mdq-js deve compilar sempre com
+  `u` (`.` casa um code point, `\u{...}` vale, `i` usa case folding simples).
+- Q10. `\d`/`\D` = `[0-9]`; `\w`/`\W` = `[A-Za-z0-9_]`; `\s`/`\S` =
+  `UNICODE_SPACE` (traduzir `\s`: o `\s` do JS casa U+FEFF, tirar). `\b`/`\B`
+  seguem o `\w` explícito, não o do JS. Atenção a `u`+`i`: em JS `/\w/iu` casa
+  `ſ` e U+212A, então a tradução para classe explícita deve evitar isso (por
+  exemplo `(?:(?![\u017F\u212A])...)`, ou testar o caractere antes de aplicar
+  `i`). Vale também dentro de classe `[...]`. mdq-py: `translate_body` em
+  `mdq/models/_regex.py`.
+- Q11. Classe abreviada como ponta de intervalo (`[a-\d]`) é `invalid-regex`.
+  Vetores novos em `examples/grading/short-answer.yaml` ("Regex dot matches
+  one code point" ... "Regex space"). U+212A chega à regex já como `K` (NFC).
+- Q12. D4 (F12): a última `/` do padrão fecha a regex, o resto são as flags;
+  `/` sem escape no corpo vale (`/a/b/` = corpo `a/b`). Espaços e tabs das duas
+  pontas saem antes (hoje o JS deve falhar com `/abc/i `). O mdq-js NÃO pode
+  usar o parser de literal RegExp para separar corpo e flags: procurar a última
+  `/` na string e só depois montar `new RegExp(corpo, "u")`. Uma única `/` é
+  `invalid-regex`. mdq-py: `parse_regex` em `mdq/models/_regex.py`. Corpus:
+  `valid/short-answer/regex-unescaped-slash`; vetor "Regex with an unescaped
+  slash" em `examples/grading/short-answer.yaml`.
+- Q13. D5 (F13): a flag `n` tira diacríticos (NFD, remove `Mn`, NFC) da
+  resposta e dos caracteres LITERAIS do corpo da regex (`/água/n` casa `agua` e
+  `água`). Um escape de code point (`\uXXXX`, `\xXX`, `\u{...}`) é sempre aquele
+  code point e o `n` não o altera (`/\u00e1gua/n` não casa nada). mdq-js: aplicar
+  o strip ao corpo antes de compilar, sem tocar nas sequências de escape
+  (mdq-py: `RegexPattern.__init__`, `normalize_text`).
+- Q14. Lint `info` `unmatchable-regex-escape` (accept, reject, preAccept,
+  preReject e blanks do fill-in): sob `n`, um escape cujo code point muda com o
+  strip (Mn, ou NFD com Mn, como U+00E1). Um diagnóstico por padrão. mdq-py:
+  `_check_unmatchable_regex_escape` em `mdq/models/_lint.py` e
+  `escaped_code_points` em `mdq/models/_regex.py`. Corpus:
+  `valid/short-answer/unmatchable-regex-escape`; vetores "Regex n strips literal
+  diacritics" e "Regex n keeps escapes" em `examples/grading/short-answer.yaml`.
+- Q15. D6a (F4): a gramática do `content` é `exact | regex | inexact`;
+  `PLAIN_TEXT` não começa com `/`. Regex sem fechamento falha na gramática e o
+  código é `invalid-regex`. Sem mudança de comportamento no mdq-py.
+- Q16. D6b (F6, F24): padrão sem caractere visível é `blank-text` (error):
+  `"   "`, crases com um espaço, U+200B sozinho. Em literal exato, vale o texto
+  entre as crases. Vale em toda lista de padrões (corpo, frontmatter, blanks do
+  fill-in). `""` segue `schema-error` (`minLength`). mdq-py:
+  `AnswerPattern.check_pattern_has_visible_character`. Antes, `"   "` era
+  `schema-error` e U+200B passava.
+- Q17. D6c (F5): conteúdo que abre com crase e não é um span completo
+  (`` `math.isnan` (x) ``) segue `schema-error`, nas duas formas; ganhou linha
+  na tabela de short-answer.md.
+- Q18. D6d (F8): o `pattern` de `patternString` usa só classes explícitas (sem
+  `\s`), alinhado a `EXACT_TEXT` e `PLAIN_TEXT`: nenhum CR/LF no padrão, nenhuma
+  crase ou CR/LF dentro do literal exato. Espaço e tab das duas pontas de
+  QUALQUER padrão saem antes de classificá-lo: `"  `x`"` é o literal exato `x`
+  (antes era `schema-error`). Conversores que geram padrão com quebra de linha
+  (importação Moodle) passam a falhar no schema.
+- Q19. Corpus novo: `valid/short-answer/exact-leading-spaces`,
+  `invalid/model-only/{short-answer-blank-exact-literal,
+  short-answer-blank-zero-width-pattern}`.
+- Q20. D8/D9: o frontmatter de um `.mdq.md` só aceita os campos da tabela de
+  frontmatter do tipo mais os da base (`question-base.md`), mais os atalhos
+  (`FRONTMATTER_SHORTHANDS` em `scripts/schema_bundle.py`). Qualquer outra
+  chave (campo do corpo ou desconhecida) é erro `invalid-frontmatter-field`,
+  `path` = `[chave]`, um diagnóstico por chave, e `load` não devolve documento.
+  Vale para perguntas, para o frontmatter da prova e para blocos de pergunta
+  dentro da prova (`path` = `questions, i, chave`). YAML/JSON não mudam
+  (chave desconhecida segue `schema-error`). O warning `unknown-frontmatter-key`
+  deixou de existir (substituído).
+- Q21. O mdq-js deve validar o frontmatter com os schemas do bundle
+  (`$defs/frontmatter-<tipo>`, um por tipo de pergunta e `frontmatter-exam`),
+  gerados por `scripts/schema_bundle.py` a partir das tabelas. mdq-py usa só as
+  chaves de `properties` (`mdq/_parser/_frontmatter.py`), os valores seguem para
+  o modelo. O bundle em `mdq-js/src/mdq.schema.json` já está regenerado. O
+  teste que exige um `$defs` por arquivo de schema deve ignorar as chaves
+  `frontmatter-*`. A mensagem diz quando a chave é campo do corpo e mostra a
+  sintaxe (`_BODY_SYNTAX` em `_frontmatter.py`).
+- Q22. `accept`/`reject` saíram da tabela de frontmatter do short-answer e
+  `unit` da do numeric: só o corpo (`[short-answer]`, `[numeric(unit)]`) os
+  define. O código `conflicting-accept` foi removido (não existe mais
+  `ConflictingAnswerKey`); o `unit` do frontmatter deixou de sobrepor o da tag.
+- Q23. Novo warning `redundant-id`: `id` no frontmatter e como slug `[Q1]`,
+  com valor igual ou diferente; o frontmatter vence e a mensagem diz isso
+  quando diferem. `path` = `["id"]`. Só o parser Markdown o produz (entra em
+  `PARSER_ONLY_CODES`).
+- Q24. J22: conversores (importação Moodle/GIFT) juntam as linhas de uma
+  resposta com um U+0020 (cada quebra de linha mais a indentação da seguinte),
+  como a regra de continuação do corpo (mdq-py: `literal_pattern` em
+  `mdq/convert/_base.py`). Resolve a nota do Q18 sobre padrões com quebra.
+- Q25. Corpus: `valid/short-answer/frontmatter-accept` virou
+  `invalid/short-answer-frontmatter-accept` (sem o `.yaml`);
+  `valid/essay/unknown-frontmatter-key` virou
+  `invalid/essay-unknown-frontmatter-key`; `valid/numeric/frontmatter-unit-wins`
+  foi removido (coberto por `invalid/numeric-frontmatter-unit`);
+  `invalid/short-answer-conflicting-*` agora esperam `invalid-frontmatter-field`
+  (`path` = `[accept]` ou `[reject]`); `valid/short-answer/exact-leading-spaces`
+  ficou só em YAML (os espaços não cabem no corpo). Novos:
+  `invalid/{numeric-frontmatter-unit,multiple-choice-frontmatter-stem}`,
+  `valid/numeric/redundant-id-{equal,different}`. `id-precedence` e
+  `inline-id-and-indented-tag` ganharam `redundant-id` no `.lint.json`.
+- Q26. D7/D10a (só texto do spec): linhas novas em "Additional Rules" do
+  short-answer, nota de que a tabela lista só diagnósticos, e `patterns.md` e o
+  schema (`feedback` do padrão) apontam para a regra de seleção de
+  short-answer.md "Feedback". Sem mudança de código.
+- Q27. D10b: pré-validação (short-answer.md, "Pre-validation"). Inválida =
+  casa um `preReject`, ou `preAccept` existe e nenhum casa. Feedback da
+  submissão inválida: (1) primeiro `preReject` que casa e tem feedback; (2)
+  senão, se nenhum `preAccept` casa, primeiro `preAccept` com feedback (dica de
+  formato). Se a regra que vale não acha feedback, nenhum é mostrado (não cai
+  na regra seguinte). Válida: sem feedback. mdq-py:
+  `ShortAnswerQuestion.prevalidate(response) -> (valid, feedback | None)`,
+  `ShortAnswerBlank.prevalidate(response, diacritics=...)` e
+  `prevalidate_response` em `mdq/models/_text.py`.
+- Q28. D10c: o blank short-answer do fill-in ganha `incorrectFeedback` (campo
+  do blank no AST, mesmo sentido do short-answer). No frontmatter do fill-in é
+  mapa id do blank -> string (atalho, como `preAccept`/`preReject`; em
+  `FRONTMATTER_SHORTHANDS`). Id desconhecido: `undefined-blank` com
+  `path = [incorrectFeedback, id]`; id de blank de escolha ou numérico:
+  `schema-error`; valor que não é string: `parse-error`; texto sem caractere
+  visível: `blank-text`. Pontuação do blank: o `incorrectFeedback` do blank só
+  entra quando o blank é incorreto e nenhum padrão deu feedback.
+  mdq-py: `_question.py` (`distribute_blank_pattern_lists`), `_fill_in.py`.
+- Q29. Vetores: `examples/grading/short-answer.yaml` ganhou a chave opcional
+  `feedback` por resposta (string ou null; ausente = não checa) e quatro
+  questões novas ("Feedback ...", "incorrectFeedback", "No feedback for a
+  pending response"). Arquivo novo `examples/grading/short-answer-prevalidation.yaml`
+  (`response`, `valid`, `feedback`). O runner do mdq-js deve ler os dois.
+  mdq-py: `tests/test_grading_examples.py`. Corpus novo:
+  `valid/fill-in/incorrect-feedback`.
+- Q30. D11: a resposta de short-answer, de essay e do blank short-answer do
+  fill-in é string. Qualquer outro valor (número, booleano, lista, mapa) é
+  `ResponseError`; `""` e só espaços são avaliados normalmente (não são pulo,
+  só `null` é). mdq-py: `check_text_response` em `mdq/models/_text.py`, chamado
+  por `ShortAnswerQuestion.score_response` e `EssayQuestion.score_response`
+  (essay: a checagem vem antes do `NotAutoGradable`). O fill-in já checava.
+  Vetores: o score `"malformed"` em `examples/grading/short-answer.yaml`; o
+  runner deve esperar `ResponseError` para ele.
+- Q31. D12: literal exato é um code span do CommonMark. Abre com N crases e
+  fecha com a primeira sequência de exatamente N crases, que deve terminar o
+  pattern (depois de remover espaços e tabs das pontas). Sequências de outro
+  tamanho dentro são texto. Conteúdo que começa e termina com espaço (e não é só
+  espaço) perde um espaço de cada ponta; depois disso valem NFC e o trim de
+  `UNICODE_SPACE` de sempre. mdq-py: `mdq/_exact.py` (`exact_literal`,
+  `exact_span`), usado por `AnswerPattern` (`matches`, `blank-text`) e por
+  `convert/_base.py` (`literal_answers`).
+- Q32. D12: pattern que abre com crase e não é literal completo é
+  `schema-error` (`` ``x` ``, `` `a` b` ``). O JSON Schema (`patternString`)
+  não compara o tamanho das sequências (precisa de backreference), então só
+  exige abrir e fechar com crase; o modelo checa o resto. Por isso o exemplo
+  `invalid/model-only/short-answer-fence-mismatch` é válido no schema. No
+  mdq-py a mensagem do erro é própria e o tipo pydantic é `schema-error`; o
+  port deve reportar o mesmo código no mesmo `path` (`[accept, 0]`).
+- Q33. D12: o parser do `.mdq.md` não muda; a linha da tag chega crua e o
+  pattern é classificado pelo modelo. A gramática trocou `"`"` por `FENCE`
+  (`/`+/`) e `EXACT_TEXT` aceita sequências internas de crases. Corpus novo:
+  `valid/short-answer/exact-backtick`, `exact-backtick-run`. Vetores novos em
+  `examples/grading/short-answer.yaml` ("Exact literal with a backtick" e
+  similares).
+- Q34. D13a: o `grading` do exame não vale para short-answer, numeric, essay e
+  ordering, e o mapa `grading` não aceita chave desses tipos (`schema-error`,
+  o schema já fazia). Só texto e a `description` do schema. Corpus novo:
+  `invalid/exam-grading-short-answer-key`. D13b: cinco entradas no
+  `GLOSSARY.md`, sem efeito no código.

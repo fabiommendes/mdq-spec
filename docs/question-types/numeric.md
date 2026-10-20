@@ -19,13 +19,16 @@ frontmatter:
 | Field         | Type      | Description                                     |
 | ------------- | --------- | ----------------------------------------------- |
 | type          | "numeric" | The type discriminator                          |
-| unit          | string    | Unit of the response, if given                  |
 | domain        | string    | Either "integer", "decimal" or "fraction"       |
 | decimalPlaces | integer   | Number of decimal places for decimal values[^1] |
 
 [^1]: Must be greater than or equal to zero. The precision of the
 comparison, see [Decimal places](#decimal-places). Only meaningful when the
 domain is `decimal`.
+
+`unit` is a field of the YAML and JSON form. In Markdown only the
+`[numeric(unit)]` tag sets it, see [Body](#body), and a `unit` key in the
+frontmatter is the `invalid-frontmatter-field` error.
 
 
 ## Body

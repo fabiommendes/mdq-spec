@@ -32,6 +32,7 @@ frontmatter
 | unmatched  | string    | Either "incorrect" or "manual"[^6]                |
 | preAccept  | map       | Blank id to the patterns a response must match[^7] |
 | preReject  | map       | Blank id to the patterns a response must not match[^7] |
+| incorrectFeedback | map | Blank id to the feedback of an incorrect response that no pattern gave feedback to[^9] |
 
 [^1]: Grading is `"partial" | "no-mistakes" | "all-or-nothing" | "symmetric" | "inherit"`.
 Default is `"inherit"`, which takes the strategy from the exam, and is
@@ -73,6 +74,26 @@ blanks:
     preReject:
       - pattern: "/\\d+/"
         feedback: Write the season, not a month number.
+```
+
+[^9]: Frontmatter-only, like `preAccept` and `preReject`. Each key is the id of
+a [short answer blank](#short-answer-blanks) and its value a string, with the
+same meaning as the `incorrectFeedback` of a standalone
+[short answer](short-answer.md#feedback) question. In JSON it is a field of
+the blank:
+
+```yaml
+incorrectFeedback:
+  state: That is not a state of the Southeast.
+```
+
+maps to
+
+```yaml
+blanks:
+  - id: state
+    type: short-answer
+    incorrectFeedback: That is not a state of the Southeast.
 ```
 
 
@@ -136,8 +157,8 @@ blank_def   : choice_def | numeric_def | short_answer_def
 choice_def       : "[^" SLUG "]" ws? ":" ws? nl choice_list
 numeric_def      : "[^" SLUG "/numeric" unit? "]" ws? ":" ws? numeric_body
 short_answer_def : accept_def | reject_def
-accept_def       : "[^" SLUG "/short-answer" "/accept"? "]" ws? ":" ws? patterns?
-reject_def       : "[^" SLUG "/short-answer/reject" "]" ws? ":" ws? patterns
+accept_def       : ws? "[^" SLUG "/short-answer" "/accept"? "]" ws? ":" ws? patterns?
+reject_def       : ws? "[^" SLUG "/short-answer/reject" "]" ws? ":" ws? patterns
 patterns         : answer | nl pattern_list
 ```
 
@@ -205,18 +226,18 @@ sharing the blank's slug:
 
 ```lark
 short_answer_def : accept_def | reject_def
-accept_def       : "[^" SLUG "/short-answer" "/accept"? "]" ws? ":" ws? patterns?
-reject_def       : "[^" SLUG "/short-answer/reject" "]" ws? ":" ws? patterns
-patterns         : answer | nl pattern_list
-
-answer           : PATTERN
+accept_def       : ws? "[^" SLUG "/short-answer" "/accept"? "]" ws? ":" ws? patterns?
+reject_def       : ws? "[^" SLUG "/short-answer/reject" "]" ws? ":" ws? patterns
+patterns         : content | nl lazy_content | nl pattern_list
 pattern_list     : pattern_item+
 ```
 
-The `pattern_item` rule, including its `>` feedback and `!` comment lines, is
-the one defined in [Pattern items](../references/patterns.md#pattern-items),
-and `pattern_list` is the unordered list those items form. The `blank` slug
-MUST be present in the stem.
+The `content` and `lazy_content` rules, with their continuation lines, are
+the ones of the [short answer body](short-answer.md#body). The `pattern_item`
+rule, including its `>` feedback and `!` comment lines, is the one defined in
+[Pattern items](../references/patterns.md#pattern-items), and `pattern_list`
+is the unordered list those items form. The `blank` slug MUST be present in
+the stem.
 
 The suffix `/short-answer` is REQUIRED. Without it the definition is a
 [multiple choice blank](#multiple-choice-blanks), which is what a bare
@@ -233,8 +254,15 @@ MUST define each block at most once, in any order. A blank whose
 `[^slug/short-answer]` block has no pattern has no `accept` list, and the
 instructor grades its responses, see [Automation](#automation).
 
-A single `PATTERN` -- on the tag line or as an item of a list -- is a pattern
-string, with the meaning defined in
+The lines after the content of a `[^slug/short-answer]` definition follow the
+rules of the [short answer body](short-answer.md#pattern-lines): a lazy line
+continues the content, also after an empty tag; a `>` or `!` line (not `![`)
+or a list item right after the content (a `>` or `!` line also right after an
+empty tag) is a `parse-error`; an ATX heading,
+fenced code, HTML block or thematic break ends the definition.
+
+The `content` of a definition -- on the tag line or as an item of a list -- is
+a pattern string, with the meaning defined in
 [Pattern string](../references/patterns.md#pattern-string). The question's
 `diacritics` field applies to its plain literals.
 
@@ -256,7 +284,8 @@ The largest planet in the Solar System is [^planet].
 A short answer blank also takes the `preAccept` and `preReject` lists of a
 short answer question. They have no block of their own: they are written in
 the question's [frontmatter](#frontmatter), in a map from the blank id to the
-list.
+list. The feedback of an invalid response follows the rules of
+[Pre-validation](short-answer.md#pre-validation).
 
 
 ## Automation
@@ -283,7 +312,10 @@ choice scored. A pattern of a short answer blank takes `feedback` and `comment`
 exactly as it would in a [short answer](short-answer.md#feedback) question, and
 shows it under the same rule -- the first pattern that matches the response
 and defines a feedback message, with `accept` taking precedence over `reject`.
-Numeric blanks have no feedback syntax.
+A short answer blank also takes `incorrectFeedback`, with the same meaning as
+in a short answer question: the feedback of an incorrect response that no
+pattern gave feedback to. It is written in the `incorrectFeedback` map of the
+[frontmatter](#frontmatter). Numeric blanks have no feedback syntax.
 
 A question collects the feedback of every blank into one flat list, in the
 order the blank definitions appear in the document, not the order the stem
@@ -383,14 +415,16 @@ of [numeric](numeric.md#additional-rules), and a short answer blank those of
 | blanks[].id          | error    | unreferenced-blank | must be referenced by an `[^id]` marker in the stem                |
 | stem                 | error    | misplaced-blank    | blanks may only appear in a plain text run of a paragraph[^4]      |
 | blanks[]             | error    | parse-error        | a short answer blank defines each block at most once[^5]           |
-| preAccept, preReject | error    | undefined-blank    | every key must be the id of a declared blank[^8]                   |
-| preAccept, preReject | error    | schema-error       | a key must not be the id of a choice or numeric blank (schema)[^8] |
+| blanks[]             | error    | parse-error        | a `>` or `!` line must not follow the content or an empty tag line of a short answer definition without a blank line |
+| preAccept, preReject, incorrectFeedback | error | undefined-blank | every key must be the id of a declared blank[^8]                  |
+| preAccept, preReject, incorrectFeedback | error | schema-error    | a key must not be the id of a choice or numeric blank (schema)[^8] |
+| blanks[].incorrectFeedback | error | blank-text         | if defined, must have at least one visible character              |
 
 [^3]: Otherwise the stem's `[^id]` marker is ambiguous.
 [^4]: See [where blanks may appear](#where-blanks-may-appear). A `[^id]` found
 anywhere else is not a blank, and MUST NOT be silently dropped.
 [^5]: One `[^id/short-answer]` (or its alias `[^id/short-answer/accept]`)
 and one `[^id/short-answer/reject]`, in any order.
-[^8]: A key that is not the id of a declared blank is an `undefined-blank`
+[^8]: In the `preAccept`, `preReject` and `incorrectFeedback` maps. A key that is not the id of a declared blank is an `undefined-blank`
 error, at the path of the key. A key that is the id of a choice or numeric
-blank puts the list on that blank, where the schema rejects it.
+blank puts the value on that blank, where the schema rejects it.

@@ -1,0 +1,9 @@
+# The literal is a run of three backticks. A fence of four holds it, and the
+# spaces next to the fence keep the backticks of the literal apart from it.
+id: sa-exact-backtick-run
+title: Fence of a code block
+type: short-answer
+stem: A fenced code block in Markdown opens with a run of three backticks. Write
+  that run.
+accept:
+- '```` ``` ````'

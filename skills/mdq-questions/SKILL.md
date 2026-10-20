@@ -42,8 +42,11 @@ the **body** (required, and what decides the question type). Everything else is
 optional.
 
 * Frontmatter fields: `type`, `title`, `id`, `uuid`, `tags`, `author`,
-  `locale`, `meta`, plus per-type ones. Frontmatter always wins over anything
-  written in the body.
+  `locale`, `meta`, plus per-type ones. Any other key is an error
+  (`invalid-frontmatter-field`): the stem, the choices, the answer, the
+  `accept`/`reject` patterns and the numeric unit are written in the body only.
+  Only `id` and `type` can be in both places. Then the frontmatter wins, and
+  `redundant-id` warns about the `id`.
 * `[slug]` at the start of the first paragraph sets the id: `[Q1] What is ...`.
 * Never use H1 headings inside a question, and do not start a paragraph or a
   list item with `[` unless it is a real tag.

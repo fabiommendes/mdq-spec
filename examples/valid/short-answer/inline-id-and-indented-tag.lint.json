@@ -1,5 +1,12 @@
 [
   {
+    "code": "redundant-id",
+    "severity": "warning",
+    "path": [
+      "id"
+    ]
+  },
+  {
     "code": "missing-title",
     "severity": "info",
     "path": [

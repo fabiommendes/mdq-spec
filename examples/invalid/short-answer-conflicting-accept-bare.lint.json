@@ -1,7 +1,9 @@
 [
   {
-    "code": "conflicting-accept",
+    "code": "invalid-frontmatter-field",
     "severity": "error",
-    "path": []
+    "path": [
+      "accept"
+    ]
   }
 ]

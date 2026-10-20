@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MDQ Specification Audit: short-answer: mdq-spec</title>
+<style>
+:root { --border: #D1D5DB; --muted: #6B7280; --bg-soft: #F3F4F6; }
+* { box-sizing: border-box; }
+body { margin: 0; font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #111827; }
+main { max-width: 60rem; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+header { border-bottom: 3px solid #111827; padding-bottom: 1rem; margin-bottom: 1.5rem; }
+header h1 { margin: 0 0 .5rem; font-size: 2rem; line-height: 1.2; }
+.meta { color: var(--muted); margin: .2rem 0; }
+nav { background: var(--bg-soft); border-radius: 6px; padding: .6rem 1rem; margin-bottom: 2rem; }
+nav a { margin-right: 1.2rem; color: #1F2937; text-decoration: none; font-weight: 600; }
+nav a:hover { text-decoration: underline; }
+h2 { margin-top: 2.5rem; border-bottom: 1px solid var(--border); padding-bottom: .3rem; }
+h3 { margin-top: 1.8rem; }
+code, pre { font-family: ui-monospace, "DejaVu Sans Mono", Menlo, Consolas, monospace; font-size: .85em; }
+code { background: var(--bg-soft); padding: .05em .3em; border-radius: 3px; }
+pre { background: #F9FAFB; border: 1px solid var(--border); border-radius: 6px; padding: .8rem;
+      overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+table { border-collapse: collapse; width: 100%; margin: .8rem 0; font-size: .92em; }
+th, td { border: 1px solid var(--border); padding: .4rem .6rem; text-align: left; vertical-align: top; }
+th { background: var(--bg-soft); }
+.chip { display: inline-block; min-width: 5.5rem; padding: .1rem .5rem; border-radius: 4px; color: #fff;
+        font-size: .75rem; font-weight: 700; text-align: center; text-transform: uppercase; letter-spacing: .03em; }
+.cards { display: flex; flex-wrap: wrap; gap: .8rem; margin: 1rem 0; }
+.card { flex: 1 1 7rem; border: 1px solid var(--border); border-top: 5px solid; border-radius: 6px;
+        padding: .6rem .8rem; }
+.card .n { font-size: 1.8rem; font-weight: 700; }
+.card .label { color: var(--muted); text-transform: uppercase; font-size: .75rem; letter-spacing: .05em; }
+.charts { display: flex; flex-wrap: wrap; gap: 2.5rem; align-items: flex-start; }
+.donut { width: 11rem; height: 11rem; border-radius: 50%; position: relative; flex: none; }
+.donut::after { content: ""; position: absolute; inset: 25%; background: #fff; border-radius: 50%; }
+.donut span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+              font-size: 1.6rem; font-weight: 700; z-index: 1; }
+.legend { list-style: none; padding: 0; margin: 0; }
+.legend li { margin: .25rem 0; }
+.swatch { display: inline-block; width: .8rem; height: .8rem; border-radius: 2px; margin-right: .4rem;
+          vertical-align: -1px; }
+.bars { flex: 1 1 22rem; }
+.bar-row { display: grid; grid-template-columns: 12rem 1fr 2rem; gap: .6rem; align-items: center; margin: .35rem 0; }
+.bar-row .name { font-size: .9em; text-align: right; }
+.bar { display: flex; height: 1.1rem; border-radius: 3px; overflow: hidden; background: var(--bg-soft); }
+.bar span { display: block; height: 100%; }
+.strengths li::marker { content: "✓  "; color: #059669; font-weight: 700; }
+.evidence { color: #059669; }
+.na { color: var(--muted); font-style: italic; }
+.finding { border: 1px solid var(--border); border-left: 5px solid; border-radius: 6px;
+           padding: .2rem 1rem .6rem; margin: 1rem 0; }
+.finding h4 { margin: .6rem 0 .3rem; font-size: 1.05rem; }
+.finding img { max-width: 100%; border: 1px solid var(--border); border-radius: 4px; }
+.recs li { margin: .4rem 0; }
+.prio { font-weight: 700; margin-right: .4rem; }
+.refs { color: var(--muted); font-size: .85em; }
+.issue { position: relative; margin: 1rem 0; }
+.issue button { position: absolute; top: .5rem; right: .5rem; border: 1px solid var(--border); background: #fff;
+                border-radius: 4px; padding: .2rem .7rem; cursor: pointer; font: inherit; font-size: .8rem; }
+footer { margin-top: 3rem; color: var(--muted); font-size: .85em; border-top: 1px solid var(--border);
+         padding-top: .8rem; }
+@media print {
+  @page { size: A4; margin: 2cm; }
+  body { font-size: 10.5pt; }
+  main { max-width: none; padding: 0; }
+  nav, .issue button { display: none; }
+  h2 { break-after: avoid; }
+  .finding, .issue, tr { break-inside: avoid; }
+  #summary, #issues { break-before: page; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>MDQ Specification Audit: short-answer: mdq-spec</h1>
+<p class="meta"><strong>Date:</strong> 2026-10-17</p>
+<p class="meta"><strong>Scope:</strong> Short-answer question type: <code>docs/question-types/short-answer.md</code>, <code>schema/short-answer.yaml</code>, its corpus in <code>examples/</code>, and the shared specs it depends on (<code>docs/references/grammar.md</code>, <code>docs/references/patterns.md</code>, <code>docs/question-types/question-base.md</code>, <code>docs/exam.md</code>, <code>docs/responses.md</code>).</p>
+</header>
+<nav><a href=#summary>Executive summary</a><a href=#strengths>Strengths and weaknesses</a><a href=#findings>Detailed findings</a><a href=#recommendations>Prioritized recommendations</a><a href=#issues>GitHub issues</a></nav><h2>Methodology</h2><p>The audit covered the short-answer question type: docs/question-types/short-answer.md, the shared references it depends on (docs/references/patterns.md, docs/references/grammar.md), docs/question-types/question-base.md, docs/exam.md, docs/responses.md, the short-answer blanks of docs/question-types/fill-in.md, schema/short-answer.yaml and the short-answer corpus in examples/.</p><p>scripts/spec_audit.py passed all 14 steps before the audit. The lead auditor read the specs and probed edge cases with the mdq-py parser. A grammar subagent turned the Lark snippets into test grammars and checked what they accept and reject against the prose and the corpus. An independent scanner subagent read the type specification, the schema and the corpus, validated every complete example with <code>mdq validate</code>, and checked the Additional Rules table against the MUST, SHOULD and MAY requirements of the text.</p><p>Spelling and grammar fixes were made in place and are not findings.</p><section id="summary"><h2>Executive summary</h2><div class="cards"><div class="card" style="border-top-color:#B91C1C"><div class="n">1</div><div class="label">critical</div></div><div class="card" style="border-top-color:#EA580C"><div class="n">5</div><div class="label">high</div></div><div class="card" style="border-top-color:#D97706"><div class="n">21</div><div class="label">medium</div></div><div class="card" style="border-top-color:#2563EB"><div class="n">5</div><div class="label">low</div></div><div class="card" style="border-top-color:#6B7280"><div class="n">0</div><div class="label">info</div></div><div class="card" style="border-top-color:#111827"><div class="n">32</div><div class="label">Total findings</div></div></div><div class="charts"><div><h3>Findings by severity</h3><div class="charts"><div class="donut" style="background:conic-gradient(#B91C1C 0.00% 3.12%, #EA580C 3.12% 18.75%, #D97706 18.75% 84.38%, #2563EB 84.38% 100.00%)"><span>32</span></div><ul class="legend"><li><span class="swatch" style="background:#B91C1C"></span>critical (1)</li><li><span class="swatch" style="background:#EA580C"></span>high (5)</li><li><span class="swatch" style="background:#D97706"></span>medium (21)</li><li><span class="swatch" style="background:#2563EB"></span>low (5)</li></ul></div></div><div class="bars"><h3>Findings by category</h3><div class="bars"><div class="bar-row"><div class="name">Contradictions</div><div class="bar"><span style="width:8.33%;background:#D97706" title="medium: 1"></span></div><div>1</div></div><div class="bar-row"><div class="name">Ambiguities</div><div class="bar"><span style="width:16.67%;background:#EA580C" title="high: 2"></span><span style="width:25.00%;background:#D97706" title="medium: 3"></span></div><div>5</div></div><div class="bar-row"><div class="name">Omissions</div><div class="bar"><span style="width:8.33%;background:#EA580C" title="high: 1"></span><span style="width:66.67%;background:#D97706" title="medium: 8"></span><span style="width:25.00%;background:#2563EB" title="low: 3"></span></div><div>12</div></div><div class="bar-row"><div class="name">Inconsistencies</div><div class="bar"><span style="width:16.67%;background:#D97706" title="medium: 2"></span><span style="width:8.33%;background:#2563EB" title="low: 1"></span></div><div>3</div></div><div class="bar-row"><div class="name">Grammar violations</div><div class="bar"><span style="width:8.33%;background:#B91C1C" title="critical: 1"></span><span style="width:16.67%;background:#EA580C" title="high: 2"></span><span style="width:33.33%;background:#D97706" title="medium: 4"></span></div><div>7</div></div><div class="bar-row"><div class="name">Schema mismatches</div><div class="bar"><span style="width:25.00%;background:#D97706" title="medium: 3"></span><span style="width:8.33%;background:#2563EB" title="low: 1"></span></div><div>4</div></div></div></div></div></section><section id="strengths"><h2>Strengths and weaknesses</h2><h3>Strengths</h3><ul class="strengths"><li><strong>Grammar violations:</strong> The short-answer block grammar enforces the block-shape rules it covers. Tested with Lark. Accepted: <code>[short-answer]: Brasília</code>, <code>[short-answer/accept]: Brasília</code>, an exact literal with a trailing tab, an exact literal with inner spaces, an empty <code>[short-answer]:</code> with and without trailing ws, a list after the tag (LF, CR, CRLF, trailing ws before nl), <code>[short-answer/reject]: Rio</code>, a reject list, a bare <code>*</code> and inner backticks as inexact content. Rejected, as the rules require: an empty <code>[short-answer/reject]:</code>, accept and reject with a list after a blank line, content followed by a list, an unclosed backtick, <code>[short-answer/accept/reject]:</code> and <code>[short-answer/preAccept]:</code>. <span class="evidence">(docs/question-types/short-answer.md:149-160)</span></li><li><strong>Grammar violations:</strong> The common <code>ws</code>/<code>nl</code> rules hold for short-answer: tab after the colon is ws; CR, LF and CRLF all end the tag line; U+00A0 after the colon is read as text (accepted as PLAIN_TEXT, as grammar.md:44-46 states); U+00A0 before the tag and a four-space indent are not accepted as a tag. EXACT_TEXT and PLAIN_TEXT use only explicit classes, as the regex dialect section requires. <span class="evidence">(docs/references/grammar.md:9-46)</span></li><li><strong>Omissions:</strong> The grading rules of short answer are an ordered list with an explicit default for <code>unmatched</code>, and every branch (accept, reject, unmatched incorrect/manual, reject-only, no pattern) has a grading vector. <span class="evidence">(docs/question-types/short-answer.md:256-269, examples/grading/short-answer.yaml:96-163)</span></li><li><strong>Ambiguities:</strong> The inexact comparison is a numbered list of steps over versioned Unicode/CLDR tables, with a worked table and per-step vectors for both <code>diacritics</code> values. <span class="evidence">(docs/references/patterns.md:43-99, examples/matching/inexact.yaml)</span></li><li><strong>Contradictions:</strong> All nine complete markdown examples of short-answer.md, patterns.md and the fill-in short-answer blank section validate with mdq-py with no diagnostic, and the detached-list counterexample gets the documented <code>detached-answer-list</code> warning. <span class="evidence">(docs/question-types/short-answer.md:7-64, docs/question-types/short-answer.md:310-372, docs/references/patterns.md:25-29, docs/question-types/fill-in.md:244-254)</span></li><li><strong>Omissions:</strong> The parse-error rows of Additional Rules (repeated block, content followed by a list, empty reject, interleaved feedback) and the regex flag rows each have an invalid corpus example with the expected code. <span class="evidence">(examples/invalid/short-answer-repeated-block.lint.json, examples/invalid/short-answer-content-and-list.lint.json, examples/invalid/short-answer-empty-reject.lint.json, examples/invalid/short-answer-interleaved-observations.lint.json, examples/invalid/short-answer-repeated-regex-flag.lint.json)</span></li></ul><h3>Central risks</h3><ul><li>The single-line form and the list form of a pattern block are specified in three places (prose, Lark snippet, patterns.md continuation rules) that disagree; mdq-py follows CommonMark, which none of them states.</li><li>Regex semantics (Unicode mode, case folding, shorthand classes, subject normalization) are left to the host regex engine, so mdq-py and mdq-js will grade the same response differently.</li><li>Several diagnostics exist only in the corpus and the implementation, not in the Additional Rules table, so the table cannot serve as the list of lint codes for short answer.</li></ul></section><section id="findings"><h2>Detailed findings</h2><h3>Contradictions</h3><table><tr><th>Severity</th><th>Location</th><th>Description</th></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/responses.md:156-158</code></td><td><a href="#F14"><strong>F14</strong></a> responses.md says every short answer is case folded before matching</td></tr></table><article class="finding" id="F14" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F14: responses.md says every short answer is case folded before matching</h4><p><strong>Location:</strong> <code>docs/responses.md:156-158</code></p><p class="meta"><em>Mechanical fix</em></p><pre><code>Short answers are normalized before matching -- case folded, Unicode</code></pre><p><strong>Description:</strong> Only inexact literals are case folded and have their whitespace collapsed. Exact literals keep case and interior whitespace (patterns.md:133-134), and a regex is case-sensitive unless it has <code>i</code> (patterns.md:281).</p><p><strong>Impact:</strong> A reader of responses.md expects `<code> </code>math.isnan<code> </code><code> to accept </code>Math.isnan`.</p><p><strong>Suggested fix:</strong> Say that each pattern normalizes the response in its own way, with a link to patterns.md.</p></article><h3>Ambiguities</h3><table><tr><th>Severity</th><th>Location</th><th>Description</th></tr><tr><td><span class="chip" style="background:#EA580C">high</span></td><td><code>docs/references/patterns.md:223-226, docs/question-types/short-answer.md:182-183</code></td><td><a href="#F9"><strong>F9</strong></a> Single-line content: which lines continue the pattern is unclear</td></tr><tr><td><span class="chip" style="background:#EA580C">high</span></td><td><code>docs/references/patterns.md:260-267, docs/references/patterns.md:304-305</code></td><td><a href="#F11"><strong>F11</strong></a> Regex Unicode mode, case folding and shorthand classes are undefined</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/references/patterns.md:147-150, docs/references/patterns.md:31-32</code></td><td><a href="#F12"><strong>F12</strong></a> Regex delimiters: an unescaped <code>/</code> in the body and spaces after the flags</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/references/patterns.md:289-294</code></td><td><a href="#F13"><strong>F13</strong></a> The <code>n</code> flag strips diacritics from the regex source with no rule for escapes</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/references/patterns.md:166-167, schema/short-answer.yaml:108, docs/question-types/short-answer.md:388-392</code></td><td><a href="#F25"><strong>F25</strong></a> Pattern feedback is said to come from the pattern that &#x27;decided&#x27; the response, but the rule picks the first matching pattern that has feedback</td></tr></table><article class="finding" id="F9" style="border-left-color:#EA580C"><h4><span class="chip" style="background:#EA580C">high</span> F9: Single-line content: which lines continue the pattern is unclear</h4><p><strong>Location:</strong> <code>docs/references/patterns.md:223-226, docs/question-types/short-answer.md:182-183</code></p><pre><code>The content of a single-line block continues in the same way. The lines after
+the tag line, up to the first blank line, continue the pattern:</code></pre><p><strong>Description:</strong> The text says every line after the tag line, up to the first blank line, continues the pattern. CommonMark lets a block quote, an ATX heading, a fenced code block, an HTML block or a thematic break interrupt a paragraph. mdq-py follows CommonMark: <code>[short-answer]: Brasília</code> followed by <code>&gt; Good</code> gives <code>accept: [Brasília]</code> and <code>epilogue: &quot;&gt; Good&quot;</code>, and the same for <code>## Heading</code> and <code>&lt;div&gt;x&lt;/div&gt;</code>. Read literally, the spec makes the pattern <code>Brasília &gt; Good</code>. For a list line the two texts contradict each other: by patterns.md, <code>[short-answer]: Brasília</code> followed by <code>* Rio de Janeiro</code> is the pattern <code>Brasília * Rio de Janeiro</code>, but short-answer.md:182-183 and row 414 make it a parse-error, as do mdq-py and examples/invalid/short-answer-content-and-list.mdq.md. A <code>&gt;</code> line right after single-line content also looks like feedback, which short-answer.md:169-170 says the single-line form cannot have. A <code>!</code> line is treated differently again: <code>[short-answer]: Brasília</code> followed by <code>! note</code> gives the pattern <code>Brasília ! note</code> in mdq-py, so a comment silently changes the answer key. An empty tag followed by a text line (<code>[short-answer]:</code> then <code>Brasília</code>) gives <code>accept: [Brasília]</code> in mdq-py.</p><p><strong>Impact:</strong> Two implementations can produce different answer keys from the same document. An author who writes feedback under a single-line answer gets it in the epilogue, shown to every student, with no diagnostic.</p><p><strong>Suggested fix:</strong> State which lines end the single-line content: the same lines that LAZY_START excludes (grammar.md, Feedback and comment lines). Decide what a <code>&gt;</code> or <code>!</code> line right after single-line content is: an error, a warning, or feedback for that pattern.</p><p><strong>Exploitability conditions:</strong> A single-line <code>[short-answer]:</code> block followed, without a blank line, by a line that starts a block quote, heading, fence, HTML block or thematic break.</p></article><article class="finding" id="F11" style="border-left-color:#EA580C"><h4><span class="chip" style="background:#EA580C">high</span> F11: Regex Unicode mode, case folding and shorthand classes are undefined</h4><p><strong>Location:</strong> <code>docs/references/patterns.md:260-267, docs/references/patterns.md:304-305</code></p><pre><code>* Unicode: Unicode characters are allowed in the regex. Unicode escape sequences</code></pre><p><strong>Description:</strong> The <code>u</code> flag is ignored, so it is not clear whether a regex runs in JavaScript Unicode mode. That decides if <code>.</code> matches one astral code point (<code>/./</code> vs an emoji), if <code>\u{1F600}</code> is valid, and how <code>i</code> folds case (<code>/s/i</code> vs <code>ſ</code>, <code>/k/i</code> vs U+212A KELVIN SIGN). The spec says <code>\d</code>, <code>\w</code>, <code>\s</code> have JavaScript semantics; mdq-py compiles with Python <code>re</code>, where <code>\d</code> matches <code>٣</code> and <code>\s</code> differs as grammar.md:11-15 itself describes. &#x27;users SHOULD NOT assume UTF-16 encoding&#x27; is advice to authors, not a rule for implementations.</p><p><strong>Impact:</strong> The same regex accepts different responses in mdq-py and mdq-js.</p><p><strong>Suggested fix:</strong> Pick one mode (recommended: code points, as JavaScript <code>u</code>/<code>v</code> mode and Python <code>re</code> do) and state the semantics of <code>.</code>, <code>i</code> (simple case folding?) and the shorthand classes (ASCII only, as JavaScript). Add vectors to examples/ for each.</p><p><strong>Exploitability conditions:</strong> A regex with <code>.</code>, <code>i</code>, <code>\d</code>, <code>\w</code> or <code>\s</code> and a non-ASCII response.</p></article><article class="finding" id="F12" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F12: Regex delimiters: an unescaped <code>/</code> in the body and spaces after the flags</h4><p><strong>Location:</strong> <code>docs/references/patterns.md:147-150, docs/references/patterns.md:31-32</code></p><pre><code>A regex must be closed by a `/` as well, and may include optional flags after</code></pre><p><strong>Description:</strong> The text does not say which <code>/</code> closes the regex. patterns.md:31 implies the last one (<code>/usr/bin</code> is <code>usr</code> with flags <code>bin</code>), and mdq-py accepts <code>/a/b/</code> as the body <code>a/b</code>, which is a syntax error in JavaScript. Leading spaces and tabs are stripped (line 147), but trailing ones are not: mdq-py rejects the item <code>* /abc/i </code> with &#x27;unknown regex flag: &quot; &quot;&#x27;, while an exact literal allows them (EXACT rule <code>ws?</code>).</p><p><strong>Impact:</strong> Authors cannot predict whether <code>/</code> needs escaping; implementations that follow JavaScript literal syntax reject documents mdq-py accepts.</p><p><strong>Suggested fix:</strong> State that the last <code>/</code> closes the regex and that an unescaped <code>/</code> in the body is allowed (or forbidden, <code>invalid-regex</code>). State that spaces and tabs after the flags are stripped.</p></article><article class="finding" id="F13" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F13: The <code>n</code> flag strips diacritics from the regex source with no rule for escapes</h4><p><strong>Location:</strong> <code>docs/references/patterns.md:289-294</code></p><pre><code>* `n`: Strip diacritics from both the pattern and the response before</code></pre><p><strong>Description:</strong> Stripping diacritics from a regex source is not the same as from text. mdq-py normalizes only the literal characters written in the source: <code>/caf\u00e9/n</code> keeps <code>é</code> in the compiled regex and so never matches the stripped response <code>cafe</code>. A class such as <code>[\u0300-\u036f]</code> or a literal combining mark inside a class changes meaning after the strip. The spec says nothing about either case.</p><p><strong>Impact:</strong> A regex with <code>n</code> can match nothing, with no diagnostic, and implementations can differ.</p><p><strong>Suggested fix:</strong> Define <code>n</code> on the subject only (strip the response) and require the regex to be written without diacritics, or define how escapes are treated. A lint for a regex under <code>n</code> that still holds an <code>Mn</code> code point would catch the mistake.</p></article><article class="finding" id="F25" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F25: Pattern feedback is said to come from the pattern that &#x27;decided&#x27; the response, but the rule picks the first matching pattern that has feedback</h4><p><strong>Location:</strong> <code>docs/references/patterns.md:166-167, schema/short-answer.yaml:108, docs/question-types/short-answer.md:388-392</code></p><pre><code>Only `pattern` is required. `feedback` is shown to the student whose response</code></pre><p><strong>Description:</strong> patterns.md and the schema say <code>feedback</code> is shown to the student whose response the pattern decided. short-answer.md:391-392 says the student gets the feedback of the FIRST pattern that matches AND defines a feedback message. With <code>accept: [&quot;/cerrad[oa]/i&quot;, {pattern: Cerrado, feedback: Right}]</code>, the response <code>Cerrado</code> is decided by the first pattern, which has no feedback; by short-answer.md it shows <code>Right</code>, by patterns.md it shows nothing. &#x27;Decided&#x27; is not defined for a response that several patterns match.</p><p><strong>Impact:</strong> Implementations can show or omit feedback for the same response.</p><p><strong>Suggested fix:</strong> In patterns.md and the schema, refer to the selection rule of short-answer.md (&#x27;Feedback&#x27;) instead of &#x27;the pattern that decided&#x27;.</p><p><strong>Exploitability conditions:</strong> A response that matches two patterns of the deciding list, and only the later one has feedback.</p></article><h3>Omissions</h3><table><tr><th>Severity</th><th>Location</th><th>Description</th></tr><tr><td><span class="chip" style="background:#EA580C">high</span></td><td><code>docs/references/patterns.md:145-150</code></td><td><a href="#F10"><strong>F10</strong></a> The response is not normalized or trimmed before a regex match</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/responses.md:148-153</code></td><td><a href="#F15"><strong>F15</strong></a> Short-answer response: type, empty string and line breaks are not defined</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/question-types/short-answer.md:140-145, docs/question-types/short-answer.md:204-206</code></td><td><a href="#F16"><strong>F16</strong></a> The required <code>[short-answer]</code> tag has no rule row and blocks the frontmatter-only form</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/question-types/short-answer.md:407-422</code></td><td><a href="#F17"><strong>F17</strong></a> Additional Rules misses the pattern-string and preAccept-block rules</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/question-types/short-answer.md:158</code></td><td><a href="#F18"><strong>F18</strong></a> An exact literal cannot contain a backtick</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/question-types/short-answer.md:104-115, docs/question-types/fill-in.md:57-60</code></td><td><a href="#F26"><strong>F26</strong></a> Feedback of <code>preAccept</code> and <code>preReject</code> patterns has no rule</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/question-types/fill-in.md:202-204, docs/question-types/fill-in.md:280-286, schema/fill-in.yaml:120-128</code></td><td><a href="#F27"><strong>F27</strong></a> Short answer blanks of fill-in have no <code>incorrectFeedback</code>, and the spec does not say so</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/question-types/short-answer.md:285-289, docs/question-types/short-answer.md:142-143, docs/question-types/short-answer.md:221</code></td><td><a href="#F29"><strong>F29</strong></a> Additional Rules has no row for the <code>automation</code> key, the MAY permissions and the read-only property SHOULD</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>examples/grading/short-answer.yaml:13</code></td><td><a href="#F32"><strong>F32</strong></a> No corpus vectors for feedback selection, <code>incorrectFeedback</code>, pre-validation and the <code>f</code>/<code>b</code> flags</td></tr><tr><td><span class="chip" style="background:#2563EB">low</span></td><td><code>docs/exam.md:335-337</code></td><td><a href="#F20"><strong>F20</strong></a> The exam <code>grading</code> table does not say what it does to short answer</td></tr><tr><td><span class="chip" style="background:#2563EB">low</span></td><td><code>docs/question-types/short-answer.md:409, docs/question-types/short-answer.md:420, docs/question-types/short-answer.md:421</code></td><td><a href="#F31"><strong>F31</strong></a> Rows of Additional Rules with no text in the spec</td></tr><tr><td><span class="chip" style="background:#2563EB">low</span></td><td><code>docs/question-types/short-answer.md:256</code></td><td><a href="#F34"><strong>F34</strong></a> GLOSSARY.md has no entry for pattern, settled, exact or inexact literal, or pre-validation</td></tr></table><article class="finding" id="F10" style="border-left-color:#EA580C"><h4><span class="chip" style="background:#EA580C">high</span> F10: The response is not normalized or trimmed before a regex match</h4><p><strong>Location:</strong> <code>docs/references/patterns.md:145-150</code></p><pre><code>A pattern is a regex if it starts with a `/` after stripping spaces and tabs.</code></pre><p><strong>Description:</strong> Exact literals define NFC plus trimming (patterns.md:126-131) and inexact literals define six steps, but no text says what happens to the response before a regex matches it. The implicit anchors make this visible: does <code>/1822-0?9-0?7/</code> accept <code> 1822-09-07</code> (leading space) or <code>1822-09-07\n</code>? Does <code>/Brasília/</code> accept <code>Brasília</code> typed in NFD? mdq-py matches the raw response, so both fail. examples/grading/short-answer.yaml tests trimming only for literals.</p><p><strong>Impact:</strong> A student who types a trailing space or newline, or whose input method produces NFD, fails a regex answer that a literal would accept. Implementations can disagree.</p><p><strong>Suggested fix:</strong> Define the regex subject, for example: normalize the response to NFC and remove UNICODE_SPACE from both ends, as for exact literals. Add grading vectors for it.</p><p><strong>Exploitability conditions:</strong> Any regex pattern, with a response that has surrounding whitespace or is not in NFC.</p></article><article class="finding" id="F15" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F15: Short-answer response: type, empty string and line breaks are not defined</h4><p><strong>Location:</strong> <code>docs/responses.md:148-153</code></p><pre><code>The text the student wrote, before normalization.</code></pre><p><strong>Description:</strong> The section does not say that a value that is not a string (<code>1960</code>, a list, a mapping) is a malformed response, as numeric and true/false do. It does not say how an empty string or a string of only spaces is graded: it is not <code>null</code>, so it is not skipped; examples/grading/short-answer.yaml grades <code>&quot;&quot;</code> as pending only for a manual question. It does not say if the text can hold line breaks; inexact step 6 collapses them, a regex <code>.</code> never matches one.</p><p><strong>Impact:</strong> A YAML response <code>1960</code> can be coerced to text in one implementation and refused in another. An empty submission scores 0 under <code>unmatched: incorrect</code> but its status is not specified.</p><p><strong>Suggested fix:</strong> Add: the response is a string; any other value is a malformed response (<code>ResponseError</code>). State that an empty or whitespace-only string is graded like any other response (or is a skip). Add vectors.</p></article><article class="finding" id="F16" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F16: The required <code>[short-answer]</code> tag has no rule row and blocks the frontmatter-only form</h4><p><strong>Location:</strong> <code>docs/question-types/short-answer.md:140-145, docs/question-types/short-answer.md:204-206</code></p><pre><code>incorrect responses. A question MUST have a `[short-answer]` block and MAY</code></pre><p><strong>Description:</strong> The MUST has no row in Additional Rules and no lint code. mdq-py rejects a <code>.mdq.md</code> with <code>type: short-answer</code> and <code>accept</code> in the frontmatter and no tag (&#x27;parse-error: A required field is missing&#x27;). The author must write an empty <code>[short-answer]:</code> tag, which line 204 implies is allowed with an <code>accept</code> field but never states. The frontmatter field is called &#x27;the canonical form&#x27; (short-answer.md:91), yet it cannot stand alone in markdown.</p><p><strong>Impact:</strong> Authors who use the frontmatter form get an unexplained parse error, and the empty tag that fixes it looks like a &#x27;no pattern&#x27; question.</p><p><strong>Suggested fix:</strong> Either drop the requirement when <code>type</code> or <code>accept</code>/<code>reject</code> is in the frontmatter, or keep it and add a row (<code>parse-error</code>) plus a sentence that an empty tag with an <code>accept</code> field is valid.</p></article><article class="finding" id="F17" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F17: Additional Rules misses the pattern-string and preAccept-block rules</h4><p><strong>Location:</strong> <code>docs/question-types/short-answer.md:407-422</code></p><pre><code>| accept, reject, preAccept, preReject | error    | schema-error           | a pattern list, when present, has at least one pattern (schema)                     |</code></pre><p><strong>Description:</strong> Rules stated in prose or enforced by the corpus have no row: a pattern string cannot be empty or blank (patterns.md:20; examples/invalid/short-answer-empty-pattern gives schema-error); content that opens with a backtick MUST be a complete span (short-answer.md:215-217; short-answer-partial-backtick gives schema-error); an empty pattern line in a list (short-answer-empty-pattern-line gives parse-error); a <code>[short-answer/preAccept]</code> block (short-answer-pre-accept-block gives forbidden-block-element, which the footnote at short-answer.md:104 does not mention). patterns.md:231 &#x27;Authors SHOULD write those on one line&#x27; has no warning code either.</p><p><strong>Impact:</strong> The table is not the complete list of diagnostics; an implementer reading it misses four errors.</p><p><strong>Suggested fix:</strong> Add one row per rule, with its code. Decide if the SHOULD at patterns.md:231 gets a warning code or becomes plain advice.</p></article><article class="finding" id="F18" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F18: An exact literal cannot contain a backtick</h4><p><strong>Location:</strong> <code>docs/question-types/short-answer.md:158</code></p><pre><code>EXACT_TEXT   : /[^`\n\r]+/</code></pre><p><strong>Description:</strong> EXACT_TEXT excludes the backtick and no escape exists, so an exact answer such as the shell command substitution `<code> </code>date<code> </code><code> or the Markdown </code><code> </code>code<code> </code><code> cannot be written. CommonMark solves this with longer backtick fences (</code><code> </code><code>a</code>b`<code> </code><code>). mdq-py gives a schema-error with the raw JSON Schema regex for </code>`<code> </code><code>x</code><code> </code>``.</p><p><strong>Impact:</strong> Questions about shells, Markdown or SQL identifiers cannot use exact matching; the error message does not help.</p><p><strong>Suggested fix:</strong> Accept a CommonMark code span of N backticks, with the same one-space stripping, or document the limitation and suggest a regex.</p></article><article class="finding" id="F26" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F26: Feedback of <code>preAccept</code> and <code>preReject</code> patterns has no rule</h4><p><strong>Location:</strong> <code>docs/question-types/short-answer.md:104-115, docs/question-types/fill-in.md:57-60</code></p><pre><code>systems should warn students about the invalidity of their answer before</code></pre><p><strong>Description:</strong> The pattern object form allows <code>feedback</code> in every pattern list, and fill-in.md:57-60 shows a <code>preReject</code> entry with the feedback &#x27;Write the season, not a month number.&#x27; The Feedback section (short-answer.md:386-403) covers only <code>accept</code> and <code>reject</code>. No text says when a pre-validation feedback is shown, which one when several patterns match, or what a student sees when no <code>preAccept</code> pattern matches. The lowercase &#x27;should warn&#x27; at line 107 is also not an RFC 2119 keyword, so the level of the requirement is unclear.</p><p><strong>Impact:</strong> Authors write pre-validation feedback that implementations may never show, or show differently.</p><p><strong>Suggested fix:</strong> Add a rule: when a submission is invalid, show the feedback of the first matching <code>preReject</code> pattern that has one; state what is shown for a <code>preAccept</code> failure (no pattern matched, so no pattern feedback). Write the warning requirement with SHOULD.</p><p><strong>Exploitability conditions:</strong> A <code>preAccept</code> or <code>preReject</code> entry with <code>feedback</code>.</p></article><article class="finding" id="F27" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F27: Short answer blanks of fill-in have no <code>incorrectFeedback</code>, and the spec does not say so</h4><p><strong>Location:</strong> <code>docs/question-types/fill-in.md:202-204, docs/question-types/fill-in.md:280-286, schema/fill-in.yaml:120-128</code></p><pre><code>A short answer blank takes the same answer machinery as a standalone</code></pre><p><strong>Description:</strong> fill-in.md says a short answer blank takes the same answer machinery as a short answer question and shows feedback under the same rule. The short answer rule ends with <code>incorrectFeedback</code> for an incorrect response that no pattern gave feedback to (short-answer.md:399-403). The fill-in frontmatter table, the blank schema (<code>additionalProperties: false</code>, no <code>incorrectFeedback</code>) and the fill-in text do not offer it and do not say that blanks do without it.</p><p><strong>Impact:</strong> A reader cannot tell whether an unmatched blank response can carry feedback; the &#x27;same machinery&#x27; sentence suggests it can.</p><p><strong>Suggested fix:</strong> State that blanks have no <code>incorrectFeedback</code>, or add the field (per blank or per question).</p></article><article class="finding" id="F29" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F29: Additional Rules has no row for the <code>automation</code> key, the MAY permissions and the read-only property SHOULD</h4><p><strong>Location:</strong> <code>docs/question-types/short-answer.md:285-289, docs/question-types/short-answer.md:142-143, docs/question-types/short-answer.md:221</code></p><pre><code>`automation` is not a field of the document. It MUST NOT appear in the</code></pre><p><strong>Description:</strong> Requirements with no row in the table: <code>automation</code> MUST NOT appear in the frontmatter or the YAML/JSON form (lines 285-287; examples/invalid/short-answer-automation-field.yaml expects schema-error at path <code>automation</code>); an implementation SHOULD offer automation as a read-only property (288-289); a question MAY have one <code>[short-answer/reject]</code> block (142-143); a <code>[short-answer]</code> block MAY have no pattern (221), which has no info row. Other gaps are already reported in F16 and F17.</p><p><strong>Impact:</strong> The table is not the full list of rules of the type.</p><p><strong>Suggested fix:</strong> Add an error row (<code>schema-error</code>) for <code>automation</code>, and either info rows for the MAY permissions or a note that the table lists only diagnostics. Move the read-only property SHOULD out of RFC language or give it a row.</p></article><article class="finding" id="F32" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F32: No corpus vectors for feedback selection, <code>incorrectFeedback</code>, pre-validation and the <code>f</code>/<code>b</code> flags</h4><p><strong>Location:</strong> <code>examples/grading/short-answer.yaml:13</code></p><pre><code>#   examples: { response: string, score: 0 | 1 | &quot;pending&quot; }[]</code></pre><p><strong>Description:</strong> The grading vectors record only a score. No example exercises: which feedback a response gets (first matching pattern with feedback, accept list for a correct response, short-answer.md:388-397); <code>incorrectFeedback</code> for an unmatched or feedback-less rejected response (399-403); pre-validation, including the <code>preReject</code> precedence over <code>preAccept</code> (113-115); the <code>f</code> and <code>b</code> flags and an author-written anchor under them (patterns.md:295-302; examples/valid/short-answer/regex-flags-f-b.mdq.md only checks that the document parses); <code>n</code> not applying the <code>letters</code> table (patterns.md:291-293).</p><p><strong>Impact:</strong> mdq-py and mdq-js can disagree on these rules with every shared test passing.</p><p><strong>Suggested fix:</strong> Add a <code>feedback</code> key to the grading vectors, a pre-validation vector file, and regex vectors for <code>f</code>, <code>b</code> and <code>n</code>.</p></article><article class="finding" id="F20" style="border-left-color:#2563EB"><h4><span class="chip" style="background:#2563EB">low</span> F20: The exam <code>grading</code> table does not say what it does to short answer</h4><p><strong>Location:</strong> <code>docs/exam.md:335-337</code></p><pre><code>Each question type accepts its own set of strategies in its `grading` field</code></pre><p><strong>Description:</strong> Short answer has no <code>grading</code> field and its score is binary (short-answer.md:252). The table has no column for it, and the mapping form (exam.md:355-361) has no key for it, but no sentence says that the exam <code>grading</code> does not apply, or that a wrong short answer scores 0 and not -1 under <code>symmetric</code>, unlike a wrong multiple choice pick.</p><p><strong>Impact:</strong> A reader can expect <code>symmetric</code> to penalize a wrong short answer.</p><p><strong>Suggested fix:</strong> Add a sentence: types without a <code>grading</code> field (short answer, numeric, essay, ordering?) ignore the exam <code>grading</code> and score in [0, 1].</p></article><article class="finding" id="F31" style="border-left-color:#2563EB"><h4><span class="chip" style="background:#2563EB">low</span> F31: Rows of Additional Rules with no text in the spec</h4><p><strong>Location:</strong> <code>docs/question-types/short-answer.md:409, docs/question-types/short-answer.md:420, docs/question-types/short-answer.md:421</code></p><pre><code>| incorrectFeedback                    | error    | blank-text             | if defined, must have at least one visible character                                |</code></pre><p><strong>Description:</strong> Three rows are not described in the prose of short-answer.md or patterns.md: a pattern list must have at least one pattern (row 409; short-answer.md:86 and patterns.md:154 only say &#x27;an array of patterns&#x27;); <code>incorrectFeedback</code> must not be blank (row 420; lines 84 and 399-403 do not say it); an implicit anchor written by the author is redundant (row 421; patterns.md:250-256 says anchors are &#x27;supported and optional&#x27; and mentions no diagnostic).</p><p><strong>Impact:</strong> The rules exist only in the table, so authors reading the sections do not learn them.</p><p><strong>Suggested fix:</strong> Add one sentence for each rule in its section, with the code.</p></article><article class="finding" id="F34" style="border-left-color:#2563EB"><h4><span class="chip" style="background:#2563EB">low</span> F34: GLOSSARY.md has no entry for pattern, settled, exact or inexact literal, or pre-validation</h4><p><strong>Location:</strong> <code>docs/question-types/short-answer.md:256</code></p><pre><code>A response is **settled** when the question decides if it is correct. An</code></pre><p><strong>Description:</strong> short-answer.md and patterns.md define and use these terms in bold or as section titles; GLOSSARY.md has entries for Automation and Pending response but none for the terms that the short-answer type depends on.</p><p><strong>Impact:</strong> Readers of other types and of the glossary meet <code>settled</code> and <code>pattern</code> without a definition.</p><p><strong>Suggested fix:</strong> Add short entries for Pattern, Settled response, Exact literal, Inexact literal and Pre-validation.</p></article><h3>Inconsistencies</h3><table><tr><th>Severity</th><th>Location</th><th>Description</th></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/question-types/fill-in.md:210-212, docs/question-types/short-answer.md:152-159</code></td><td><a href="#F28"><strong>F28</strong></a> Fill-in grammar uses an undefined <code>PATTERN</code> terminal for what short-answer splits into <code>exact | inexact</code></td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/question-types/short-answer.md:419</code></td><td><a href="#F30"><strong>F30</strong></a> Row <code>no-correct-answer</code> says &#x27;must not&#x27; at warning level</td></tr><tr><td><span class="chip" style="background:#2563EB">low</span></td><td><code>docs/question-types/short-answer.md:301-303, docs/question-types/short-answer.md:379-381</code></td><td><a href="#F33"><strong>F33</strong></a> Two automation examples are not valid documents</td></tr></table><article class="finding" id="F28" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F28: Fill-in grammar uses an undefined <code>PATTERN</code> terminal for what short-answer splits into <code>exact | inexact</code></h4><p><strong>Location:</strong> <code>docs/question-types/fill-in.md:210-212, docs/question-types/short-answer.md:152-159</code></p><pre><code>answer           : PATTERN</code></pre><p><strong>Description:</strong> short-answer.md declares the single-line form as <code>patterns : content | nl pattern_list</code> with <code>content : exact | inexact</code> and the terminals EXACT_TEXT and PLAIN_TEXT. fill-in.md, which says the same rules apply, declares <code>patterns : answer | nl pattern_list</code> with <code>answer : PATTERN</code>; <code>PATTERN</code> is defined in neither fill-in.md nor grammar.md. The same construct has two rule names and two definitions.</p><p><strong>Impact:</strong> Fixes to the short-answer grammar (continuation lines, backtick rules) do not reach fill-in, and a reader cannot compare the two.</p><p><strong>Suggested fix:</strong> Use the same rules in fill-in.md (<code>content</code>, <code>exact</code>, <code>inexact</code>) or define them once in grammar.md and reference them from both.</p></article><article class="finding" id="F30" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F30: Row <code>no-correct-answer</code> says &#x27;must not&#x27; at warning level</h4><p><strong>Location:</strong> <code>docs/question-types/short-answer.md:419</code></p><pre><code>| unmatched                            | warning  | no-correct-answer      | must not be &quot;incorrect&quot; when the question has no `accept` pattern[^8]               |</code></pre><p><strong>Description:</strong> The rule text uses &#x27;must not&#x27; (MUST NOT: error) but the level is warning, and lint-codes.md:35 and examples/valid/short-answer/no-correct-answer.yaml treat the document as valid with a warning. The prose (short-answer.md:266-269, 281) describes <code>unmatched: incorrect</code> with no <code>accept</code> as a valid automatic question and never says it SHOULD be avoided.</p><p><strong>Impact:</strong> A reader cannot tell whether the document is invalid.</p><p><strong>Suggested fix:</strong> Write &#x27;should not&#x27; in the row and add a SHOULD NOT sentence in the Grading section.</p></article><article class="finding" id="F33" style="border-left-color:#2563EB"><h4><span class="chip" style="background:#2563EB">low</span> F33: Two automation examples are not valid documents</h4><p><strong>Location:</strong> <code>docs/question-types/short-answer.md:301-303, docs/question-types/short-answer.md:379-381</code></p><p class="meta"><em>Mechanical fix</em></p><pre><code>[short-answer]: Brasília</code></pre><p><strong>Description:</strong> The &#x27;Automatic&#x27; and &#x27;Manual&#x27; examples hold only the tag, with no stem. <code>mdq validate</code> rejects both (&#x27;parse-error: A required field is missing&#x27;); with a stem line they pass. The other four examples of the section are complete questions.</p><p><strong>Impact:</strong> A reader who copies the example gets a parse error.</p><p><strong>Suggested fix:</strong> Add the stem <code>What is the capital of Brazil?</code> and <code>Name a biome of central Brazil.</code>, as in the sibling examples.</p></article><h3>Grammar violations</h3><table><tr><th>Severity</th><th>Location</th><th>Description</th></tr><tr><td><span class="chip" style="background:#B91C1C">critical</span></td><td><code>docs/question-types/short-answer.md:152-159</code></td><td><a href="#F2"><strong>F2</strong></a> Single-line content has no continuation lines, but the prose and corpus allow them</td></tr><tr><td><span class="chip" style="background:#EA580C">high</span></td><td><code>docs/question-types/short-answer.md:150-151</code></td><td><a href="#F1"><strong>F1</strong></a> Short-answer tag rule has no leading ws?, so an indented tag is rejected</td></tr><tr><td><span class="chip" style="background:#EA580C">high</span></td><td><code>docs/question-types/short-answer.md:150-152</code></td><td><a href="#F3"><strong>F3</strong></a> Empty tag line followed by a text line: content or epilogue is undecided</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/question-types/short-answer.md:153-159</code></td><td><a href="#F4"><strong>F4</strong></a> Grammar has no regex alternative: <code>/</code>-delimited content parses as inexact</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/question-types/short-answer.md:153-159</code></td><td><a href="#F5"><strong>F5</strong></a> Partial backtick content: grammar rejects it as a parse failure, corpus expects schema-error</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/question-types/short-answer.md:154-159</code></td><td><a href="#F6"><strong>F6</strong></a> Grammar accepts patterns that become empty after normalization</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/question-types/short-answer.md:156</code></td><td><a href="#F7"><strong>F7</strong></a> pattern_item has no grammar, so the pattern line is unconstrained</td></tr></table><article class="finding" id="F2" style="border-left-color:#B91C1C"><h4><span class="chip" style="background:#B91C1C">critical</span> F2: Single-line content has no continuation lines, but the prose and corpus allow them</h4><p><strong>Location:</strong> <code>docs/question-types/short-answer.md:152-159</code></p><pre><code>patterns     : content | nl pattern_list
+content      : exact | inexact
+exact        : &quot;`&quot; EXACT_TEXT &quot;`&quot; ws?
+inexact      : PLAIN_TEXT</code></pre><p><strong>Description:</strong> <code>content</code> is one line: EXACT_TEXT and PLAIN_TEXT exclude <code>\r</code> and <code>\n</code> and nothing follows them. Tested with Lark, all rejected: <code>[short-answer]: Rio\nNegro</code>, <code>[short-answer/reject]: Rio\nAmazonas</code>, and `<code>[short-answer]: </code>math.\nisnan<code> </code><code>. docs/references/patterns.md:223-226 says the content of a single-line block continues on the next lines (</code>Rio<code> + </code>Negro<code> is </code>Rio Negro<code>), short-answer.md:231-233 repeats it, patterns.md:230 says the joining space is significant in an exact literal (so an exact literal may span lines), and the valid example examples/valid/short-answer/continuation-lines.mdq.md uses </code>[short-answer/reject]: Rio<code> followed by </code>Amazonas`.</p><p><strong>Impact:</strong> A wrapped answer, common when an editor reflows text, is valid by the prose and the corpus but invalid by the grammar. Implementers get two contradictory specs.</p><p><strong>Suggested fix:</strong> Add continuation lines to <code>content</code>, e.g. <code>inexact : PLAIN_TEXT (nl CONT_LINE)*</code> with a terminal that excludes blank lines and the starts of interrupting blocks (as LAZY_START does), and let EXACT_TEXT continue across line endings in the same way.</p></article><article class="finding" id="F1" style="border-left-color:#EA580C"><h4><span class="chip" style="background:#EA580C">high</span> F1: Short-answer tag rule has no leading ws?, so an indented tag is rejected</h4><p><strong>Location:</strong> <code>docs/question-types/short-answer.md:150-151</code></p><p class="meta"><em>Mechanical fix</em></p><pre><code>accept_block : &quot;[&quot; &quot;short-answer&quot; &quot;/accept&quot;? &quot;]&quot; ws? &quot;:&quot; ws? patterns?
+reject_block : &quot;[&quot; &quot;short-answer&quot; &quot;/reject&quot; &quot;]&quot; ws? &quot;:&quot; ws? patterns</code></pre><p><strong>Description:</strong> Neither block rule starts with <code>ws?</code>. Tested with Lark: <code>   [short-answer] :  Brasília</code> (three leading spaces) is rejected. The valid corpus example examples/valid/short-answer/inline-id-and-indented-tag.mdq.md uses exactly this tag line and expects <code>accept: [Brasília]</code>. CommonMark allows up to three spaces before a paragraph, and docs/question-types/numeric.md:64 starts its tag rule with <code>ws?</code>. docs/references/grammar.md:58-61 defines what a leading <code>ws?</code> means at block start.</p><p><strong>Impact:</strong> The grammar contradicts a valid example and the numeric tag rule; an implementation that follows the snippet rejects indented tag lines.</p><p><strong>Suggested fix:</strong> Prefix both rules with <code>ws?</code>, as numeric.md does: <code>accept_block : ws? &quot;[&quot; &quot;short-answer&quot; ...</code>.</p></article><article class="finding" id="F3" style="border-left-color:#EA580C"><h4><span class="chip" style="background:#EA580C">high</span> F3: Empty tag line followed by a text line: content or epilogue is undecided</h4><p><strong>Location:</strong> <code>docs/question-types/short-answer.md:150-152</code></p><pre><code>accept_block : &quot;[&quot; &quot;short-answer&quot; &quot;/accept&quot;? &quot;]&quot; ws? &quot;:&quot; ws? patterns?</code></pre><p><strong>Description:</strong> For <code>[short-answer]:\nBrasília</code> the grammar ends the block after the colon (<code>patterns?</code> is empty; <code>nl</code> may only precede <code>pattern_list</code>), so <code>Brasília</code> is not a pattern and the question has no accept list. docs/references/patterns.md:223-225 says &#x27;The lines after the tag line, up to the first blank line, continue the pattern&#x27;, which reads <code>Brasília</code> as the content. In CommonMark the line is a lazy continuation of the same paragraph. For <code>[short-answer/reject]:\nRio</code> the grammar rejects the block (no pattern), while the continuation rule gives the pattern <code>Rio</code>.</p><p><strong>Impact:</strong> Two readings give different documents: a manual question with stray text, or an automatic question with accept <code>Brasília</code>; for reject, an error or a valid block.</p><p><strong>Suggested fix:</strong> State whether continuation starts only after a non-empty tag line, and encode it in <code>patterns</code> (for example, allow <code>nl content</code> or forbid it explicitly with a lint code).</p></article><article class="finding" id="F4" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F4: Grammar has no regex alternative: <code>/</code>-delimited content parses as inexact</h4><p><strong>Location:</strong> <code>docs/question-types/short-answer.md:153-159</code></p><pre><code>content      : exact | inexact</code></pre><p><strong>Description:</strong> Tested with Lark: <code>[short-answer]: /[Bb]ras[íi]lia/i</code> parses as <code>inexact</code> (PLAIN_TEXT), and so does the unclosed <code>[short-answer]: /Bras[íi]lia</code>. short-answer.md:211-212 says content delimited by <code>/</code> is a regex, and the corpus (examples/invalid/short-answer-unclosed-regex-content) expects <code>invalid-regex</code> for the unclosed form, which patterns.md:148 requires to be closed. The parse tree labels a regex as an inexact literal and the grammar cannot tell an unclosed regex from a plain literal.</p><p><strong>Impact:</strong> An implementation that dispatches on the parse tree treats regexes and unclosed regexes as plain literals; the classification lives only in prose.</p><p><strong>Suggested fix:</strong> Add <code>regex : &quot;/&quot; REGEX_BODY &quot;/&quot; REGEX_FLAGS? ws?</code> to <code>content</code> and restrict PLAIN_TEXT to not start with <code>/</code>, so an unclosed regex fails as the corpus expects.</p></article><article class="finding" id="F5" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F5: Partial backtick content: grammar rejects it as a parse failure, corpus expects schema-error</h4><p><strong>Location:</strong> <code>docs/question-types/short-answer.md:153-159</code></p><pre><code>exact        : &quot;`&quot; EXACT_TEXT &quot;`&quot; ws?</code></pre><p><strong>Description:</strong> Tested with Lark: `<code>[short-answer]: </code>math.isnan<code> (x)</code><code> and </code><code>[short-answer]: </code>math.isnan`<code> are rejected (PLAIN_TEXT cannot start with a backtick, and </code>exact<code> allows only ws after the closing backtick). A grammar failure reads as </code>parse-error<code>, but examples/invalid/short-answer-partial-backtick.lint.json expects </code>schema-error` at path accept/0. The Additional Rules table (short-answer.md:407-422) has no row for this case at all.</p><p><strong>Impact:</strong> Implementations that follow the grammar report a different code than the corpus; the rule that rejects the input is not stated where the lint codes are listed.</p><p><strong>Suggested fix:</strong> Add an Additional Rules row for content that opens with a backtick and is not a complete span, with the code the corpus uses, and say in the grammar section that the snippet leaves this case to that rule.</p></article><article class="finding" id="F6" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F6: Grammar accepts patterns that become empty after normalization</h4><p><strong>Location:</strong> <code>docs/question-types/short-answer.md:154-159</code></p><pre><code>EXACT_TEXT   : /[^`\n\r]+/
+PLAIN_TEXT   : /[^` \t\r\n][^\r\n]*/</code></pre><p><strong>Description:</strong> Tested with Lark: `<code>[short-answer]: </code> <code> </code><code> (exact, one space) and </code>[short-answer]:<code> + U+200B (inexact) are accepted. Exact-literal step 2 (patterns.md:131) trims the space and inexact step 2 (patterns.md:48) removes U+200B, so both patterns compare as the empty string. patterns.md:20 says a pattern string &#x27;cannot be empty&#x27; and examples/invalid/short-answer-empty-pattern.yaml rejects </code>&quot;&quot;`, but neither the text nor the grammar says whether &#x27;empty&#x27; is checked before or after normalization.</p><p><strong>Impact:</strong> A pattern that matches only a blank response passes validation, or is rejected, depending on how an implementation reads &#x27;empty&#x27;.</p><p><strong>Suggested fix:</strong> State whether a pattern that is empty after normalization is invalid, and add the code (for example <code>blank-text</code>) to the Additional Rules table.</p></article><article class="finding" id="F7" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F7: pattern_item has no grammar, so the pattern line is unconstrained</h4><p><strong>Location:</strong> <code>docs/question-types/short-answer.md:156</code></p><pre><code>pattern_list : pattern_item+</code></pre><p><strong>Description:</strong> short-answer.md:163-165 sends <code>pattern_item</code> to docs/references/patterns.md#pattern-items, which has only prose and no Lark rule. Nothing in the grammar says the pattern line uses <code>content</code> (exact | inexact), so it does not reject an empty item (<code>*</code> with only a feedback line, a parse-error in examples/invalid/short-answer-empty-pattern-line) or an item that opens with an unclosed backtick, and it does not model item continuation lines or the observations rule of grammar.md:129-136. The stub had to be invented to test the list form at all.</p><p><strong>Impact:</strong> The list form, the most used form with feedback, is specified only in prose; the single-line and list forms can drift.</p><p><strong>Suggested fix:</strong> Define <code>pattern_item : ws? content (nl CONT_LINE)* nl (blank_line* observations)?</code> (or equivalent) in patterns.md and reference it from short-answer.md.</p></article><h3>Schema mismatches</h3><table><tr><th>Severity</th><th>Location</th><th>Description</th></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>schema/short-answer.yaml:128</code></td><td><a href="#F8"><strong>F8</strong></a> Schema patternString uses \s, which disagrees with PLAIN_TEXT and between Python and JavaScript</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>schema/short-answer.yaml:17-20</code></td><td><a href="#F22"><strong>F22</strong></a> Schema says a <code>[short-answer]</code> block&#x27;s content is the first <code>accept</code> entry</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>schema/short-answer.yaml:24-28, schema/fill-in.yaml:145-149</code></td><td><a href="#F23"><strong>F23</strong></a> Schema says rejecting never changes a score, but a <code>reject</code> match settles a response that would be pending</td></tr><tr><td><span class="chip" style="background:#2563EB">low</span></td><td><code>schema/short-answer.yaml:123-128, docs/references/patterns.md:20</code></td><td><a href="#F24"><strong>F24</strong></a> Schema rejects a whitespace-only pattern; the spec only forbids an empty one</td></tr></table><article class="finding" id="F8" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F8: Schema patternString uses \s, which disagrees with PLAIN_TEXT and between Python and JavaScript</h4><p><strong>Location:</strong> <code>schema/short-answer.yaml:128</code></p><pre><code>pattern: &quot;^(?:`[^`\\n]+`[ \\t]*|[^`\\s][\\s\\S]*|\\s+[^`\\s][\\s\\S]*)$&quot;</code></pre><p><strong>Description:</strong> docs/references/grammar.md:11-19 forbids <code>\s</code> because Python and JavaScript disagree on it, but the schema pattern that mirrors EXACT_TEXT/PLAIN_TEXT uses it. Tested: U+FEFF + `<code> </code>x<code> </code><code> matches in Python </code>re<code> and fails in JavaScript; U+00A0 + </code><code> </code>x<code> </code><code> and U+0085 + </code><code> </code>x<code> </code><code> fail in both, while PLAIN_TEXT (short-answer.md:159) accepts all three as inexact text, which grammar.md:44-46 confirms for U+00A0. The exact alternative also excludes only </code>\n<code>, so </code><code> </code>a\rb<code> </code><code> passes the schema but not EXACT_TEXT (</code>[^<code>\n\r]+</code>). It also rejects spaces before a backtick (<code>&quot;  </code>x<code>&quot;</code>, a schema-error in mdq-py) while it allows them before <code>/</code> and plain text, and patterns.md:147 strips them for a regex.</p><p><strong>Impact:</strong> The same content validates in mdq-py and fails in mdq-js, and the schema rejects content the grammar defines as text.</p><p><strong>Suggested fix:</strong> Replace <code>\s</code> with the explicit class <code>[ \t\r\n]</code> used by PLAIN_TEXT, exclude <code>\r</code> in the exact alternative, and decide if leading spaces before an exact literal are stripped as before a regex.</p></article><article class="finding" id="F22" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F22: Schema says a <code>[short-answer]</code> block&#x27;s content is the first <code>accept</code> entry</h4><p><strong>Location:</strong> <code>schema/short-answer.yaml:17-20</code></p><p class="meta"><em>Mechanical fix</em></p><pre><code>any entry. The content of a simple `[short-answer]` block is the</code></pre><p><strong>Description:</strong> The description implies that a single-line <code>[short-answer]</code> block adds one entry to a longer <code>accept</code> list. The spec says the block and the field are two spellings of the same list (short-answer.md:91-95, 174-176) and that using both is a <code>conflicting-accept</code> error (short-answer.md:204-206). It also calls <code>accept</code> the canonical form of <code>[short-answer/accept]</code>, while the spec&#x27;s main spelling is <code>[short-answer]</code>, with <code>/accept</code> as alias (short-answer.md:144).</p><p><strong>Impact:</strong> A reader of the schema can expect <code>[short-answer]: X</code> plus <code>accept: [Y]</code> to give <code>[X, Y]</code>, which the spec rejects.</p><p><strong>Suggested fix:</strong> Say: the canonical form of the <code>[short-answer]</code> block (alias <code>[short-answer/accept]</code>); the single-line form gives a list of one entry.</p></article><article class="finding" id="F23" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F23: Schema says rejecting never changes a score, but a <code>reject</code> match settles a response that would be pending</h4><p><strong>Location:</strong> <code>schema/short-answer.yaml:24-28, schema/fill-in.yaml:145-149</code></p><p class="meta"><em>Mechanical fix</em></p><pre><code>the `[short-answer/reject]` block. Rejecting never changes a score</code></pre><p><strong>Description:</strong> Under <code>unmatched: manual</code> (explicit, or the default when there is no <code>accept</code>), a response that matches a <code>reject</code> pattern is incorrect and scores 0, while the same response with no <code>reject</code> pattern is pending (short-answer.md:260-264, 374-375; examples/grading/short-answer.yaml &#x27;Reject only&#x27;: <code>Savana</code> scores 0, <code>Cerrado</code> is pending). The <code>reject</code> list also changes the automation from <code>manual</code> to <code>semi-automatic</code> (short-answer.md:282-283). The fill-in blank schema repeats the sentence.</p><p><strong>Impact:</strong> Readers of the schema think <code>reject</code> is feedback only and miss that it settles responses in semi-automatic questions.</p><p><strong>Suggested fix:</strong> Say: a response that matches no <code>accept</code> pattern and matches a <code>reject</code> pattern is incorrect; <code>reject</code> decides responses that <code>unmatched: manual</code> would leave pending, and attaches feedback.</p></article><article class="finding" id="F24" style="border-left-color:#2563EB"><h4><span class="chip" style="background:#2563EB">low</span> F24: Schema rejects a whitespace-only pattern; the spec only forbids an empty one</h4><p><strong>Location:</strong> <code>schema/short-answer.yaml:123-128, docs/references/patterns.md:20</code></p><pre><code>A pattern string is plain text, never markdown. It cannot be empty.</code></pre><p><strong>Description:</strong> patterns.md:20 says a pattern string cannot be empty. The schema comment says a pattern &#x27;Must carry at least one non-space character&#x27; and the regex rejects <code>&quot;   &quot;</code>. The spec text never states the non-blank rule, and the Additional Rules table has no row for either.</p><p><strong>Impact:</strong> The schema enforces a rule that the spec does not declare.</p><p><strong>Suggested fix:</strong> State in patterns.md that a pattern string must have a character that is not a space or tab, with its code.</p></article></section><section id="recommendations"><h2>Prioritized recommendations</h2><ul class="recs"><li><span class="prio">P1</span>Specify the single-line content, continuation lines and pattern items in the grammar, shared by short answer and fill-in. <span class="refs">(Findings: <a href="#F2">F2</a>, <a href="#F9">F9</a>, <a href="#F3">F3</a>, <a href="#F7">F7</a>, <a href="#F28">F28</a>)</span></li><li><span class="prio">P1</span>Pin down regex semantics: subject normalization, Unicode mode, delimiters and the n flag. <span class="refs">(Findings: <a href="#F10">F10</a>, <a href="#F11">F11</a>, <a href="#F12">F12</a>, <a href="#F13">F13</a>)</span></li><li><span class="prio">P2</span>Specify the pattern-string syntax once and align the schema with the grammar terminals. <span class="refs">(Findings: <a href="#F4">F4</a>, <a href="#F5">F5</a>, <a href="#F6">F6</a>, <a href="#F8">F8</a>, <a href="#F24">F24</a>)</span></li><li><span class="prio">P2</span>Complete the Additional Rules table and fix the level wording. <span class="refs">(Findings: <a href="#F16">F16</a>, <a href="#F17">F17</a>, <a href="#F29">F29</a>, <a href="#F30">F30</a>, <a href="#F31">F31</a>)</span></li><li><span class="prio">P2</span>Define feedback selection for every pattern list, and add feedback and pre-validation vectors. <span class="refs">(Findings: <a href="#F25">F25</a>, <a href="#F26">F26</a>, <a href="#F27">F27</a>, <a href="#F32">F32</a>)</span></li><li><span class="prio">P2</span>Define the short-answer response value in responses.md. <span class="refs">(Findings: <a href="#F15">F15</a>)</span></li><li><span class="prio">P3</span>Decide on exact literals with backticks, the exam grading sentence and the glossary entries. <span class="refs">(Findings: <a href="#F18">F18</a>, <a href="#F20">F20</a>, <a href="#F34">F34</a>)</span></li><li><span class="prio">P3</span>Apply the mechanical fixes: leading ws? in the tag rules, responses.md normalization text, the accept and reject schema descriptions, and the two incomplete automation examples. <span class="refs">(Findings: <a href="#F1">F1</a>, <a href="#F14">F14</a>, <a href="#F22">F22</a>, <a href="#F23">F23</a>, <a href="#F33">F33</a>)</span></li></ul></section><section id="issues"><h2>GitHub issues</h2><p>Each block below is a complete issue, ready to paste.</p><div class="issue"><button type="button" data-target="issue-1" data-copied="Copied">Copy</button><pre id="issue-1">--- ISSUE 1 ---
+# [Spec] Define the single-line content and the pattern item in the grammar
+
+**Labels:** critical, high, medium
+
+## Problem
+
+The Lark snippet allows one line of content, while the prose and the corpus allow continuation lines; the prose says every line up to a blank line continues the pattern, while mdq-py ends it at any line that interrupts a CommonMark paragraph; an empty tag followed by a text line has two readings; pattern_item has no grammar; fill-in uses a different, undefined PATTERN terminal. Recommended: define `content` with continuation lines that stop at the same lines LAZY_START excludes, define `pattern_item` in patterns.md, and reference both from short-answer.md and fill-in.md. Decide what a `&gt;`/`!` line after single-line content is (recommended: parse-error, since single-line content has no feedback).
+
+## Evidence
+
+- `docs/question-types/short-answer.md:152-159`: Single-line content has no continuation lines, but the prose and corpus allow them
+
+  ```lark
+  patterns     : content | nl pattern_list
+  content      : exact | inexact
+  exact        : &quot;`&quot; EXACT_TEXT &quot;`&quot; ws?
+  inexact      : PLAIN_TEXT
+  ```
+- `docs/references/patterns.md:223-226, docs/question-types/short-answer.md:182-183`: Single-line content: which lines continue the pattern is unclear
+
+  ```
+  The content of a single-line block continues in the same way. The lines after
+  the tag line, up to the first blank line, continue the pattern:
+  ```
+- `docs/question-types/short-answer.md:150-152`: Empty tag line followed by a text line: content or epilogue is undecided
+
+  ```lark
+  accept_block : &quot;[&quot; &quot;short-answer&quot; &quot;/accept&quot;? &quot;]&quot; ws? &quot;:&quot; ws? patterns?
+  ```
+- `docs/question-types/short-answer.md:156`: pattern_item has no grammar, so the pattern line is unconstrained
+
+  ```lark
+  pattern_list : pattern_item+
+  ```
+- `docs/question-types/fill-in.md:210-212, docs/question-types/short-answer.md:152-159`: Fill-in grammar uses an undefined `PATTERN` terminal for what short-answer splits into `exact | inexact`
+
+  ```
+  answer           : PATTERN
+  ```
+
+## Impact
+
+- **Single-line content has no continuation lines, but the prose and corpus allow them:** A wrapped answer, common when an editor reflows text, is valid by the prose and the corpus but invalid by the grammar. Implementers get two contradictory specs.
+- **Single-line content: which lines continue the pattern is unclear:** Two implementations can produce different answer keys from the same document. An author who writes feedback under a single-line answer gets it in the epilogue, shown to every student, with no diagnostic.
+- **Empty tag line followed by a text line: content or epilogue is undecided:** Two readings give different documents: a manual question with stray text, or an automatic question with accept `Brasília`; for reject, an error or a valid block.
+- **pattern_item has no grammar, so the pattern line is unconstrained:** The list form, the most used form with feedback, is specified only in prose; the single-line and list forms can drift.
+- **Fill-in grammar uses an undefined `PATTERN` terminal for what short-answer splits into `exact | inexact`:** Fixes to the short-answer grammar (continuation lines, backtick rules) do not reach fill-in, and a reader cannot compare the two.
+
+## Suggested fix
+
+- **Single-line content has no continuation lines, but the prose and corpus allow them:** Add continuation lines to `content`, e.g. `inexact : PLAIN_TEXT (nl CONT_LINE)*` with a terminal that excludes blank lines and the starts of interrupting blocks (as LAZY_START does), and let EXACT_TEXT continue across line endings in the same way.
+- **Single-line content: which lines continue the pattern is unclear:** State which lines end the single-line content: the same lines that LAZY_START excludes (grammar.md, Feedback and comment lines). Decide what a `&gt;` or `!` line right after single-line content is: an error, a warning, or feedback for that pattern.
+- **Empty tag line followed by a text line: content or epilogue is undecided:** State whether continuation starts only after a non-empty tag line, and encode it in `patterns` (for example, allow `nl content` or forbid it explicitly with a lint code).
+- **pattern_item has no grammar, so the pattern line is unconstrained:** Define `pattern_item : ws? content (nl CONT_LINE)* nl (blank_line* observations)?` (or equivalent) in patterns.md and reference it from short-answer.md.
+- **Fill-in grammar uses an undefined `PATTERN` terminal for what short-answer splits into `exact | inexact`:** Use the same rules in fill-in.md (`content`, `exact`, `inexact`) or define them once in grammar.md and reference them from both.
+
+## Acceptance criteria
+
+- [ ] The Lark snippets accept examples/valid/short-answer/continuation-lines.mdq.md
+- [ ] patterns.md has a Lark rule for pattern_item used by short-answer.md and fill-in.md
+- [ ] The spec states the result of `[short-answer]: X` followed by a `&gt;` line and by an empty-tag-then-text input, with a corpus example for each
+- [ ] scripts/spec_audit.py passes
+
+--- END ISSUE 1 ---</pre></div><div class="issue"><button type="button" data-target="issue-2" data-copied="Copied">Copy</button><pre id="issue-2">--- ISSUE 2 ---
+# [Spec] Specify the pattern-string syntax once: regex, exact, blank
+
+**Labels:** medium, low
+
+## Problem
+
+The grammar has no regex alternative, a partial backtick span fails the grammar but the corpus expects schema-error, patterns empty after normalization are accepted, and the schema regex uses `\s` and differs from EXACT_TEXT and PLAIN_TEXT. Recommended: add a `regex` alternative to `content`, state that a pattern must have a visible character after normalization (code `blank-text` or `schema-error`), and rewrite the schema pattern with explicit classes that match the terminals.
+
+## Evidence
+
+- `docs/question-types/short-answer.md:153-159`: Grammar has no regex alternative: `/`-delimited content parses as inexact
+
+  ```lark
+  content      : exact | inexact
+  ```
+- `docs/question-types/short-answer.md:153-159`: Partial backtick content: grammar rejects it as a parse failure, corpus expects schema-error
+
+  ```lark
+  exact        : &quot;`&quot; EXACT_TEXT &quot;`&quot; ws?
+  ```
+- `docs/question-types/short-answer.md:154-159`: Grammar accepts patterns that become empty after normalization
+
+  ```lark
+  EXACT_TEXT   : /[^`\n\r]+/
+  PLAIN_TEXT   : /[^` \t\r\n][^\r\n]*/
+  ```
+- `schema/short-answer.yaml:128`: Schema patternString uses \s, which disagrees with PLAIN_TEXT and between Python and JavaScript
+
+  ```yaml
+  pattern: &quot;^(?:`[^`\\n]+`[ \\t]*|[^`\\s][\\s\\S]*|\\s+[^`\\s][\\s\\S]*)$&quot;
+  ```
+- `schema/short-answer.yaml:123-128, docs/references/patterns.md:20`: Schema rejects a whitespace-only pattern; the spec only forbids an empty one
+
+  ```
+  A pattern string is plain text, never markdown. It cannot be empty.
+  ```
+
+## Impact
+
+- **Grammar has no regex alternative: `/`-delimited content parses as inexact:** An implementation that dispatches on the parse tree treats regexes and unclosed regexes as plain literals; the classification lives only in prose.
+- **Partial backtick content: grammar rejects it as a parse failure, corpus expects schema-error:** Implementations that follow the grammar report a different code than the corpus; the rule that rejects the input is not stated where the lint codes are listed.
+- **Grammar accepts patterns that become empty after normalization:** A pattern that matches only a blank response passes validation, or is rejected, depending on how an implementation reads &#x27;empty&#x27;.
+- **Schema patternString uses \s, which disagrees with PLAIN_TEXT and between Python and JavaScript:** The same content validates in mdq-py and fails in mdq-js, and the schema rejects content the grammar defines as text.
+- **Schema rejects a whitespace-only pattern; the spec only forbids an empty one:** The schema enforces a rule that the spec does not declare.
+
+## Suggested fix
+
+- **Grammar has no regex alternative: `/`-delimited content parses as inexact:** Add `regex : &quot;/&quot; REGEX_BODY &quot;/&quot; REGEX_FLAGS? ws?` to `content` and restrict PLAIN_TEXT to not start with `/`, so an unclosed regex fails as the corpus expects.
+- **Partial backtick content: grammar rejects it as a parse failure, corpus expects schema-error:** Add an Additional Rules row for content that opens with a backtick and is not a complete span, with the code the corpus uses, and say in the grammar section that the snippet leaves this case to that rule.
+- **Grammar accepts patterns that become empty after normalization:** State whether a pattern that is empty after normalization is invalid, and add the code (for example `blank-text`) to the Additional Rules table.
+- **Schema patternString uses \s, which disagrees with PLAIN_TEXT and between Python and JavaScript:** Replace `\s` with the explicit class `[ \t\r\n]` used by PLAIN_TEXT, exclude `\r` in the exact alternative, and decide if leading spaces before an exact literal are stripped as before a regex.
+- **Schema rejects a whitespace-only pattern; the spec only forbids an empty one:** State in patterns.md that a pattern string must have a character that is not a space or tab, with its code.
+
+## Acceptance criteria
+
+- [ ] `content` has exact, regex and inexact alternatives
+- [ ] The schema patternString regex uses only explicit classes and agrees with EXACT_TEXT and PLAIN_TEXT
+- [ ] A pattern of only U+200B or a blank exact literal has a documented code and a corpus example
+
+--- END ISSUE 2 ---</pre></div><div class="issue"><button type="button" data-target="issue-3" data-copied="Copied">Copy</button><pre id="issue-3">--- ISSUE 3 ---
+# [Spec] Pin down regex semantics: subject, Unicode mode, delimiters and the n flag
+
+**Labels:** high, medium
+
+## Problem
+
+The spec does not say how the response is prepared before a regex match (NFC? trim?), which Unicode mode a regex runs in (`.`, `i`, `\u{...}`), how `\d`/`\w`/`\s` behave in Python, which `/` closes the regex, whether spaces after flags are allowed, or how `n` treats escapes in the regex source. Recommended: NFC plus trim of UNICODE_SPACE on the subject, code-point mode with simple case folding, ASCII shorthand classes, the last `/` closes, trailing spaces and tabs stripped, and `n` strips only the subject with a lint for an `Mn` code point left in the regex.
+
+## Evidence
+
+- `docs/references/patterns.md:145-150`: The response is not normalized or trimmed before a regex match
+
+  ```
+  A pattern is a regex if it starts with a `/` after stripping spaces and tabs.
+  ```
+- `docs/references/patterns.md:260-267, docs/references/patterns.md:304-305`: Regex Unicode mode, case folding and shorthand classes are undefined
+
+  ```
+  * Unicode: Unicode characters are allowed in the regex. Unicode escape sequences
+  ```
+- `docs/references/patterns.md:147-150, docs/references/patterns.md:31-32`: Regex delimiters: an unescaped `/` in the body and spaces after the flags
+
+  ```
+  A regex must be closed by a `/` as well, and may include optional flags after
+  ```
+- `docs/references/patterns.md:289-294`: The `n` flag strips diacritics from the regex source with no rule for escapes
+
+  ```
+  * `n`: Strip diacritics from both the pattern and the response before
+  ```
+
+## Impact
+
+- **The response is not normalized or trimmed before a regex match:** A student who types a trailing space or newline, or whose input method produces NFD, fails a regex answer that a literal would accept. Implementations can disagree.
+- **Regex Unicode mode, case folding and shorthand classes are undefined:** The same regex accepts different responses in mdq-py and mdq-js.
+- **Regex delimiters: an unescaped `/` in the body and spaces after the flags:** Authors cannot predict whether `/` needs escaping; implementations that follow JavaScript literal syntax reject documents mdq-py accepts.
+- **The `n` flag strips diacritics from the regex source with no rule for escapes:** A regex with `n` can match nothing, with no diagnostic, and implementations can differ.
+
+## Suggested fix
+
+- **The response is not normalized or trimmed before a regex match:** Define the regex subject, for example: normalize the response to NFC and remove UNICODE_SPACE from both ends, as for exact literals. Add grading vectors for it.
+- **Regex Unicode mode, case folding and shorthand classes are undefined:** Pick one mode (recommended: code points, as JavaScript `u`/`v` mode and Python `re` do) and state the semantics of `.`, `i` (simple case folding?) and the shorthand classes (ASCII only, as JavaScript). Add vectors to examples/ for each.
+- **Regex delimiters: an unescaped `/` in the body and spaces after the flags:** State that the last `/` closes the regex and that an unescaped `/` in the body is allowed (or forbidden, `invalid-regex`). State that spaces and tabs after the flags are stripped.
+- **The `n` flag strips diacritics from the regex source with no rule for escapes:** Define `n` on the subject only (strip the response) and require the regex to be written without diacritics, or define how escapes are treated. A lint for a regex under `n` that still holds an `Mn` code point would catch the mistake.
+
+## Acceptance criteria
+
+- [ ] patterns.md lists the steps applied to the response before a regex match
+- [ ] patterns.md states the Unicode mode, the case folding of `i` and the shorthand classes
+- [ ] examples/ has regex grading vectors for trimming, NFD input, astral `.`, `\d` on non-ASCII digits and `n` with an escape
+
+--- END ISSUE 3 ---</pre></div><div class="issue"><button type="button" data-target="issue-4" data-copied="Copied">Copy</button><pre id="issue-4">--- ISSUE 4 ---
+# [Spec] Complete the Additional Rules table of short answer
+
+**Labels:** medium, low
+
+## Problem
+
+The required `[short-answer]` tag, blank pattern strings, partial backtick spans, empty pattern lines, a `[short-answer/preAccept]` block and the `automation` key have no row; `no-correct-answer` says &#x27;must not&#x27; at warning level; three rows have no text. The required tag also blocks a frontmatter-only accept list. Recommended: keep the tag required but state that an empty tag with an `accept` field is valid, add one row per diagnostic with the code the corpus uses, and fix the level wording.
+
+## Evidence
+
+- `docs/question-types/short-answer.md:140-145, docs/question-types/short-answer.md:204-206`: The required `[short-answer]` tag has no rule row and blocks the frontmatter-only form
+
+  ```
+  incorrect responses. A question MUST have a `[short-answer]` block and MAY
+  ```
+- `docs/question-types/short-answer.md:407-422`: Additional Rules misses the pattern-string and preAccept-block rules
+
+  ```
+  | accept, reject, preAccept, preReject | error    | schema-error           | a pattern list, when present, has at least one pattern (schema)                     |
+  ```
+- `docs/question-types/short-answer.md:285-289, docs/question-types/short-answer.md:142-143, docs/question-types/short-answer.md:221`: Additional Rules has no row for the `automation` key, the MAY permissions and the read-only property SHOULD
+
+  ```
+  `automation` is not a field of the document. It MUST NOT appear in the
+  ```
+- `docs/question-types/short-answer.md:419`: Row `no-correct-answer` says &#x27;must not&#x27; at warning level
+
+  ```
+  | unmatched                            | warning  | no-correct-answer      | must not be &quot;incorrect&quot; when the question has no `accept` pattern[^8]               |
+  ```
+- `docs/question-types/short-answer.md:409, docs/question-types/short-answer.md:420, docs/question-types/short-answer.md:421`: Rows of Additional Rules with no text in the spec
+
+  ```
+  | incorrectFeedback                    | error    | blank-text             | if defined, must have at least one visible character                                |
+  ```
+
+## Impact
+
+- **The required `[short-answer]` tag has no rule row and blocks the frontmatter-only form:** Authors who use the frontmatter form get an unexplained parse error, and the empty tag that fixes it looks like a &#x27;no pattern&#x27; question.
+- **Additional Rules misses the pattern-string and preAccept-block rules:** The table is not the complete list of diagnostics; an implementer reading it misses four errors.
+- **Additional Rules has no row for the `automation` key, the MAY permissions and the read-only property SHOULD:** The table is not the full list of rules of the type.
+- **Row `no-correct-answer` says &#x27;must not&#x27; at warning level:** A reader cannot tell whether the document is invalid.
+- **Rows of Additional Rules with no text in the spec:** The rules exist only in the table, so authors reading the sections do not learn them.
+
+## Suggested fix
+
+- **The required `[short-answer]` tag has no rule row and blocks the frontmatter-only form:** Either drop the requirement when `type` or `accept`/`reject` is in the frontmatter, or keep it and add a row (`parse-error`) plus a sentence that an empty tag with an `accept` field is valid.
+- **Additional Rules misses the pattern-string and preAccept-block rules:** Add one row per rule, with its code. Decide if the SHOULD at patterns.md:231 gets a warning code or becomes plain advice.
+- **Additional Rules has no row for the `automation` key, the MAY permissions and the read-only property SHOULD:** Add an error row (`schema-error`) for `automation`, and either info rows for the MAY permissions or a note that the table lists only diagnostics. Move the read-only property SHOULD out of RFC language or give it a row.
+- **Row `no-correct-answer` says &#x27;must not&#x27; at warning level:** Write &#x27;should not&#x27; in the row and add a SHOULD NOT sentence in the Grading section.
+- **Rows of Additional Rules with no text in the spec:** Add one sentence for each rule in its section, with the code.
+
+## Acceptance criteria
+
+- [ ] Every diagnostic in examples/invalid/short-answer-* has a row
+- [ ] Every row has a sentence in the prose
+- [ ] Each row uses must/should matching its level
+
+--- END ISSUE 4 ---</pre></div><div class="issue"><button type="button" data-target="issue-5" data-copied="Copied">Copy</button><pre id="issue-5">--- ISSUE 5 ---
+# [Spec] Define feedback selection for every pattern list and test it
+
+**Labels:** medium
+
+## Problem
+
+patterns.md and the schema say feedback comes from the pattern that &#x27;decided&#x27; the response, while short-answer.md uses the first matching pattern with feedback; preAccept/preReject feedback has no rule; fill-in blanks have no incorrectFeedback and the spec does not say so; no corpus vector checks feedback, pre-validation or the f/b/n flags. Recommended: keep the short-answer.md rule and reference it, add a pre-validation feedback rule, state that blanks have no incorrectFeedback, and add a `feedback` key to the grading vectors.
+
+## Evidence
+
+- `docs/references/patterns.md:166-167, schema/short-answer.yaml:108, docs/question-types/short-answer.md:388-392`: Pattern feedback is said to come from the pattern that &#x27;decided&#x27; the response, but the rule picks the first matching pattern that has feedback
+
+  ```
+  Only `pattern` is required. `feedback` is shown to the student whose response
+  ```
+- `docs/question-types/short-answer.md:104-115, docs/question-types/fill-in.md:57-60`: Feedback of `preAccept` and `preReject` patterns has no rule
+
+  ```
+  systems should warn students about the invalidity of their answer before
+  ```
+- `docs/question-types/fill-in.md:202-204, docs/question-types/fill-in.md:280-286, schema/fill-in.yaml:120-128`: Short answer blanks of fill-in have no `incorrectFeedback`, and the spec does not say so
+
+  ```
+  A short answer blank takes the same answer machinery as a standalone
+  ```
+- `examples/grading/short-answer.yaml:13`: No corpus vectors for feedback selection, `incorrectFeedback`, pre-validation and the `f`/`b` flags
+
+  ```
+  #   examples: { response: string, score: 0 | 1 | &quot;pending&quot; }[]
+  ```
+
+## Impact
+
+- **Pattern feedback is said to come from the pattern that &#x27;decided&#x27; the response, but the rule picks the first matching pattern that has feedback:** Implementations can show or omit feedback for the same response.
+- **Feedback of `preAccept` and `preReject` patterns has no rule:** Authors write pre-validation feedback that implementations may never show, or show differently.
+- **Short answer blanks of fill-in have no `incorrectFeedback`, and the spec does not say so:** A reader cannot tell whether an unmatched blank response can carry feedback; the &#x27;same machinery&#x27; sentence suggests it can.
+- **No corpus vectors for feedback selection, `incorrectFeedback`, pre-validation and the `f`/`b` flags:** mdq-py and mdq-js can disagree on these rules with every shared test passing.
+
+## Suggested fix
+
+- **Pattern feedback is said to come from the pattern that &#x27;decided&#x27; the response, but the rule picks the first matching pattern that has feedback:** In patterns.md and the schema, refer to the selection rule of short-answer.md (&#x27;Feedback&#x27;) instead of &#x27;the pattern that decided&#x27;.
+- **Feedback of `preAccept` and `preReject` patterns has no rule:** Add a rule: when a submission is invalid, show the feedback of the first matching `preReject` pattern that has one; state what is shown for a `preAccept` failure (no pattern matched, so no pattern feedback). Write the warning requirement with SHOULD.
+- **Short answer blanks of fill-in have no `incorrectFeedback`, and the spec does not say so:** State that blanks have no `incorrectFeedback`, or add the field (per blank or per question).
+- **No corpus vectors for feedback selection, `incorrectFeedback`, pre-validation and the `f`/`b` flags:** Add a `feedback` key to the grading vectors, a pre-validation vector file, and regex vectors for `f`, `b` and `n`.
+
+## Acceptance criteria
+
+- [ ] patterns.md and the schema reference the selection rule of short-answer.md
+- [ ] The spec states which feedback an invalid submission shows
+- [ ] examples/grading/short-answer.yaml checks feedback; a pre-validation vector file exists
+
+--- END ISSUE 5 ---</pre></div><div class="issue"><button type="button" data-target="issue-6" data-copied="Copied">Copy</button><pre id="issue-6">--- ISSUE 6 ---
+# [Spec] Define the short-answer response value
+
+**Labels:** medium
+
+## Problem
+
+responses.md does not say that a non-string response is malformed, how an empty or whitespace-only string is graded, or whether line breaks are allowed. Recommended: a string is required (anything else is a ResponseError), an empty string is graded like any other response, and line breaks are allowed.
+
+## Evidence
+
+- `docs/responses.md:148-153`: Short-answer response: type, empty string and line breaks are not defined
+
+  ```
+  The text the student wrote, before normalization.
+  ```
+
+## Impact
+
+A YAML response `1960` can be coerced to text in one implementation and refused in another. An empty submission scores 0 under `unmatched: incorrect` but its status is not specified.
+
+## Suggested fix
+
+Add: the response is a string; any other value is a malformed response (`ResponseError`). State that an empty or whitespace-only string is graded like any other response (or is a skip). Add vectors.
+
+## Acceptance criteria
+
+- [ ] responses.md states the three rules
+- [ ] examples/grading/short-answer.yaml has vectors for an empty string under unmatched: incorrect
+
+--- END ISSUE 6 ---</pre></div><div class="issue"><button type="button" data-target="issue-7" data-copied="Copied">Copy</button><pre id="issue-7">--- ISSUE 7 ---
+# [Spec] Allow an exact literal that contains a backtick
+
+**Labels:** medium
+
+## Problem
+
+EXACT_TEXT excludes the backtick, so answers such as `` `date` `` cannot be matched exactly. Options: (a) accept a CommonMark code span of N backticks (recommended, matches CommonMark); (b) document the limitation and point to a regex.
+
+## Evidence
+
+- `docs/question-types/short-answer.md:158`: An exact literal cannot contain a backtick
+
+  ```
+  EXACT_TEXT   : /[^`\n\r]+/
+  ```
+
+## Impact
+
+Questions about shells, Markdown or SQL identifiers cannot use exact matching; the error message does not help.
+
+## Suggested fix
+
+Accept a CommonMark code span of N backticks, with the same one-space stripping, or document the limitation and suggest a regex.
+
+## Acceptance criteria
+
+- [ ] The grammar and the schema accept the chosen form, or the limitation is documented
+- [ ] A corpus example covers it
+
+--- END ISSUE 7 ---</pre></div><div class="issue"><button type="button" data-target="issue-8" data-copied="Copied">Copy</button><pre id="issue-8">--- ISSUE 8 ---
+# [Spec] Say how the exam grading applies to short answer
+
+**Labels:** low
+
+## Problem
+
+The exam grading table has no column for types without a `grading` field. Recommended: one sentence that short answer, numeric, essay and ordering ignore the exam `grading` and score in [0, 1].
+
+## Evidence
+
+- `docs/exam.md:335-337`: The exam `grading` table does not say what it does to short answer
+
+  ```
+  Each question type accepts its own set of strategies in its `grading` field
+  ```
+
+## Impact
+
+A reader can expect `symmetric` to penalize a wrong short answer.
+
+## Suggested fix
+
+Add a sentence: types without a `grading` field (short answer, numeric, essay, ordering?) ignore the exam `grading` and score in [0, 1].
+
+## Acceptance criteria
+
+- [ ] exam.md states it
+
+--- END ISSUE 8 ---</pre></div><div class="issue"><button type="button" data-target="issue-9" data-copied="Copied">Copy</button><pre id="issue-9">--- ISSUE 9 ---
+# [Spec] Add short-answer terms to the glossary
+
+**Labels:** low
+
+## Problem
+
+Pattern, settled response, exact literal, inexact literal and pre-validation are not in GLOSSARY.md.
+
+## Evidence
+
+- `docs/question-types/short-answer.md:256`: GLOSSARY.md has no entry for pattern, settled, exact or inexact literal, or pre-validation
+
+  ```
+  A response is **settled** when the question decides if it is correct. An
+  ```
+
+## Impact
+
+Readers of other types and of the glossary meet `settled` and `pattern` without a definition.
+
+## Suggested fix
+
+Add short entries for Pattern, Settled response, Exact literal, Inexact literal and Pre-validation.
+
+## Acceptance criteria
+
+- [ ] GLOSSARY.md has the five entries
+
+--- END ISSUE 9 ---</pre></div><div class="issue"><button type="button" data-target="issue-10" data-copied="Copied">Copy</button><pre id="issue-10">--- ISSUE 10 ---
+# Mechanical fixes
+
+**Labels:** mechanical, high, medium, low
+
+## Problem
+
+Each fix below follows from its finding and needs no design decision, so they can be applied together in one pass and reviewed by reading the diff. Severity still applies: a mechanical fix can matter a lot.
+
+### F1 (high): Short-answer tag rule has no leading ws?, so an indented tag is rejected
+
+`docs/question-types/short-answer.md:150-151`
+
+```lark
+accept_block : &quot;[&quot; &quot;short-answer&quot; &quot;/accept&quot;? &quot;]&quot; ws? &quot;:&quot; ws? patterns?
+reject_block : &quot;[&quot; &quot;short-answer&quot; &quot;/reject&quot; &quot;]&quot; ws? &quot;:&quot; ws? patterns
+```
+
+**Suggested fix:** Prefix both rules with `ws?`, as numeric.md does: `accept_block : ws? &quot;[&quot; &quot;short-answer&quot; ...`.
+
+### F14 (medium): responses.md says every short answer is case folded before matching
+
+`docs/responses.md:156-158`
+
+```
+Short answers are normalized before matching -- case folded, Unicode
+```
+
+**Suggested fix:** Say that each pattern normalizes the response in its own way, with a link to patterns.md.
+
+### F22 (medium): Schema says a `[short-answer]` block&#x27;s content is the first `accept` entry
+
+`schema/short-answer.yaml:17-20`
+
+```
+any entry. The content of a simple `[short-answer]` block is the
+```
+
+**Suggested fix:** Say: the canonical form of the `[short-answer]` block (alias `[short-answer/accept]`); the single-line form gives a list of one entry.
+
+### F23 (medium): Schema says rejecting never changes a score, but a `reject` match settles a response that would be pending
+
+`schema/short-answer.yaml:24-28, schema/fill-in.yaml:145-149`
+
+```
+the `[short-answer/reject]` block. Rejecting never changes a score
+```
+
+**Suggested fix:** Say: a response that matches no `accept` pattern and matches a `reject` pattern is incorrect; `reject` decides responses that `unmatched: manual` would leave pending, and attaches feedback.
+
+### F33 (low): Two automation examples are not valid documents
+
+`docs/question-types/short-answer.md:301-303, docs/question-types/short-answer.md:379-381`
+
+```
+[short-answer]: Brasília
+```
+
+**Suggested fix:** Add the stem `What is the capital of Brazil?` and `Name a biome of central Brazil.`, as in the sibling examples.
+
+## Acceptance criteria
+
+- [ ] F1: Short-answer tag rule has no leading ws?, so an indented tag is rejected
+- [ ] F14: responses.md says every short answer is case folded before matching
+- [ ] F22: Schema says a `[short-answer]` block&#x27;s content is the first `accept` entry
+- [ ] F23: Schema says rejecting never changes a score, but a `reject` match settles a response that would be pending
+- [ ] F33: Two automation examples are not valid documents
+
+--- END ISSUE 10 ---</pre></div></section>
+<footer>MDQ Specification Audit: short-answer: mdq-spec · 2026-10-17</footer>
+</main>
+<script>
+document.querySelectorAll(".issue button").forEach((button) => {
+  button.addEventListener("click", async () => {
+    const text = document.getElementById(button.dataset.target).textContent;
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const range = document.createRange();
+      range.selectNodeContents(document.getElementById(button.dataset.target));
+      getSelection().removeAllRanges();
+      getSelection().addRange(range);
+      document.execCommand("copy");
+    }
+    const label = button.textContent;
+    button.textContent = button.dataset.copied;
+    setTimeout(() => (button.textContent = label), 1500);
+  });
+});
+</script>
+</body>
+</html>

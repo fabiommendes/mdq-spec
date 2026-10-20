@@ -139,7 +139,7 @@ that changed.
 Always read the list of definitions in the glossary using:
 
 ```bash
- grep -oP "^## \K.+" GLOSSARY.md
+ grep -oP "^### \K.+" GLOSSARY.md
 ```
 
 If you want to fetch the details of a definition, use:

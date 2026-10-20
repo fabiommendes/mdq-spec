@@ -50,6 +50,11 @@ Then it runs these steps in order and reports every problem it finds:
 13. The reference implementation agrees with the schemas: `mdq-py`'s
     `tests/test_schema_agreement.py` passes. The step is skipped, not failed,
     if `mdq-py/` is not in the checkout.
+14. The frontmatter of every `.mdq.md` of the corpus agrees with the
+    frontmatter schema of its type (`$defs/frontmatter-<type>` of the
+    bundle, built from the frontmatter tables): a valid example passes, and
+    an invalid example whose `.lint.json` expects `invalid-frontmatter-field`
+    fails.
 
 Run it from the repository root with `uv run scripts/spec_audit.py`.
 `--fail-fast` stops at the first step that fails. A step that fails still
@@ -78,6 +83,8 @@ from jsonschema.validators import validator_for
 from markdown_it import MarkdownIt
 from markdown_it.token import Token
 from mdit_py_plugins.footnote import footnote_plugin
+
+import schema_bundle
 
 #: Root of the mdq-spec checkout.
 MDQ_ROOT = Path(__file__).resolve().parent.parent
@@ -118,14 +125,11 @@ NO_CORPUS_EXAMPLE = {
 }
 
 #: Frontmatter fields that the table documents with a shorthand the schema
-#: does not describe, as (doc stem, field) with the reason. The table
-#: describes the frontmatter and the schema describes the AST.
+#: does not describe, as (doc stem, field) to the reason. The table
+#: describes the frontmatter and the schema describes the AST. The bundle
+#: script holds the list, since it builds the frontmatter schemas from it.
 FRONTMATTER_SHORTHANDS = {
-    ("question-base", "tags"): "comma-delimited string shorthand",
-    ("exam", "tags"): "comma-delimited string shorthand",
-    ("fill-in", "preAccept"): "map shorthand, a field of each blank in the AST",
-    ("fill-in", "preReject"): "map shorthand, a field of each blank in the AST",
-    ("question-base", "type"): "each question type schema declares its own",
+    key: reason for key, (reason, _) in schema_bundle.FRONTMATTER_SHORTHANDS.items()
 }
 
 #: Values of the "Field" column of an "Additional Rules" table that are not
@@ -134,6 +138,8 @@ PSEUDO_FIELDS = {
     "body": "the Markdown body of the document, not a frontmatter key",
     "any frontmatter key": "stands for every key of the frontmatter",
     "any text": "stands for every piece of text of the document",
+    "automation": "a property derived from the answer key, never a field of the "
+    "document",
 }
 
 #: Property names that several schemas define with different types, with the
@@ -1584,6 +1590,145 @@ def step_schema_agreement(audit: Audit) -> str:
     return f"mdq-py/{AGREEMENT_TEST}: {summary[0] if summary else 'passed'}"
 
 
+FRONTMATTER_FIELD_CODE = "invalid-frontmatter-field"
+FRONTMATTER_DEF_PREFIX = schema_bundle.FRONTMATTER_DEF_PREFIX
+#: The question types whose body starts with a tag, for the types a
+#: frontmatter does not declare.
+TAG_TYPES = {
+    "numeric": re.compile(r"^[ \t]*\[numeric(?:\([^()\[\]]*\))?\]", re.M),
+    "short-answer": re.compile(r"^[ \t]*\[short-answer(?:/(?:accept|reject))?\]", re.M),
+    "essay": re.compile(r"^[ \t]*\[essay\]", re.M),
+    "ordering": re.compile(r"^[ \t]*\[ordering\]", re.M),
+    "fill-in": re.compile(r"^\[\^[^\]]+\]", re.M),
+}
+CHOICE_TYPES = ("multiple-choice", "multiple-selection", "true-false")
+#: YAML 1.2 Core schema scalars (question-base.md, "Frontmatter").
+CORE_RESOLVERS = {
+    "tag:yaml.org,2002:bool": (
+        re.compile(r"^(?:true|True|TRUE|false|False|FALSE)$"),
+        list("tTfF"),
+    ),
+    "tag:yaml.org,2002:int": (
+        re.compile(r"^(?:[-+]?[0-9]+|0o[0-7]+|0x[0-9a-fA-F]+)$"),
+        list("-+0123456789"),
+    ),
+    "tag:yaml.org,2002:float": (
+        re.compile(
+            r"^(?:[-+]?(?:\.[0-9]+|[0-9]+(?:\.[0-9]*)?)(?:[eE][-+]?[0-9]+)?"
+            r"|[-+]?\.(?:inf|Inf|INF)|\.(?:nan|NaN|NAN))$"
+        ),
+        list("-+.0123456789"),
+    ),
+}
+
+
+class CoreLoader(yaml.SafeLoader):
+    """A YAML loader with the scalars of the YAML 1.2 Core schema."""
+
+
+CoreLoader.yaml_implicit_resolvers = {
+    first: [
+        (tag, regexp)
+        for tag, regexp in resolvers
+        if tag not in CORE_RESOLVERS and not tag.endswith(("timestamp", "merge"))
+    ]
+    for first, resolvers in yaml.SafeLoader.yaml_implicit_resolvers.items()
+}
+for _tag, (_regexp, _first) in CORE_RESOLVERS.items():
+    for _char in _first:
+        CoreLoader.yaml_implicit_resolvers.setdefault(_char, []).append((_tag, _regexp))
+
+
+def split_source_frontmatter(source: str) -> str | None:
+    """The text of the frontmatter of a Markdown document, or None."""
+    lines = source.removeprefix("\ufeff").splitlines()
+    if not lines or lines[0].rstrip() != "---":
+        return None
+    for index in range(1, len(lines)):
+        if lines[index].rstrip() == "---":
+            return "\n".join(lines[1:index])
+    return None
+
+
+def candidate_types(stem: str, front: dict[str, Any], source: str) -> list[str]:
+    """The document types a Markdown example may have."""
+    for suffix in (".yaml", ".json"):
+        sibling = Path(stem + suffix)
+        if sibling.is_file():
+            data = yaml.safe_load(sibling.read_text(encoding="utf-8"))
+            if isinstance(data, dict):
+                if data.get("type"):
+                    return [str(data["type"])]
+                if "questions" in data:
+                    return ["exam"]
+    if isinstance(front.get("type"), str):
+        return [front["type"]]
+    if re.search(r"^# \S", source, re.M) and "===" in source:
+        return ["exam"]
+    for question_type, regexp in TAG_TYPES.items():
+        if regexp.search(source):
+            return [question_type]
+    return list(CHOICE_TYPES)
+
+
+def step_frontmatter_schemas(audit: Audit) -> str:
+    problems: list[str] = []
+    bundle = schema_bundle.bundle_schemas()
+    checked = 0
+    for root, valid in ((VALID_DIR, True), (INVALID_DIR, False)):
+        for path in sorted(root.rglob(f"*{SOURCE_SUFFIX}")):
+            name = rel(path)
+            stem = str(path)[: -len(SOURCE_SUFFIX)]
+            expected: set[str] = set()
+            lint = Path(stem + LINT_SUFFIX)
+            if lint.is_file():
+                expected = {
+                    entry["code"] for entry in load_lint_file(lint, [])
+                }
+            source = path.read_text(encoding="utf-8")
+            text = split_source_frontmatter(source)
+            if text is None:
+                if FRONTMATTER_FIELD_CODE in expected:
+                    problems.append(f"{name}: expects {FRONTMATTER_FIELD_CODE}, has no frontmatter")
+                continue
+            try:
+                loaded = yaml.load(text, Loader=CoreLoader)
+            except yaml.YAMLError:
+                continue  # an invalid example about the YAML syntax
+            front = {k: v for k, v in (loaded or {}).items() if v is not None} if isinstance(loaded, dict) else None
+            if front is None:
+                continue
+            types = [
+                t for t in candidate_types(stem, front, source)
+                if FRONTMATTER_DEF_PREFIX + t in bundle["$defs"]
+            ]
+            if not types:
+                continue
+            results = []
+            for question_type in types:
+                schema = {
+                    "$ref": f"#/$defs/{FRONTMATTER_DEF_PREFIX}{question_type}",
+                    "$defs": bundle["$defs"],
+                }
+                errors = list(validator_for(schema)(schema).iter_errors(front))
+                results.append(errors)
+            checked += 1
+            if valid and all(results):
+                first = results[0][0]
+                problems.append(
+                    f"{name}: the frontmatter fails the schema of {types[0]}: "
+                    f"{first.message}"
+                )
+            if not valid and FRONTMATTER_FIELD_CODE in expected and not all(results):
+                problems.append(
+                    f"{name}: expects {FRONTMATTER_FIELD_CODE}, but the "
+                    f"frontmatter passes the schema of {types[results.index([])]}"
+                )
+    if problems:
+        raise AuditFailure(problems)
+    return f"{checked} frontmatters agree with the frontmatter schemas"
+
+
 STEPS: list[tuple[str, Callable[[Audit], str]]] = [
     ("schemas", step_schemas),
     ("docs", step_docs),
@@ -1598,6 +1743,7 @@ STEPS: list[tuple[str, Callable[[Audit], str]]] = [
     ("code blocks", step_code_blocks),
     ("lint paths", step_lint_paths),
     ("schema agreement", step_schema_agreement),
+    ("frontmatter schemas", step_frontmatter_schemas),
 ]
 
 

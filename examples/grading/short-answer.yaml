@@ -4,13 +4,21 @@
 #   name: string
 #
 #   // The question's own fields, as in its YAML form: any of `accept`,
-#   // `reject`, `unmatched`, `diacritics`.
+#   // `reject`, `unmatched`, `diacritics`, `incorrectFeedback`.
 #   question: { accept: Pattern[], reject: Pattern[], ... }
 #
 #   // Responses and what they score (short-answer.md, "Grading"). The score
 #   // is binary. "pending" is a response the question does not settle: the
 #   // instructor grades it (responses.md, "Pending").
-#   examples: { response: string, score: 0 | 1 | "pending" }[]
+#   //
+#   // `response` is a string (responses.md, "Short answer and essay"). Any
+#   // other value is a malformed response: the score is "malformed", and the
+#   // question rejects it with a `ResponseError` instead of scoring it.
+#   examples: { response: string | any, score: 0 | 1 | "pending" | "malformed", feedback?: string | null }[]
+#
+#   // `feedback` is the feedback string the response shows (short-answer.md,
+#   // "Feedback"), or null when it shows none. A pending response shows
+#   // none. When the key is absent, the vector does not check the feedback.
 # }
 questions:
   # One inexact literal (patterns.md, "Inexact literals"): case, diacritics,
@@ -67,6 +75,44 @@ questions:
       - response: "math . isnan"
         score: 0
 
+  # The exact literal follows the CommonMark code span (patterns.md, "Exact
+  # literals"): N backticks open it, a run of exactly N backticks closes it,
+  # and one space is removed from each end when both ends have one.
+  # `` `date` `` is the shell command substitution `date`.
+  - name: "Exact literal with a backtick"
+    question: { accept: ["`` `date` ``"] }
+    examples:
+      - response: "`date`"
+        score: 1
+      - response: " `date`\n"
+        score: 1
+      - response: "date"
+        score: 0
+      - response: "`` `date` ``"
+        score: 0
+
+  # A longer fence holds a shorter run of backticks.
+  - name: "Exact literal with a run of backticks"
+    question: { accept: ["```a``b```", "`a`` b`"] }
+    examples:
+      - response: "a``b"
+        score: 1
+      - response: "a`` b"
+        score: 1
+      - response: "a`b"
+        score: 0
+
+  # The two spaces that fence a lone backtick are not part of the literal.
+  - name: "Exact literal of one backtick"
+    question: { accept: ["`` ` ``"] }
+    examples:
+      - response: "`"
+        score: 1
+      - response: " ` "
+        score: 1
+      - response: "``"
+        score: 0
+
   # A regex is anchored to the whole response; `i` folds case and `n`
   # strips diacritics (patterns.md, "Regex flags").
   - name: "Regex"
@@ -78,6 +124,97 @@ questions:
         score: 1
       - response: "em 1822-09-07"
         score: 0
+  # Before a regex matches, the response is normalized to NFC and the
+  # `UNICODE_SPACE` code points are removed from both ends, as for an exact
+  # literal (patterns.md, "Regex"). Interior spaces are untouched.
+  - name: "Regex response preparation"
+    question: { accept: ["/1822-0?9-0?7/", "/Brasília/"] }
+    examples:
+      - response: "1822-09-07 "
+        score: 1
+      - response: "1822-09-07\n"
+        score: 1
+      - response: " 1822-09-07"
+        score: 1
+      - response: "Brasi\u0301lia"
+        score: 1
+      - response: "1822 -09-07"
+        score: 0
+  - name: "Regex with the f flag and interior spaces"
+    question: { accept: ["/Brasília/f"] }
+    examples:
+      - response: "a capital é Brasília, ao centro"
+        score: 1
+      - response: " Brasília "
+        score: 1
+      - response: "Bras ília"
+        score: 0
+  # Regexes run in code point mode, and the shorthand classes are explicit
+  # (patterns.md, "Regex"): `\d` is `[0-9]`, `\w` is `[A-Za-z0-9_]` and `\s`
+  # is `UNICODE_SPACE`, which has no U+FEFF. U+FEFF inside a response is not
+  # trimmed, because trimming only reaches the ends.
+  - name: "Regex dot matches one code point"
+    question: { accept: ["/./"] }
+    examples:
+      - response: "\U0001F600"
+        score: 1
+  - name: "Regex braced Unicode escape"
+    question: { accept: ["/\\u{1F600}/"] }
+    examples:
+      - response: "\U0001F600"
+        score: 1
+  - name: "Regex i folds long s"
+    question: { accept: ["/s/i"] }
+    examples:
+      - response: "\u017F"
+        score: 1
+  - name: "Regex i folds Kelvin sign"
+    question: { accept: ["/k/i"] }
+    examples:
+      - response: "\u212A"
+        score: 1
+  - name: "Regex digit is ASCII"
+    question: { accept: ["/\\d/"] }
+    examples:
+      - response: "\u0663"
+        score: 0
+  - name: "Regex word is ASCII"
+    question: { accept: ["/\\w+/"] }
+    examples:
+      - response: "José"
+        score: 0
+  - name: "Regex word with the n flag"
+    question: { accept: ["/\\w+/n"] }
+    examples:
+      - response: "José"
+        score: 1
+  - name: "Regex space"
+    question: { accept: ["/a\\sb/"] }
+    examples:
+      - response: "a\u00A0b"
+        score: 1
+      - response: "a\uFEFFb"
+        score: 0
+
+  # `n` strips the response and the literal characters of the body.
+  - name: "Regex n strips literal diacritics"
+    question: { accept: ["/água/n"] }
+    examples:
+      - response: "agua"
+        score: 1
+      - response: "água"
+        score: 1
+
+  # An escape is the exact code point: `n` never strips it, so it cannot
+  # match the stripped response (lint `unmatchable-regex-escape`).
+  - name: "Regex n keeps escapes"
+    question: { accept: ["/\\u00e1gua/n"] }
+    examples:
+      - response: "água"
+        score: 0
+      - response: "agua"
+        score: 0
+
   - name: "Regex with flags"
     question: { accept: ["/cerrado/in"] }
     examples:
@@ -93,6 +230,17 @@ questions:
       - response: "cerrado"
         score: 1
       - response: "Cerrado"
+        score: 0
+
+  # The last `/` closes the regex, so an unescaped `/` is part of the body
+  # (patterns.md, "Regular expressions"). The spaces after the flags are
+  # removed.
+  - name: "Regex with an unescaped slash"
+    question: { accept: ["/gov\\.br/a/i "] }
+    examples:
+      - response: "GOV.BR/A"
+        score: 1
+      - response: "gov.br"
         score: 0
 
   # The three rules apply in order: `accept` first, then `reject`, then
@@ -161,3 +309,136 @@ questions:
         score: "pending"
       - response: ""
         score: "pending"
+
+  # Feedback (short-answer.md, "Feedback"). The first pattern that matches
+  # AND has feedback gives it, in the list that decided the outcome: an
+  # earlier match with no feedback is passed over.
+  - name: "Feedback of the first matching pattern with feedback"
+    question:
+      accept:
+        - "/cerrad[oa]/i"
+        - { pattern: "Cerrado", feedback: "Right: the Cerrado is a savanna." }
+      reject:
+        - { pattern: "Savana", feedback: "Savanna is the general term." }
+    examples:
+      - response: "Cerrado"
+        score: 1
+        feedback: "Right: the Cerrado is a savanna."
+      - response: "cerrada"
+        score: 1
+        feedback: null
+      - response: "Savana"
+        score: 0
+        feedback: "Savanna is the general term."
+
+  # A response that matches `accept` and `reject` is correct, and takes the
+  # feedback of `accept`, not the one of `reject`.
+  - name: "Feedback of accept when reject also matches"
+    question:
+      accept:
+        - { pattern: "Brasília", feedback: "Right." }
+      reject:
+        - { pattern: "/bras.*/i", feedback: "Check the spelling." }
+    examples:
+      - response: "Brasília"
+        score: 1
+        feedback: "Right."
+      - response: "Brasil"
+        score: 0
+        feedback: "Check the spelling."
+
+  # `incorrectFeedback` is for an incorrect response that no pattern gave
+  # feedback to: one that matches no pattern, and one that matches a
+  # `reject` pattern with no feedback. A correct response never shows it.
+  - name: "incorrectFeedback"
+    question:
+      accept: ["Brasília"]
+      reject:
+        - "Rio de Janeiro"
+        - { pattern: "Salvador", feedback: "It was the capital until 1763." }
+      incorrectFeedback: "That city was never the capital."
+    examples:
+      - response: "Brasília"
+        score: 1
+        feedback: null
+      - response: "Manaus"
+        score: 0
+        feedback: "That city was never the capital."
+      - response: "Rio de Janeiro"
+        score: 0
+        feedback: "That city was never the capital."
+      - response: "Salvador"
+        score: 0
+        feedback: "It was the capital until 1763."
+
+  # A response the question does not settle shows no feedback, even with an
+  # `incorrectFeedback`.
+  - name: "No feedback for a pending response"
+    question:
+      accept: ["Cerrado"]
+      reject: [{ pattern: "Savana", feedback: "Savanna is the general term." }]
+      unmatched: manual
+      incorrectFeedback: "Try again."
+    examples:
+      - response: "Mata Atlântica"
+        score: "pending"
+        feedback: null
+      - response: "Savana"
+        score: 0
+        feedback: "Savanna is the general term."
+
+  # The response is a string (responses.md, "Short answer and essay"). An
+  # empty string, or one of only spaces, is not a skip (only `null` is): it
+  # is graded like any other response.
+  - name: "Empty response, unmatched incorrect"
+    question: { accept: ["Brasília"] }
+    examples:
+      - response: ""
+        score: 0
+      - response: "   "
+        score: 0
+
+  - name: "Empty response, unmatched manual"
+    question: { accept: ["Brasília"], unmatched: manual }
+    examples:
+      - response: ""
+        score: "pending"
+      - response: "   "
+        score: "pending"
+
+  # A regex that matches the empty string accepts an empty response. The
+  # spaces at the ends are removed before it matches (patterns.md, "Regex
+  # subject").
+  - name: "Empty response accepted by a regex"
+    question: { accept: ["/.*/"] }
+    examples:
+      - response: ""
+        score: 1
+      - response: "   "
+        score: 1
+
+  # A response can hold line breaks. An inexact literal collapses them to
+  # one space.
+  - name: "Response with a line break"
+    question: { accept: ["Rio Negro"] }
+    examples:
+      - response: "Rio\nNegro"
+        score: 1
+      - response: "Rio\r\n\r\nNegro"
+        score: 1
+
+  # A value that is not a string is a malformed response, never converted:
+  # `1960` and `1960.0` would become different texts.
+  - name: "Malformed response"
+    question: { accept: ["1960"] }
+    examples:
+      - response: 1960
+        score: "malformed"
+      - response: 1960.0
+        score: "malformed"
+      - response: ["1960"]
+        score: "malformed"
+      - response: { year: "1960" }
+        score: "malformed"
+      - response: true
+        score: "malformed"

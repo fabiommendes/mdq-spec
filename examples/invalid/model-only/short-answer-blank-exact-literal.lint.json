@@ -1,0 +1,10 @@
+[
+  {
+    "code": "blank-text",
+    "severity": "error",
+    "path": [
+      "accept",
+      0
+    ]
+  }
+]

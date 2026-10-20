@@ -1,0 +1,8 @@
+# The text line right after an empty tag continues the tag line, as the
+# lazy line of a CommonMark paragraph does: the content is on the next line.
+id: sa-empty-tag-text-line
+title: Highest mountain in Brazil
+type: short-answer
+stem: What is the highest mountain in Brazil?
+accept:
+  - Pico da Neblina

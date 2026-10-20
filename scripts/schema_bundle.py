@@ -33,9 +33,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import yaml
 from jsonschema.exceptions import SchemaError as JsonSchemaError
@@ -45,6 +46,7 @@ from jsonschema.validators import validator_for
 MDQ_ROOT = Path(__file__).resolve().parent.parent
 
 __all__ = [
+    "FRONTMATTER_SHORTHANDS",
     "TYPE_SCHEMAS",
     "SchemaError",
     "bundle_schemas",
@@ -90,13 +92,198 @@ SUBTREE_SCHEMA_DIRS = {
 }
 
 
+#: The document that holds the frontmatter table shared by every question
+#: type, and the schema that declares the matching properties.
+BASE_STEM = "question-base"
+
+#: Prefix of the `$defs` key of the frontmatter schema of a question type.
+FRONTMATTER_DEF_PREFIX = "frontmatter-"
+
+
+def _ref(defs: dict[str, Any], stem: str, field: str) -> dict[str, Any]:
+    """
+    A `$ref` to the property `field` of the schema `stem`, wherever the
+    schema declares it: at the top level or in an `allOf` member.
+
+    Raises:
+        SchemaError: the schema has no such property.
+    """
+
+    schema = defs[stem]
+    pointers = []
+    if field in schema.get("properties", {}):
+        pointers.append(f"#/properties/{field}")
+    for index, member in enumerate(schema.get("allOf", [])):
+        if isinstance(member, dict) and field in member.get("properties", {}):
+            pointers.append(f"#/allOf/{index}/properties/{field}")
+    if not pointers:
+        raise SchemaError(f"{stem} has no property {field!r}")
+    return {"$ref": schema["$id"] + pointers[0]}
+
+
+def _tags_shorthand(defs: dict[str, Any], stem: str) -> dict[str, Any]:
+    owner = "exam" if stem == "exam" else BASE_STEM
+    return {"anyOf": [_ref(defs, owner, "tags"), {"type": "string"}]}
+
+
+def _pre_pattern_map(defs: dict[str, Any], stem: str) -> dict[str, Any]:
+    return {
+        "type": "object",
+        "additionalProperties": {"$ref": defs["short-answer"]["$id"] + "#/$defs/patternList"},
+    }
+
+
+def _blank_text_map(defs: dict[str, Any], stem: str) -> dict[str, Any]:
+    return {"type": "object", "additionalProperties": {"type": "string"}}
+
+
+def _normalizations_shorthand(defs: dict[str, Any], stem: str) -> dict[str, Any]:
+    return {
+        "anyOf": [
+            _ref(defs, "ordering", "normalizations"),
+            {"$ref": defs["ordering"]["$id"] + "#/$defs/Normalization"},
+        ]
+    }
+
+
+def _any_string(defs: dict[str, Any], stem: str) -> dict[str, Any]:
+    return {"type": "string"}
+
+
+def _own_type(defs: dict[str, Any], stem: str) -> dict[str, Any]:
+    return _ref(defs, stem, "type")
+
+
+#: Frontmatter fields that a frontmatter table documents with a spelling the
+#: schema does not describe, as (document stem, field) to the reason and a
+#: function that builds the property schema of the frontmatter. The table
+#: describes the frontmatter and the schema describes the AST.
+#: `scripts/spec_audit.py` also reads the reasons.
+FRONTMATTER_SHORTHANDS: dict[
+    tuple[str, str], tuple[str, Callable[[dict[str, Any], str], dict[str, Any]]]
+] = {
+    ("question-base", "tags"): ("comma-delimited string shorthand", _tags_shorthand),
+    ("exam", "tags"): ("comma-delimited string shorthand", _tags_shorthand),
+    ("fill-in", "preAccept"): (
+        "map shorthand, a field of each blank in the AST",
+        _pre_pattern_map,
+    ),
+    ("fill-in", "preReject"): (
+        "map shorthand, a field of each blank in the AST",
+        _pre_pattern_map,
+    ),
+    ("fill-in", "incorrectFeedback"): (
+        "map shorthand, a field of each blank in the AST",
+        _blank_text_map,
+    ),
+    ("ordering", "normalizations"): (
+        "a single normalization may be a bare string",
+        _normalizations_shorthand,
+    ),
+    ("exam", "start"): (
+        "the frontmatter spelling is normalized in the AST",
+        _any_string,
+    ),
+    ("exam", "duration"): (
+        "the frontmatter spelling is normalized in the AST",
+        _any_string,
+    ),
+    ("question-base", "type"): (
+        "each question type schema declares its own",
+        _own_type,
+    ),
+}
+
+
+def frontmatter_fields(doc_path: Path) -> list[str]:
+    """
+    The fields of the table under the `## Frontmatter` heading of a
+    specification document, in table order.
+
+    Raises:
+        SchemaError: the document has no such heading or table.
+    """
+
+    fields: list[str] = []
+    in_section = False
+    for line in doc_path.read_text(encoding="utf-8").splitlines():
+        if line.startswith("## "):
+            if in_section:
+                break
+            in_section = line.strip() == "## Frontmatter"
+            continue
+        if in_section and line.startswith("|"):
+            cell = line.strip().strip("|").split("|")[0].strip()
+            if cell and cell != "Field" and not re.fullmatch(r"-+", cell):
+                fields.append(cell)
+    if not fields:
+        raise SchemaError(f"{doc_path} has no `## Frontmatter` table")
+    return fields
+
+
+def frontmatter_schemas(defs: dict[str, Any], docs_dir: Path) -> dict[str, Any]:
+    """
+    Build the frontmatter schema of each question type and of the exam,
+    keyed by `frontmatter-<type>`.
+
+    A frontmatter may hold only the fields of the frontmatter table of its
+    document and, for a question, of the base table. Each property refers to
+    the property schema of the question type (or of the base) and no other
+    property is valid. The key of a body field (`stem`, `choices`, ...) is
+    not valid either. A shorthand of `FRONTMATTER_SHORTHANDS` has a schema
+    of its own.
+
+    The schema validates a frontmatter after the removal of each `null`
+    value (question-base.md, "Frontmatter").
+    """
+
+    base_fields = frontmatter_fields(docs_dir / f"{BASE_STEM}.md")
+    result: dict[str, Any] = {}
+    for question_type in TYPE_SCHEMAS:
+        if question_type == "exam":
+            doc = docs_dir.parent / "exam.md"
+        else:
+            doc = docs_dir / f"{question_type}.md"
+        own = frontmatter_fields(doc)
+        tables = [(question_type, own)]  # (document stem, fields)
+        if question_type != "exam":
+            tables.append((BASE_STEM, base_fields))
+        properties: dict[str, Any] = {}
+        for stem, fields in tables:
+            for field in fields:
+                if field in properties:
+                    continue
+                shorthand = FRONTMATTER_SHORTHANDS.get((stem, field))
+                if shorthand is not None:
+                    properties[field] = shorthand[1](defs, question_type)
+                else:
+                    properties[field] = _ref(defs, stem, field)
+        result[FRONTMATTER_DEF_PREFIX + question_type] = {
+            "title": f"Frontmatter of a {question_type}",
+            "description": (
+                f"The fields that the frontmatter of a {question_type} in "
+                "Markdown may hold: the frontmatter table of its document "
+                "and, for a question, the one of the base type. Any other key "
+                "is the `invalid-frontmatter-field` error. Validate the "
+                "mapping after removing each key with a `null` value."
+            ),
+            "type": "object",
+            "properties": properties,
+            "additionalProperties": False,
+        }
+    return result
+
+
 def bundle_schemas(schema_dir: Path | None = None) -> dict[str, Any]:
     """
     Load every `schema/*.yaml` file and bundle them into one schema.
 
     The result's `$defs` has one entry per source file, keyed by its
     stem (`question-base`, `multiple-choice`, ...), each still carrying
-    its own original `$id` unchanged. The top-level `oneOf` lists every
+    its own original `$id` unchanged. It also has one `frontmatter-<type>`
+    entry per question type and for the exam, built from the frontmatter
+    tables of `docs/` by `frontmatter_schemas` (only when `docs/` is next
+    to `schema_dir`). The top-level `oneOf` lists every
     standalone document type -- an exam or any one of the eight question
     types -- so the bundle validates "is this any MDQ document" outright,
     while `#/$defs/<type>` still validates one type on its own.
@@ -132,6 +319,10 @@ def bundle_schemas(schema_dir: Path | None = None) -> dict[str, Any]:
     entry_ids = [defs[Path(filename).stem]["$id"] for filename in TYPE_SCHEMAS.values()]
 
     base_url = next(iter(defs.values()))["$id"].rsplit("/", 1)[0]
+
+    docs_dir = schema_dir.parent / "docs" / "question-types"
+    if docs_dir.is_dir():
+        defs.update(frontmatter_schemas(defs, docs_dir))
 
     bundle = {
         "$schema": "https://json-schema.org/draft/2020-12/schema",

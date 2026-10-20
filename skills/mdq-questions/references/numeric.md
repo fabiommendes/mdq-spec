@@ -27,9 +27,11 @@ as `kg`, `km/h`, `°C` or `µm`. Write it inside the tag, never after the value.
 
 | Field         | Description                                         |
 | ------------- | --------------------------------------------------- |
-| unit          | Same as the `(unit)` in the tag                      |
 | domain        | `integer`, `decimal` or `fraction` — normally inferred |
 | decimalPlaces | Precision of the comparison: the response is rounded to it before the tolerance test. Inferred from the digits of the value and of the absolute tolerance; only meaningful for `decimal` |
+
+The unit is set only by the `(unit)` in the tag. A `unit` key in the frontmatter
+is an error (`invalid-frontmatter-field`).
 
 The domain is inferred from how the value and absolute tolerance are written
 (the wider of the two wins: integer < fraction < decimal). A percentage

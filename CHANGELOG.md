@@ -91,3 +91,27 @@ First version of the specification.
 - Lint codes `non-ascii-whitespace` and `non-ascii-whitespace-in-prose`: a
   Unicode space outside code is a `warning` in a syntax position and an
   `info` inside prose.
+- Frontmatter rule (`docs/question-types/question-base.md`): a Markdown
+  frontmatter may hold only the fields of the frontmatter table of its
+  question type and of the base table. Any other key, a field the body sets
+  (`stem`, `choices`, `accept`, the `unit` of a numeric question, ...) or an
+  unknown key, is the error `invalid-frontmatter-field` (it replaces the
+  warning `unknown-frontmatter-key`). `accept` and `reject` leave the
+  frontmatter table of short answer, and `unit` the one of numeric: the body
+  sets them (`[short-answer]`, `[numeric(unit)]`). The lint code
+  `conflicting-accept` no longer exists. YAML and JSON are unchanged.
+- Lint code `redundant-id` (`warning`): `id` set in the frontmatter and as a
+  slug. The frontmatter wins, whether the values are equal or not.
+- Frontmatter schemas in the bundle (`$defs/frontmatter-<type>`, one per
+  question type and for the exam), built from the frontmatter tables by
+  `scripts/schema_bundle.py`. `scripts/spec_audit.py` checks the frontmatter
+  of every `.mdq.md` example against them.
+- Pre-validation feedback for short answer (`docs/question-types/short-answer.md`, "Pre-validation"). An invalid submission shows the feedback of the first matching `preReject` pattern that has one. Otherwise, if no `preAccept` pattern matches, it shows the feedback of the first `preAccept` pattern that has one (a format hint). Fill in short answer blanks follow the same rules. Pattern feedback in `patterns.md` and in the schemas now refers to the selection rule of short-answer.md, "Feedback", instead of "the pattern that decided the response".
+- `incorrectFeedback` for the short answer blanks of fill in: a field of the blank in the AST, and a map from blank id to string in the frontmatter (a shorthand, like `preAccept` and `preReject`). An unknown blank id is `undefined-blank`.
+- Additional Rules rows of short answer: an empty pattern line (`parse-error`), a `[short-answer/preAccept]` or `[short-answer/preReject]` block (`forbidden-block-element`), and `automation` in the frontmatter (`invalid-frontmatter-field`) or in YAML/JSON (`schema-error`). A note says that the table lists diagnostics only. One sentence each states the minimum of a pattern list, the visible character rule of `incorrectFeedback` and the redundant regex anchor. A SHOULD NOT sentence in "Grading" covers `no-correct-answer`.
+- Grading vectors: a `feedback` key in `examples/grading/short-answer.yaml` and the new file `examples/grading/short-answer-prevalidation.yaml`. New valid example: `fill-in/incorrect-feedback`.
+- Short answer response (`docs/responses.md`, "Short answer and essay"): the response is a string. Any other value (a number, a boolean, a list, a mapping) is a malformed response. `""` and a string of only spaces are graded like any other response; only `null` skips. Grading vectors in `examples/grading/short-answer.yaml` cover them, with the new score `"malformed"`.
+- Exact literal with a backtick (`docs/references/patterns.md`, "Exact literals"; `docs/question-types/short-answer.md`, "Content"): the literal follows the CommonMark code span. A run of N backticks opens it, the first run of exactly N backticks closes it, and one space is removed from each end when both ends have one and the content is not only spaces. `` `` `date` `` `` is the literal `` `date` ``. The grammar has a `FENCE` terminal in place of the single backtick. New valid examples `short-answer/exact-backtick` and `short-answer/exact-backtick-run`, the model-only invalid example `short-answer-fence-mismatch`, and grading vectors.
+- The `patternString` schema cannot compare the length of the opening and closing runs of backticks (it needs a backreference, which portable JSON Schema validators lack). It checks that a pattern that opens with a backtick also closes with one; the models check the rest and report `schema-error`.
+- Exam `grading` (`docs/exam.md`, "Grading"): short answer, numeric, essay and ordering have no `grading` field. The exam `grading` does not apply to them, and the mapping form has no key for them (`schema-error`). New invalid example `exam-grading-short-answer-key`.
+- Glossary entries: Exact literal, Inexact literal, Pattern, Pre-validation, Settled response.

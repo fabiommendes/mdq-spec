@@ -1,0 +1,9 @@
+[
+  {
+    "code": "redundant-id",
+    "severity": "warning",
+    "path": [
+      "id"
+    ]
+  }
+]

@@ -1,0 +1,10 @@
+# An empty `reject` tag followed by a text line is a valid block: the text
+# line is the pattern.
+id: sa-empty-reject-text-line
+title: Biggest dry forest
+type: short-answer
+stem: Which biome is the Caatinga part of?
+accept:
+  - semiárido
+reject:
+  - Cerrado

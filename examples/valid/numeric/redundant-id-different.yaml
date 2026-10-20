@@ -1,0 +1,8 @@
+# `id` in the frontmatter and a different slug: the frontmatter wins, and
+# `redundant-id` warns about the slug that was dropped.
+id: saca-cafe
+title: Saca de café
+type: numeric
+stem: Qual é a massa de uma saca de café beneficiado, em quilogramas?
+answer: 60
+domain: integer

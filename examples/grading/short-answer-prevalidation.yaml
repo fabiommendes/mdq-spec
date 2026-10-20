@@ -1,0 +1,125 @@
+# Document structure
+#
+# Question {
+#   name: string
+#
+#   // The question's own fields, as in its YAML form: any of `preAccept`,
+#   // `preReject`, `diacritics`.
+#   question: { preAccept: Pattern[], preReject: Pattern[], ... }
+#
+#   // Submissions and what pre-validation says about them (short-answer.md,
+#   // "Pre-validation"). `valid` is false when the submission matches a
+#   // `preReject` pattern, or `preAccept` is declared and the submission
+#   // matches none of its patterns. `feedback` is the pattern feedback shown
+#   // for an invalid submission, or null when none is shown. A valid
+#   // submission shows none. Grading never uses these lists.
+#   examples: { response: string, valid: boolean, feedback: string | null }[]
+# }
+questions:
+  # No `preAccept` and no `preReject`: every submission is valid.
+  - name: "No pre-validation"
+    question: {}
+    examples:
+      - response: "Brasília"
+        valid: true
+        feedback: null
+      - response: ""
+        valid: true
+        feedback: null
+
+  # A `preAccept` pattern that matches: valid. One that matches none: invalid,
+  # and the feedback is the format hint of the first pattern that has one.
+  - name: "preAccept gives a format hint"
+    question:
+      preAccept:
+        - { pattern: "/\\d{4}/", feedback: "Write the year with four digits." }
+    examples:
+      - response: "1822"
+        valid: true
+        feedback: null
+      - response: "22"
+        valid: false
+        feedback: "Write the year with four digits."
+      - response: "mil oitocentos e vinte e dois"
+        valid: false
+        feedback: "Write the year with four digits."
+
+  # The hint is the first `preAccept` pattern with feedback, not the first
+  # pattern. Without feedback in the list, no pattern feedback is shown.
+  - name: "First preAccept pattern with feedback"
+    question:
+      preAccept:
+        - "/\\d{4}/"
+        - { pattern: "/\\d{4}-\\d{2}/", feedback: "Write the year or the year and the month." }
+        - { pattern: "/\\d{4}-\\d{2}-\\d{2}/", feedback: "Not shown." }
+    examples:
+      - response: "1822-09"
+        valid: true
+        feedback: null
+      - response: "setembro"
+        valid: false
+        feedback: "Write the year or the year and the month."
+
+  - name: "preAccept with no feedback"
+    question:
+      preAccept: ["/[A-Za-z ]+/"]
+    examples:
+      - response: "Amazonas"
+        valid: true
+        feedback: null
+      - response: "42"
+        valid: false
+        feedback: null
+
+  # A `preReject` match is invalid, with the feedback of the first matching
+  # `preReject` pattern that has one.
+  - name: "preReject feedback"
+    question:
+      preReject:
+        - "/\\d+/"
+        - { pattern: "/\\d+/", feedback: "Write the name, not the number." }
+        - { pattern: "/.*\\d.*/", feedback: "Not shown." }
+    examples:
+      - response: "Amazonas"
+        valid: true
+        feedback: null
+      - response: "5"
+        valid: false
+        feedback: "Write the name, not the number."
+
+  # A `preReject` match with no feedback in the list shows no pattern
+  # feedback, even when `preAccept` has a hint.
+  - name: "preReject without feedback"
+    question:
+      preReject: ["/.*\\d.*/"]
+      preAccept:
+        - { pattern: "/[A-Za-z0-9 ]+/", feedback: "Use letters and digits." }
+    examples:
+      - response: "Rio 2"
+        valid: false
+        feedback: null
+      - response: "Rio"
+        valid: true
+        feedback: null
+      - response: "Rio!"
+        valid: false
+        feedback: "Use letters and digits."
+
+  # `preReject` wins over `preAccept` (short-answer.md, "Frontmatter"): a
+  # submission that matches both is invalid, with the `preReject` feedback.
+  - name: "preReject over preAccept"
+    question:
+      preAccept:
+        - { pattern: "/[a-z]+/", feedback: "Use lowercase letters only." }
+      preReject:
+        - { pattern: "/forbidden/", feedback: "This word is not allowed." }
+    examples:
+      - response: "forbidden"
+        valid: false
+        feedback: "This word is not allowed."
+      - response: "allowed"
+        valid: true
+        feedback: null
+      - response: "ALLOWED"
+        valid: false
+        feedback: "Use lowercase letters only."

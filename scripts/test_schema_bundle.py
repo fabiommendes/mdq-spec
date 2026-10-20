@@ -32,7 +32,14 @@ BUNDLE = bundle_schemas()
 
 def test_bundle_has_one_def_per_schema_file() -> None:
     expected = {p.stem for p in (MDQ_ROOT / "schema").glob("*.yaml")}
-    assert set(BUNDLE["$defs"]) == expected
+    defs = {k for k in BUNDLE["$defs"] if not k.startswith("frontmatter-")}
+    assert defs == expected
+
+
+def test_bundle_has_a_frontmatter_def_per_document_type() -> None:
+    expected = {f"frontmatter-{stem}" for stem in TYPE_SCHEMAS} | {"frontmatter-exam"}
+    defs = {k for k in BUNDLE["$defs"] if k.startswith("frontmatter-")}
+    assert defs == expected
 
 
 def test_bundle_oneof_covers_every_standalone_type() -> None:

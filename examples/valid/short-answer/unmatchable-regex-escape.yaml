@@ -1,0 +1,11 @@
+# Under `n` the response loses its diacritics, but an escape is always the
+# exact code point. `\u00e1` (á) cannot appear in the stripped response, so the
+# first pattern gets the info `unmatchable-regex-escape`. The second pattern
+# writes the letter and has no lint.
+id: unmatchable-regex-escape
+title: Water in Portuguese
+type: short-answer
+stem: Como se escreve "water" em português?
+accept:
+  - /\u00e1gua/n
+  - /água/n

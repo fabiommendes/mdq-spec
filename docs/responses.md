@@ -147,15 +147,25 @@ declared one. A response with more decimal places than the question's
 
 ### Short answer and essay
 
-The text the student wrote, before normalisation.
+The text the student wrote, before normalization.
 
 ```yaml
 response: "brasília"
 ```
 
-Short answers are normalised before matching -- case folded, unicode
-normalised, whitespace collapsed -- so the response is stored as typed, not as
-compared. 
+The response is a string. Any other value (a number, a boolean, a list or a
+mapping) is a malformed response (`ResponseError`), never converted to text:
+`1960` and `1960.0` would become different texts, and each runtime formats a
+number in its own way. `""` and a string of only spaces are responses like any
+other: they are graded by the rules of the question and are not a skip, since
+only `null` skips the question, see [Skipping](#skipping). The string can hold
+line breaks. The same holds for a short answer blank of a fill in.
+
+The response is stored as typed. Each kind of pattern (inexact, exact and
+regex) prepares the response in its own way before it compares. A regex
+sees the response in NFC, without the `UNICODE_SPACE` code points at its
+ends. See
+[patterns](references/patterns.md).
 
 
 ### Fill in the blanks

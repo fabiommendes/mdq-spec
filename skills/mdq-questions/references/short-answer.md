@@ -14,7 +14,7 @@ whitespace are ignored, so `brasilia` is accepted.
 
 ## Pattern forms
 
-Used in the body and in the frontmatter alike:
+Used in the body, and in the `preAccept` and `preReject` of the frontmatter:
 
 | Written as          | Matched as                                     |
 | ------------------- | ---------------------------------------------- |
@@ -23,6 +23,12 @@ Used in the body and in the frontmatter alike:
 | `/[Bb]ras[íi]lia/i` | regex, anchored at both ends                   |
 
 A literal answer that starts with `/` must be in backticks: `` `/usr/bin` ``.
+
+An exact literal follows the CommonMark code span: N backticks open it and a run
+of exactly N backticks closes it. To write a backtick in the answer, use a
+longer fence, and put one space inside each end if the answer starts or ends
+with a backtick: ``` `` `date` `` ``` is the answer `` `date` ``, and
+```` ```a``b``` ```` is ``` a``b ```.
 
 Demand an exact answer for code, spelling or orthography questions:
 
@@ -83,16 +89,22 @@ Not supported: lookbehind, named groups, `\p{...}`, class intersections.
 
 | Field      | Description                                              |
 | ---------- | -------------------------------------------------------- |
-| accept     | Same list as the `[short-answer]` block (use one or the other, never both) |
-| reject     | Same list as the `[short-answer/reject]` block (same rule) |
 | preAccept  | Response must match one of these to be *submittable*: validation only, not grading |
 | preReject  | Response must match none of these to be submittable       |
 | diacritics | `fold` (default) or `keep` to require the accents         |
 | unmatched  | `incorrect` or `manual`: what a response that matches no pattern gets |
 | incorrectFeedback | Feedback for an incorrect response without a pattern feedback |
 
-List entries are pattern strings or `{ pattern: ..., feedback: ..., comment: ... }`
-objects. There are no `oneOf` or `regex` fields: everything goes in `accept`.
+The `preAccept` and `preReject` entries are pattern strings or
+`{ pattern: ..., feedback: ..., comment: ... }` objects. The feedback of an
+invalid submission is the one of the first matching `preReject` pattern that
+has feedback; if none matches, and no `preAccept` pattern matches, it is the
+one of the first `preAccept` pattern that has feedback (use it as a format
+hint). Feedback of a graded response comes from the first matching pattern
+that has feedback, in the list that decided the outcome. `accept` and `reject`
+are set only by the `[short-answer]` and `[short-answer/reject]` blocks: as
+frontmatter keys they are an error (`invalid-frontmatter-field`), like any key
+that is not in the table. There are no `oneOf` or `regex` fields.
 
 ## Grading
 

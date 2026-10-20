@@ -14,18 +14,19 @@ allOf:
 
       accept:
         description: >-
-          Patterns matching a correct response. The canonical form of the
-          `[short-answer/accept]` block; a response is correct if it matches
-          any entry. The content of a simple `[short-answer]` block is the
-          first entry.
+          Patterns matching a correct response. In Markdown, the
+          `[short-answer]` block (alias `[short-answer/accept]`) sets it; a
+          response is correct if it matches any entry. The single-line form
+          gives a list of one entry.
         "$ref": "#/$defs/patternList"
 
       reject:
         description: >-
-          Patterns matching a known incorrect response. The canonical form of
-          the `[short-answer/reject]` block. Rejecting never changes a score
-          -- `accept` decides that, and wins when both match -- so this list
-          exists to attach feedback to answers known to be wrong.
+          Patterns matching a known incorrect response. In Markdown, the
+          `[short-answer/reject]` block sets it. A response that matches no
+          `accept` pattern and matches a `reject` pattern is incorrect. So
+          `reject` settles responses that `unmatched: manual` would leave
+          pending, and it attaches feedback. `accept` wins when both match.
         "$ref": "#/$defs/patternList"
 
       preAccept:
@@ -105,7 +106,11 @@ allOf:
             "$ref": "#/$defs/patternString"
           feedback:
             type: string
-            description: Shown to the student whose response this pattern decided.
+            description: >-
+              Shown by the selection rule of short-answer.md, "Feedback": the
+              first pattern that matches and has feedback, in the list that
+              decided the outcome. For `preAccept` and `preReject`, see
+              "Pre-validation".
           comment:
             type: string
             description: >-
@@ -121,11 +126,24 @@ allOf:
       enclosed in backticks, and a plain literal compared inexactly
       otherwise.
     minLength: 1
-    # Must carry at least one non-space character: a blank pattern
-    # matches no response worth naming. A pattern that opens with a
-    # backtick is a complete backtick-enclosed span (short-answer.md,
-    # "Content"): there is no inexact literal starting with a backtick.
-    pattern: "^(?:`[^`\\n]+`[ \\t]*|[^`\\s][\\s\\S]*|\\s+[^`\\s][\\s\\S]*)$"
+    # Explicit classes only, no `\s` or `\S` (grammar.md, "Regex dialect"),
+    # aligned with EXACT_TEXT and PLAIN_TEXT (short-answer.md, "Body"): no
+    # CR or LF in the pattern. Spaces and tabs at both ends are removed
+    # before the pattern is classified (patterns.md, "Pattern string"), so
+    # they are allowed here. A pattern of only spaces and tabs passes: it is
+    # a `blank-text`, which the models report (a schema cannot see U+200B or
+    # an exact literal of one space). A pattern that opens with a backtick
+    # is an exact literal, a CommonMark code span (patterns.md, "Exact
+    # literals"): there is no inexact literal starting with a backtick.
+    # APPROXIMATION: the exact rule is that the run of backticks that
+    # closes the span has the same length as the one that opens it, and
+    # that no run of that length is inside. A JSON Schema pattern is
+    # ECMA-262, and portable validators do not support the backreference
+    # that the rule needs. This pattern only checks that the string opens
+    # and closes with a backtick and holds a character between them. The
+    # models check the rest and report it as `schema-error`.
+    # `minLength` rejects the empty string.
+    pattern: "^[ \\t]*(?:`[^\\r\\n]+`[ \\t]*|[^` \\t\\r\\n][^\\r\\n]*)?$"
 
 
 # Rejects any key not defined by question-base.yaml or by the object

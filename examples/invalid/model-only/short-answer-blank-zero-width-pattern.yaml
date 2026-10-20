@@ -1,0 +1,9 @@
+# A pattern string needs a visible character. U+200B is a format
+# character, so a pattern of only that code point is a `blank-text`.
+id: sa-blank-zero-width-pattern
+type: short-answer
+stem: Name the largest Brazilian biome.
+accept:
+  - Amazônia
+reject:
+  - "\u200B"

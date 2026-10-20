@@ -1,0 +1,10 @@
+# The last `/` closes the regex, so the unescaped `/` in the first body is
+# valid. The spaces after the flags of the first item are removed.
+id: sa-regex-unescaped-slash
+title: Brazilian government portal
+type: short-answer
+stem: >-
+  What is the web address of the Brazilian federal government portal?
+accept:
+  - /https?://www\.gov\.br/?/i
+  - /www\.gov\.br/i

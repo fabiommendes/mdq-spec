@@ -1,0 +1,8 @@
+# `id` in the frontmatter and as a slug, with the same value: the question
+# has that id, and `redundant-id` warns about the duplicate.
+id: saca-cafe
+title: Saca de café
+type: numeric
+stem: Qual é a massa de uma saca de café beneficiado, em quilogramas?
+answer: 60
+domain: integer

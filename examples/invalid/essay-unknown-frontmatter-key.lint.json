@@ -1,0 +1,9 @@
+[
+  {
+    "code": "invalid-frontmatter-field",
+    "severity": "error",
+    "path": [
+      "difficulty"
+    ]
+  }
+]

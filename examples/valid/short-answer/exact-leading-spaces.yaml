@@ -1,0 +1,10 @@
+# The spaces and tabs at both ends of a pattern are removed before it is
+# classified, so "  `O`  " is the exact literal `O`.
+id: sa-exact-leading-spaces
+title: Chemical symbol of oxygen
+type: short-answer
+stem: >-
+  Which is the chemical symbol of the gas that the Amazon forest releases by
+  photosynthesis?
+accept:
+- "  `O`  "

@@ -1,0 +1,9 @@
+# The `grading` mapping takes only the choice question types as keys
+# (exam.md, "Grading"); `short-answer` has no grading strategy, and the
+# exam's `grading` does not apply to it.
+type: exam
+id: biomes
+title: Biomes
+grading:
+  short-answer: symmetric
+questions: []

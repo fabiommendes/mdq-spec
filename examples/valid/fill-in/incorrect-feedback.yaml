@@ -1,0 +1,24 @@
+# A short-answer blank carries `incorrectFeedback` like a short-answer
+# question. It is shown to an incorrect response that no pattern gave
+# feedback to, such as the `Bahia` response, which matches a reject pattern
+# with no feedback.
+id: fill-in-amazon
+title: The Amazon
+type: fill-in
+stem: >-
+  The [^river] flows through the Brazilian state of [^state] before it
+  reaches the Atlantic Ocean.
+blanks:
+  - id: river
+    type: short-answer
+    incorrectFeedback: The Amazon basin holds the largest river by volume.
+    accept:
+      - Amazonas
+  - id: state
+    type: short-answer
+    incorrectFeedback: Look at the north of Brazil.
+    accept:
+      - pattern: Pará
+        feedback: "Right: the mouth of the river is in Pará."
+    reject:
+      - Bahia

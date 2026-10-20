@@ -136,17 +136,18 @@ unevaluatedProperties: false
 
       accept:
         description: >-
-          Patterns matching a correct response. The canonical form of the
-          `[^id/short-answer/accept]` block; a response is correct if it
-          matches any entry.
+          Patterns matching a correct response. In Markdown, the
+          `[^id/short-answer/accept]` block sets it; a response is correct if
+          it matches any entry.
         "$ref": "./short-answer.yaml#/$defs/patternList"
 
       reject:
         description: >-
-          Patterns matching a known incorrect response. The canonical form
-          of the `[^id/short-answer/reject]` block. Rejecting never changes
-          a score -- `accept` decides that, and wins when both match -- so
-          this list exists to attach feedback to answers known to be wrong.
+          Patterns matching a known incorrect response. In Markdown, the
+          `[^id/short-answer/reject]` block sets it. A response that matches
+          no `accept` pattern and matches a `reject` pattern is incorrect. So
+          `reject` settles responses that `unmatched: manual` would leave
+          pending, and it attaches feedback. `accept` wins when both match.
         "$ref": "./short-answer.yaml#/$defs/patternList"
 
       preAccept:
@@ -160,6 +161,14 @@ unevaluatedProperties: false
           Patterns a submission must not match to be considered valid.
           Like `preAccept`, never affects a score.
         "$ref": "./short-answer.yaml#/$defs/patternList"
+
+      incorrectFeedback:
+        type: string
+        description: >-
+          Feedback for an incorrect response that no pattern gave feedback
+          to, with the same meaning as the `incorrectFeedback` of a
+          short-answer question (short-answer.md, "Feedback"). Inline
+          markdown, like the feedback of a pattern.
 
     required:
       - id

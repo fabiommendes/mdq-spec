@@ -96,6 +96,9 @@ properties:
       type to a strategy of that type. Types absent from the mapping are
       graded as `symmetric`. A question that declares its own
       `grading` ignores this field entirely.
+      Short answer, numeric, essay and ordering questions have no `grading`
+      field, so this field does not apply to them, and the mapping has no key
+      for them.
     oneOf:
       - "$ref": "#/$defs/GradingStrategy"
       - type: object

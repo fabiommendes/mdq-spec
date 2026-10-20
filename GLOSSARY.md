@@ -103,6 +103,11 @@ A response the question does not settle. It has no score until the instructor
 gives one.
 _Avoid_: ungraded, unmatched response
 
+### Settled response
+A response the question decides: it has a score. The opposite of a *pending
+response*.
+_Avoid_: graded response, resolved response
+
 ### Score
 What a response to a single question is worth, on a scale from -1 to 1.
 _Avoid_: grade, mark, points, credit
@@ -111,7 +116,7 @@ _Avoid_: grade, mark, points, credit
 The weighted mean of the question scores after `penalty`. Pending while any
 response is pending; a *provisional score* is the same mean over the settled
 questions only.
-_Avoid_: total, final grade, exam grade
+_Avoid_: total, final grade, exam grade, result
 
 ### Grading strategy
 How a question with several parts reduces those parts to one score. Spelled
@@ -126,7 +131,7 @@ _Avoid_: penalised, negative marking, right-minus-wrong
 
 ### Partial
 A grading strategy whose score stays between 0 and 1 while still awarding
-credit for parts. A contract about the range, not a shared formula — each
+credit for parts. A contract about the range, not a shared formula. Each
 question type defines its own.
 _Avoid_: proportional, weighted, partial credit
 
@@ -160,12 +165,31 @@ An exam's rule for whether negative scores survive, spelled `penalty`. The only
 place clamping happens.
 _Avoid_: clamping, floor, negative marking
 
-### Exam score
-What a whole exam is worth, covering its auto-gradable questions only, alongside the
-share of the exam's weight that figure accounts for and the questions still
-awaiting a human.
-_Avoid_: total, final grade, result
 
+## Patterns
+
+### Exact literal
+A pattern enclosed in backticks, compared code point for code point after NFC
+and the removal of the Unicode spaces at its ends. Follows the CommonMark code
+span, so N backticks can hold a backtick.
+_Avoid_: verbatim string, quoted string
+
+### Inexact literal
+A pattern that is neither enclosed in backticks nor delimited by `/`. The
+comparison ignores case, diacritics, invisible characters, typographic quotes
+and dashes, and the amount of whitespace.
+_Avoid_: plain match, fuzzy match
+
+### Pattern
+A string that says which responses it matches: an exact literal, an inexact
+literal or a regex. The entry of the `accept`, `reject`, `preAccept` and
+`preReject` lists of short answer questions and blanks.
+_Avoid_: rule, matcher, answer string
+
+### Pre-validation
+The check of a submission against `preAccept` and `preReject` before it is
+accepted. A submission that fails is invalid. It never contributes to a score.
+_Avoid_: input validation, pre-grading
 
 ## Fields
 
