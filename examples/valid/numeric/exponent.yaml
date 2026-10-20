@@ -1,0 +1,11 @@
+# A value with an exponent is `decimal` (numeric.md, "Number type/domain"). The
+# float 300000.0 gives back the digits written, so the answer is a number.
+# The places are 0 less the exponent, never below 0.
+id: num-speed-of-light
+title: Speed of light
+type: numeric
+stem: What is the speed of light in a vacuum, in km/s, to one significant digit?
+answer: 300000.0
+unit: km/s
+domain: decimal
+decimalPlaces: 0

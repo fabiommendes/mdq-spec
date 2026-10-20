@@ -1,0 +1,5 @@
+# JSON Schema cannot express a range check. A string `answer` must fit the range of a double (numeric.md, "Answer
+# representation"): "1e400" is above the largest finite double.
+type: numeric
+stem: What is the mass of the Sun, in kg, as a power of ten?
+answer: "1e400"

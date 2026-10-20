@@ -61,6 +61,13 @@ read the source text and accept only spaces and tabs there. A paragraph that
 starts with U+00A0 followed by `[short-answer]: Brasília` is text. It is not a
 short-answer tag.
 
+The `ws?` at the start of a block stands for the indentation that CommonMark
+allows there: at most three spaces, with a tab expanded to the next multiple of
+four columns, as in [Content of a list item](#content-of-a-list-item). With
+more indentation the line is an indented code block, or a continuation line, as
+in CommonMark, so it does not match the rule. Four spaces before
+`[numeric]: 42` make a code block, not a numeric tag.
+
 ### Content of a list item
 
 The grammar of a list item, such as a choice or a pattern item, applies to the
@@ -86,6 +93,8 @@ choice list.
 SLUG         : /[a-zA-Z0-9]+([-_][a-zA-Z0-9]+)*/
 INTEGER      : /[1-9][0-9]*|0/
 DECIMAL      : /([1-9][0-9]*|0)[.][0-9]+/
+EXPONENT     : /[eE][+-]?[0-9]{1,3}/
+DENOMINATOR  : /[1-9][0-9]*/
 UNIT         : /[^()\[\]\t\n\v\f\r \x85\xa0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+/
 COMMENT_LINE : /#[^\r\n]*(\r\n|\r|\n)/
 CHOICE_ID    : /\[[a-zA-Z0-9]+([-_][a-zA-Z0-9]+)*\](?![(\[])/
@@ -96,6 +105,13 @@ CHOICE_ID    : /\[[a-zA-Z0-9]+([-_][a-zA-Z0-9]+)*\](?![(\[])/
   [Slug](../question-types/question-base.md#slug).
 * `INTEGER` and `DECIMAL` have no sign and no leading zeros. The rules that use
   them add the sign.
+* `EXPONENT` is the exponent of a number in scientific notation, as in a
+  JSON number. It follows an `INTEGER` or a `DECIMAL` with no space between
+  them, and it MAY have leading zeros (`e05`). It has at most 3 digits:
+  `1e1000` does not match. See
+  [Body](../question-types/numeric.md#body).
+* `DENOMINATOR` is an `INTEGER` that is not zero. It is the denominator of a
+  fraction.
 * `UNIT` is a unit of measurement. It holds any character except
   `UNICODE_SPACE` and the brackets `(`, `)`, `[` and `]`. See
   [Unit conversion](../question-types/numeric.md#unit-conversion).

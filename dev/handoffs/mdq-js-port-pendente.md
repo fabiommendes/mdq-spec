@@ -371,3 +371,113 @@ M1 a M6 da seção anterior (o item M4 e a tabela `en`/`pt`/`es`).
   o schema já fazia). Só texto e a `description` do schema. Corpus novo:
   `invalid/exam-grading-short-answer-key`. D13b: cinco entradas no
   `GLOSSARY.md`, sem efeito no código.
+
+## Auditoria de numeric (2026-10-20)
+
+- N1. Aritmética exata (D1): usar `fraction.js` 5.x (BigInt) para answer,
+  resposta e tolerâncias. Ler número com `String(x)` (a forma decimal mais
+  curta que volta ao mesmo double; mdq-py: `Fraction(repr(x))`) e passar ao
+  `Fraction`. Arredondar (half away from zero) e testar a tolerância em
+  racionais, nunca em `number`.
+- N2. Tolerância relativa: usa o answer antes do arredondamento
+  (`|answer| × relative`); as tolerâncias não são arredondadas.
+- N3. Inferência a partir de YAML/JSON: string pela grafia; número pela forma
+  `String(x)`, mas valor inteiro (`5`, `4.0`) é `integer` com 0 casas. JS não
+  distingue `4.0` de `4`, então nada a fazer além de checar
+  `Number.isInteger`. mdq-py: `_written_places` e `_infer_numeric_domain`.
+- N4. Respostas por domain (D3, tabela em `docs/responses.md`): inteiro decide
+  pelo valor (`4.0`, `"4.0"`, `"4/2"` valem); fração em questão `decimal` é
+  malformada; não finito e `boolean` são malformados em todo domain. String de
+  resposta é exatamente `sign? value` (regex ancorada nas duas pontas, sem
+  `trim`, sem expoente, sem vírgula). Número JSON com expoente vale. mdq-py:
+  `_response_value`, `parse_numeric_string`. O "sem expoente" foi trocado em
+  N13: a string de resposta aceita expoente.
+- N5. Unidade (D2): a resposta pode ser `{value, unit}`. Unidade igual à
+  declarada (`normalize("NFC")` nas duas) ou ausente vale; outra, ou unidade
+  numa questão sem unidade, é `ResponseError`. Chaves além de `value` e `unit`,
+  ou sem `value`, também. Sem conversão.
+- N6. A unidade da tag é texto-fonte, sem markdown inline: `[numeric(m\*s)]`
+  tem unidade `m\*s`. Vale para o blank `[^id/numeric(...)]`.
+- N7. `answer` e tolerâncias têm de ser finitos: `malformed-numeric-answer`,
+  caminho `answer` ou `tolerance.absolute`/`tolerance.relative`. O schema não
+  expressa (JSON não tem infinito), então é regra do modelo. Corpus:
+  `invalid/model-only/numeric-{infinite-answer,nan-answer,infinite-tolerance}`.
+- N8. Vetores novos em `examples/grading/numeric.yaml` (só questões novas,
+  nenhuma alterada). O runner precisa aceitar resposta `{value, unit}`, `.inf`
+  e `.nan` do YAML, e `unit` na questão. O cabeçalho do arquivo mudou.
+- N9. Diagnósticos (D4): `answer-outside-domain` cobre `integer` (valor não
+  inteiro) e `fraction` (nem inteiro nem string de fração: `0.75`, `"0.75"`);
+  `"4/2"` vale nos dois. `domain-mismatch` só para `tolerance.absolute`
+  decimal (número de valor não inteiro) sob `integer` ou `fraction`, caminho
+  `domain`. `missing-tolerance` só quando o domain efetivo (declarado ou
+  inferido, com a tolerância) é `decimal`. mdq-py: `_lint.check_numeric`.
+  Atenção: o corpus mudou (11 `.lint.json` reescritos) e o blank do fill-in usa
+  as mesmas regras.
+- N10. `incorrectFeedback` no numeric (D5): campo do frontmatter e do YAML,
+  string com ao menos um caractere visível (`blank-text`). `score_response`
+  devolve `[incorrectFeedback]` só quando a nota é 0 e a resposta é bem
+  formada; resposta correta, malformada (erro) ou pulada não mostra nada.
+  Vetores em `examples/grading/numeric.yaml` ganharam a chave `feedback`
+  (runner: checar só quando a chave existe, como no short-answer).
+- N11. Fill-in (D6): mapas `domain` e `decimalPlaces` no frontmatter (id do
+  blank para valor), sobrescrevem o inferido. Chave que não é blank:
+  `undefined-blank` no caminho `[mapa, chave]`; chave de blank que não é
+  numérico: o valor vai para o blank e o schema rejeita (`schema-error` em
+  `blanks[i].domain`). Valor inválido: `schema-error` no blank. Se o mapa
+  `domain` dá `decimal` e `decimalPlaces` falta, as casas vêm do corpo.
+  mdq-py: `numeric_blank_maps`, `distribute_numeric_blank_maps`.
+  `scripts/schema_bundle.py` ganhou dois atalhos de frontmatter.
+- N12. Indentação (D7): o `ws?` no início de um bloco vale até 3 espaços (tab
+  expandido para múltiplo de 4). Quatro espaços ou um tab antes de
+  `[numeric]:` é bloco de código e o resultado é `parse-error`. O mdq-py já
+  fazia isso; só o corpus ganhou exemplos
+  (`invalid/numeric-tag-indented-{four-spaces,tab}`, `valid/numeric/tag-indented-three-spaces`).
+- N13. Notação científica (D8): `number = (INTEGER | DECIMAL) EXPONENT?`, com
+  `EXPONENT = /[eE][+-]?[0-9]+/` (zeros à esquerda valem: `1e05`). Vale no
+  valor, na tolerância absoluta e na relativa (Markdown), na string do
+  `answer` (padrão do schema) e na string da resposta. Fração não tem expoente
+  (`1e3/2`, `1/2e3`: `parse-error` no corpo, `malformed-numeric-answer` na
+  string). Domain: grafia com expoente (corpo Markdown ou string) é `decimal`.
+  Número JSON não tem grafia: continua pela regra de valor inteiro (`1e22` é
+  `integer`, `1.5e-3` é `decimal`). Casas: `max(0, d - e)` com `d` = dígitos
+  depois do ponto da mantissa; para número JSON vale a mesma fórmula sobre
+  `String(x)`, que usa expoente a partir de 1e21 e abaixo de 1e-6 (`1e-7` dá
+  7, `1.5e-7` dá 8; o resultado não depende de onde a plataforma troca para
+  expoente). `Fraction` do `fraction.js` lê `"6.022e23"`? Conferir; senão,
+  separar mantissa e expoente à mão. Representação: valor com expoente vira
+  número se `parseFloat` volta aos mesmos dígitos e a mantissa não termina em
+  zero depois do ponto (`1.50e3` fica string); `1e400` fica string. mdq-py:
+  `_parser/_numeric.py` (`_NUMBER`, `_is_decimal_spelling`, `_written_places`,
+  `_answer_value`), `_lint._infer_numeric_domain`, `models._numeric.
+  _written_places`. Risco: `1e999999999` faz `Fraction` alocar um inteiro
+  gigante (mdq-py hoje não limita o expoente).
+- N14. Grafias rejeitadas (F18): U+2212, `±`, vírgula decimal e separador de
+  milhar (espaço, NBSP, U+2009, U+202F entre dígitos) são `parse-error` no
+  corpo. A mensagem do mdq-py acrescenta a dica (`use "-"`, `use "+-"`,
+  `use "." as the decimal separator`, `remove the digit group separator`),
+  checadas nessa ordem. A dica não faz parte do contrato (o corpus só confere
+  o código). Corpus: `invalid/numeric-{minus-sign-u2212,plus-minus-sign,
+  decimal-comma,digit-group-separator,exponent-without-digits,
+  exponent-in-fraction,exponent-decimal-point,malformed-exponent-answer}`;
+  `valid/numeric/exponent*` (o antigo `invalid/numeric-exponent` virou
+  `valid/numeric/exponent`) e `valid/fill-in/numeric-blank-exponent`. Vetores
+  novos e a questão "Response string grammar" mudou (`"1e3"` agora vale).
+- N16. Limite do expoente (D9): `EXPONENT = /[eE][+-]?[0-9]{1,3}/`. Valor ou
+  tolerância com módulo acima do maior double finito (`1e400`) ou não nulo que
+  arredonda para 0 como double (`1e-400`) é malformado: `parse-error` no corpo,
+  `malformed-numeric-answer` no `answer` (string e número) e `ResponseError` na
+  resposta. Fração: confere numerador e denominador, cada um. Checar a faixa
+  antes de qualquer aritmética exata (em JS, `Number(s)` dá `Infinity` ou `0`;
+  teste `Number.isFinite` e "mantissa não nula com resultado 0"). Padrão do
+  schema com `{1,3}`. Corpus: `invalid/numeric-exponent-too-long`,
+  `invalid/numeric-exponent-out-of-range`, `invalid/numeric-malformed-exponent-answer-too-long`
+  e `invalid/numeric-answer-out-of-range`; `valid/numeric/exponent-largest-double`.
+  Vetores novos em `examples/grading/numeric.yaml` ("Range of a double").
+- N15. `incorrectFeedback` no blank numérico (consistência com D5): campo do
+  blank no YAML e mapa `incorrectFeedback` do frontmatter do fill-in (id do
+  blank para string), como no blank short-answer; blank de escolha continua
+  rejeitando (`schema-error`). `score_response`: blank numérico com nota 0,
+  resposta bem formada e blank respondido soma `[incorrectFeedback]` à lista
+  plana de feedback, na ordem dos blanks. Blank pulado, correto ou malformado
+  (erro) não mostra nada. Corpus: `valid/fill-in/numeric-blank-incorrect-feedback`,
+  `invalid/model-only/fill-in-numeric-blank-empty-incorrect-feedback`.

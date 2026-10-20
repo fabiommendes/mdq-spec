@@ -1,0 +1,13 @@
+# A YAML or JSON number is read by its shortest decimal form, which MAY have an
+# exponent. The places do not depend on how a platform writes the number:
+# 4.1e-07 and 0.00000041 both have 8 places, and so has the tolerance 1.0e-08.
+id: num-violet-light
+title: Violet light
+type: numeric
+stem: What is the wavelength of violet light, in meters, to two significant digits?
+answer: 4.1e-07
+unit: m
+domain: decimal
+decimalPlaces: 8
+tolerance:
+  absolute: 1.0e-08

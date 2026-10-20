@@ -1,0 +1,11 @@
+# `domain-mismatch` reports a decimal absolute tolerance under a declared
+# `integer` domain (numeric.md, "Additional Rules"). The answer is whole, so
+# there is no `answer-outside-domain`.
+id: estados-do-nordeste
+title: States of the Northeast
+type: numeric
+stem: How many states are in the Northeast region of Brazil?
+answer: 9
+domain: integer
+tolerance:
+  absolute: 0.5

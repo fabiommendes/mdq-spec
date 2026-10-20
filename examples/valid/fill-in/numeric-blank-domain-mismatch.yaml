@@ -1,0 +1,12 @@
+# `domain-mismatch` on a numeric blank: a decimal absolute tolerance under a
+# declared `integer` domain. It is reported under `blanks[i]`.
+id: fill-in-numeric-domain-mismatch
+title: Biomes
+type: fill-in
+stem: "The Pantanal has about [^area] thousand square kilometers."
+blanks:
+  - id: area
+    type: numeric
+    answer: 150
+    domain: integer
+    tolerance: { absolute: 0.5 }

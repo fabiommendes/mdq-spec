@@ -33,6 +33,8 @@ frontmatter
 | preAccept  | map       | Blank id to the patterns a response must match[^7] |
 | preReject  | map       | Blank id to the patterns a response must not match[^7] |
 | incorrectFeedback | map | Blank id to the feedback of an incorrect response that no pattern gave feedback to[^9] |
+| domain     | map       | Blank id to the `domain` of a [numeric blank](#numeric-blanks)[^10] |
+| decimalPlaces | map    | Blank id to the `decimalPlaces` of a [numeric blank](#numeric-blanks)[^10] |
 
 [^1]: Grading is `"partial" | "no-mistakes" | "all-or-nothing" | "symmetric" | "inherit"`.
 Default is `"inherit"`, which takes the strategy from the exam, and is
@@ -77,14 +79,16 @@ blanks:
 ```
 
 [^9]: Frontmatter-only, like `preAccept` and `preReject`. Each key is the id of
-a [short answer blank](#short-answer-blanks) and its value a string, with the
-same meaning as the `incorrectFeedback` of a standalone
-[short answer](short-answer.md#feedback) question. In JSON it is a field of
-the blank:
+a [short answer blank](#short-answer-blanks) or of a
+[numeric blank](#numeric-blanks) and its value a string, with the same meaning
+as the `incorrectFeedback` of a standalone
+[short answer](short-answer.md#feedback) or [numeric](numeric.md#feedback)
+question. In JSON it is a field of the blank:
 
 ```yaml
 incorrectFeedback:
   state: That is not a state of the Southeast.
+  height: The Pico da Neblina is higher than that.
 ```
 
 maps to
@@ -94,7 +98,38 @@ blanks:
   - id: state
     type: short-answer
     incorrectFeedback: That is not a state of the Southeast.
+  - id: height
+    type: numeric
+    incorrectFeedback: The Pico da Neblina is higher than that.
 ```
+
+[^10]: Frontmatter-only, like `preAccept` and `preReject`. Each key is the id of
+a [numeric blank](#numeric-blanks) and its value is the field of the same name
+of a [numeric](numeric.md#frontmatter) question, with the same meaning. It wins
+over the value inferred from the body of the blank. In JSON they are fields of
+the blank:
+
+```yaml
+domain:
+  height: decimal
+decimalPlaces:
+  height: 2
+```
+
+maps to
+
+```yaml
+blanks:
+  - id: height
+    type: numeric
+    domain: decimal
+    decimalPlaces: 2
+```
+
+A blank without an entry takes the inferred values, see
+[numeric](numeric.md#number-typedomain). This is the only way to write in
+Markdown a numeric blank with a declared `domain`, for example a `decimal`
+blank with an integer answer.
 
 
 ## Stem
@@ -154,8 +189,8 @@ names the blank and, optionally, its kind:
 ```lark
 blank_def   : choice_def | numeric_def | short_answer_def
 
-choice_def       : "[^" SLUG "]" ws? ":" ws? nl choice_list
-numeric_def      : "[^" SLUG "/numeric" unit? "]" ws? ":" ws? numeric_body
+choice_def       : ws? "[^" SLUG "]" ws? ":" ws? nl choice_list
+numeric_def      : ws? "[^" SLUG "/" "numeric" unit? "]" ws? ":" numeric_body
 short_answer_def : accept_def | reject_def
 accept_def       : ws? "[^" SLUG "/short-answer" "/accept"? "]" ws? ":" ws? patterns?
 reject_def       : ws? "[^" SLUG "/short-answer/reject" "]" ws? ":" ws? patterns
@@ -181,7 +216,7 @@ Multiple-choice blanks are represented by a reference definition followed by a
 list of choices. It follows the grammar:
 
 ```lark
-choice_def : blank ":" ws? nl choice_list
+choice_def : ws? blank ws? ":" ws? nl choice_list
 choice_list : item+
 ```
 
@@ -198,7 +233,7 @@ Numeric blanks are represented by a reference definition followed by a numeric
 value. It follows the grammar:
 
 ```lark
-numeric_def : "[^" SLUG "/" "numeric" unit? "]" ws? ":" ws? numeric_body
+numeric_def : ws? "[^" SLUG "/" "numeric" unit? "]" ws? ":" numeric_body
 ```
 
 The `numeric_body` and `unit` non-terminals represent, respectively, a numeric
@@ -215,6 +250,31 @@ is in a standalone numeric question:
 The Amazon runs approximately [^length] before reaching the Atlantic.
 
 [^length/numeric(km)]: 6400 +- 5%
+```
+
+A numeric blank follows all the rules of a numeric question for itself: the
+inference of `domain` and `decimalPlaces`, the exact arithmetic of the
+tolerance test, the responses that are valid for each domain, and the unit of
+the response. The unit in the tag is source text, as in
+[numeric](numeric.md#body). See [numeric.md](numeric.md) and
+[Numeric](../responses.md#numeric) in the responses.
+
+The tag has no place for a `domain` or `decimalPlaces`. A blank takes the
+inferred values, unless the `domain` and `decimalPlaces` maps of the
+[frontmatter](#frontmatter) declare them. This blank is `decimal` with an
+integer answer and one decimal place:
+
+```md
+---
+domain:
+  length: decimal
+decimalPlaces:
+  length: 1
+---
+
+The Amazon runs approximately [^length] before reaching the Atlantic.
+
+[^length/numeric(km)]: 6400 +- 50
 ```
 
 
@@ -314,8 +374,12 @@ shows it under the same rule -- the first pattern that matches the response
 and defines a feedback message, with `accept` taking precedence over `reject`.
 A short answer blank also takes `incorrectFeedback`, with the same meaning as
 in a short answer question: the feedback of an incorrect response that no
-pattern gave feedback to. It is written in the `incorrectFeedback` map of the
-[frontmatter](#frontmatter). Numeric blanks have no feedback syntax.
+pattern gave feedback to. A numeric blank takes `incorrectFeedback` with the
+meaning it has in a [numeric](numeric.md#feedback) question: the feedback of a
+well-formed response outside the accepted tolerance. It is never shown for a
+correct response, a malformed response or an empty blank. Both are written in
+the `incorrectFeedback` map of the [frontmatter](#frontmatter). The tag of a
+numeric blank has no place for feedback.
 
 A question collects the feedback of every blank into one flat list, in the
 order the blank definitions appear in the document, not the order the stem
@@ -417,7 +481,10 @@ of [numeric](numeric.md#additional-rules), and a short answer blank those of
 | blanks[]             | error    | parse-error        | a short answer blank defines each block at most once[^5]           |
 | blanks[]             | error    | parse-error        | a `>` or `!` line must not follow the content or an empty tag line of a short answer definition without a blank line |
 | preAccept, preReject, incorrectFeedback | error | undefined-blank | every key must be the id of a declared blank[^8]                  |
-| preAccept, preReject, incorrectFeedback | error | schema-error    | a key must not be the id of a choice or numeric blank (schema)[^8] |
+| preAccept, preReject | error | schema-error    | a key must not be the id of a choice or numeric blank (schema)[^8] |
+| incorrectFeedback    | error | schema-error    | a key must not be the id of a choice blank (schema)[^8] |
+| domain, decimalPlaces | error | undefined-blank | every key must be the id of a declared blank[^11]                  |
+| domain, decimalPlaces | error | schema-error    | a key must not be the id of a choice or short answer blank (schema)[^11] |
 | blanks[].incorrectFeedback | error | blank-text         | if defined, must have at least one visible character              |
 
 [^3]: Otherwise the stem's `[^id]` marker is ambiguous.
@@ -426,5 +493,12 @@ anywhere else is not a blank, and MUST NOT be silently dropped.
 [^5]: One `[^id/short-answer]` (or its alias `[^id/short-answer/accept]`)
 and one `[^id/short-answer/reject]`, in any order.
 [^8]: In the `preAccept`, `preReject` and `incorrectFeedback` maps. A key that is not the id of a declared blank is an `undefined-blank`
-error, at the path of the key. A key that is the id of a choice or numeric
-blank puts the value on that blank, where the schema rejects it.
+error, at the path of the key. A key that is the id of a blank that does not
+take the field (a choice or numeric blank for `preAccept` and `preReject`; a
+choice blank for `incorrectFeedback`) puts the value on that blank, where the
+schema rejects it.
+[^11]: In the `domain` and `decimalPlaces` maps. A key that is not the id of a
+declared blank is an `undefined-blank` error, at the path of the key. A key that
+is the id of a choice or short answer blank puts the value on that blank, where
+the schema rejects it. A value that is not a valid `domain` or `decimalPlaces`
+is a `schema-error` on the blank.

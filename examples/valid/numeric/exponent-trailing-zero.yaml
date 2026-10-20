@@ -1,0 +1,10 @@
+# The trailing zero of the mantissa is a significant digit that a float drops,
+# so the answer stays a string (numeric.md, "Answer representation").
+id: num-exponent-trailing-zero
+title: Trailing zero of the mantissa
+type: numeric
+stem: What is the area of the Cerrado, in km2, to three significant digits?
+answer: "2.00e6"
+unit: km2
+domain: decimal
+decimalPlaces: 0

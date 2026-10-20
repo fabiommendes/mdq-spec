@@ -1,0 +1,8 @@
+id: num-water-ions
+title: Ions in pure water
+type: numeric
+stem: What is the concentration of H+ ions in pure water at 25 C, in mol/L?
+answer: 1.0e-07
+unit: mol/L
+domain: decimal
+decimalPlaces: 7

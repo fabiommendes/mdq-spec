@@ -38,30 +38,12 @@
     ]
   },
   {
-    "code": "domain-mismatch",
-    "severity": "info",
-    "path": [
-      "blanks",
-      3,
-      "domain"
-    ]
-  },
-  {
     "code": "answer-outside-domain",
     "severity": "warning",
     "path": [
       "blanks",
       4,
       "answer"
-    ]
-  },
-  {
-    "code": "domain-mismatch",
-    "severity": "info",
-    "path": [
-      "blanks",
-      4,
-      "domain"
     ]
   },
   {

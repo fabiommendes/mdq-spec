@@ -45,7 +45,7 @@ The suffix in the tag picks the kind; a bare `[^slug]:` is a choice blank.
 Choice blanks take the full [multiple choice](multiple-choice.md#choice-anatomy)
 item syntax, including feedback. Short answer blanks take the short answer
 pattern item syntax, including feedback. Numeric blanks have no feedback
-syntax.
+syntax in the tag: use the `incorrectFeedback` map of the frontmatter.
 
 Short answer blanks follow the [short answer](short-answer.md) rules:
 `[^slug/short-answer]` is the accept block (`/accept` is an alias),
@@ -73,9 +73,12 @@ around the blank.
 | preAccept  | map of blank id to pattern list, pre-validation only     |
 | preReject  | map of blank id to pattern list, pre-validation only     |
 | incorrectFeedback | map of blank id to the feedback of an incorrect response with no pattern feedback |
+| domain     | map of numeric blank id to `integer`, `decimal` or `fraction`; normally inferred |
+| decimalPlaces | map of numeric blank id to the precision of the comparison           |
 
 `preAccept` and `preReject` have no body block. Write them in the
-frontmatter, keyed by the blank id; every key must be a short answer blank:
+frontmatter, keyed by the blank id; every key must be a short answer blank (`incorrectFeedback` also takes a numeric
+blank):
 
 ```yaml
 preAccept:
@@ -88,8 +91,20 @@ incorrectFeedback:
   state: That is not a state of the Southeast.
 ```
 
-`incorrectFeedback` follows the same rule: the key is a short answer blank,
-and the text means what it means in a short answer question.
+`incorrectFeedback` follows the same rule: the key is a short answer blank or a
+numeric blank (not a choice blank), and the text means what it means in a short
+answer or numeric question. A numeric blank shows it for a well-formed response
+outside the tolerance.
+
+`domain` and `decimalPlaces` are for numeric blanks only. Use them to declare
+what the tag cannot say, for example a `decimal` blank with an integer answer:
+
+```yaml
+domain:
+  height: decimal
+decimalPlaces:
+  height: 1
+```
 
 ## Grading
 

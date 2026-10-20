@@ -1,16 +1,9 @@
 [
   {
-    "code": "domain-mismatch",
-    "severity": "info",
+    "code": "answer-outside-domain",
+    "severity": "warning",
     "path": [
-      "domain"
-    ]
-  },
-  {
-    "code": "missing-tolerance",
-    "severity": "info",
-    "path": [
-      "tolerance"
+      "answer"
     ]
   }
 ]

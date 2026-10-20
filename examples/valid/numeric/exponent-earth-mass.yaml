@@ -1,0 +1,10 @@
+id: num-earth-mass
+title: Mass of the Earth
+type: numeric
+stem: What is the mass of the Earth, in kg?
+answer: 5.972e+24
+unit: kg
+domain: decimal
+decimalPlaces: 0
+tolerance:
+  relative: 0.01

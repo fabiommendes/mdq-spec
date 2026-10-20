@@ -1,0 +1,12 @@
+# `blank-text` on the `incorrectFeedback` of a numeric blank: defined, but
+# only whitespace.
+id: fill-in-numeric-blank-feedback
+title: Peaks of Brazil
+type: fill-in
+stem: The Pico da Neblina is [^neblina] meters high.
+blanks:
+  - id: neblina
+    type: numeric
+    answer: 2995
+    unit: m
+    incorrectFeedback: "  "

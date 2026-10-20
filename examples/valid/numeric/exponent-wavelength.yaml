@@ -1,0 +1,12 @@
+# A negative exponent adds places: 2 - (-7) = 9 for the value, and 0 - (-9) = 9
+# for the tolerance.
+id: num-sodium-wavelength
+title: Sodium lamp
+type: numeric
+stem: What is the wavelength of the yellow light of a sodium vapor lamp, in meters?
+answer: 5.89e-07
+unit: m
+domain: decimal
+decimalPlaces: 9
+tolerance:
+  absolute: 1.0e-09

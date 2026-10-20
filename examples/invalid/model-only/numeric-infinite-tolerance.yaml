@@ -1,0 +1,6 @@
+# A tolerance must be finite (numeric.md, "Answer representation").
+type: numeric
+stem: What is the height of Pico da Neblina, in meters?
+answer: 2995
+tolerance:
+  absolute: .inf

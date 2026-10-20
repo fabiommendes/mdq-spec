@@ -1,0 +1,9 @@
+[
+  {
+    "code": "domain-mismatch",
+    "severity": "info",
+    "path": [
+      "domain"
+    ]
+  }
+]

@@ -1,0 +1,4 @@
+# A number `answer` must be finite (numeric.md, "Answer representation").
+type: numeric
+stem: What is the surface gravity of Earth, in m/s^2?
+answer: .nan

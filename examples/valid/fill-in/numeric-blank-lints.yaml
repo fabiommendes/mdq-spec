@@ -1,7 +1,7 @@
 # The numeric lint codes on blanks, reported under `blanks[i]`:
 # `relative-tolerance-over-one`, `relative-tolerance-around-zero`,
-# `ignored-decimal-places`, `domain-mismatch`, `answer-outside-domain` and
-# `missing-tolerance`.
+# `ignored-decimal-places`, `answer-outside-domain` and `missing-tolerance`.
+# `numeric-blank-domain-mismatch.yaml` covers `domain-mismatch`.
 id: fill-in-numeric-lints
 title: Medidas
 type: fill-in

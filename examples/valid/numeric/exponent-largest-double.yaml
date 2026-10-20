@@ -1,0 +1,11 @@
+# The largest finite double is about 1.797e308: a value near it is valid
+# (numeric.md, "Answer representation"). Only a modulus above it is malformed.
+id: num-largest-double
+title: Largest double
+type: numeric
+stem: What is the largest finite IEEE 754 double-precision number, to four significant digits?
+answer: 1.797e+308
+domain: decimal
+decimalPlaces: 0
+tolerance:
+  absolute: 1.0e+305

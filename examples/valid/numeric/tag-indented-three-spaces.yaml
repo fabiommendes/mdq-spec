@@ -1,0 +1,8 @@
+# Three spaces before the tag are the most that CommonMark allows at the start
+# of a paragraph (grammar.md, "Start and end of a block").
+id: num-nordeste
+title: States of the Northeast
+type: numeric
+stem: How many states does the Northeast region of Brazil have?
+answer: 9
+domain: integer

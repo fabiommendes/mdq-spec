@@ -33,7 +33,7 @@ error in the application, so it is never ignored and never scored as wrong.
 | multiple-choice    | the id of the chosen choice                        |
 | multiple-selection | the set of ticked choice ids, as a list            |
 | true-false         | a mapping of statement id to boolean               |
-| numeric            | a number, or a string holding an exact rational    |
+| numeric            | a number, a string, or a `{value, unit}` mapping   |
 | short-answer       | the text the student wrote                         |
 | essay              | the text the student wrote                         |
 | fill-in            | a mapping of blank id to that blank's own response |
@@ -107,22 +107,60 @@ The value the student entered.
 response: 998
 ```
 
-A string carries an exact rational, which no float can represent. It MUST be
-used when the question's `domain` is `fraction` and the value is not exactly
-representable as a decimal:
+A response is a number, a string, or a struct with a number (or string) and a
+unit. A number is read as its shortest decimal form, and a string as the exact
+value it spells, see
+[Exact arithmetic](question-types/numeric.md#exact-arithmetic). A response sent
+as the number `3.1415` and as the string `"3.1415"` are the same.
+
+A fraction can only be a string, as no float holds it exactly:
 
 ```yaml
 response: "1/3"
 ```
 
-The response of decimal values may also be represented as a string, which systems
-MAY flag the system to use decimal arithmetic instead of floating point. The string MUST be a valid decimal.
+A decimal can also be a string. It is read as the exact decimal it spells, so a
+string keeps digits that a float would lose:
 
 ```yaml
 response: "3.1415"
 ```
 
-Finally, the response can be a struct with a number and a unit. 
+A string response follows the `sign? value` grammar of
+[numeric.md](question-types/numeric.md#body): an optional exponent
+(`"6.022e23"`, `"1E-3"`), no comma, no group separator and no space, and a
+fraction has a nonzero denominator and no exponent. The exponent has at most
+3 digits. The string is not trimmed:
+`" 5"` is malformed, and the host removes the spaces before it calls the
+grading. A response with an exponent is a decimal, so a question with the
+domain `integer` takes it by value: `"1e3"` is valid and `"1e-3"` is
+malformed.
+
+A response whose modulus is above the largest finite double (about 1.8e308),
+such as `"1e400"`, or that is not zero but rounds to 0 as a double, such as
+`"1e-400"`, is malformed (a `ResponseError`). The reason: both runtimes read
+the number as a double before the exact arithmetic. `"1.7e308"` is valid.
+
+Which responses are valid depends on the question's `domain`, the declared one
+or the inferred one:
+
+| domain     | `5`, `"5"`, `5.0`, `"5.0"` | `5.5`, `"5.5"`   | `"1/3"`   | non-finite |
+| ---------- | -------------------------- | ---------------- | --------- | ---------- |
+| `integer`  | valid                      | malformed        | malformed | malformed  |
+| `fraction` | valid                      | valid (scored)   | valid     | malformed  |
+| `decimal`  | valid                      | valid            | malformed | malformed  |
+
+* An `integer` question judges the value: `4.0` and `"4.0"` are valid, as is
+  `"4/2"`, and `5.5` and `"1/3"` are not whole.
+* A `decimal` question does not take a fraction, such as `"1/3"` or `"4/2"`:
+  a fraction is a string that spells a ratio, and a decimal field does not
+  produce it.
+* A `fraction` question takes any finite number or string. A response that does
+  not equal the answer, such as `5.5` or `"0.5"`, is scored 0.
+* A non-finite number (infinity, NaN) is malformed in every domain.
+
+Finally, the response can be a struct with a number and a unit. Its `value` is
+a response of the forms above, and `unit` is a string or absent:
 
 ```yaml
 response:
@@ -130,18 +168,22 @@ response:
   unit: rad
 ```
 
-Implementations MUST always consider the unit valid if it matches the unit
-declared in the question. If the question does not declare a unit, then the
-response MUST be rejected as malformed.
+The unit follows one rule:
 
-Implementations MAY do unit conversions and rewrite the response to a canonical
-form, but they MUST reject a response with a unit that is not compatible with
-the question's unit with grade zero.
+* A unit equal to the declared unit, compared as an exact string after NFC
+  normalization, is valid. An absent unit is also valid, and a number with no
+  unit is in the declared unit.
+* Any other unit is a malformed response (`ResponseError`). A unit on a
+  question that declares none is also malformed.
+
+Conversion between units, if a host wants it, happens before the grading and is
+outside this specification, see
+[Unit conversion](question-types/numeric.md#unit-conversion).
 
 A value the question cannot represent is a malformed response, never a wrong
-answer: a decimal where `domain` is `integer`, or a unit other than the
-declared one. A response with more decimal places than the question's
-`decimalPlaces` is not malformed: it is rounded before grading, see
+answer: any "malformed" cell of the table, a struct with an unknown key, or a
+unit other than the declared one. A response with more decimal places than the
+question's `decimalPlaces` is not malformed: it is rounded before grading, see
 [numeric.md](question-types/numeric.md#decimal-places).
 
 
@@ -179,6 +221,10 @@ response:
   capital: brasilia
   size: 2750000
 ```
+
+A numeric blank takes any numeric response, with the same validity table and
+unit rule as a [numeric question](#numeric): its `domain` and `unit` are those
+of the blank.
 
 A blank id not present in the question is a malformed response, see
 [Addressability](#addressability). The same holds for a choice blank: the value

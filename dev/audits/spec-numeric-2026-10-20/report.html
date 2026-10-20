@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MDQ Specification Audit: numeric: mdq-spec</title>
+<style>
+:root { --border: #D1D5DB; --muted: #6B7280; --bg-soft: #F3F4F6; }
+* { box-sizing: border-box; }
+body { margin: 0; font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #111827; }
+main { max-width: 60rem; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+header { border-bottom: 3px solid #111827; padding-bottom: 1rem; margin-bottom: 1.5rem; }
+header h1 { margin: 0 0 .5rem; font-size: 2rem; line-height: 1.2; }
+.meta { color: var(--muted); margin: .2rem 0; }
+nav { background: var(--bg-soft); border-radius: 6px; padding: .6rem 1rem; margin-bottom: 2rem; }
+nav a { margin-right: 1.2rem; color: #1F2937; text-decoration: none; font-weight: 600; }
+nav a:hover { text-decoration: underline; }
+h2 { margin-top: 2.5rem; border-bottom: 1px solid var(--border); padding-bottom: .3rem; }
+h3 { margin-top: 1.8rem; }
+code, pre { font-family: ui-monospace, "DejaVu Sans Mono", Menlo, Consolas, monospace; font-size: .85em; }
+code { background: var(--bg-soft); padding: .05em .3em; border-radius: 3px; }
+pre { background: #F9FAFB; border: 1px solid var(--border); border-radius: 6px; padding: .8rem;
+      overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+table { border-collapse: collapse; width: 100%; margin: .8rem 0; font-size: .92em; }
+th, td { border: 1px solid var(--border); padding: .4rem .6rem; text-align: left; vertical-align: top; }
+th { background: var(--bg-soft); }
+.chip { display: inline-block; min-width: 5.5rem; padding: .1rem .5rem; border-radius: 4px; color: #fff;
+        font-size: .75rem; font-weight: 700; text-align: center; text-transform: uppercase; letter-spacing: .03em; }
+.cards { display: flex; flex-wrap: wrap; gap: .8rem; margin: 1rem 0; }
+.card { flex: 1 1 7rem; border: 1px solid var(--border); border-top: 5px solid; border-radius: 6px;
+        padding: .6rem .8rem; }
+.card .n { font-size: 1.8rem; font-weight: 700; }
+.card .label { color: var(--muted); text-transform: uppercase; font-size: .75rem; letter-spacing: .05em; }
+.charts { display: flex; flex-wrap: wrap; gap: 2.5rem; align-items: flex-start; }
+.donut { width: 11rem; height: 11rem; border-radius: 50%; position: relative; flex: none; }
+.donut::after { content: ""; position: absolute; inset: 25%; background: #fff; border-radius: 50%; }
+.donut span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+              font-size: 1.6rem; font-weight: 700; z-index: 1; }
+.legend { list-style: none; padding: 0; margin: 0; }
+.legend li { margin: .25rem 0; }
+.swatch { display: inline-block; width: .8rem; height: .8rem; border-radius: 2px; margin-right: .4rem;
+          vertical-align: -1px; }
+.bars { flex: 1 1 22rem; }
+.bar-row { display: grid; grid-template-columns: 12rem 1fr 2rem; gap: .6rem; align-items: center; margin: .35rem 0; }
+.bar-row .name { font-size: .9em; text-align: right; }
+.bar { display: flex; height: 1.1rem; border-radius: 3px; overflow: hidden; background: var(--bg-soft); }
+.bar span { display: block; height: 100%; }
+.strengths li::marker { content: "✓  "; color: #059669; font-weight: 700; }
+.evidence { color: #059669; }
+.na { color: var(--muted); font-style: italic; }
+.finding { border: 1px solid var(--border); border-left: 5px solid; border-radius: 6px;
+           padding: .2rem 1rem .6rem; margin: 1rem 0; }
+.finding h4 { margin: .6rem 0 .3rem; font-size: 1.05rem; }
+.finding img { max-width: 100%; border: 1px solid var(--border); border-radius: 4px; }
+.recs li { margin: .4rem 0; }
+.prio { font-weight: 700; margin-right: .4rem; }
+.refs { color: var(--muted); font-size: .85em; }
+.issue { position: relative; margin: 1rem 0; }
+.issue button { position: absolute; top: .5rem; right: .5rem; border: 1px solid var(--border); background: #fff;
+                border-radius: 4px; padding: .2rem .7rem; cursor: pointer; font: inherit; font-size: .8rem; }
+footer { margin-top: 3rem; color: var(--muted); font-size: .85em; border-top: 1px solid var(--border);
+         padding-top: .8rem; }
+@media print {
+  @page { size: A4; margin: 2cm; }
+  body { font-size: 10.5pt; }
+  main { max-width: none; padding: 0; }
+  nav, .issue button { display: none; }
+  h2 { break-after: avoid; }
+  .finding, .issue, tr { break-inside: avoid; }
+  #summary, #issues { break-before: page; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>MDQ Specification Audit: numeric: mdq-spec</h1>
+<p class="meta"><strong>Date:</strong> 2026-10-20</p>
+<p class="meta"><strong>Scope:</strong> The numeric question type: <code>docs/question-types/numeric.md</code> and <code>schema/numeric.yaml</code>, with the shared rules it uses in <code>docs/references/grammar.md</code>, <code>docs/references/patterns.md</code>, <code>docs/question-types/question-base.md</code>, <code>docs/exam.md</code> and <code>docs/responses.md</code>, and the numeric examples of the corpus.</p>
+</header>
+<nav><a href=#summary>Executive summary</a><a href=#strengths>Strengths and weaknesses</a><a href=#findings>Detailed findings</a><a href=#recommendations>Prioritized recommendations</a><a href=#issues>GitHub issues</a></nav><h2>Methodology</h2><p><code>scripts/spec_audit.py</code> passed (15 steps) before the audit: schemas, docs, Additional Rules tables, lint codes and corpus agree, and mdq-py accepts the corpus.</p><p>The lead auditor read the shared specs and <code>docs/question-types/numeric.md</code>. One subagent turned the grammars in scope into Lark grammars and tested what they accept and reject. A second, independent subagent scanned the numeric specification, its schema, its complete examples (validated with <code>mdq validate</code> of mdq-py) and its Additional Rules table.</p><p>The lead auditor reviewed every finding of the subagents against the specs before the synthesis.</p><section id="summary"><h2>Executive summary</h2><div class="cards"><div class="card" style="border-top-color:#B91C1C"><div class="n">0</div><div class="label">critical</div></div><div class="card" style="border-top-color:#EA580C"><div class="n">4</div><div class="label">high</div></div><div class="card" style="border-top-color:#D97706"><div class="n">12</div><div class="label">medium</div></div><div class="card" style="border-top-color:#2563EB"><div class="n">10</div><div class="label">low</div></div><div class="card" style="border-top-color:#6B7280"><div class="n">1</div><div class="label">info</div></div><div class="card" style="border-top-color:#111827"><div class="n">27</div><div class="label">Total findings</div></div></div><div class="charts"><div><h3>Findings by severity</h3><div class="charts"><div class="donut" style="background:conic-gradient(#EA580C 0.00% 14.81%, #D97706 14.81% 59.26%, #2563EB 59.26% 96.30%, #6B7280 96.30% 100.00%)"><span>27</span></div><ul class="legend"><li><span class="swatch" style="background:#EA580C"></span>high (4)</li><li><span class="swatch" style="background:#D97706"></span>medium (12)</li><li><span class="swatch" style="background:#2563EB"></span>low (10)</li><li><span class="swatch" style="background:#6B7280"></span>info (1)</li></ul></div></div><div class="bars"><h3>Findings by category</h3><div class="bars"><div class="bar-row"><div class="name">Contradictions</div><div class="bar"><span style="width:12.50%;background:#EA580C" title="high: 1"></span><span style="width:12.50%;background:#D97706" title="medium: 1"></span></div><div>2</div></div><div class="bar-row"><div class="name">Ambiguities</div><div class="bar"><span style="width:25.00%;background:#EA580C" title="high: 2"></span><span style="width:12.50%;background:#D97706" title="medium: 1"></span></div><div>3</div></div><div class="bar-row"><div class="name">Omissions</div><div class="bar"><span style="width:75.00%;background:#D97706" title="medium: 6"></span><span style="width:25.00%;background:#2563EB" title="low: 2"></span></div><div>8</div></div><div class="bar-row"><div class="name">Inconsistencies</div><div class="bar"><span style="width:25.00%;background:#D97706" title="medium: 2"></span><span style="width:37.50%;background:#2563EB" title="low: 3"></span></div><div>5</div></div><div class="bar-row"><div class="name">Grammar violations</div><div class="bar"><span style="width:12.50%;background:#EA580C" title="high: 1"></span><span style="width:25.00%;background:#D97706" title="medium: 2"></span><span style="width:37.50%;background:#2563EB" title="low: 3"></span><span style="width:12.50%;background:#6B7280" title="info: 1"></span></div><div>7</div></div><div class="bar-row"><div class="name">Schema mismatches</div><div class="bar"><span style="width:25.00%;background:#2563EB" title="low: 2"></span></div><div>2</div></div></div></div></div></section><section id="strengths"><h2>Strengths and weaknesses</h2><h3>Strengths</h3><ul class="strengths"><li><strong>Grammar violations:</strong> The numeric <code>answer</code> grammar accepts all 32 tag lines of the valid numeric corpus and rejects every invalid numeric corpus line except <code>1/0</code>. Number literals have no leading zeros, no leading or trailing dot, no exponent, and the sign must touch the value. Rejected (Lark, Earley): <code>[numeric()]: 60</code>, <code>3e5</code>, <code>.5</code>, <code>007</code>, <code>8.</code>, <code>26 +- -1</code>, <code>[numeric (kg)]: 60</code>, <code>60 kg</code>, <code>3.14 +- 5% +- 10%</code>, <code>[numeric(k[g])]: 60</code>, <code>[numeric(k g)]: 60</code>, U+00A0 after the colon, <code>- 5</code>, <code>00.5</code>, <code>1 / 3</code>, <code>1.5/2</code>. Accepted: <code>-0</code>, <code>+26</code>, <code>0.50</code>. <span class="evidence">(docs/question-types/numeric.md:66-79)</span></li><li><strong>Grammar violations:</strong> The tolerance grammar allows at most one absolute and one relative tolerance in either order, with optional spaces, and never a fraction or a sign in a tolerance. This agrees with the prose, the domain table and <code>tolerance.absolute</code> (a number, minimum 0) in the schema. Accepted: <code>3.14 +- 5% +- 0.1</code>, <code>3.14 +- 0.1 +- 5%</code>, <code>[numeric]:3.14+-0.1+-5%</code>, <code>42+-1</code>, <code>5 +-0%</code>. Rejected: <code>5 +- 1 +- 2</code>, <code>3.14 +- 5% +- 10%</code>, <code>1/3 +- 1/10</code>, <code>5 +- 5 %</code>, <code>+- 5</code>, <code>5 +- 1.5e2</code>. <span class="evidence">(docs/question-types/numeric.md:69-76, docs/question-types/numeric.md:122-131, schema/numeric.yaml:76-90)</span></li><li><strong>Grammar violations:</strong> <code>UNIT</code> excludes exactly the 25 code points of <code>UNICODE_SPACE</code> and the four brackets, the <code>unit</code> pattern of the schema is the same class, and the Unit conversion prose states the same rule. Accepted: <code>°C</code>, <code>km/h</code>, <code>R$</code>, <code>hab/km²</code>. Rejected: empty unit, <code>k g</code>, <code>k[g]</code>, a space before <code>(</code>, <code>(kg)(m)</code>. <span class="evidence">(docs/references/grammar.md:89, docs/references/grammar.md:200, schema/numeric.yaml:36, docs/question-types/numeric.md:184-189)</span></li><li><strong>Grammar violations:</strong> The string pattern of <code>answer</code> in the schema matches <code>sign? value</code> of the grammar (sign, INTEGER, DECIMAL, fraction), and also rejects a zero denominator as the Answer representation prose requires. <span class="evidence">(schema/numeric.yaml:29, docs/references/grammar.md:87-88, docs/question-types/numeric.md:71-78, docs/question-types/numeric.md:109-110)</span></li><li><strong>Grammar violations:</strong> All 12 <code>numeric_def</code> lines of the valid fill-in corpus parse with the numeric body grammar, with units and both tolerances, for example <code>[^litoral/numeric(km)]: 7400 +- 100 +- 2%</code> and <code>[^densidade/numeric(hab/km²)]: 23.86 +- 0.5</code>. <span class="evidence">(docs/question-types/fill-in.md:158, docs/question-types/fill-in.md:201)</span></li><li><strong>Inconsistencies:</strong> The UNIT terminal agrees in numeric.md, grammar.md and both schemas: any character except UNICODE_SPACE and the four brackets, with corpus cases for non-ASCII, slash, bracket, space and empty units. <span class="evidence">(docs/question-types/numeric.md:184-189, docs/references/grammar.md:89, schema/numeric.yaml:36, examples/valid/numeric/unit-non-ascii.mdq.md, examples/invalid/numeric-unit-with-bracket.mdq.md)</span></li><li><strong>Ambiguities:</strong> Tolerance boundaries are inclusive (&lt;=) and the grading vectors test both edges of absolute and relative tolerances, negative answers and the zero answer. <span class="evidence">(docs/question-types/numeric.md:151-153, examples/grading/numeric.yaml (Absolute tolerance, Relative tolerance, Negative answer, Zero answer))</span></li><li><strong>Omissions:</strong> Domain inference is a total table with a rank order, and every row has a corpus example (integer, decimal tolerance, fraction with integer and decimal tolerance, declared wider domain). <span class="evidence">(docs/question-types/numeric.md:122-138, examples/valid/numeric/fraction-integer-tolerance.mdq.md, examples/valid/numeric/fraction-decimal-tolerance.mdq.md, examples/valid/numeric/domain-decimal-integer-answer.yaml)</span></li><li><strong>Contradictions:</strong> The rounding mode is fully specified (half away from zero, in decimal arithmetic) with a binary-float trap as example, and the grading vectors test it (2.675 to 2.68). <span class="evidence">(docs/question-types/numeric.md:162-165, examples/grading/numeric.yaml (Explicit decimal places))</span></li><li><strong>Schema mismatches:</strong> Schema constraints match the Additional Rules: decimalPlaces and both tolerances have minimum 0, the answer string pattern is the sign? value grammar with a nonzero denominator, and invalid examples cover the negative cases. <span class="evidence">(schema/numeric.yaml:29, schema/numeric.yaml:47, schema/numeric.yaml:82, schema/numeric.yaml:90, examples/invalid/numeric-negative-absolute-tolerance.yaml, examples/invalid/numeric-negative-decimal-places.yaml)</span></li><li><strong>Omissions:</strong> The complete Markdown examples of numeric.md and of the numeric blank of fill-in.md validate with no error in mdq-py. <span class="evidence">(docs/question-types/numeric.md:8-12, docs/question-types/fill-in.md:214-218)</span></li></ul><h3>Central risks</h3><ul><li>The numeric grading vectors assume exact decimal arithmetic and the shortest decimal form of floats, but the text requires neither, so a conforming float implementation fails the shared vectors on tolerance boundaries.</li><li>Unit handling is optional (MAY) and the outcome of a foreign unit is both an error and a score, so the same response can be graded, scored 0 or rejected depending on the host.</li><li>Rules that depend on how a number is spelled (domain and decimalPlaces inference) have no defined meaning for YAML and JSON documents, which are the canonical AST.</li></ul></section><section id="findings"><h2>Detailed findings</h2><h3>Contradictions</h3><table><tr><th>Severity</th><th>Location</th><th>Description</th></tr><tr><td><span class="chip" style="background:#EA580C">high</span></td><td><code>docs/responses.md:133-142</code></td><td><a href="#F5"><strong>F5</strong></a> A response with a foreign unit is both malformed and scored 0</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/question-types/numeric.md:218, docs/question-types/numeric.md:229-230</code></td><td><a href="#F9"><strong>F9</strong></a> missing-tolerance fires on fraction answers, where an exact match is meaningful</td></tr></table><article class="finding" id="F5" style="border-left-color:#EA580C"><h4><span class="chip" style="background:#EA580C">high</span> F5: A response with a foreign unit is both malformed and scored 0</h4><p><strong>Location:</strong> <code>docs/responses.md:133-142</code></p><pre><code>Implementations MAY do unit conversions and rewrite the response to a canonical
+form, but they MUST reject a response with a unit that is not compatible with
+the question&#x27;s unit with grade zero.</code></pre><p><strong>Description:</strong> Line 137-139 says a response with an incompatible unit is rejected &quot;with grade zero&quot; (a score). Line 141-142 says &quot;a unit other than the declared one&quot; is a malformed response, which is an error and never a score (&quot;Errors&quot;). Since conversion is MAY, <code>{value: 1, unit: kg}</code> for a <code>g</code> question is a score of 1 (after conversion), a score of 0, or a ResponseError, depending on the implementation. A response without a unit for a question that declares one is not covered. How two units are compared (exact string, NFC, case) is not defined.</p><p><strong>Impact:</strong> The same response gets a score in one implementation and an error in another.</p><p><strong>Suggested fix:</strong> Decide one rule: (a) a unit other than the declared one is always malformed, and conversion is outside the spec; or (b) define compatible units and the conversion, and malformed only for incompatible ones. State that a bare number is in the declared unit, and how units compare.</p></article><article class="finding" id="F9" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F9: missing-tolerance fires on fraction answers, where an exact match is meaningful</h4><p><strong>Location:</strong> <code>docs/question-types/numeric.md:218, docs/question-types/numeric.md:229-230</code></p><pre><code>| tolerance          | info     | missing-tolerance              | is not defined for a `decimal` or `fraction` answer[^5]            |</code></pre><p><strong>Description:</strong> Footnote 5 justifies the rule with &quot;the number of digits the student types decides the outcome&quot;. This is true for a decimal answer, but a fraction question compares exact rationals: <code>1/3</code> accepts <code>&quot;1/3&quot;</code> and <code>&quot;2/6&quot;</code> (examples/grading/numeric.yaml, &quot;Fraction&quot;), and no digit count is involved. A tolerance on a fraction question also changes its domain to decimal (table at line 122-128) when written as a decimal.</p><p><strong>Impact:</strong> Every exact fraction question gets a lint that suggests a change that turns it into a decimal question.</p><p><strong>Suggested fix:</strong> Restrict <code>missing-tolerance</code> to the <code>decimal</code> domain, or rewrite the footnote with a reason that holds for fractions.</p></article><h3>Ambiguities</h3><table><tr><th>Severity</th><th>Location</th><th>Description</th></tr><tr><td><span class="chip" style="background:#EA580C">high</span></td><td><code>docs/question-types/numeric.md:151-157</code></td><td><a href="#F1"><strong>F1</strong></a> The arithmetic of the tolerance test is not defined</td></tr><tr><td><span class="chip" style="background:#EA580C">high</span></td><td><code>docs/question-types/numeric.md:162-164</code></td><td><a href="#F2"><strong>F2</strong></a> How a float response is read before decimal rounding is not defined</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/question-types/numeric.md:155-157</code></td><td><a href="#F26"><strong>F26</strong></a> The relative tolerance is not defined against the rounded or the unrounded answer</td></tr></table><article class="finding" id="F1" style="border-left-color:#EA580C"><h4><span class="chip" style="background:#EA580C">high</span> F1: The arithmetic of the tolerance test is not defined</h4><p><strong>Location:</strong> <code>docs/question-types/numeric.md:151-157</code></p><pre><code>* Absolute tolerance: The response is accepted if `|answer - response| ≤ abstol`.</code></pre><p><strong>Description:</strong> The spec says that rounding to <code>decimalPlaces</code> is done in decimal arithmetic (line 163), but it does not say how <code>|answer - response|</code> and <code>|answer| x relative</code> are computed. In binary floating point, <code>3.15 - 3.14</code> is 0.010000000000000231, so <code>3.14 +- 0.01</code> rejects 3.149 (rounded to 3.15). <code>examples/grading/numeric.yaml</code>, &quot;Rounding to inferred decimal places&quot;, expects score 1 for 3.149: the vectors assume exact (decimal or rational) arithmetic that the text does not require. The same holds for a fraction answer with a relative tolerance.</p><p><strong>Impact:</strong> Two implementations that both follow the text give different scores on the boundary of every decimal tolerance, which is where authors put their tolerances.</p><p><strong>Suggested fix:</strong> State that the tolerance test is exact: the answer, the response and both tolerances are read as exact rationals (a decimal as written, a float by its shortest decimal form), and the comparison is done on these rationals.</p></article><article class="finding" id="F2" style="border-left-color:#EA580C"><h4><span class="chip" style="background:#EA580C">high</span> F2: How a float response is read before decimal rounding is not defined</h4><p><strong>Location:</strong> <code>docs/question-types/numeric.md:162-164</code></p><pre><code>many decimal places, half away from zero, in decimal arithmetic (never in
+binary floating point: `2.675` rounds to `2.68`). A response with more digits</code></pre><p><strong>Description:</strong> A response is a JSON number or a string (responses.md, &quot;Numeric&quot;). The JSON number 2.675 is the double 2.67499999999999982236431605997495353221893310546875. Rounded in decimal arithmetic from that exact value it gives 2.67; from its shortest decimal form <code>2.675</code> it gives 2.68. <code>examples/grading/numeric.yaml</code>, &quot;Explicit decimal places&quot;, expects 2.675 (a YAML float) to score 1, so the vectors assume the shortest decimal form. The text does not say it.</p><p><strong>Impact:</strong> A response sent as a number and the same response sent as a string can score differently, and so can two implementations.</p><p><strong>Suggested fix:</strong> In responses.md and numeric.md, state that a number response is read as the shortest decimal string that round-trips to the same double, and that this decimal is the value used for rounding and for the tolerance test.</p></article><article class="finding" id="F26" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F26: The relative tolerance is not defined against the rounded or the unrounded answer</h4><p><strong>Location:</strong> <code>docs/question-types/numeric.md:155-157</code></p><pre><code>If both tolerances are defined, a response is accepted if it passes ANY of those
+criteria. When the domain is `decimal`, the response and the answer are first
+rounded to [`decimalPlaces`](#decimal-places).</code></pre><p><strong>Description:</strong> The answer is rounded before the tolerance test, but the text does not say if <code>|answer| × relative</code> uses the rounded answer, and if the tolerances are rounded too. With <code>answer: 0.04</code>, <code>decimalPlaces: 1</code> and <code>relative: 0.5</code>, the rounded answer is <code>0.0</code>: the relative tolerance becomes 0 and only <code>0.0</code> passes, while the unrounded answer gives a tolerance of 0.02. <code>relative-tolerance-around-zero</code> checks only an answer equal to 0, not one that rounds to 0. No vector in <code>examples/grading/numeric.yaml</code> combines a relative tolerance with rounding.</p><p><strong>Impact:</strong> Implementations can accept different responses for the same question.</p><p><strong>Suggested fix:</strong> State which value the relative tolerance uses (for example, the answer before rounding), and whether the tolerances are rounded; add a grading vector for it.</p></article><h3>Omissions</h3><table><tr><th>Severity</th><th>Location</th><th>Description</th></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/question-types/numeric.md:117-118, docs/question-types/numeric.md:169-173</code></td><td><a href="#F3"><strong>F3</strong></a> decimalPlaces is inferred only from a Markdown body</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/responses.md:110-123, docs/responses.md:141-143</code></td><td><a href="#F4"><strong>F4</strong></a> The response forms accepted by each domain are not specified</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/question-types/numeric.md:192-202</code></td><td><a href="#F10"><strong>F10</strong></a> Numeric questions have no feedback for responses</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>examples/grading/numeric.yaml:1-20</code></td><td><a href="#F11"><strong>F11</strong></a> No grading vector covers units</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/question-types/numeric.md:107-108</code></td><td><a href="#F19"><strong>F19</strong></a> Non-finite answers (infinity, NaN) are not excluded</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/question-types/fill-in.md:204-209</code></td><td><a href="#F20"><strong>F20</strong></a> A numeric blank in Markdown cannot declare domain or decimalPlaces</td></tr><tr><td><span class="chip" style="background:#2563EB">low</span></td><td><code>docs/question-types/numeric.md:90-91, docs/question-types/numeric.md:100-102</code></td><td><a href="#F23"><strong>F23</strong></a> SHOULD rules of Answer representation are not in Additional Rules</td></tr><tr><td><span class="chip" style="background:#2563EB">low</span></td><td><code>docs/question-types/numeric.md:152-153</code></td><td><a href="#F25"><strong>F25</strong></a> The Tolerances section does not map a percentage to tolerance.relative</td></tr></table><article class="finding" id="F3" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F3: decimalPlaces is inferred only from a Markdown body</h4><p><strong>Location:</strong> <code>docs/question-types/numeric.md:117-118, docs/question-types/numeric.md:169-173</code></p><pre><code>When the frontmatter does not give `decimalPlaces` and the domain is
+`decimal`, it is inferred from the body: the larger of the number of decimal</code></pre><p><strong>Description:</strong> A YAML or JSON question has no body, and most YAML/JSON libraries do not keep how a number is spelled. The decimalPlaces rule (line 169-173) does not say what <code>decimalPlaces</code> is for <code>{answer: 3.14, tolerance: {absolute: 0.01}}</code> or <code>{answer: 5, domain: decimal}</code>. <code>examples/grading/numeric.yaml</code> infers it from the YAML values (&quot;Rounding to inferred decimal places&quot;: 2 places; &quot;Declared decimal domain&quot;: 0 places), so a YAML float is counted by its shortest decimal form, and a YAML integer counts 0. The domain inference (line 117-118) has the same gap: &quot;how the value and the absolute tolerance are written&quot; has no meaning for a number in JSON. In Markdown <code>4.0</code> is a DECIMAL; in YAML <code>answer: 4.0</code> is a whole float, and the text does not say if it infers <code>integer</code> or <code>decimal</code>. Footnote 3 says that <code>domain-mismatch</code> reads values (&quot;<code>4.0</code> is whole&quot;), but it does not cover inference. The inferred domain decides if <code>4.5</code> is malformed (integer) or graded (decimal).</p><p><strong>Impact:</strong> An implementation that leaves <code>decimalPlaces</code> unset for YAML input, or reads it from a float&#x27;s full binary expansion, grades differently from the vectors.</p><p><strong>Suggested fix:</strong> Define both inferences over the answer and the absolute tolerance as values: a string by its digits as written, a number by its shortest decimal form (an integer counts 0 places).</p></article><article class="finding" id="F4" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F4: The response forms accepted by each domain are not specified</h4><p><strong>Location:</strong> <code>docs/responses.md:110-123, docs/responses.md:141-143</code></p><pre><code>A string carries an exact rational, which no float can represent. It MUST be
+used when the question&#x27;s `domain` is `fraction` and the value is not exactly
+representable as a decimal:</code></pre><p><strong>Description:</strong> responses.md gives one example of a malformed value (a decimal for an <code>integer</code> domain) but no rule per domain. The vectors fix answers the text does not give: for <code>domain: fraction</code>, the decimal responses 0.3333 and &quot;0.5&quot; score 0 and are not malformed; for an <code>integer</code> domain, &quot;1/2&quot; is malformed. It is not stated whether a fraction string is valid for a <code>decimal</code> question, whether <code>&quot;4/2&quot;</code> or <code>4.0</code> is valid for an <code>integer</code> question (footnote 3 of numeric.md says the lint reads values, so <code>4.0</code> is whole), or whether exponents (<code>1e3</code>, <code>&quot;1e3&quot;</code>) and a leading <code>+</code> are accepted in a string response. The sentence &quot;The string MUST be a valid decimal&quot; (line 119) also excludes integer strings such as <code>&quot;1822&quot;</code>, which the vectors accept.</p><p><strong>Impact:</strong> Implementations disagree on which responses are malformed and which are scored, which changes the student&#x27;s grade or the error the host gets.</p><p><strong>Suggested fix:</strong> Add a table to responses.md, &quot;Numeric&quot;: for each domain, which response forms are valid (integer, decimal, fraction, number, string) and which are malformed, with the string grammar (<code>sign? value</code> of numeric.md or a stated extension).</p></article><article class="finding" id="F10" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F10: Numeric questions have no feedback for responses</h4><p><strong>Location:</strong> <code>docs/question-types/numeric.md:192-202</code></p><pre><code>Grading is binary: a response inside the accepted tolerance scores 1, and any
+other response scores 0.</code></pre><p><strong>Description:</strong> Short answer has <code>reject</code> patterns with feedback and <code>incorrectFeedback</code>; choice lists have feedback per choice. A numeric question has no way to attach feedback to an incorrect response, not even a fixed <code>incorrectFeedback</code>, and no way to recognize a known wrong answer (for example, a unit error of a factor 1000). The spec does not say that this is intended.</p><p><strong>Impact:</strong> Authors move numeric questions to short-answer regexes to give feedback, and lose tolerance and domain checks.</p><p><strong>Suggested fix:</strong> Either state that numeric has no feedback by design, or add <code>incorrectFeedback</code> (as in short-answer and the blanks of fill-in) and, optionally, <code>reject</code> values with tolerance and feedback.</p></article><article class="finding" id="F11" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F11: No grading vector covers units</h4><p><strong>Location:</strong> <code>examples/grading/numeric.yaml:1-20</code></p><pre><code>#   examples: { response: number | string, score: 0 | 1 | &quot;malformed&quot; }[]</code></pre><p><strong>Description:</strong> The response type in the header of the vector file does not include the <code>{value, unit}</code> form of responses.md, line 125-131, and no vector has a <code>unit</code>. The malformed cases for a unit (a unit on a question without one, a unit other than the declared one) are not tested.</p><p><strong>Impact:</strong> The unit rules of responses.md have no shared test, so implementations can drift.</p><p><strong>Suggested fix:</strong> After the unit rule is decided, add the <code>{value, unit}</code> form to the header and vectors for each case.</p></article><article class="finding" id="F19" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F19: Non-finite answers (infinity, NaN) are not excluded</h4><p><strong>Location:</strong> <code>docs/question-types/numeric.md:107-108</code></p><pre><code>A document written directly as JSON/YAML/dict, rather than parsed from
+Markdown, can choose freely between numeric and string representations.</code></pre><p><strong>Description:</strong> A YAML document can give <code>answer: .inf</code> or <code>answer: .nan</code>. The spec does not exclude them, and <code>schema/numeric.yaml:27</code> (<code>type: number</code>) accepts them. The domain table, the tolerance test and the rounding are not defined for these values. <code>mdq validate --format yaml</code> on <code>{type: numeric, stem: x, answer: .inf}</code> crashes with <code>OverflowError: cannot convert float infinity to integer</code>, and <code>.nan</code> exits with <code>error: cannot convert float NaN to integer</code>.</p><p><strong>Impact:</strong> Implementations behave differently on such documents: the reference one crashes instead of reporting a diagnostic.</p><p><strong>Suggested fix:</strong> State that <code>answer</code> and the tolerances are finite numbers, and give the error code for a non-finite value.</p><p><strong>Exploitability conditions:</strong> A YAML or JSON document (YAML has <code>.inf</code> and <code>.nan</code>; some JSON parsers accept <code>Infinity</code> and <code>NaN</code>).</p></article><article class="finding" id="F20" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F20: A numeric blank in Markdown cannot declare domain or decimalPlaces</h4><p><strong>Location:</strong> <code>docs/question-types/fill-in.md:204-209</code></p><pre><code>The `numeric_body` and `unit` non-terminals represent, respectively, a numeric
+value with tolerance and an optional unit of measurement. Both are defined in
+the [body](numeric.md#body) section of the numeric question type. The `blank`</code></pre><p><strong>Description:</strong> <code>NumericBlank</code> in <code>schema/fill-in.yaml</code> has <code>domain</code> and <code>decimalPlaces</code>, and numeric.md sets both in the frontmatter. The fill-in frontmatter table has no field for them, and the <code>numeric_def</code> syntax has no place for them. So a Markdown numeric blank always gets the inferred domain and places. The spec does not say that this limit is intended, and no example in <code>examples/valid/fill-in/</code> sets them.</p><p><strong>Impact:</strong> An author cannot write a decimal blank with an integer answer (<code>42</code> in a <code>decimal</code> domain), or set the precision of a blank, in Markdown. The YAML form can express questions that the Markdown form cannot.</p><p><strong>Suggested fix:</strong> Either state that a Markdown numeric blank always uses the inferred domain and places, or add a frontmatter map (blank id to <code>domain</code>/<code>decimalPlaces</code>), as fill-in already does for <code>preAccept</code> and <code>incorrectFeedback</code>.</p></article><article class="finding" id="F23" style="border-left-color:#2563EB"><h4><span class="chip" style="background:#2563EB">low</span> F23: SHOULD rules of Answer representation are not in Additional Rules</h4><p><strong>Location:</strong> <code>docs/question-types/numeric.md:90-91, docs/question-types/numeric.md:100-102</code></p><pre><code>An integer number like `42` or `-1` SHOULD be coerced to an integral value.
+It SHOULD be kept as a string if it is not representable in the 32-bit signed
+integer range.</code></pre><p><strong>Description:</strong> &quot;Numeric conversions SHOULD NOT be attempted when there is loss of precision&quot; (line 90-91) and the two SHOULD rules of line 100-102 have no row in the Additional Rules table. They are rules for the parser output, not for the document, so no lint code can report them, but the spec does not say this.</p><p><strong>Impact:</strong> The requirement levels in the text and in the table do not agree.</p><p><strong>Suggested fix:</strong> State that the rules of &quot;Answer representation&quot; apply to the parser output and have no diagnostic, or reword them without RFC 2119 keywords.</p></article><article class="finding" id="F25" style="border-left-color:#2563EB"><h4><span class="chip" style="background:#2563EB">low</span> F25: The Tolerances section does not map a percentage to tolerance.relative</h4><p><strong>Location:</strong> <code>docs/question-types/numeric.md:152-153</code></p><pre><code>where tol is calculated as `|answer| × percentage_number ÷ 100`.</code></pre><p><strong>Description:</strong> The formula uses the percentage as written in Markdown. The YAML/JSON form stores <code>tolerance.relative</code> as a fraction (<code>0.05</code> for <code>5%</code>), but numeric.md says this only in footnote 4 of the Additional Rules (&quot;<code>0.05</code> is 5%&quot;) and footnote 2 uses <code>|answer| × relative</code>. The section does not give the formula for the stored field.</p><p><strong>Impact:</strong> An author who writes YAML can put <code>5</code> for 5%, which accepts a response 500% off (only an info diagnostic reports it).</p><p><strong>Suggested fix:</strong> State that <code>+- p%</code> is stored as <code>tolerance.relative: p / 100</code> and give the formula as <code>|answer - response| ≤ |answer| × relative</code>.</p></article><h3>Inconsistencies</h3><table><tr><th>Severity</th><th>Location</th><th>Description</th></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/question-types/numeric.md:210, docs/question-types/numeric.md:214</code></td><td><a href="#F8"><strong>F8</strong></a> A non-whole answer of an integer question gets two diagnostics</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/question-types/numeric.md:111-113</code></td><td><a href="#F21"><strong>F21</strong></a> A non-whole answer under domain fraction is a SHOULD, but only an info diagnostic</td></tr><tr><td><span class="chip" style="background:#2563EB">low</span></td><td><code>docs/responses.md:118-119</code></td><td><a href="#F6"><strong>F6</strong></a> Unclear sentence about decimal string responses</td></tr><tr><td><span class="chip" style="background:#2563EB">low</span></td><td><code>docs/question-types/numeric.md:211-218</code></td><td><a href="#F22"><strong>F22</strong></a> Additional Rules has rows that the prose does not state</td></tr><tr><td><span class="chip" style="background:#2563EB">low</span></td><td><code>docs/question-types/numeric.md:5-6, docs/question-types/numeric.md:36-37</code></td><td><a href="#F24"><strong>F24</strong></a> The intro says that a numeric question always declares a tolerance</td></tr></table><article class="finding" id="F8" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F8: A non-whole answer of an integer question gets two diagnostics</h4><p><strong>Location:</strong> <code>docs/question-types/numeric.md:210, docs/question-types/numeric.md:214</code></p><pre><code>| answer             | warning  | answer-outside-domain          | must be a whole number when `domain` is &quot;integer&quot;[^6]              |</code></pre><p><strong>Description:</strong> <code>answer-outside-domain</code> (warning) fires when <code>domain</code> is <code>integer</code> and the answer is not whole. <code>domain-mismatch</code> (info, footnote 3) fires when the declared domain is narrower than the values, and footnote 3 gives &quot;<code>integer</code> ... with a number that is not whole&quot; as a case. So <code>domain: integer</code> with <code>answer: 3.5</code> matches both rows. Also, the rule text says &quot;must&quot;, which is an error level, for a warning.</p><p><strong>Impact:</strong> Duplicate diagnostics, or implementations that report only one of them; corpus lint files cannot tell which is right.</p><p><strong>Suggested fix:</strong> Decide which code covers the answer and which covers the tolerance (for example, <code>answer-outside-domain</code> for the answer, <code>domain-mismatch</code> only for a decimal absolute tolerance under <code>integer</code>/<code>fraction</code>), and use &quot;should&quot; for a warning.</p></article><article class="finding" id="F21" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F21: A non-whole answer under domain fraction is a SHOULD, but only an info diagnostic</h4><p><strong>Location:</strong> <code>docs/question-types/numeric.md:111-113</code></p><pre><code>When `domain` is `fraction`, such a document SHOULD give `answer` as a
+fraction string (`&quot;3/4&quot;`) or as an integer (`2` or `&quot;2&quot;`). A number that is
+not whole, such as `0.75`, is a decimal and contradicts the domain.</code></pre><p><strong>Description:</strong> The SHOULD maps to a warning by the levels of the Additional Rules (SHOULD: warning). The only row that covers this case is <code>domain-mismatch</code> (info, footnote 3). For <code>domain: integer</code>, the same defect (a non-whole answer) gets the warning <code>answer-outside-domain</code>. <code>examples/valid/numeric/fraction-answer-float.lint.json</code> confirms that <code>answer: 0.25</code> with <code>domain: fraction</code> gets only <code>domain-mismatch</code> at info level.</p><p><strong>Impact:</strong> Two cases with the same text (&quot;contradicts the domain&quot;) get different severities, and the SHOULD has no warning.</p><p><strong>Suggested fix:</strong> Decide one level for a non-whole answer under a narrower domain: extend <code>answer-outside-domain</code> to <code>fraction</code>, or change the SHOULD to MAY.</p></article><article class="finding" id="F6" style="border-left-color:#2563EB"><h4><span class="chip" style="background:#2563EB">low</span> F6: Unclear sentence about decimal string responses</h4><p><strong>Location:</strong> <code>docs/responses.md:118-119</code></p><pre><code>The response of a decimal value may also be represented as a string, which
+MAY signal the system to use decimal arithmetic instead of floating point. The string MUST be a valid decimal.</code></pre><p><strong>Description:</strong> &quot;which systems MAY flag the system to use decimal arithmetic&quot; is not a correct sentence, and it suggests that the arithmetic depends on whether the response is a string. If the comparison is exact (see the tolerance arithmetic finding), the string form only keeps digits that a float would lose.</p><p><strong>Impact:</strong> Readers can think that a number response is graded in floating point.</p><p><strong>Suggested fix:</strong> Rewrite: a decimal response can also be a string; it is read as the exact decimal it spells.</p></article><article class="finding" id="F22" style="border-left-color:#2563EB"><h4><span class="chip" style="background:#2563EB">low</span> F22: Additional Rules has rows that the prose does not state</h4><p><strong>Location:</strong> <code>docs/question-types/numeric.md:211-218</code></p><pre><code>| tolerance.absolute | error    | schema-error                   | must not be negative (schema)                                      |</code></pre><p><strong>Description:</strong> The prose of numeric.md does not state these rows: <code>tolerance.absolute</code> must not be negative; <code>relative-tolerance-around-zero</code> (only footnote 2 explains it); <code>relative-tolerance-over-one</code> (only footnote 4); <code>missing-tolerance</code> (only footnote 5). The &quot;Tolerances&quot; section (line 146-157) does not say that a tolerance is non-negative, and the grammar (no sign on <code>abstol</code>) is the only hint for Markdown.</p><p><strong>Impact:</strong> A reader of the prose does not learn these rules; the table is the only source.</p><p><strong>Suggested fix:</strong> Add the rules to the &quot;Tolerances&quot; section: both tolerances are non-negative, a relative tolerance is a fraction (<code>5%</code> is <code>0.05</code>), and a relative tolerance around a zero answer and a missing tolerance on a decimal answer are flagged.</p></article><article class="finding" id="F24" style="border-left-color:#2563EB"><h4><span class="chip" style="background:#2563EB">low</span> F24: The intro says that a numeric question always declares a tolerance</h4><p><strong>Location:</strong> <code>docs/question-types/numeric.md:5-6, docs/question-types/numeric.md:36-37</code></p><p class="meta"><em>Mechanical fix</em></p><pre><code>Numeric questions expect a single numeric answer. They declare both the correct
+answer and tolerance.</code></pre><p><strong>Description:</strong> Line 5-6 and line 36-37 (&quot;followed by the expected numeric value and tolerance&quot;) read as if the tolerance is required. The grammar (<code>tolerances?</code>), the example right below (<code>[numeric(g)]: 1000</code>) and <code>missing-tolerance</code> make it optional.</p><p><strong>Impact:</strong> Minor: a reader can think that <code>[numeric]: 42</code> is invalid.</p><p><strong>Suggested fix:</strong> Write &quot;the correct answer and, optionally, a tolerance&quot; in both places.</p></article><h3>Grammar violations</h3><table><tr><th>Severity</th><th>Location</th><th>Description</th></tr><tr><td><span class="chip" style="background:#EA580C">high</span></td><td><code>docs/question-types/numeric.md:78, docs/question-types/numeric.md:109-110</code></td><td><a href="#F12"><strong>F12</strong></a> The fraction rule accepts a zero denominator that the corpus rejects as parse-error</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/question-types/fill-in.md:158, docs/question-types/fill-in.md:201</code></td><td><a href="#F13"><strong>F13</strong></a> numeric_def has no leading ws?, unlike the numeric answer and the other blank definitions</td></tr><tr><td><span class="chip" style="background:#D97706">medium</span></td><td><code>docs/references/grammar.md:59-62</code></td><td><a href="#F14"><strong>F14</strong></a> ws? at the start of a block has no limit of three spaces</td></tr><tr><td><span class="chip" style="background:#2563EB">low</span></td><td><code>docs/question-types/fill-in.md:158, docs/question-types/fill-in.md:201</code></td><td><a href="#F15"><strong>F15</strong></a> numeric_def gives two ws? in a row, which makes the grammar ambiguous</td></tr><tr><td><span class="chip" style="background:#2563EB">low</span></td><td><code>docs/question-types/fill-in.md:158, docs/question-types/fill-in.md:201</code></td><td><a href="#F16"><strong>F16</strong></a> The two numeric_def snippets of fill-in.md are written differently</td></tr><tr><td><span class="chip" style="background:#2563EB">low</span></td><td><code>docs/references/grammar.md:89</code></td><td><a href="#F17"><strong>F17</strong></a> UNIT does not say if a markdown escape or code span in the unit is source text</td></tr><tr><td><span class="chip" style="background:#6B7280">info</span></td><td><code>docs/question-types/numeric.md:68-74</code></td><td><a href="#F18"><strong>F18</strong></a> Common number spellings are a bare parse-error with no lint to explain them</td></tr></table><article class="finding" id="F12" style="border-left-color:#EA580C"><h4><span class="chip" style="background:#EA580C">high</span> F12: The fraction rule accepts a zero denominator that the corpus rejects as parse-error</h4><p><strong>Location:</strong> <code>docs/question-types/numeric.md:78, docs/question-types/numeric.md:109-110</code></p><p class="meta"><em>Mechanical fix</em></p><pre><code>fraction     : INTEGER &quot;/&quot; INTEGER</code></pre><p><strong>Description:</strong> <code>INTEGER</code> matches <code>0</code>, so the grammar accepts <code>[numeric]: 1/0</code> (tested with Lark, Earley parser). The corpus case <code>examples/invalid/numeric-zero-denominator.mdq.md</code> expects <code>parse-error</code> for that input, and the schema pattern of <code>answer</code> in <code>schema/numeric.yaml</code> uses <code>[1-9][0-9]*</code> for the denominator. The only prose rule about a zero denominator (numeric.md:109-110) applies to documents written directly as JSON/YAML, and the Additional Rules table maps it to <code>malformed-numeric-answer</code>, which <code>examples/invalid/numeric-malformed-fraction-answer.lint.json</code> expects for <code>answer: &quot;1/0&quot;</code>. So the same defect has two codes, and only one is stated in the spec.</p><p><strong>Impact:</strong> An implementation that follows the grammar accepts <code>1/0</code> and then reports <code>malformed-numeric-answer</code> or <code>schema-error</code>, so it fails the corpus case. The spec gives three different outcomes for one input.</p><p><strong>Suggested fix:</strong> Use a terminal with no zero for the denominator, for example <code>fraction : INTEGER &quot;/&quot; DENOMINATOR</code> with <code>DENOMINATOR : /[1-9][0-9]*/</code>, as the schema pattern and the corpus already do.</p><p><strong>Exploitability conditions:</strong> Markdown body with a fraction whose denominator is 0.</p></article><article class="finding" id="F13" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F13: numeric_def has no leading ws?, unlike the numeric answer and the other blank definitions</h4><p><strong>Location:</strong> <code>docs/question-types/fill-in.md:158, docs/question-types/fill-in.md:201</code></p><pre><code>numeric_def      : &quot;[^&quot; SLUG &quot;/numeric&quot; unit? &quot;]&quot; ws? &quot;:&quot; ws? numeric_body</code></pre><p><strong>Description:</strong> <code>answer</code> of numeric (numeric.md:67) and <code>accept_def</code> and <code>reject_def</code> of fill-in (fill-in.md:159-160) start with <code>ws?</code>. <code>numeric_def</code> at line 158 and line 201 does not. With Lark, <code>   [^a/numeric]: 5</code> (three spaces of indentation, a valid CommonMark paragraph start) is rejected by <code>numeric_def</code>, but <code>   [numeric]: 5</code> is accepted by <code>answer</code> and <code>   [^a/short-answer]: x</code> by <code>accept_def</code>.</p><p><strong>Impact:</strong> An indented numeric blank definition is a parse error by the grammar while the same indentation is valid on the other definitions. Implementations can disagree on which reading to follow.</p><p><strong>Suggested fix:</strong> Add <code>ws?</code> at the start of <code>numeric_def</code> in both snippets, or remove it from all definitions and state the indentation rule once.</p><p><strong>Exploitability conditions:</strong> A numeric blank definition with 1 to 3 spaces of indentation.</p></article><article class="finding" id="F14" style="border-left-color:#D97706"><h4><span class="chip" style="background:#D97706">medium</span> F14: ws? at the start of a block has no limit of three spaces</h4><p><strong>Location:</strong> <code>docs/references/grammar.md:59-62</code></p><pre><code>When a rule starts with `ws?` at the start of a block, implementations MUST
+read the source text and accept only spaces and tabs there.</code></pre><p><strong>Description:</strong> grammar.md:66-72 limits the leading <code>ws?</code> to three spaces only for the content of a list item and for feedback and comment markers. For a rule at the start of a block, such as <code>answer</code> of numeric (<code>ws? &quot;[&quot; &quot;numeric&quot; unit? &quot;]&quot; ...</code>), the text gives no limit, and <code>ws</code> is <code>/[ \t]+/</code>. The grammar accepts <code>    [numeric]: 42</code> (four spaces) and <code>\t[numeric]: 42</code>. CommonMark reads both lines as an indented code block, not as a paragraph.</p><p><strong>Impact:</strong> An implementation that applies the grammar to the source text accepts an indented code block as the answer. An implementation that uses the CommonMark block structure rejects it. The same document gives a question or a parse error.</p><p><strong>Suggested fix:</strong> State in grammar.md:59-62 that <code>ws?</code> at the start of a block stands for at most three spaces, with tabs expanded as in grammar.md:70-71, the same as for a list item.</p><p><strong>Exploitability conditions:</strong> A tag line with four or more columns of indentation.</p></article><article class="finding" id="F15" style="border-left-color:#2563EB"><h4><span class="chip" style="background:#2563EB">low</span> F15: numeric_def gives two ws? in a row, which makes the grammar ambiguous</h4><p><strong>Location:</strong> <code>docs/question-types/fill-in.md:158, docs/question-types/fill-in.md:201</code></p><p class="meta"><em>Mechanical fix</em></p><pre><code>numeric_def : &quot;[^&quot; SLUG &quot;/&quot; &quot;numeric&quot; unit? &quot;]&quot; ws? &quot;:&quot; ws? numeric_body</code></pre><p><strong>Description:</strong> <code>numeric_body</code> (numeric.md:68) starts with <code>ws?</code>, and <code>numeric_def</code> puts another <code>ws?</code> before it. For every corpus line, such as <code>[^minima/numeric(°C)]: -14 +- 0.5</code>, Lark (Earley, <code>ambiguity=&#x27;explicit&#x27;</code>) returns an <code>_ambig</code> node: the space after <code>:</code> is either the <code>ws</code> of <code>numeric_def</code> or the <code>ws</code> of <code>numeric_body</code>. <code>answer</code> of numeric (<code>&quot;:&quot; numeric_body</code>) does not have this problem.</p><p><strong>Impact:</strong> No effect on the value, but an LALR parser built from the snippet has a conflict, and a reader cannot tell which rule owns the space.</p><p><strong>Suggested fix:</strong> Remove the <code>ws?</code> after <code>&quot;:&quot;</code> in <code>numeric_def</code>, as <code>answer</code> does.</p></article><article class="finding" id="F16" style="border-left-color:#2563EB"><h4><span class="chip" style="background:#2563EB">low</span> F16: The two numeric_def snippets of fill-in.md are written differently</h4><p><strong>Location:</strong> <code>docs/question-types/fill-in.md:158, docs/question-types/fill-in.md:201</code></p><p class="meta"><em>Mechanical fix</em></p><pre><code>numeric_def : &quot;[^&quot; SLUG &quot;/&quot; &quot;numeric&quot; unit? &quot;]&quot; ws? &quot;:&quot; ws? numeric_body</code></pre><p><strong>Description:</strong> Line 158 uses the literal <code>&quot;/numeric&quot;</code> and line 201 uses <code>&quot;/&quot; &quot;numeric&quot;</code>. Without <code>%ignore</code> the two accept the same strings (tested: <code>[^a/numeric(km)]: 5</code> passes both), but the reader must check this. The same rule is defined twice with different text.</p><p><strong>Impact:</strong> A later edit to one copy can make the two definitions differ.</p><p><strong>Suggested fix:</strong> Use the same text in both snippets, or keep the rule in one place and refer to it.</p></article><article class="finding" id="F17" style="border-left-color:#2563EB"><h4><span class="chip" style="background:#2563EB">low</span> F17: UNIT does not say if a markdown escape or code span in the unit is source text</h4><p><strong>Location:</strong> <code>docs/references/grammar.md:89</code></p><pre><code>UNIT         : /[^()\[\]\t\n\v\f\r \x85\xa0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+/</code></pre><p><strong>Description:</strong> <code>UNIT</code> accepts the backslash and the backtick. The grammar accepts <code>[numeric(m\*s)]: 42</code> and `<code>[numeric(</code>m<code>)]: 42</code><code>. Markdown reads </code>\*<code> as an escaped </code>*<code> and </code><code> </code>m<code> </code><code> as a code span. The spec says that the source text is read only for the leading </code>ws?<code> (grammar.md:59-62), so the unit can be </code>m\*s<code> or </code>m*s`.</p><p><strong>Impact:</strong> Two implementations can store different <code>unit</code> strings for the same tag.</p><p><strong>Suggested fix:</strong> State that the tag line, including the unit, is read as source text with no markdown inline processing, or exclude <code>\</code> and the backtick from <code>UNIT</code>.</p><p><strong>Exploitability conditions:</strong> A unit with a backslash or a backtick.</p></article><article class="finding" id="F18" style="border-left-color:#6B7280"><h4><span class="chip" style="background:#6B7280">info</span> F18: Common number spellings are a bare parse-error with no lint to explain them</h4><p><strong>Location:</strong> <code>docs/question-types/numeric.md:68-74</code></p><pre><code>numeric_body : ws? sign? value tolerances? ws?</code></pre><p><strong>Description:</strong> The grammar rejects <code>[numeric]: −5</code> (U+2212 MINUS SIGN), <code>[numeric]: 3.14 ± 0.1</code>, <code>[numeric]: 3,14</code> (decimal comma, the usual form in pt-BR), <code>[numeric]: 1 000</code> and <code>[numeric]: 6.022e23</code>. Only the exponent has a corpus case (<code>numeric-exponent</code>). The spec does not say that these forms are intentionally rejected, and there is no lint code that tells the author what to write.</p><p><strong>Impact:</strong> Authors who write Brazilian or typographic number forms get a generic parse-error.</p><p><strong>Suggested fix:</strong> List the rejected forms in the Body section, and consider a lint code with a hint for U+2212, <code>±</code> and the decimal comma.</p></article><h3>Schema mismatches</h3><table><tr><th>Severity</th><th>Location</th><th>Description</th></tr><tr><td><span class="chip" style="background:#2563EB">low</span></td><td><code>schema/numeric.yaml:48-50, schema/numeric.yaml:86-89</code></td><td><a href="#F7"><strong>F7</strong></a> Schema descriptions of decimalPlaces and relative disagree with the spec</td></tr><tr><td><span class="chip" style="background:#2563EB">low</span></td><td><code>schema/numeric.yaml:43</code></td><td><a href="#F29"><strong>F29</strong></a> Schema description of domain omits inference and its effect</td></tr></table><article class="finding" id="F7" style="border-left-color:#2563EB"><h4><span class="chip" style="background:#2563EB">low</span> F7: Schema descriptions of decimalPlaces and relative disagree with the spec</h4><p><strong>Location:</strong> <code>schema/numeric.yaml:48-50, schema/numeric.yaml:86-89</code></p><p class="meta"><em>Mechanical fix</em></p><pre><code>The number of decimal places used in the decimal value representation.</code></pre><p><strong>Description:</strong> numeric.md defines <code>decimalPlaces</code> as the precision of the comparison (both values are rounded to it), not of a representation. The <code>relative</code> description gives <code>|submitted - answer| / |answer| &lt;= relative</code>, which divides by zero for a zero answer; numeric.md (line 152-153 and footnote 2) uses <code>|answer - response| &lt;= |answer| x relative</code>, which is defined for 0.</p><p><strong>Impact:</strong> A reader of the schema alone implements a different rule.</p><p><strong>Suggested fix:</strong> Copy the definitions of numeric.md: &quot;the precision of the comparison: the response and the answer are rounded to this many places&quot; and <code>|submitted - answer| &lt;= |answer| * relative</code>.</p></article><article class="finding" id="F29" style="border-left-color:#2563EB"><h4><span class="chip" style="background:#2563EB">low</span> F29: Schema description of domain omits inference and its effect</h4><p><strong>Location:</strong> <code>schema/numeric.yaml:43</code></p><p class="meta"><em>Mechanical fix</em></p><pre><code>description: The domain/kind of number for the response.</code></pre><p><strong>Description:</strong> numeric.md (&quot;Number type/domain&quot;) says that <code>domain</code> is inferred from the answer and the absolute tolerance when absent, that the parsed document carries the inferred value, and that the domain decides which responses are malformed and whether <code>decimalPlaces</code> applies. The schema description says none of this. The same text is in <code>schema/fill-in.yaml</code> (<code>NumericBlank.domain</code>).</p><p><strong>Impact:</strong> A reader of the schema alone cannot know the default of <code>domain</code> or what it changes.</p><p><strong>Suggested fix:</strong> Describe <code>domain</code> as in numeric.md: inferred when absent (integer &lt; fraction &lt; decimal, the widest of the answer and the absolute tolerance), and it decides which responses are valid.</p></article></section><section id="recommendations"><h2>Prioritized recommendations</h2><ul class="recs"><li><span class="prio">P1</span>Define numeric values and the tolerance test in exact rational arithmetic, with floats read by their shortest decimal form. <span class="refs">(Findings: <a href="#F1">F1</a>, <a href="#F2">F2</a>, <a href="#F3">F3</a>, <a href="#F26">F26</a>)</span></li><li><span class="prio">P1</span>Decide one rule for responses with units and test it with vectors. <span class="refs">(Findings: <a href="#F5">F5</a>, <a href="#F11">F11</a>, <a href="#F17">F17</a>)</span></li><li><span class="prio">P1</span>Add a domain x response form table and finite-number rules to responses.md. <span class="refs">(Findings: <a href="#F4">F4</a>, <a href="#F6">F6</a>, <a href="#F19">F19</a>)</span></li><li><span class="prio">P2</span>Give each numeric domain and tolerance defect one diagnostic with the right level, and state each Additional Rules row in the prose. <span class="refs">(Findings: <a href="#F8">F8</a>, <a href="#F9">F9</a>, <a href="#F21">F21</a>, <a href="#F22">F22</a>, <a href="#F23">F23</a>, <a href="#F25">F25</a>)</span></li><li><span class="prio">P2</span>Align numeric blanks with numeric questions and limit block indentation as CommonMark does. <span class="refs">(Findings: <a href="#F13">F13</a>, <a href="#F20">F20</a>, <a href="#F14">F14</a>)</span></li><li><span class="prio">P2</span>Apply the mechanical fixes in one pass: zero denominator in the grammar, numeric_def text, intro wording, schema descriptions. <span class="refs">(Findings: <a href="#F7">F7</a>, <a href="#F12">F12</a>, <a href="#F15">F15</a>, <a href="#F16">F16</a>, <a href="#F24">F24</a>, <a href="#F29">F29</a>)</span></li><li><span class="prio">P3</span>Decide on numeric feedback and on hints for rejected number spellings. <span class="refs">(Findings: <a href="#F10">F10</a>, <a href="#F18">F18</a>)</span></li></ul></section><section id="issues"><h2>GitHub issues</h2><p>Each block below is a complete issue, ready to paste.</p><div class="issue"><button type="button" data-target="issue-1" data-copied="Copied">Copy</button><pre id="issue-1">--- ISSUE 1 ---
+# [Spec] Define numeric values and the tolerance test in exact arithmetic
+
+**Labels:** high, medium
+
+## Problem
+
+The tolerance test, the reading of float responses, the inference of domain and decimalPlaces from YAML values, and the base of the relative tolerance are not defined. Options: (a) recommended: every number (answer, response, tolerances) is an exact rational; a float is read by its shortest round-trip decimal form; inference reads that form (a whole number with no decimals is integer); the relative tolerance uses the answer before rounding; tolerances are not rounded. (b) Allow floating point and add an epsilon to the comparison; simpler to implement but the vectors and the 2.675 example must change.
+
+## Evidence
+
+- `docs/question-types/numeric.md:151-157`: The arithmetic of the tolerance test is not defined
+
+  ```markdown
+  * Absolute tolerance: The response is accepted if `|answer - response| ≤ abstol`.
+  ```
+- `docs/question-types/numeric.md:162-164`: How a float response is read before decimal rounding is not defined
+
+  ```markdown
+  many decimal places, half away from zero, in decimal arithmetic (never in
+  binary floating point: `2.675` rounds to `2.68`). A response with more digits
+  ```
+- `docs/question-types/numeric.md:117-118, docs/question-types/numeric.md:169-173`: decimalPlaces is inferred only from a Markdown body
+
+  ```markdown
+  When the frontmatter does not give `decimalPlaces` and the domain is
+  `decimal`, it is inferred from the body: the larger of the number of decimal
+  ```
+- `docs/question-types/numeric.md:155-157`: The relative tolerance is not defined against the rounded or the unrounded answer
+
+  ```markdown
+  If both tolerances are defined, a response is accepted if it passes ANY of those
+  criteria. When the domain is `decimal`, the response and the answer are first
+  rounded to [`decimalPlaces`](#decimal-places).
+  ```
+
+## Impact
+
+- **The arithmetic of the tolerance test is not defined:** Two implementations that both follow the text give different scores on the boundary of every decimal tolerance, which is where authors put their tolerances.
+- **How a float response is read before decimal rounding is not defined:** A response sent as a number and the same response sent as a string can score differently, and so can two implementations.
+- **decimalPlaces is inferred only from a Markdown body:** An implementation that leaves `decimalPlaces` unset for YAML input, or reads it from a float&#x27;s full binary expansion, grades differently from the vectors.
+- **The relative tolerance is not defined against the rounded or the unrounded answer:** Implementations can accept different responses for the same question.
+
+## Suggested fix
+
+- **The arithmetic of the tolerance test is not defined:** State that the tolerance test is exact: the answer, the response and both tolerances are read as exact rationals (a decimal as written, a float by its shortest decimal form), and the comparison is done on these rationals.
+- **How a float response is read before decimal rounding is not defined:** In responses.md and numeric.md, state that a number response is read as the shortest decimal string that round-trips to the same double, and that this decimal is the value used for rounding and for the tolerance test.
+- **decimalPlaces is inferred only from a Markdown body:** Define both inferences over the answer and the absolute tolerance as values: a string by its digits as written, a number by its shortest decimal form (an integer counts 0 places).
+- **The relative tolerance is not defined against the rounded or the unrounded answer:** State which value the relative tolerance uses (for example, the answer before rounding), and whether the tolerances are rounded; add a grading vector for it.
+
+## Acceptance criteria
+
+- [ ] numeric.md states the arithmetic of rounding and of the tolerance test
+- [ ] responses.md states how a number response is read
+- [ ] Inference of domain and decimalPlaces is defined for YAML/JSON values
+- [ ] Grading vectors cover a relative tolerance with rounding and a float on a tolerance boundary
+
+--- END ISSUE 1 ---</pre></div><div class="issue"><button type="button" data-target="issue-2" data-copied="Copied">Copy</button><pre id="issue-2">--- ISSUE 2 ---
+# [Spec] Specify the valid answer and response values for each domain
+
+**Labels:** medium, low
+
+## Problem
+
+responses.md gives examples but no rule for which response forms each domain accepts, and the answer can be infinite or NaN. Recommended: a table in responses.md (domain x form: integer, decimal, fraction, number, string) that states valid or malformed, the string grammar of a response, and that answer, response and tolerances are finite.
+
+## Evidence
+
+- `docs/responses.md:110-123, docs/responses.md:141-143`: The response forms accepted by each domain are not specified
+
+  ```markdown
+  A string carries an exact rational, which no float can represent. It MUST be
+  used when the question&#x27;s `domain` is `fraction` and the value is not exactly
+  representable as a decimal:
+  ```
+- `docs/responses.md:118-119`: Unclear sentence about decimal string responses
+
+  ```markdown
+  The response of a decimal value may also be represented as a string, which
+  MAY signal the system to use decimal arithmetic instead of floating point. The string MUST be a valid decimal.
+  ```
+- `docs/question-types/numeric.md:107-108`: Non-finite answers (infinity, NaN) are not excluded
+
+  ```markdown
+  A document written directly as JSON/YAML/dict, rather than parsed from
+  Markdown, can choose freely between numeric and string representations.
+  ```
+
+## Impact
+
+- **The response forms accepted by each domain are not specified:** Implementations disagree on which responses are malformed and which are scored, which changes the student&#x27;s grade or the error the host gets.
+- **Unclear sentence about decimal string responses:** Readers can think that a number response is graded in floating point.
+- **Non-finite answers (infinity, NaN) are not excluded:** Implementations behave differently on such documents: the reference one crashes instead of reporting a diagnostic.
+
+## Suggested fix
+
+- **The response forms accepted by each domain are not specified:** Add a table to responses.md, &quot;Numeric&quot;: for each domain, which response forms are valid (integer, decimal, fraction, number, string) and which are malformed, with the string grammar (`sign? value` of numeric.md or a stated extension).
+- **Unclear sentence about decimal string responses:** Rewrite: a decimal response can also be a string; it is read as the exact decimal it spells.
+- **Non-finite answers (infinity, NaN) are not excluded:** State that `answer` and the tolerances are finite numbers, and give the error code for a non-finite value.
+
+## Acceptance criteria
+
+- [ ] responses.md has the table and the string grammar
+- [ ] Non-finite answers have an error code and a corpus case
+- [ ] Vectors cover each malformed cell
+
+--- END ISSUE 2 ---</pre></div><div class="issue"><button type="button" data-target="issue-3" data-copied="Copied">Copy</button><pre id="issue-3">--- ISSUE 3 ---
+# [Spec] Decide how numeric responses with units are graded
+
+**Labels:** high, medium, low
+
+## Problem
+
+A foreign unit is both malformed and scored 0, conversion is MAY, a bare number for a question with a unit is not covered, and the unit string of a tag is not defined under markdown escapes. Options: (a) recommended: the unit of a response must equal the declared unit (exact string after NFC) or be absent (a bare number is in the declared unit); anything else is malformed; conversion is host behavior outside grading; the tag is read as source text. (b) Define compatible units and conversions in the spec.
+
+## Evidence
+
+- `docs/responses.md:133-142`: A response with a foreign unit is both malformed and scored 0
+
+  ```markdown
+  Implementations MAY do unit conversions and rewrite the response to a canonical
+  form, but they MUST reject a response with a unit that is not compatible with
+  the question&#x27;s unit with grade zero.
+  ```
+- `examples/grading/numeric.yaml:1-20`: No grading vector covers units
+
+  ```yaml
+  #   examples: { response: number | string, score: 0 | 1 | &quot;malformed&quot; }[]
+  ```
+- `docs/references/grammar.md:89`: UNIT does not say if a markdown escape or code span in the unit is source text
+
+  ```lark
+  UNIT         : /[^()\[\]\t\n\v\f\r \x85\xa0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+/
+  ```
+
+## Impact
+
+- **A response with a foreign unit is both malformed and scored 0:** The same response gets a score in one implementation and an error in another.
+- **No grading vector covers units:** The unit rules of responses.md have no shared test, so implementations can drift.
+- **UNIT does not say if a markdown escape or code span in the unit is source text:** Two implementations can store different `unit` strings for the same tag.
+
+## Suggested fix
+
+- **A response with a foreign unit is both malformed and scored 0:** Decide one rule: (a) a unit other than the declared one is always malformed, and conversion is outside the spec; or (b) define compatible units and the conversion, and malformed only for incompatible ones. State that a bare number is in the declared unit, and how units compare.
+- **No grading vector covers units:** After the unit rule is decided, add the `{value, unit}` form to the header and vectors for each case.
+- **UNIT does not say if a markdown escape or code span in the unit is source text:** State that the tag line, including the unit, is read as source text with no markdown inline processing, or exclude `\` and the backtick from `UNIT`.
+
+## Acceptance criteria
+
+- [ ] One rule for a foreign unit
+- [ ] A bare number for a question with a unit is defined
+- [ ] The unit of a tag is defined as source text or escapes are excluded
+- [ ] Vectors with the {value, unit} form
+
+--- END ISSUE 3 ---</pre></div><div class="issue"><button type="button" data-target="issue-4" data-copied="Copied">Copy</button><pre id="issue-4">--- ISSUE 4 ---
+# [Spec] Align the numeric diagnostics for domain and tolerance
+
+**Labels:** medium, low
+
+## Problem
+
+A non-whole answer under integer gets two codes, under fraction only an info despite a SHOULD; missing-tolerance fires on exact fractions; Additional Rules has rows the prose does not state and SHOULD rules of the parser output have no row. Recommended: answer-outside-domain covers a non-whole answer under integer and fraction (warning, &#x27;should&#x27;); domain-mismatch covers only the absolute tolerance; missing-tolerance only for decimal; the Tolerances section states the non-negative and percentage rules; Answer representation says its rules apply to the parser output and have no diagnostic.
+
+## Evidence
+
+- `docs/question-types/numeric.md:210, docs/question-types/numeric.md:214`: A non-whole answer of an integer question gets two diagnostics
+
+  ```markdown
+  | answer             | warning  | answer-outside-domain          | must be a whole number when `domain` is &quot;integer&quot;[^6]              |
+  ```
+- `docs/question-types/numeric.md:218, docs/question-types/numeric.md:229-230`: missing-tolerance fires on fraction answers, where an exact match is meaningful
+
+  ```markdown
+  | tolerance          | info     | missing-tolerance              | is not defined for a `decimal` or `fraction` answer[^5]            |
+  ```
+- `docs/question-types/numeric.md:111-113`: A non-whole answer under domain fraction is a SHOULD, but only an info diagnostic
+
+  ```markdown
+  When `domain` is `fraction`, such a document SHOULD give `answer` as a
+  fraction string (`&quot;3/4&quot;`) or as an integer (`2` or `&quot;2&quot;`). A number that is
+  not whole, such as `0.75`, is a decimal and contradicts the domain.
+  ```
+- `docs/question-types/numeric.md:211-218`: Additional Rules has rows that the prose does not state
+
+  ```markdown
+  | tolerance.absolute | error    | schema-error                   | must not be negative (schema)                                      |
+  ```
+- `docs/question-types/numeric.md:90-91, docs/question-types/numeric.md:100-102`: SHOULD rules of Answer representation are not in Additional Rules
+
+  ```markdown
+  An integer number like `42` or `-1` SHOULD be coerced to an integral value.
+  It SHOULD be kept as a string if it is not representable in the 32-bit signed
+  integer range.
+  ```
+- `docs/question-types/numeric.md:152-153`: The Tolerances section does not map a percentage to tolerance.relative
+
+  ```markdown
+  where tol is calculated as `|answer| × percentage_number ÷ 100`.
+  ```
+
+## Impact
+
+- **A non-whole answer of an integer question gets two diagnostics:** Duplicate diagnostics, or implementations that report only one of them; corpus lint files cannot tell which is right.
+- **missing-tolerance fires on fraction answers, where an exact match is meaningful:** Every exact fraction question gets a lint that suggests a change that turns it into a decimal question.
+- **A non-whole answer under domain fraction is a SHOULD, but only an info diagnostic:** Two cases with the same text (&quot;contradicts the domain&quot;) get different severities, and the SHOULD has no warning.
+- **Additional Rules has rows that the prose does not state:** A reader of the prose does not learn these rules; the table is the only source.
+- **SHOULD rules of Answer representation are not in Additional Rules:** The requirement levels in the text and in the table do not agree.
+- **The Tolerances section does not map a percentage to tolerance.relative:** An author who writes YAML can put `5` for 5%, which accepts a response 500% off (only an info diagnostic reports it).
+
+## Suggested fix
+
+- **A non-whole answer of an integer question gets two diagnostics:** Decide which code covers the answer and which covers the tolerance (for example, `answer-outside-domain` for the answer, `domain-mismatch` only for a decimal absolute tolerance under `integer`/`fraction`), and use &quot;should&quot; for a warning.
+- **missing-tolerance fires on fraction answers, where an exact match is meaningful:** Restrict `missing-tolerance` to the `decimal` domain, or rewrite the footnote with a reason that holds for fractions.
+- **A non-whole answer under domain fraction is a SHOULD, but only an info diagnostic:** Decide one level for a non-whole answer under a narrower domain: extend `answer-outside-domain` to `fraction`, or change the SHOULD to MAY.
+- **Additional Rules has rows that the prose does not state:** Add the rules to the &quot;Tolerances&quot; section: both tolerances are non-negative, a relative tolerance is a fraction (`5%` is `0.05`), and a relative tolerance around a zero answer and a missing tolerance on a decimal answer are flagged.
+- **SHOULD rules of Answer representation are not in Additional Rules:** State that the rules of &quot;Answer representation&quot; apply to the parser output and have no diagnostic, or reword them without RFC 2119 keywords.
+- **The Tolerances section does not map a percentage to tolerance.relative:** State that `+- p%` is stored as `tolerance.relative: p / 100` and give the formula as `|answer - response| ≤ |answer| × relative`.
+
+## Acceptance criteria
+
+- [ ] Each defect has one code and one level
+- [ ] Every Additional Rules row is stated in the prose
+- [ ] Corpus lint files follow the new rows
+
+--- END ISSUE 4 ---</pre></div><div class="issue"><button type="button" data-target="issue-5" data-copied="Copied">Copy</button><pre id="issue-5">--- ISSUE 5 ---
+# [Spec] Decide whether numeric questions have feedback
+
+**Labels:** medium
+
+## Problem
+
+Numeric has no feedback for an incorrect response. Options: (a) recommended: add `incorrectFeedback`, as short-answer and fill-in blanks; (b) also add `reject` values with tolerance and feedback for known wrong answers; (c) state that numeric has no feedback by design.
+
+## Evidence
+
+- `docs/question-types/numeric.md:192-202`: Numeric questions have no feedback for responses
+
+  ```markdown
+  Grading is binary: a response inside the accepted tolerance scores 1, and any
+  other response scores 0.
+  ```
+
+## Impact
+
+Authors move numeric questions to short-answer regexes to give feedback, and lose tolerance and domain checks.
+
+## Suggested fix
+
+Either state that numeric has no feedback by design, or add `incorrectFeedback` (as in short-answer and the blanks of fill-in) and, optionally, `reject` values with tolerance and feedback.
+
+## Acceptance criteria
+
+- [ ] numeric.md states the decision
+- [ ] If added: schema, frontmatter table and vectors
+
+--- END ISSUE 5 ---</pre></div><div class="issue"><button type="button" data-target="issue-6" data-copied="Copied">Copy</button><pre id="issue-6">--- ISSUE 6 ---
+# [Spec] Numeric blanks of fill-in: indentation, domain and decimalPlaces
+
+**Labels:** medium
+
+## Problem
+
+numeric_def has no leading ws?, and a Markdown numeric blank cannot set domain or decimalPlaces. Recommended: add ws?; add frontmatter maps blank id -&gt; domain and blank id -&gt; decimalPlaces, as for incorrectFeedback (or state the limit).
+
+## Evidence
+
+- `docs/question-types/fill-in.md:158, docs/question-types/fill-in.md:201`: numeric_def has no leading ws?, unlike the numeric answer and the other blank definitions
+
+  ```lark
+  numeric_def      : &quot;[^&quot; SLUG &quot;/numeric&quot; unit? &quot;]&quot; ws? &quot;:&quot; ws? numeric_body
+  ```
+- `docs/question-types/fill-in.md:204-209`: A numeric blank in Markdown cannot declare domain or decimalPlaces
+
+  ```markdown
+  The `numeric_body` and `unit` non-terminals represent, respectively, a numeric
+  value with tolerance and an optional unit of measurement. Both are defined in
+  the [body](numeric.md#body) section of the numeric question type. The `blank`
+  ```
+
+## Impact
+
+- **numeric_def has no leading ws?, unlike the numeric answer and the other blank definitions:** An indented numeric blank definition is a parse error by the grammar while the same indentation is valid on the other definitions. Implementations can disagree on which reading to follow.
+- **A numeric blank in Markdown cannot declare domain or decimalPlaces:** An author cannot write a decimal blank with an integer answer (`42` in a `decimal` domain), or set the precision of a blank, in Markdown. The YAML form can express questions that the Markdown form cannot.
+
+## Suggested fix
+
+- **numeric_def has no leading ws?, unlike the numeric answer and the other blank definitions:** Add `ws?` at the start of `numeric_def` in both snippets, or remove it from all definitions and state the indentation rule once.
+- **A numeric blank in Markdown cannot declare domain or decimalPlaces:** Either state that a Markdown numeric blank always uses the inferred domain and places, or add a frontmatter map (blank id to `domain`/`decimalPlaces`), as fill-in already does for `preAccept` and `incorrectFeedback`.
+
+## Acceptance criteria
+
+- [ ] numeric_def starts with ws?
+- [ ] fill-in.md states how a Markdown blank sets domain and decimalPlaces
+
+--- END ISSUE 6 ---</pre></div><div class="issue"><button type="button" data-target="issue-7" data-copied="Copied">Copy</button><pre id="issue-7">--- ISSUE 7 ---
+# [Spec] Limit the indentation of ws? at the start of a block
+
+**Labels:** medium
+
+## Problem
+
+grammar.md limits leading ws? to three spaces only inside list items. Recommended: state the same limit (tabs expanded) for ws? at the start of any block, as CommonMark does.
+
+## Evidence
+
+- `docs/references/grammar.md:59-62`: ws? at the start of a block has no limit of three spaces
+
+  ```
+  When a rule starts with `ws?` at the start of a block, implementations MUST
+  read the source text and accept only spaces and tabs there.
+  ```
+
+## Impact
+
+An implementation that applies the grammar to the source text accepts an indented code block as the answer. An implementation that uses the CommonMark block structure rejects it. The same document gives a question or a parse error.
+
+## Suggested fix
+
+State in grammar.md:59-62 that `ws?` at the start of a block stands for at most three spaces, with tabs expanded as in grammar.md:70-71, the same as for a list item.
+
+## Acceptance criteria
+
+- [ ] grammar.md states the limit
+- [ ] A corpus case with four spaces before a numeric tag
+
+--- END ISSUE 7 ---</pre></div><div class="issue"><button type="button" data-target="issue-8" data-copied="Copied">Copy</button><pre id="issue-8">--- ISSUE 8 ---
+# [Spec] Explain rejected number spellings
+
+**Labels:** info
+
+## Problem
+
+U+2212, `±`, the decimal comma, digit group spaces and exponents are a plain parse-error. Options: (a) recommended: list them in Body and add a lint hint for U+2212, `±` and the decimal comma; (b) accept some of them.
+
+## Evidence
+
+- `docs/question-types/numeric.md:68-74`: Common number spellings are a bare parse-error with no lint to explain them
+
+  ```lark
+  numeric_body : ws? sign? value tolerances? ws?
+  ```
+
+## Impact
+
+Authors who write Brazilian or typographic number forms get a generic parse-error.
+
+## Suggested fix
+
+List the rejected forms in the Body section, and consider a lint code with a hint for U+2212, `±` and the decimal comma.
+
+## Acceptance criteria
+
+- [ ] Body lists the rejected forms
+- [ ] If a hint is added, it is in lint-codes.md and the corpus
+
+--- END ISSUE 8 ---</pre></div><div class="issue"><button type="button" data-target="issue-9" data-copied="Copied">Copy</button><pre id="issue-9">--- ISSUE 9 ---
+# Mechanical fixes
+
+**Labels:** mechanical, high, low
+
+## Problem
+
+Each fix below follows from its finding and needs no design decision, so they can be applied together in one pass and reviewed by reading the diff. Severity still applies: a mechanical fix can matter a lot.
+
+### F12 (high): The fraction rule accepts a zero denominator that the corpus rejects as parse-error
+
+`docs/question-types/numeric.md:78, docs/question-types/numeric.md:109-110`
+
+```lark
+fraction     : INTEGER &quot;/&quot; INTEGER
+```
+
+**Suggested fix:** Use a terminal with no zero for the denominator, for example `fraction : INTEGER &quot;/&quot; DENOMINATOR` with `DENOMINATOR : /[1-9][0-9]*/`, as the schema pattern and the corpus already do.
+
+### F7 (low): Schema descriptions of decimalPlaces and relative disagree with the spec
+
+`schema/numeric.yaml:48-50, schema/numeric.yaml:86-89`
+
+```yaml
+The number of decimal places used in the decimal value representation.
+```
+
+**Suggested fix:** Copy the definitions of numeric.md: &quot;the precision of the comparison: the response and the answer are rounded to this many places&quot; and `|submitted - answer| &lt;= |answer| * relative`.
+
+### F15 (low): numeric_def gives two ws? in a row, which makes the grammar ambiguous
+
+`docs/question-types/fill-in.md:158, docs/question-types/fill-in.md:201`
+
+```lark
+numeric_def : &quot;[^&quot; SLUG &quot;/&quot; &quot;numeric&quot; unit? &quot;]&quot; ws? &quot;:&quot; ws? numeric_body
+```
+
+**Suggested fix:** Remove the `ws?` after `&quot;:&quot;` in `numeric_def`, as `answer` does.
+
+### F16 (low): The two numeric_def snippets of fill-in.md are written differently
+
+`docs/question-types/fill-in.md:158, docs/question-types/fill-in.md:201`
+
+```lark
+numeric_def : &quot;[^&quot; SLUG &quot;/&quot; &quot;numeric&quot; unit? &quot;]&quot; ws? &quot;:&quot; ws? numeric_body
+```
+
+**Suggested fix:** Use the same text in both snippets, or keep the rule in one place and refer to it.
+
+### F24 (low): The intro says that a numeric question always declares a tolerance
+
+`docs/question-types/numeric.md:5-6, docs/question-types/numeric.md:36-37`
+
+```markdown
+Numeric questions expect a single numeric answer. They declare both the correct
+answer and tolerance.
+```
+
+**Suggested fix:** Write &quot;the correct answer and, optionally, a tolerance&quot; in both places.
+
+### F29 (low): Schema description of domain omits inference and its effect
+
+`schema/numeric.yaml:43`
+
+```yaml
+description: The domain/kind of number for the response.
+```
+
+**Suggested fix:** Describe `domain` as in numeric.md: inferred when absent (integer &lt; fraction &lt; decimal, the widest of the answer and the absolute tolerance), and it decides which responses are valid.
+
+## Acceptance criteria
+
+- [ ] F12: The fraction rule accepts a zero denominator that the corpus rejects as parse-error
+- [ ] F7: Schema descriptions of decimalPlaces and relative disagree with the spec
+- [ ] F15: numeric_def gives two ws? in a row, which makes the grammar ambiguous
+- [ ] F16: The two numeric_def snippets of fill-in.md are written differently
+- [ ] F24: The intro says that a numeric question always declares a tolerance
+- [ ] F29: Schema description of domain omits inference and its effect
+
+--- END ISSUE 9 ---</pre></div></section>
+<footer>MDQ Specification Audit: numeric: mdq-spec · 2026-10-20</footer>
+</main>
+<script>
+document.querySelectorAll(".issue button").forEach((button) => {
+  button.addEventListener("click", async () => {
+    const text = document.getElementById(button.dataset.target).textContent;
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const range = document.createRange();
+      range.selectNodeContents(document.getElementById(button.dataset.target));
+      getSelection().removeAllRanges();
+      getSelection().addRange(range);
+      document.execCommand("copy");
+    }
+    const label = button.textContent;
+    button.textContent = button.dataset.copied;
+    setTimeout(() => (button.textContent = label), 1500);
+  });
+});
+</script>
+</body>
+</html>

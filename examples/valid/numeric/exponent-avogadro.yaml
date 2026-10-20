@@ -1,0 +1,12 @@
+# The value and the absolute tolerance take an exponent. The places are
+# max(0, 3 - 23) = 0 for both.
+id: num-avogadro
+title: Avogadro constant
+type: numeric
+stem: What is the Avogadro constant, in 1/mol?
+answer: 6.022e+23
+unit: 1/mol
+domain: decimal
+decimalPlaces: 0
+tolerance:
+  absolute: 1.0e+20

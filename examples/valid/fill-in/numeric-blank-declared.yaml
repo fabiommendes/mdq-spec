@@ -1,0 +1,22 @@
+# The `domain` and `decimalPlaces` maps of the frontmatter are fields of the
+# numeric blank. The `height` blank is `decimal` with an integer answer, which
+# the body alone cannot say. The `share` blank has no entry and is inferred.
+id: fill-in-numeric-declared
+title: Bandeira and Cerrado
+type: fill-in
+stem: >-
+  The Pico da Bandeira is [^height] meters high, and the Cerrado covers about
+  [^share] percent of Brazil.
+blanks:
+  - id: height
+    type: numeric
+    answer: 2892
+    unit: m
+    domain: decimal
+    decimalPlaces: 1
+    tolerance: { absolute: 5 }
+  - id: share
+    type: numeric
+    answer: 22
+    domain: integer
+    tolerance: { absolute: 2 }

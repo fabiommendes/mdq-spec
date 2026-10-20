@@ -1,0 +1,9 @@
+# With `domain: fraction`, a string answer in decimal form is a decimal even
+# when it is spelled as a string, so `answer-outside-domain` reports it
+# (numeric.md, "Additional Rules"). The fraction form is `"3/4"`.
+id: tres-quartos
+title: Three quarters
+type: numeric
+stem: Which fraction of an hour is 45 minutes?
+answer: "0.75"
+domain: fraction

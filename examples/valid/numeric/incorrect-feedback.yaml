@@ -1,0 +1,10 @@
+id: num-pico-da-neblina
+title: Highest peak of Brazil
+type: numeric
+stem: What is the altitude of the Pico da Neblina, the highest peak of Brazil, in meters?
+answer: 2995
+unit: m
+domain: integer
+tolerance:
+  absolute: 5
+incorrectFeedback: Not quite. The Pico da Neblina is in the Serra do Imeri, on the border with Venezuela.

@@ -1,0 +1,5 @@
+# A number `answer` must be finite (numeric.md, "Answer representation").
+# JSON Schema cannot express it: JSON has no infinity.
+type: numeric
+stem: How many states does Brazil have?
+answer: .inf

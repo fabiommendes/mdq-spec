@@ -1,0 +1,9 @@
+# The exponent MAY have leading zeros.
+id: num-exponent-leading-zero
+title: Leading zero in the exponent
+type: numeric
+stem: What is the area of the Pantanal, in km2, to two significant digits?
+answer: 150000.0
+unit: km2
+domain: decimal
+decimalPlaces: 0

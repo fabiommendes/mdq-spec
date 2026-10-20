@@ -1,20 +1,21 @@
 ---
 type: handoff
 status: open
-tags: [auditoria-spec, numeric]
-relatedTo: [dev/audits/spec-short-answer-2026-10-17/, dev/audits/decisoes-short-answer-2026-10-17.md, dev/handoffs/mdq-js-port-pendente.md, docs/question-types/numeric.md]
+tags: [auditoria-spec, fill-in]
+relatedTo: [dev/audits/spec-numeric-2026-10-20/, dev/audits/decisoes-numeric-2026-10-20.md, dev/handoffs/mdq-js-port-pendente.md, docs/question-types/fill-in.md]
 ---
 
-# Próxima auditoria do spec: numeric
+# Próxima auditoria do spec: fill-in
 
 ## Estado
 
 - Feitas: multiple-choice (2026-10-13), multiple-selection (2026-10-15),
-  true-false (2026-10-16/17), short-answer (2026-10-17 a 2026-10-20). Logs
+  true-false (2026-10-16/17), short-answer (2026-10-17 a 2026-10-20),
+  numeric (2026-10-20). Logs
   arquivados em `dev/audits/spec-<tipo>-<data>/`.
-- Faltam, nesta ordem: numeric, fill-in, essay, ordering.
+- Faltam, nesta ordem: fill-in, essay, ordering.
 - `docs/audits/spec/` está vazio: a próxima auditoria cria o log do zero
-  (`/audit-spec spec para questões numeric`). A skill só é iniciada pelo
+  (`/audit-spec spec para questões fill-in`). A skill só é iniciada pelo
   humano.
 - `.claude/skills/audit-spec/spec.md` tem mudanças que não são da auditoria:
   não commitar.
@@ -55,19 +56,21 @@ relatedTo: [dev/audits/spec-short-answer-2026-10-17/, dev/audits/decisoes-short-
   (ex.: `cjk-markers`, `non-bmp-marker`). Conferir e reportar ao humano.
 - Subagentes nunca rodam `git stash`, `checkout` ou `reset`.
 
-## Pontos já conhecidos para numeric
+## Pontos já conhecidos para fill-in
 
-- D8/D9 da short-answer: `unit` saiu do frontmatter do numeric (só
-  `[numeric(unit)]`). Chave fora da tabela de frontmatter é
-  `invalid-frontmatter-field`; o bundle tem `$defs/frontmatter-<tipo>`.
-- D13a: numeric não tem `grading`; o `grading` do exame não se aplica, e o
-  score fica em [0, 1]. Frase em `docs/exam.md`, seção "Grading".
-- `docs/responses.md`, seção "Numeric", tem frases fracas: "MAY flag the
-  system to use decimal arithmetic", e "reject ... with grade zero" mistura
-  malformed com nota 0.
-- Fill-in (próximo tipo): `choice_def` e `numeric_def` não têm `ws?` no
-  início (o F1 da short-answer corrigiu só `accept_def`/`reject_def`). Falta
-  estratégia Hypothesis para `incorrectFeedback` dos blanks.
+- Fill-in reusa short-answer e numeric nos blanks. Decisões dessas auditorias
+  já valem nos blanks: `incorrectFeedback` (blanks short-answer e numeric),
+  mapas `domain`/`decimalPlaces` no frontmatter, aritmética exata, notação
+  científica, faixa do double, tabela de respostas por domain.
+- `numeric_def` e `choice_def` já têm `ws?` inicial e cópias iguais (lote M
+  do numeric). Conferir o resto das regras duplicadas em fill-in.md.
+- Falta estratégia Hypothesis para `incorrectFeedback` e para os mapas
+  `domain`/`decimalPlaces` dos blanks.
+- Lição do numeric: o scanner leu os achados do auditor líder antes de
+  registrar os seus. Dizer no prompt que ele não deve rodar `list`/`status`
+  antes de terminar a própria leitura. Subagentes que rodam `audit-findings`
+  fora da raiz criam `docs/audits/` no diretório errado (aconteceu em
+  `examples/invalid/`).
 
 ## Pendências fora da auditoria
 

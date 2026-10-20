@@ -1,0 +1,4 @@
+# A nonzero value that rounds to 0 as a double is malformed too.
+type: numeric
+stem: What is the mass of an electron, in kg, as a power of ten?
+answer: "9.1e-400"

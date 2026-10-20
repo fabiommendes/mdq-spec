@@ -1,0 +1,23 @@
+# Numeric blanks take the exponent of a numeric question.
+id: fill-in-numeric-exponent
+title: Constants
+type: fill-in
+stem: The Avogadro constant is about [^avogadro] per mole, and the Earth has a mass
+  of about [^mass].
+blanks:
+- id: avogadro
+  type: numeric
+  answer: 6.022e+23
+  unit: 1/mol
+  domain: decimal
+  decimalPlaces: 0
+  tolerance:
+    absolute: 1.0e+20
+- id: mass
+  type: numeric
+  answer: 5.972e+24
+  unit: kg
+  domain: decimal
+  decimalPlaces: 0
+  tolerance:
+    relative: 0.01

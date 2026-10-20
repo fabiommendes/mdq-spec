@@ -1,0 +1,12 @@
+# The same lint under a declared `fraction` domain: the answer is a fraction
+# string, which that domain accepts, but the absolute tolerance is a decimal.
+id: fracao-da-amazonia
+title: Share of the Amazon biome
+type: numeric
+stem: >-
+  The Amazon biome covers about one half of Brazil. Which fraction of the
+  national territory is this?
+answer: "1/2"
+domain: fraction
+tolerance:
+  absolute: 0.01

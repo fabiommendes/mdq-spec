@@ -1,0 +1,8 @@
+# A string `answer` takes the exponent. It is `decimal` by its spelling, and has
+# 0 places: max(0, 3 - 23).
+id: num-avogadro-string
+title: Avogadro constant
+type: numeric
+stem: What is the Avogadro constant, in 1/mol?
+answer: "6.022e23"
+unit: 1/mol

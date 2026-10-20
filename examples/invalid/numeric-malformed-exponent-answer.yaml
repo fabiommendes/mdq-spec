@@ -1,0 +1,5 @@
+# A string `answer` takes the exponent of a `number` only. A fraction takes
+# none (numeric.md, "Body").
+type: numeric
+stem: What fraction of the Brazilian territory is the Cerrado?
+answer: "1/2e3"

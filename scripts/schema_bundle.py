@@ -137,6 +137,24 @@ def _blank_text_map(defs: dict[str, Any], stem: str) -> dict[str, Any]:
     return {"type": "object", "additionalProperties": {"type": "string"}}
 
 
+def _blank_domain_map(defs: dict[str, Any], stem: str) -> dict[str, Any]:
+    return {
+        "type": "object",
+        "additionalProperties": {
+            "$ref": defs["fill-in"]["$id"] + "#/$defs/NumericBlank/properties/domain"
+        },
+    }
+
+
+def _blank_decimal_places_map(defs: dict[str, Any], stem: str) -> dict[str, Any]:
+    return {
+        "type": "object",
+        "additionalProperties": {
+            "$ref": defs["fill-in"]["$id"] + "#/$defs/NumericBlank/properties/decimalPlaces"
+        },
+    }
+
+
 def _normalizations_shorthand(defs: dict[str, Any], stem: str) -> dict[str, Any]:
     return {
         "anyOf": [
@@ -175,6 +193,14 @@ FRONTMATTER_SHORTHANDS: dict[
     ("fill-in", "incorrectFeedback"): (
         "map shorthand, a field of each blank in the AST",
         _blank_text_map,
+    ),
+    ("fill-in", "domain"): (
+        "map shorthand, a field of each numeric blank in the AST",
+        _blank_domain_map,
+    ),
+    ("fill-in", "decimalPlaces"): (
+        "map shorthand, a field of each numeric blank in the AST",
+        _blank_decimal_places_map,
     ),
     ("ordering", "normalizations"): (
         "a single normalization may be a bare string",

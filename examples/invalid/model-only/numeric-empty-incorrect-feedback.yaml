@@ -1,0 +1,8 @@
+# `blank-text` on the `incorrectFeedback` of a numeric question: defined, but
+# only whitespace.
+id: pico-da-neblina
+title: Highest peak of Brazil
+type: numeric
+stem: What is the altitude of the Pico da Neblina, in meters?
+answer: 2995
+incorrectFeedback: "  "

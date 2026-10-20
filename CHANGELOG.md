@@ -13,8 +13,73 @@ The specification uses [Semantic Versioning](https://semver.org/). Before
 
 First version of the specification.
 
+### Fixed
+
+- Numeric grammar: the denominator of a fraction is a new `DENOMINATOR` terminal
+  that excludes zero, so `[numeric]: 1/0` is a `parse-error` by the grammar.
+- Fill-in grammar: `choice_def` and `numeric_def` accept leading whitespace, and
+  the two copies of each rule are equal. `numeric_def` no longer has two `ws?`
+  in a row.
+- Numeric arithmetic: the answer, the response and the tolerances are exact
+  rationals. A number is read by its shortest decimal form; the rounding and
+  the tolerance test are exact. The relative tolerance uses the answer before
+  the rounding, and no tolerance is rounded. `+- p%` is `tolerance.relative:
+  p / 100`.
+- Numeric inference from YAML/JSON values: a string is read by its spelling, a
+  number by its shortest decimal form, but a number of whole value (`5`, `4.0`)
+  is an `integer` with 0 decimal places.
+- Numeric units: the unit of a response is the declared one (exact string after
+  NFC) or absent. Any other unit, or a unit on a question with none, is a
+  malformed response. The conversion belongs to the host, before the grading.
+  The unit in the tag is source text.
+- Numeric responses: a table of the responses each `domain` takes. A fraction
+  in a `decimal` question is malformed, and so is a non-finite number. A
+  response string is exactly `sign? value` and is not trimmed.
+- Numeric `answer` and tolerances must be finite (`malformed-numeric-answer`
+  for `.inf` and `.nan`).
+- Grading vectors for all the rules above in `examples/grading/numeric.yaml`
+  (new questions only), and three invalid documents with a non-finite number.
+- Numeric lint codes: `answer-outside-domain` also covers `domain: fraction`
+  (an answer that is neither whole nor a fraction string). `domain-mismatch`
+  only reports a decimal absolute tolerance under `integer` or `fraction`.
+  `missing-tolerance` only reports a `decimal` domain. The warning rules say
+  "should". The Tolerances section states that tolerances are not negative, and
+  the rules of "Answer representation" have no diagnostic.
+- Block indentation: the `ws?` at the start of a block is at most three spaces
+  (a tab expands to the next multiple of four columns), as in a list item. More
+  makes an indented code block, as in CommonMark.
+- Numeric docs: the tolerance is optional. Schema descriptions of `domain`,
+  `decimalPlaces` and `tolerance.relative` now agree with the spec.
+
+- Numeric exponent limit: the `EXPONENT` terminal has at most 3 digits. A value
+  or tolerance above the largest finite double (about 1.8e308), or not zero but
+  rounding to 0 as a double (`1e-999`), is malformed: `parse-error` in
+  Markdown, `malformed-numeric-answer` in a document, a malformed response in
+  grading. The schema patterns follow. New examples and grading vectors.
+
 ### Added
 
+- Numeric scientific notation, in the form of a JSON number: a `number` is an
+  `INTEGER` or `DECIMAL` with an optional `EXPONENT` (`6.022e23`, `1E-3`,
+  `2.5e+4`, `1e05`). The value, both tolerances, the string `answer` and the
+  string of a response take it. A fraction takes none. A spelling with an
+  exponent is `decimal`; the decimal places are `max(0, d - e)`. The schema
+  pattern of `answer` follows. `examples/invalid/numeric-exponent` is now
+  `examples/valid/numeric/exponent`, and the string response `"1e3"` is valid
+  in the grading vectors. New examples and vectors.
+- The Body of numeric lists the spellings it rejects on purpose (U+2212, `±`,
+  decimal comma, digit group separator) and the `parse-error` row in
+  Additional Rules. Examples for each one.
+- Numeric blank `incorrectFeedback`, through the `incorrectFeedback` map of the
+  fill-in frontmatter, with the meaning it has in a numeric question. The
+  `NumericBlank` schema has the property. New examples.
+- Numeric `incorrectFeedback`: feedback for an incorrect response. Never shown
+  for a correct, malformed or skipped response. It has a frontmatter field, a
+  schema property, grading vectors with a `feedback` key and examples.
+- Fill-in frontmatter maps `domain` and `decimalPlaces` (blank id to value), to
+  declare them for a numeric blank written in Markdown. They have the
+  `undefined-blank` error for an unknown id and the `schema-error` for a blank
+  of another kind. New examples for each case.
 - File extensions `.mdq.md`, `.md` and `.mdq`.
 - Question types: multiple choice, multiple selection, true/false, short
   answer, numeric, fill in the blanks, essay and ordering.

@@ -1,0 +1,10 @@
+# The exponent takes `e` or `E` and an optional sign.
+id: num-exponent-forms
+title: Exponent forms
+type: numeric
+stem: How many bacteria does a culture hold, to the nearest hundred?
+answer: 25000.0
+domain: decimal
+decimalPlaces: 0
+tolerance:
+  absolute: 100.0

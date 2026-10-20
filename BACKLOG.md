@@ -97,9 +97,12 @@ Those need discussion and design.
   (U+FEFF, U+0085, U+001C to U+001F). Candidate: `UNICODE_SPACE` from
   `docs/references/grammar.md`. The answer matching itself is done
   (patterns.md, "Inexact literals" and "Exact literals").
-* [ ] `incorrectFeedback` for ordering and numeric questions. Ordering has
-  `unmatched` but no feedback for a response that matches no answer key;
-  numeric has no feedback at all. Same semantics as in short-answer.
+* [ ] `incorrectFeedback` for ordering questions. Ordering has `unmatched` but
+  no feedback for a response that matches no answer key. Same semantics as in
+  short-answer.
+* [ ] Numeric: `reject` values with tolerance and feedback, for known wrong
+  answers (for example, a unit error of a factor 1000). Numeric has only
+  `incorrectFeedback` now.
 * [ ] `automation: semi-automatic` for essay questions: reject a response
   that is invalid by its form (length, language, missing sections) before
   the instructor reads it.

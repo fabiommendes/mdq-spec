@@ -12,12 +12,5 @@
     "path": [
       "title"
     ]
-  },
-  {
-    "code": "missing-tolerance",
-    "severity": "info",
-    "path": [
-      "tolerance"
-    ]
   }
 ]

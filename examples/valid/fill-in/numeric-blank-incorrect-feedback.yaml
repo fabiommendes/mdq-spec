@@ -1,0 +1,23 @@
+# The `incorrectFeedback` map of the frontmatter is a field of a numeric blank,
+# as it is of a short answer blank. The `bandeira` blank has no entry.
+id: fill-in-numeric-feedback
+title: Peaks of Brazil
+type: fill-in
+stem: The Pico da Neblina is [^neblina] meters high, and the Pico da Bandeira is
+  [^bandeira] meters high.
+blanks:
+- id: neblina
+  type: numeric
+  answer: 2995
+  unit: m
+  domain: integer
+  tolerance:
+    absolute: 5
+  incorrectFeedback: The Pico da Neblina is in the Serra do Imeri.
+- id: bandeira
+  type: numeric
+  answer: 2892
+  unit: m
+  domain: integer
+  tolerance:
+    absolute: 5
