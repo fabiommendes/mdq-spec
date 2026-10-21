@@ -15,3 +15,8 @@ banco; não vem da auditoria de short-answer.
 
 Correção: a estratégia de texto de bloco não deve gerar linhas que viram
 heading ATX (`#` seguido de espaço ou fim de linha).
+
+Atualização 2026-10-20: o campo `preamble` saiu do formato (auditoria de
+fill-in, D1) e o stem passou a ser gerado por `md_safe_multi_blocks`. O teste
+passou em 4 execuções seguidas da suíte. Confirmar se `md_safe_multi_blocks`
+evita `# ` e então apagar este issue.

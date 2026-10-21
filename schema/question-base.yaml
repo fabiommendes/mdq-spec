@@ -50,15 +50,11 @@ properties:
   stem:
     type: string
     description: >-
-      The main command shown to the students (e.g. "Select all correct
-      answers", "Write a program that..."). This is the sentence that
-      tells the student what to do and is always shown to them.
-
-  preamble:
-    type: string
-    description: >-
-      One or more paragraphs of context shown before the stem. May contain
-      Markdown markup.
+      The text shown to the students before the question body: one or
+      more block elements (paragraphs, tables, lists, ...), such as the
+      context of the question and the command ("Select all correct
+      answers", "Write a program that..."). Always shown to them. May
+      contain Markdown markup.
 
   epilogue:
     type: string

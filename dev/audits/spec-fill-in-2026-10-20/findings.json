@@ -1,0 +1,624 @@
+{
+  "lang": "en",
+  "date": "2026-10-20",
+  "title": "MDQ Specification Audit: fill-in",
+  "project": "mdq-spec",
+  "scope": "The fill-in question type: `docs/question-types/fill-in.md` and `schema/fill-in.yaml`, read against `docs/references/grammar.md`, `docs/references/patterns.md`, `docs/question-types/question-base.md`, `docs/exam.md` and `docs/responses.md`. The blanks reuse the short-answer, numeric and choice rules; earlier audits already settled those rules.",
+  "methodology": "The audit script `scripts/spec_audit.py` passed all 15 steps before the audit started: it compiles every Lark snippet, checks the Additional Rules tables against `docs/lint-codes.md` and the corpus, and checks the frontmatter tables against the schemas.\n\nThe lead auditor read `docs/question-types/fill-in.md` with the shared specs and recorded contradictions, ambiguities, omissions and inconsistencies. The audit focused on what is specific to fill-in: the blank references, the choice blanks, the frontmatter maps keyed by blank id, the grading strategies and the response shape. The blank rules that fill-in reuses from short-answer and numeric were checked for agreement with the decisions of the earlier audits.\n\nOne subagent turned the fill-in grammar and the shared grammar into Lark and tested what they accept and reject. A second, independent subagent scanned the fill-in document and schema, ran each complete example through `mdq validate`, and checked the Additional Rules table against the MUST, SHOULD and MAY requirements of the text.",
+  "categories": [
+    {
+      "id": "contradiction",
+      "title": "Contradictions"
+    },
+    {
+      "id": "ambiguity",
+      "title": "Ambiguities"
+    },
+    {
+      "id": "omission",
+      "title": "Omissions"
+    },
+    {
+      "id": "inconsistency",
+      "title": "Inconsistencies"
+    },
+    {
+      "id": "grammar",
+      "title": "Grammar violations"
+    },
+    {
+      "id": "schema",
+      "title": "Schema mismatches"
+    }
+  ],
+  "findings": [
+    {
+      "id": "F1",
+      "category": "contradiction",
+      "severity": "high",
+      "title": "Prose allows two behaviors for a misplaced blank; the rules table and the corpus require specific codes",
+      "location": "docs/question-types/fill-in.md:155-160",
+      "snippet": "illegal. A `[^slug]` found in any of them is not a blank: implementations MUST\neither reject the document or leave the text exactly as written, and MUST NOT\nsilently drop it.",
+      "language": "markdown",
+      "description": "The prose lets an implementation either reject a `[^slug]` in a heading, list item, table cell, blockquote or fenced code, or keep it as text. The Additional Rules table has one rule, `misplaced-blank` (error) for 'blanks may only appear in a plain text run of a paragraph'. The corpus uses three different outcomes: a heading gives `unreferenced-blank` (`examples/invalid/fill-in-misplaced-blank-heading`), a code span gives `misplaced-blank` (`examples/invalid/fill-in-misplaced-blank-code-span`), and fenced code is valid text (`examples/valid/fill-in/blank-in-code-is-text`). Nothing in the spec says which block kind gives which outcome. Lines 174-176 also put inline code with link text and emphasis, but a code span is literal text in CommonMark, as fenced code is.",
+      "impact": "Two conforming implementations can give different lint codes, or one accepts a document the other rejects. The corpus fixes behavior that the spec does not state.",
+      "fix": "Give one outcome per context in a table: for example, fenced code, indented code and code spans are literal text; a `[^slug]` in a heading, list item, table cell or blockquote of the stem, or inside emphasis or link text, is `misplaced-blank`. Remove 'either ... or'.",
+      "conditions": "A `[^slug]` in a heading, list item, table cell, blockquote, code span or emphasis of the stem."
+    },
+    {
+      "id": "F2",
+      "category": "omission",
+      "severity": "high",
+      "title": "The spec does not say which paragraphs form the stem, so blanks in two paragraphs fail",
+      "location": "docs/question-types/fill-in.md:137-148",
+      "snippet": "stem  : inline_md? (blank inline_md?)+\nblank : \"[^\" SLUG \"]\"",
+      "language": "markdown",
+      "description": "The stem grammar describes one run of inline content. The text never says where the preamble ends and the stem begins, or whether the stem can have more than one paragraph with blanks. `docs/question-types/question-base.md:132-134` only says implementations SHOULD require a one-paragraph stem. With the reference implementation, the document 'Intro.\\n\\nFirst [^a] paragraph.\\n\\nMiddle.\\n\\nSecond [^b] paragraph.\\n\\n[^a/short-answer]: x\\n\\n[^b/short-answer]: y' fails with `unreferenced-blank` for `a`: the first paragraph with a blank goes to the preamble, where line 178 says a `[^slug]` is literal text. The spec does not exercise this case and does not say it is an error.",
+      "impact": "Authors write cloze texts that span paragraphs. The result is an error that names the wrong cause, and another implementation can accept the same document.",
+      "fix": "State the rule: either the stem is the last paragraph before the definitions (and a `[^slug]` in an earlier paragraph gives a specific error), or the stem is every block from the first paragraph with a blank to the definitions. Add an example to the corpus.",
+      "conditions": "Blanks in two or more paragraphs."
+    },
+    {
+      "id": "F3",
+      "category": "omission",
+      "severity": "medium",
+      "title": "The spec does not say whether blank definitions must be contiguous",
+      "location": "docs/question-types/fill-in.md:208-210",
+      "snippet": "Definitions may appear in any order, and that order need not match the order\nthe stem references them.",
+      "language": "markdown",
+      "description": "The text allows any order but does not say if a paragraph can stand between two definitions. In the reference implementation, a paragraph after the first definition ends the body: a later `[^b/short-answer]: y` goes to the epilogue as text, and the stem reference `[^b]` gives `undefined-blank`, which names the wrong cause.",
+      "impact": "An author who puts an explanation between definitions gets an error that points at the stem, not at the definition.",
+      "fix": "State that the definitions form one sequence of blocks, separated only by blank lines, and that the first other block starts the epilogue. Consider a dedicated lint for a definition tag in the epilogue.",
+      "conditions": "A paragraph between two blank definitions."
+    },
+    {
+      "id": "F4",
+      "category": "ambiguity",
+      "severity": "high",
+      "title": "Under no-mistakes and all-or-nothing, the multiple choice strategy for a choice blank is not stated",
+      "location": "docs/question-types/fill-in.md:407-410",
+      "snippet": "* A **choice blank** is graded like a\n  [multiple choice](multiple-choice.md#grading) question, under the strategy\n  the fill-in question declares.",
+      "language": "markdown",
+      "description": "Multiple choice accepts only `partial` and `symmetric` (`docs/exam.md:357-358`). The fill-in question can declare `no-mistakes` or `all-or-nothing`, which a multiple choice question does not accept, so 'under the strategy the fill-in question declares' has no meaning for these two. Lines 453-456 imply the answer only through an example ('Under `partial`, `no-mistakes` and `all-or-nothing` that same wrong pick scores 0').",
+      "impact": "An implementation can raise an error, or score the blank with `symmetric`, for a fill-in under `no-mistakes`.",
+      "fix": "Add a mapping: a choice blank is scored with multiple choice `partial` under `partial`, `no-mistakes` and `all-or-nothing`, and with `symmetric` under `symmetric`, as in the exam table at `docs/exam.md:346-351`.",
+      "mechanical": false
+    },
+    {
+      "id": "F5",
+      "category": "omission",
+      "severity": "high",
+      "title": "An empty blank in the response is not defined",
+      "location": "docs/question-types/fill-in.md:403",
+      "snippet": "A blank the student left empty scores 0 under every strategy. ",
+      "language": "markdown",
+      "description": "`docs/responses.md:213-231` does not say how a response marks an empty blank: a missing key, a `null` value, or both. For a short answer blank, `\"\"` is not empty: `docs/responses.md:200-204` says it is graded like any other text. The spec also does not say what an empty mapping `{}` is (all blanks empty, or a skip like `null`), nor whether a value of the wrong type for a blank (a number for a choice blank, a list for a short answer blank) is a `ResponseError`.",
+      "impact": "The strategies `no-mistakes` and `all-or-nothing` treat an empty blank differently from a wrong one, so the score depends on a rule the spec does not give.",
+      "fix": "In `docs/responses.md`, Fill in the blanks: a missing key and a `null` value are an empty blank; `{}` is a response with every blank empty (the question is not skipped); a value of the wrong type is a malformed response by the rule of the blank's type. Add response cases to the grading corpus."
+    },
+    {
+      "id": "F6",
+      "category": "omission",
+      "severity": "medium",
+      "title": "A blank referenced more than once in the stem has no rule",
+      "location": "docs/question-types/fill-in.md:185-187",
+      "snippet": "Every blank referenced by the stem MUST be defined, and every definition MUST\nbe referenced by the stem.",
+      "language": "markdown",
+      "description": "Nothing says whether the stem can reference the same id twice, as in 'The capital is [^c]. Write [^c] again.'. The response has one value per id, so two inputs would share one answer.",
+      "impact": "An implementation can render two inputs bound to one key, render one, or reject the document.",
+      "fix": "State that each blank id appears at most once in the stem, with an error code (for example `duplicate-blank-reference`), or state that repeated references share one input."
+    },
+    {
+      "id": "F7",
+      "category": "omission",
+      "severity": "medium",
+      "title": "Several Markdown parse errors of blank definitions are only in the corpus",
+      "location": "docs/question-types/fill-in.md:481-482, docs/question-types/fill-in.md:206, docs/question-types/fill-in.md:226, docs/question-types/fill-in.md:302-304",
+      "snippet": "| blanks[]             | error    | parse-error        | a short answer blank defines each block at most once[^5]           |",
+      "language": "markdown",
+      "description": "The corpus gives `parse-error` for cases the Additional Rules table does not list and the text does not settle: a blank line between `[^bioma]:` and its choice list (`examples/invalid/fill-in-blank-line-before-choices`; line 226 says 'must start on the following line' but gives no code), an unknown kind suffix such as `[^resposta/essay]:` (`fill-in-unknown-blank-kind`), a unit on a short answer tag (`fill-in-unit-on-short-answer-tag`; line 206 only says 'not valid syntax'), two choice definitions for one id (`fill-in-two-choice-definitions`) and one id with two kinds (`fill-in-two-kinds-one-blank`). Text on the tag line of a choice definition (`[^capital]: Brasília`) has no stated outcome. The table also omits the rule of line 319-321 that a list item right after the content of a short answer definition is a `parse-error`; the short answer table has it (`docs/question-types/short-answer.md:511`).",
+      "impact": "An implementation that reads only the spec can accept these documents or report other codes.",
+      "fix": "State each rule in the text with MUST and add a `parse-error` row per case: blank line before the choice list, text on a choice tag line, unknown kind suffix, unit on a non-numeric tag, a second definition of an id (any kind), and a list item right after short answer content.",
+      "mechanical": false
+    },
+    {
+      "id": "F8",
+      "category": "schema",
+      "severity": "low",
+      "title": "The Blank schema says a bare tag infers its kind from what follows",
+      "location": "schema/fill-in.yaml:76-79",
+      "snippet": "      required here even though the surface syntax may leave it implicit\n      (`[^capital]:` infers its kind from the definition that follows,\n      while `[^size/numeric]:` states it).",
+      "language": "yaml",
+      "description": "`docs/question-types/fill-in.md:203` says a bare `[^slug]:` is always a choice blank. The kind is not inferred from the definition.",
+      "impact": "A reader of the schema can expect `[^capital]: Brasília` to be a short answer blank.",
+      "fix": "Write: '`[^capital]:` is a choice blank, while `[^size/numeric]:` and `[^city/short-answer]:` state their kind.'",
+      "mechanical": true
+    },
+    {
+      "id": "F9",
+      "category": "schema",
+      "severity": "low",
+      "title": "The ShortAnswerBlank description lists answer forms that no longer exist",
+      "location": "schema/fill-in.yaml:125-128, schema/fill-in.yaml:139-141",
+      "snippet": "      exactly like a short-answer question. Carries the same answer\n      machinery: a list of accepted responses, a regular expression, or\n      `accept`/`reject` pattern lists that can attach feedback.",
+      "language": "yaml",
+      "description": "A short answer blank has only the `accept`/`reject` pattern lists (and `preAccept`/`preReject`); a regex is one form of pattern, not a separate field. The description of `accept` (line 140) also cites only the alias `[^id/short-answer/accept]`, not the main tag `[^id/short-answer]`.",
+      "impact": "Misleads readers of the schema about the fields of the blank.",
+      "fix": "Write: 'Carries the same answer machinery: `accept` and `reject` pattern lists, which can attach feedback.' In `accept`, cite `[^id/short-answer]` (alias `[^id/short-answer/accept]`).",
+      "mechanical": true
+    },
+    {
+      "id": "F10",
+      "category": "inconsistency",
+      "severity": "low",
+      "title": "A choice blank has three names: choice blank, multiple choice blank and type multiple-choice",
+      "location": "docs/question-types/fill-in.md:213-215",
+      "snippet": "## Multiple choice blanks\n\nMultiple-choice blanks are represented by a reference definition followed by a ",
+      "language": "markdown",
+      "description": "The rules table, the Feedback and the Grading sections say 'choice blank'; the section heading and its anchor say 'Multiple choice blanks'; the JSON `type` is `multiple-choice`. The other two kinds use one term each (numeric blank, short answer blank).",
+      "impact": "Minor: readers must map three terms to one concept.",
+      "fix": "Use 'choice blank' in prose and headings, and state once that its JSON `type` is `multiple-choice`.",
+      "mechanical": true
+    },
+    {
+      "id": "F11",
+      "category": "ambiguity",
+      "severity": "medium",
+      "title": "For a pending fill-in, the spec does not say what score the instructor supplies",
+      "location": "docs/question-types/fill-in.md:357-360",
+      "snippet": "A response to\nthe question is settled only when the response to every blank is settled; if\na blank leaves its response to the instructor, the whole question is pending.",
+      "language": "markdown",
+      "description": "`docs/responses.md` (Pending) says a pending response has no score until the instructor supplies one. For a fill-in, the instructor can score the pending blank (then the strategy combines it with the other blanks) or the whole question (then the strategy is bypassed). The range of a blank score from the instructor (only 0 or 1, as in a short answer blank, or any value in [0, 1]) is also not stated.",
+      "impact": "An LMS cannot tell which value to ask the instructor for, and `no-mistakes` gives different results for a blank score of 0.5.",
+      "fix": "State that the instructor scores each pending blank, in [0, 1], and that the strategy then combines the blank scores as usual."
+    },
+    {
+      "id": "F17",
+      "category": "inconsistency",
+      "severity": "medium",
+      "title": "A short answer blank with only a reject block is not addressed, unlike a short answer question that MUST have an accept block",
+      "location": "docs/question-types/fill-in.md:306-308",
+      "snippet": "A short answer blank has the two blocks of a short answer question:",
+      "language": "markdown",
+      "description": "short-answer.md line 140 says a question MUST have a `[short-answer]` block. The fill-in grammar `short_answer_def : accept_def | reject_def` lets a blank consist of only `[^b/short-answer/reject]:`, and mdq-py accepts it. The fill-in text says the blank has the blocks of a short answer question and that it carries the rules of short answer (line 465-469), which suggests the accept block is required. No example covers a reject-only blank.",
+      "impact": "One implementation may require the accept block by inheritance, another may not.",
+      "fix": "State whether the accept block is required for a blank, and add an example either way.",
+      "conditions": "A short answer blank defined only by a reject block."
+    },
+    {
+      "id": "F18",
+      "category": "inconsistency",
+      "severity": "medium",
+      "title": "A blank with an empty accept block does not always leave its responses to the instructor",
+      "location": "docs/question-types/fill-in.md:314-315",
+      "snippet": "`[^slug/short-answer]` block has no pattern has no `accept` list, and the\ninstructor grades its responses, see [Automation](#automation).",
+      "language": "markdown",
+      "description": "By short-answer.md (Grading, Automation), a blank with no accept pattern but with a reject block is semi-automatic: the reject patterns settle some responses. With `unmatched: incorrect` in the frontmatter, no response goes to the instructor (and `no-correct-answer` is reported). The sentence says the instructor grades its responses without these conditions.",
+      "impact": "Readers may think reject patterns or `unmatched` have no effect on an empty accept block.",
+      "fix": "Say that the blank has no accept list and that `unmatched` defaults to `manual`, so the instructor grades the responses that no reject pattern settles.",
+      "conditions": "An empty `[^slug/short-answer]:` with a reject block or with `unmatched: incorrect`."
+    },
+    {
+      "id": "F19",
+      "category": "inconsistency",
+      "severity": "medium",
+      "mechanical": true,
+      "title": "The two grammar snippets of `patterns` disagree",
+      "location": "docs/question-types/fill-in.md:197",
+      "snippet": "patterns         : answer | nl pattern_list",
+      "language": "lark",
+      "description": "The Blank definitions snippet defines `patterns : answer | nl pattern_list`, while the Short answer blanks snippet (line 291) and short-answer.md define `patterns : content | nl lazy_content | nl pattern_list`. `answer` is not defined here and is the name of the tag rule in numeric.md; the lazy-content alternative after an empty tag is missing.",
+      "impact": "The first snippet rejects valid documents (content on lazy lines after an empty tag) and refers to an unrelated rule.",
+      "fix": "Replace line 197 with `patterns : content | nl lazy_content | nl pattern_list`, as on line 291."
+    },
+    {
+      "id": "F22",
+      "category": "contradiction",
+      "severity": "medium",
+      "title": "The example table claims one set of blank scores for every strategy, but the wrong pick scores differ by strategy",
+      "location": "docs/question-types/fill-in.md:438-439",
+      "snippet": "The \"blank scores\" column lists what each blank scored on its own, in that\norder, and every strategy is computed from those three numbers.",
+      "language": "markdown",
+      "description": "The column shows `-0.5` for a wrong pick, which line 453-456 says holds only under `symmetric`; under the other three strategies the same pick scores 0. So the other columns are not computed from those three numbers. The `partial` values match only because `partial` also clamps negatives to 0.",
+      "impact": "Readers can conclude that a choice blank scores -0.5 under `partial` and that the clamp in `partial` is what removes it.",
+      "fix": "Say that the column holds the `symmetric` blank scores and that the wrong pick scores 0 under the other strategies, or show both values.",
+      "conditions": "None."
+    },
+    {
+      "id": "F23",
+      "category": "omission",
+      "severity": "medium",
+      "title": "No grading corpus for fill-in",
+      "location": "docs/question-types/fill-in.md:389",
+      "snippet": "## Grading",
+      "language": "markdown",
+      "description": "examples/grading has corpora for multiple choice, multiple selection, true/false, numeric and short answer, but none for fill-in. No shared test exercises the four combination strategies, the example table, empty blanks, a pending short answer blank making the whole question pending, the feedback order of the flat list (line 384-386), or the automation of a mixed question.",
+      "impact": "mdq-py and mdq-js can diverge on fill-in scores and feedback without any shared test failing.",
+      "fix": "Add examples/grading/fill-in.yaml covering the table rows, empty blanks, pending blanks and feedback order.",
+      "conditions": "None."
+    },
+    {
+      "id": "F26",
+      "category": "omission",
+      "severity": "low",
+      "title": "No example exercises blanks in list items, table cells, blockquotes or a preamble paragraph",
+      "location": "docs/question-types/fill-in.md:155-157",
+      "snippet": "At the block level, the hosting block MUST be an ordinary paragraph. Blanks in",
+      "language": "markdown",
+      "description": "The corpus covers a heading, a link, emphasis, a code span, fenced code and an epilogue paragraph. It has no case for a `[^slug]` in a list item, a table cell, a blockquote (blockquote-preamble has none inside the quote), or an ordinary preamble paragraph (line 178-180).",
+      "impact": "These MUST rules are not checked by the shared tests.",
+      "fix": "Add valid or invalid examples for each block kind once the behavior is settled.",
+      "conditions": "None."
+    },
+    {
+      "id": "F29",
+      "category": "schema",
+      "severity": "low",
+      "mechanical": true,
+      "title": "`grading` description omits the per-type entry of an exam grading map",
+      "location": "schema/fill-in.yaml:38-39",
+      "snippet": "`inherit`, the default, takes the exam's `grading` value, and",
+      "language": "yaml",
+      "description": "fill-in.md line 398-399 says `inherit` takes the exam's `grading`, or its `fill-in` entry when the exam's `grading` is a map, through the exam translation table.",
+      "impact": "Minor.",
+      "fix": "Mention the `fill-in` entry of a grading map."
+    },
+    {
+      "id": "F30",
+      "category": "schema",
+      "severity": "low",
+      "mechanical": true,
+      "title": "`unmatched` description drops the per-blank default",
+      "location": "schema/fill-in.yaml:56-58",
+      "snippet": "Applies to every short answer blank of the question, with the",
+      "language": "yaml",
+      "description": "The local description replaces the one of short-answer.yaml#/$defs/unmatched, and does not say that, when absent, each blank takes `incorrect` if it has an accept pattern and `manual` otherwise (fill-in.md footnote 6, line 47-50).",
+      "impact": "Readers may assume a single question-level default.",
+      "fix": "Add: if absent, each blank takes its own default, `incorrect` with an accept pattern and `manual` without one."
+    },
+    {
+      "id": "F32",
+      "category": "grammar",
+      "severity": "medium",
+      "title": "Stem rule allows only one inline element between blanks",
+      "location": "docs/question-types/fill-in.md:141",
+      "snippet": "stem  : inline_md? (blank inline_md?)+",
+      "language": "lark",
+      "description": "`inline_md` is defined as 'any valid inline markdown element' (singular, fill-in.md:145), and the rule allows at most one of them before, between and after blanks. Counter-example: the stem `The **capital** of Brazil is [^capital].` has three inline elements before the blank (text, strong, text). The text at fill-in.md:152-176 allows markup elsewhere in the paragraph as long as the blank itself is in a plain-text run, so this stem is valid, but the rule rejects it (tested with Lark, `inline_md` stubbed as TEXT | STRONG | LINK).",
+      "impact": "The grammar rejects ordinary stems with any formatting, or the reader must guess that `inline_md` means a sequence.",
+      "fix": "Use `inline_md*` in the rule, or say that `inline_md` is a sequence of inline elements.",
+      "mechanical": true
+    },
+    {
+      "id": "F33",
+      "category": "grammar",
+      "severity": "medium",
+      "title": "`blank` matches the text of a link `[^x](url)`",
+      "location": "docs/question-types/fill-in.md:142",
+      "snippet": "blank : \"[^\" SLUG \"]\"",
+      "language": "lark",
+      "description": "`CHOICE_ID`, `CHOICE_MARK` and `VALUE_END` exclude a `]` followed by `(` or `[` because that bracket starts a markdown link. `blank` has no such lookahead. Counter-example: in the stem `Veja [^nota](https://www.ibge.gov.br) agora.`, CommonMark (and markdown-it, where the footnote reference rule runs after `link`) reads a link with the text `^nota`. The stem rule reads the blank `nota` followed by the text `(https://www.ibge.gov.br) agora.` (tested with Lark: the only parse is blank + text). The same holds for `[^nota][ref]`.",
+      "impact": "The grammar and the markdown parser disagree on whether the stem has a blank, so an implementation that follows the grammar reports `undefined-blank` for a valid link.",
+      "fix": "Add the lookahead of `CHOICE_ID` to the rule (`\"]\"` not followed by `(` or `[`), and say in the text that `[^x](url)` and `[^x][ref]` are links.",
+      "mechanical": false
+    },
+    {
+      "id": "F34",
+      "category": "grammar",
+      "severity": "medium",
+      "title": "Split reading of `**start [^blank] end**` is legal under the stem rule",
+      "location": "docs/question-types/fill-in.md:168-172",
+      "snippet": "interpreted as an unclosed bold element `**start `, followed by a blank and then\nthe text ` end**`. In both approaches, the result would be illegal according to\nthe spec, so both parsing strategies are valid.",
+      "language": "markdown",
+      "description": "The text says that splitting the paragraph around the blank also gives an illegal stem. It does not: CommonMark reads `**start ` alone as the literal text `**start ` (an unmatched delimiter run is text), so the split gives text, blank, text, which `stem : inline_md? (blank inline_md?)+` accepts. Only the whole-paragraph reading (a strong element that contains a blank) is illegal. The corpus (examples/invalid/fill-in-misplaced-blank-emphasis) expects `misplaced-blank`, so an implementation that uses the split strategy, which the text allows, accepts a document the corpus rejects.",
+      "impact": "The text allows a parsing strategy that gives a different result from the corpus.",
+      "fix": "Require the markdown inline parse of the whole paragraph first, and state that a blank inside any inline element is `misplaced-blank`. Remove the claim that both strategies agree.",
+      "mechanical": false
+    },
+    {
+      "id": "F37",
+      "category": "grammar",
+      "severity": "medium",
+      "title": "`pattern_item` includes the list marker, `item` does not",
+      "location": "docs/references/patterns.md:252",
+      "snippet": "pattern_item : ws? LIST_MARK ws content nl (blank_line* observations)?",
+      "language": "lark",
+      "description": "grammar.md:73-75 says the grammar of a list item applies to the content of the item after the removal of the list marker and its padding. The choice `item` of choices.md:66 follows that (it starts with `ws? \"[\"`), but `pattern_item` starts with `ws? LIST_MARK ws`. fill-in.md uses both in the same way (`choice_list : item+`, `pattern_list : pattern_item+`, each 'the unordered list those items form'). Counter-example in Lark: the fill-in example `[^capital]:` + `* [ ] Lisbon` + `* [*] Brasília` is rejected by `choice_list : item+`, while `[ ] Lisbon` without `* ` is accepted; for `pattern_list` it is the reverse. Applied to the content of an item as grammar.md says, `pattern_item` rejects `Jupiter` (the content of `* Jupiter`).",
+      "impact": "The two list rules that fill-in reuses follow opposite conventions; a literal reading of either one rejects the examples of the other.",
+      "fix": "Remove `ws? LIST_MARK ws` from `pattern_item` (the list marker belongs to the list, as for `item`), or add it to `item` and change grammar.md:73-75. Pick one convention for both.",
+      "mechanical": false
+    },
+    {
+      "id": "F38",
+      "category": "grammar",
+      "severity": "low",
+      "title": "Two `value` rules collide in a fill-in grammar",
+      "location": "docs/question-types/fill-in.md:223-224, docs/question-types/fill-in.md:239-241",
+      "snippet": "with the `value` rule of [multiple choice](multiple-choice.md#body), and",
+      "language": "markdown",
+      "description": "A choice blank uses the `item` rule with the `value` of multiple-choice.md:46 (`ws | ws? \"*\" ws? | ws? percent ws?`), and a numeric blank uses `numeric_body`, which uses the `value` of numeric.md:79 (`number | fraction`). A grammar of fill-in built from the referenced rules has two different rules called `value`. To compile the test grammar, the numeric one had to be renamed.",
+      "impact": "The fill-in grammar cannot be assembled from the referenced snippets without renaming a rule.",
+      "fix": "Rename one of the rules, for example `numeric_value` in numeric.md or `choice_value` in the choice types.",
+      "mechanical": false
+    },
+    {
+      "id": "F39",
+      "category": "grammar",
+      "severity": "low",
+      "title": "`pattern_list` accepts a change of bullet character",
+      "location": "docs/references/patterns.md:252-254, docs/question-types/fill-in.md:292",
+      "snippet": "LIST_MARK    : /[*+-]/",
+      "language": "lark",
+      "description": "`LIST_MARK` is chosen per item, so `pattern_list : pattern_item+` accepts `* Jupiter` followed by `- Saturn` as one list (tested with Lark: accepted). In CommonMark a change of bullet character starts a new list, so the second item is a second list that follows the first without a blank line. The text says `pattern_list` is 'the unordered list those items form' (fill-in.md:299). The same holds for `choice_list : item+` (fill-in.md:220).",
+      "impact": "Grammar and markdown parse disagree on how many lists the block has; the second list may become epilogue content in an implementation that follows the markdown AST.",
+      "fix": "State that all items use the same bullet character, or say that the grammar reads consecutive lists with different bullets as one list.",
+      "mechanical": false
+    },
+    {
+      "id": "F40",
+      "category": "grammar",
+      "severity": "medium",
+      "title": "`LAZY_START` ignores setext heading underlines",
+      "location": "docs/references/grammar.md:156",
+      "snippet": "LAZY_START    : /(?!>|!(?!\\[)|[*+-][ \\t]|1[.)][ \\t]|#{1,6}([ \\t]|(?=[\\r\\n]))|`{3}|~{3}|(\\*[ \\t]*){3,}(?=[\\r\\n])|(-[ \\t]*){3,}(?=[\\r\\n])|(_[ \\t]*){3,}(?=[\\r\\n]))[^ \\t\\r\\n]/",
+      "language": "lark",
+      "description": "One-line content follows the CommonMark paragraph, and a `---` or `===` line (and also a single `-` or `=`) right after a paragraph line is a setext heading underline: the whole paragraph, tag line included, becomes a heading. The terminal reads them differently. Counter-examples (tested with Lark on the fill-in `accept_def`): `[^p/short-answer]: Rio` + `===` is accepted as the pattern `Rio ===`; `[^p/short-answer]: Rio` + `-` is accepted as `Rio -`; `[^p/short-answer]: Rio` + `---` ends the block with a 'thematic break' (grammar.md:163, short-answer.md:284). In CommonMark all three turn the tag line into a heading, so there is no definition. exam.md:146 already describes this setext behavior for `---`.",
+      "impact": "An implementation that follows the grammar and one that follows the markdown AST disagree on whether the definition exists.",
+      "fix": "Add the setext underline (`=+` or `-+` with optional trailing ws) to the exclusions of `LAZY_START`, and say what happens to a tag line that becomes a setext heading (for example a `parse-error`).",
+      "mechanical": false
+    },
+    {
+      "id": "F41",
+      "category": "grammar",
+      "severity": "low",
+      "title": "`LAZY_START` rejects lines that CommonMark reads as paragraph continuation",
+      "location": "docs/references/grammar.md:156, docs/question-types/short-answer.md:156",
+      "snippet": "lazy_content : ws? LAZY_TEXT (nl ws? LAZY_TEXT)*",
+      "language": "lark",
+      "description": "Counter-examples, each after `[^p/short-answer]: Rio` (tested with Lark on `accept_def`, all rejected): (1) `    > Negro` and a tab followed by `! Negro`: with four columns of indentation the line cannot start a block quote, so CommonMark reads it as paragraph continuation; the grammar excludes `>` after any `ws?` and the text makes it a `parse-error`. (2) `*   ` and `1.  ` (empty list items): an empty list item cannot interrupt a paragraph, so CommonMark continues the paragraph; `LAZY_START` excludes `[*+-][ \\t]` and `1[.)][ \\t]` even when only ws follows. (3) A line that starts with a backtick fence whose info string has a backtick, such as `` ```b` ``, is not a fenced code block in CommonMark but `LAZY_START` excludes it.",
+      "impact": "Contrived inputs parse differently in the grammar and in CommonMark.",
+      "fix": "Limit the `>`/`!` exclusion to at most three columns of indentation, exclude list markers only when non-blank text follows, and exclude a backtick fence only when its info string has no backtick.",
+      "mechanical": false
+    },
+    {
+      "id": "F42",
+      "category": "grammar",
+      "severity": "low",
+      "title": "`exact` rejects a code span that opens at the end of a line",
+      "location": "docs/question-types/short-answer.md:152",
+      "snippet": "exact        : FENCE EXACT_TEXT (nl ws? LAZY_EXACT_TEXT)* FENCE ws?",
+      "language": "lark",
+      "description": "The exact literal follows the CommonMark code span, where a line ending can follow the opening run. `EXACT_TEXT` is `+`, so the first line must have text after the fence. Counter-example: `[^p/short-answer]:` followed by a single backtick, then the line `Rio Negro` followed by a backtick. The lines join to a backtick, ` Rio Negro` and a backtick: a complete exact literal by the text of short-answer.md:235-239, but the grammar rejects it (tested with Lark). A `schema-error` would be reported for a document that the text accepts.",
+      "impact": "Minimal; authors rarely break a literal right after the fence.",
+      "fix": "Make the text on the first line optional (`EXACT_TEXT?`), or state that the opening run must be followed by text on the same line.",
+      "mechanical": false
+    }
+  ],
+  "strengths": [
+    {
+      "category": "omission",
+      "text": "The worked grading table covers all four strategies with empty, wrong, partial-credit and negative blank scores, and the values agree with the formulas.",
+      "evidence": "docs/question-types/fill-in.md:436-457"
+    },
+    {
+      "category": "inconsistency",
+      "text": "The frontmatter maps (`preAccept`, `preReject`, `incorrectFeedback`, `domain`, `decimalPlaces`) each show the Markdown form and the JSON form, and the rules table gives the same two codes for each: `undefined-blank` for an unknown id and `schema-error` for a blank of the wrong kind.",
+      "evidence": "docs/question-types/fill-in.md:51-132, 483-504"
+    },
+    {
+      "category": "contradiction",
+      "text": "The numeric blank rules defer to the numeric question for domain, decimal places, exact arithmetic, units and valid responses, without restating them, so the two cannot drift.",
+      "evidence": "docs/question-types/fill-in.md:255-260"
+    },
+    {
+      "category": "schema",
+      "text": "The NumericBlank `answer` and `unit` patterns of schema/fill-in.yaml match the numeric grammar (exponent of at most 3 digits, nonzero denominator) and the UNIT terminal of grammar.md, and BlankId matches SLUG.",
+      "evidence": "schema/fill-in.yaml:85-90, schema/fill-in.yaml:191-211"
+    },
+    {
+      "category": "omission",
+      "text": "Every complete Markdown example of fill-in.md (lines 8-19, 249-253, 267-278, 331-342) validates with mdq-py with no warning, and the arithmetic of the grading example table checks out row by row.",
+      "evidence": "docs/question-types/fill-in.md:441-451"
+    },
+    {
+      "category": "inconsistency",
+      "text": "The frontmatter maps (preAccept, preReject, incorrectFeedback, domain, decimalPlaces) document their mapping onto blank fields with before/after YAML, and the corpus covers an undefined key and a key on the wrong kind of blank.",
+      "evidence": "docs/question-types/fill-in.md:51-132"
+    },
+    {
+      "category": "grammar",
+      "text": "`numeric_def` holds, and its two copies in fill-in.md are identical and match the numeric `answer` tag. Tested with Lark: accepted `[^size/numeric]: 2750000 +- 10%`, `[^size/numeric]:42`, `[^length/numeric(km)]: 6400 +- 5%`, `[^x/numeric(m/s)]: 1`, `-1/3`, `6.022e23 +- 0.001e23`, `3.14 +- 5% +- 0.1`, `3.14+-0.1`, `1e05`; rejected `1/0`, `1e3/2`, `1e1000`, `01`, `3,14`, `1 000`, `3.14 ± 0.1`, an empty body, `[^x/numeric (km)]`, `[^x/numeric()]`, `[^x/numeric/accept]`, `[^x/Numeric]`.",
+      "evidence": "docs/question-types/fill-in.md:193, docs/question-types/fill-in.md:236, docs/question-types/numeric.md:75-86"
+    },
+    {
+      "category": "grammar",
+      "text": "`accept_def` and `reject_def` hold, their two copies in fill-in.md are identical, and they match `accept_block`/`reject_block` of short-answer.md with the `[^SLUG` prefix. Tested with Lark: accepted single-line literal, exact (`` `` `date` `` ``), regex (`/a/b/`, `/[Bb]ras[íi]lia/i`), multi-line inexact, exact and regex content, lazy content after an empty tag, an empty accept tag, the `/accept` alias and list forms with feedback, comment and lazy lines; rejected an empty reject tag, `[^planet/short-answer(km)]`, `/short-answer/accept/reject`, an unknown kind (`/essay`), `/usr` (unclosed regex), `` `math.isnan` (x) ``, a `>` line after content or after an empty tag, a list after a blank line, and a list right after content.",
+      "evidence": "docs/question-types/fill-in.md:195-196, docs/question-types/fill-in.md:289-292, docs/question-types/short-answer.md:148-166"
+    },
+    {
+      "category": "grammar",
+      "text": "`choice_def` holds and its two copies are equivalent (`\"[^\" SLUG \"]\"` and `blank`). With list-item content as grammar.md defines it, Lark accepted the choice-blank-rich items (`[*] [andes] ...` with feedback and comment, `[50%]`, `[-25%]`), `[^capital]:` with trailing ws and up to 3 spaces of indentation; it rejected a blank line before the list, text after the colon followed by a list, and the multiple-selection value `[x]`.",
+      "evidence": "docs/question-types/fill-in.md:192, docs/question-types/fill-in.md:219-220"
+    },
+    {
+      "category": "grammar",
+      "text": "The stem rule accepts the stems of the corpus: two blanks in one sentence, a stem that starts with a blank, and blanks separated by plain text; it rejects a stem without a blank, in line with the `blanks` minimum of one.",
+      "evidence": "docs/question-types/fill-in.md:141-142"
+    }
+  ],
+  "risks": [
+    "The stem of a fill-in question has no stated limits: which paragraphs form it, which blocks and inline elements may hold a blank, and which code each wrong place gives are settled only by the corpus and by the reference implementation.",
+    "Several fill-in rules exist only in the corpus (parse errors of blank definitions) or only in prose with two allowed behaviors, so a second implementation that follows the text can disagree with mdq-py.",
+    "No grading corpus exercises fill-in, so the four strategies, empty blanks and pending blanks can drift between mdq-py and mdq-js."
+  ],
+  "recommendations": [
+    {
+      "priority": "P1",
+      "text": "Define the fill-in stem: which blocks form it and the outcome of a `[^slug]` in each context.",
+      "findings": [
+        "F1",
+        "F2",
+        "F26",
+        "F33",
+        "F34"
+      ]
+    },
+    {
+      "priority": "P1",
+      "text": "Define the empty blank and the pending fill-in response, and add a fill-in grading corpus.",
+      "findings": [
+        "F5",
+        "F11",
+        "F23"
+      ]
+    },
+    {
+      "priority": "P2",
+      "text": "Map each fill-in strategy to a multiple choice strategy for choice blanks.",
+      "findings": [
+        "F4",
+        "F22"
+      ]
+    },
+    {
+      "priority": "P2",
+      "text": "Move every parse error of blank definitions from the corpus into the Additional Rules table.",
+      "findings": [
+        "F3",
+        "F6",
+        "F7"
+      ]
+    },
+    {
+      "priority": "P2",
+      "text": "Settle the accept block of a short answer blank.",
+      "findings": [
+        "F17",
+        "F18"
+      ]
+    },
+    {
+      "priority": "P3",
+      "text": "Align the shared list, lazy line and exact literal grammars with CommonMark and with each other.",
+      "findings": [
+        "F37",
+        "F38",
+        "F39",
+        "F40",
+        "F41",
+        "F42"
+      ]
+    },
+    {
+      "priority": "P3",
+      "text": "Apply the mechanical fixes: grammar copies, schema descriptions and the choice blank term.",
+      "findings": [
+        "F8",
+        "F9",
+        "F10",
+        "F19",
+        "F29",
+        "F30",
+        "F32"
+      ]
+    }
+  ],
+  "issues": [
+    {
+      "title": "[Spec] Define the fill-in stem and where a blank may appear",
+      "findings": [
+        "F1",
+        "F2",
+        "F26",
+        "F33",
+        "F34"
+      ],
+      "summary": "The spec does not say which paragraphs form the stem, and allows two behaviors for a `[^slug]` in the wrong place. Options: (a) the stem is the last paragraph before the definitions; a `[^slug]` in an earlier paragraph is an error with a clear message. (b) The stem is every block from the first paragraph with a blank up to the definitions; blanks may appear in several paragraphs. Recommended: (b), since cloze texts often span paragraphs. In both cases, give one outcome per context: code (fenced, indented, code span) is literal text; a heading, list item, table cell, blockquote, emphasis or link text of the stem gives `misplaced-blank`; the inline parse of the whole paragraph comes first; `[^x](url)` and `[^x][ref]` are links.",
+      "acceptance": [
+        "The spec states which blocks form the stem",
+        "Each context of a `[^slug]` has one outcome and one code",
+        "The corpus has a case for a list item, a table cell, a blockquote and a multi-paragraph stem"
+      ]
+    },
+    {
+      "title": "[Spec] State the parse rules of the blank definitions",
+      "findings": [
+        "F3",
+        "F6",
+        "F7"
+      ],
+      "summary": "State that the definitions form one sequence of blocks, that a stem references each id at most once (or that repeated references share one input), and give a `parse-error` rule for each malformed definition: blank line before the choice list, text on a choice tag line (with a hint to use `/short-answer`), unknown kind suffix, unit on a non-numeric tag, a second definition of an id, and a list item right after short answer content.",
+      "acceptance": [
+        "Each corpus case of a malformed definition has a row in the Additional Rules table",
+        "The spec says whether a paragraph may separate two definitions",
+        "The spec has a rule for a repeated `[^id]` in the stem"
+      ]
+    },
+    {
+      "title": "[Spec] Map the fill-in strategy to the choice blank strategy",
+      "findings": [
+        "F4",
+        "F22"
+      ],
+      "summary": "A choice blank is graded 'under the strategy the fill-in question declares', but multiple choice has no `no-mistakes` or `all-or-nothing`. Recommended: use the exam table (`partial`, `no-mistakes`, `all-or-nothing` give multiple choice `partial`; `symmetric` gives `symmetric`), and say that the example column holds the `symmetric` blank scores.",
+      "acceptance": [
+        "fill-in.md maps each strategy to a multiple choice strategy",
+        "The example table says which strategy the blank scores column uses"
+      ]
+    },
+    {
+      "title": "[Spec] Define the empty blank and the pending fill-in response",
+      "findings": [
+        "F5",
+        "F11",
+        "F23"
+      ],
+      "summary": "State in docs/responses.md that a missing key and `null` are an empty blank, that `{}` is a response with every blank empty (not a skip), and that a value of the wrong type is malformed by the rule of the blank type. State that the instructor scores each pending blank in [0, 1] and the strategy combines the scores. Add examples/grading/fill-in.yaml.",
+      "acceptance": [
+        "docs/responses.md defines an empty blank",
+        "The pending rule says what the instructor scores",
+        "examples/grading/fill-in.yaml covers the example table, empty blanks, pending blanks and feedback order"
+      ]
+    },
+    {
+      "title": "[Spec] Settle the accept block of a short answer blank",
+      "findings": [
+        "F17",
+        "F18"
+      ],
+      "summary": "A short answer question MUST have an accept block, but a blank can have only a reject block. Options: (a) require `[^id/short-answer]` for every short answer blank; (b) allow a reject-only blank and say so. Recommended: (a), the same rule as the question. Also reword line 314-315: without accept patterns, `unmatched` defaults to `manual`, so the instructor grades what no reject pattern settles.",
+      "acceptance": [
+        "fill-in.md says whether a reject-only blank is valid, with a corpus example",
+        "Line 314-315 mentions reject patterns and `unmatched`"
+      ]
+    },
+    {
+      "title": "[Spec] Make the list grammars follow one convention",
+      "findings": [
+        "F37",
+        "F38",
+        "F39"
+      ],
+      "summary": "`pattern_item` includes the list marker while the choice `item` does not; two `value` rules collide in a fill-in grammar; a change of bullet character is read as one list. Recommended: drop the marker from `pattern_item` (grammar.md:73-75 already says the item grammar applies after the marker), rename the numeric `value` to `numeric_value`, and state that a change of bullet starts a new list.",
+      "acceptance": [
+        "`item` and `pattern_item` follow the same convention",
+        "No two rules referenced by fill-in share a name",
+        "The spec says what a change of bullet character does"
+      ]
+    },
+    {
+      "title": "[Spec] Align lazy lines and exact literals with CommonMark",
+      "findings": [
+        "F40",
+        "F41",
+        "F42"
+      ],
+      "summary": "`LAZY_START` ignores setext underlines, excludes some lines that CommonMark continues (indented `>`, empty list items, backtick lines with a backtick in the info string), and `exact` needs text after the opening backticks on the first line. Recommended: follow CommonMark in each case, and state that a tag line that becomes a setext heading is a `parse-error`.",
+      "acceptance": [
+        "LAZY_START excludes setext underlines",
+        "The counter-examples of F41 parse as continuation",
+        "An exact literal can open at the end of a line"
+      ]
+    }
+  ]
+}

@@ -35,6 +35,11 @@ A problem found while loading a document, with a severity (error, warning,
 info), a code and a location. An error means no document was built.
 _Avoid_: lint warning, validation error
 
+### Stem
+Every block between the frontmatter and the question body: the text the
+student reads before answering.
+_Avoid_: preamble, introduction, question text
+
 ### Unicode space
 A Unicode `White_Space` code point outside ASCII, such as U+00A0. The grammar
 reads it as text. See `docs/references/grammar.md`.

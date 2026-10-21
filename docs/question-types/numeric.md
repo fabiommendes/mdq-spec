@@ -72,18 +72,18 @@ Here are some examples:
 The grammar is:
 
 ```lark
-answer       : ws? "[" "numeric" unit? "]" ws? ":" numeric_body
-numeric_body : ws? sign? value tolerances? ws?
-tolerances   : ws? abstol (ws? reltol)?
-             | ws? reltol (ws? abstol)?
-value        : number
-             | fraction
-number       : (INTEGER | DECIMAL) EXPONENT?
-sign         : "+" | "-"
-abstol       : "+-" ws? number
-reltol       : "+-" ws? number "%"
-unit         : "(" UNIT ")"
-fraction     : INTEGER "/" DENOMINATOR
+answer        : ws? "[" "numeric" unit? "]" ws? ":" numeric_body
+numeric_body  : ws? sign? numeric_value tolerances? ws?
+tolerances    : ws? abstol (ws? reltol)?
+              | ws? reltol (ws? abstol)?
+numeric_value : number
+              | fraction
+number        : (INTEGER | DECIMAL) EXPONENT?
+sign          : "+" | "-"
+abstol        : "+-" ws? number
+reltol        : "+-" ws? number "%"
+unit          : "(" UNIT ")"
+fraction      : INTEGER "/" DENOMINATOR
 ```
 
 The rule `ws` and the terminals `INTEGER`, `DECIMAL`, `EXPONENT`,
@@ -161,7 +161,7 @@ decision to coerce the string representation to a number or not.
 
 A document written directly as JSON/YAML/dict, rather than parsed from
 Markdown, can choose freely between numeric and string representations.
-A string answer MUST match the `sign? value` grammar above, with the
+A string answer MUST match the `sign? numeric_value` grammar above, with the
 optional exponent, and a fraction's denominator MUST NOT be zero. A number `answer`, and both
 tolerances, MUST be finite: YAML `.inf` and `.nan` (or `Infinity` and `NaN`
 in a lenient JSON parser) are the `malformed-numeric-answer` error.
@@ -350,7 +350,7 @@ values is outside this specification.
 | Field              | Level    | Code                           | Rule                                                               |
 | ------------------ | -------- | ------------------------------ | ------------------------------------------------------------------ |
 | answer             | error    | parse-error                    | a Markdown body must match the grammar of [Body](#body), which rejects U+2212, `±`, the decimal comma and the digit group separator |
-| answer             | error    | malformed-numeric-answer       | a string must be a valid `sign? value`, with a nonzero denominator; a number must be finite; the value must fit the range of a double |
+| answer             | error    | malformed-numeric-answer       | a string must be a valid `sign? numeric_value`, with a nonzero denominator; a number must be finite; the value must fit the range of a double |
 | tolerance.absolute | error    | malformed-numeric-answer       | must be finite and fit the range of a double                       |
 | tolerance.relative | error    | malformed-numeric-answer       | must be finite and fit the range of a double                       |
 | answer             | warning  | answer-outside-domain          | should be a whole number when `domain` is "integer", and a whole number or a fraction string when `domain` is "fraction"[^6] |

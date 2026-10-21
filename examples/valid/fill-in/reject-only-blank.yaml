@@ -1,0 +1,10 @@
+id: fill-in-reject-only-blank
+title: Largest river of Brazil
+type: fill-in
+stem: O maior rio do Brasil em volume de água é o [^rio].
+blanks:
+  - id: rio
+    type: short-answer
+    reject:
+      - pattern: Tietê
+        feedback: O Tietê corre em São Paulo e é bem menor.

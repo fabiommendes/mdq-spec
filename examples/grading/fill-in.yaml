@@ -1,0 +1,277 @@
+# Document structure
+#
+# Question {
+#   name: string
+#
+#   // The question's own fields, as in its YAML form, without `type`, and
+#   // without `grading`: the strategy comes from the examples. `stem` is
+#   // written once per question.
+#   question: { stem: string, blanks: Blank[], unmatched?: string, ... }
+#
+#   // Responses and what they score (fill-in.md, "Grading"). `response` is
+#   // a mapping from blank id to the response of that blank, or any other
+#   // value when the example is malformed.
+#   //
+#   // `scores` maps each grading strategy to the score of the question, and
+#   // lists the strategies the example covers. `score` is the same for
+#   // every strategy: use it for a malformed or a pending response. The
+#   // score is a number, a fraction string such as "2/3" (floats cannot
+#   // write it exactly), "malformed" (the question rejects the response
+#   // with a `ResponseError`) or "pending" (a blank leaves its response to
+#   // the instructor, responses.md, "Pending"). The corpus cannot express
+#   // the score the instructor gives to a pending blank, so it only asserts
+#   // that the question is pending.
+#   //
+#   // `feedback` is the whole flat list of feedback strings, in the order
+#   // the blank definitions appear (fill-in.md, "Feedback"). When the key
+#   // is absent, the vector does not check the feedback.
+#   examples: {
+#     response: any,
+#     score?: number | string,
+#     scores?: { partial?: n, "no-mistakes"?: n, "all-or-nothing"?: n, symmetric?: n },
+#     feedback?: string[]
+#   }[]
+# }
+questions:
+  # The rows of the example table of fill-in.md, "Grading". `river` is a
+  # short answer blank, `length` a numeric blank and `city` a choice blank
+  # with three choices. The two unspecified choices of `city` score -0.5
+  # under "symmetric" and 0 under the other strategies (D3: the choice blank
+  # follows the multiple choice strategy).
+  - name: "Table of fill-in.md"
+    question:
+      stem: "O rio [^river] tem cerca de [^length] km e passa longe da capital [^city]."
+      blanks:
+        - id: river
+          type: short-answer
+          accept: ["Amazonas"]
+        - id: length
+          type: numeric
+          answer: 6400
+          tolerance: { absolute: 100 }
+        - id: city
+          type: multiple-choice
+          choices:
+            - { id: brasilia, text: "Brasília", score: 1 }
+            - { id: rio, text: "Rio de Janeiro" }
+            - { id: salvador, text: "Salvador" }
+    examples:
+      # Blank scores [1, 1, 1].
+      - response: { river: "Amazonas", length: 6400, city: brasilia }
+        scores: { partial: 1, no-mistakes: 1, all-or-nothing: 1, symmetric: 1 }
+      # [1, 1, 0], the city is a missing key.
+      - response: { river: "Amazonas", length: 6400 }
+        scores: { partial: "2/3", no-mistakes: "2/3", all-or-nothing: 0, symmetric: "2/3" }
+      # [1, 1, 0], the city is null: the same as a missing key.
+      - response: { river: "Amazonas", length: 6400, city: null }
+        scores: { partial: "2/3", no-mistakes: "2/3", all-or-nothing: 0, symmetric: "2/3" }
+      # [1, 1, -0.5] under symmetric, [1, 1, 0] under the others.
+      - response: { river: "Amazonas", length: 6400, city: rio }
+        scores: { partial: "2/3", no-mistakes: 0, all-or-nothing: 0, symmetric: "1/2" }
+      # [1, 0, 1]
+      - response: { river: "Amazonas", length: 6000, city: brasilia }
+        scores: { partial: "2/3", no-mistakes: 0, all-or-nothing: 0, symmetric: "2/3" }
+      # [1, 0, 0]
+      - response: { river: "Amazonas", length: 6000 }
+        scores: { partial: "1/3", no-mistakes: 0, all-or-nothing: 0, symmetric: "1/3" }
+      # [0, 1, -0.5] under symmetric, [0, 1, 0] under the others.
+      - response: { length: 6400, city: salvador }
+        scores: { partial: "1/3", no-mistakes: 0, all-or-nothing: 0, symmetric: "1/6" }
+      # [0, 0, -0.5] under symmetric, [0, 0, 0] under the others.
+      - response: { river: "Tietê", length: 1, city: rio }
+        scores: { partial: 0, no-mistakes: 0, all-or-nothing: 0, symmetric: "-1/6" }
+      # [0, 0, 0], every blank is a missing key.
+      - response: {}
+        scores: { partial: 0, no-mistakes: 0, all-or-nothing: 0, symmetric: 0 }
+      # [0, 0, 0], every blank is null.
+      - response: { river: null, length: null, city: null }
+        scores: { partial: 0, no-mistakes: 0, all-or-nothing: 0, symmetric: 0 }
+      # "" is not an empty blank: it is a response like any other, and a
+      # mistake. [0, 1, 1]
+      - response: { river: "", length: 6400, city: brasilia }
+        scores: { partial: "2/3", no-mistakes: 0, all-or-nothing: 0, symmetric: "2/3" }
+
+  # The row "partial-credit city": a choice that declares a score of its own
+  # scores it under every strategy. The choice left without a score is -1
+  # under "symmetric": the declared scores sum to 1.5, and one choice has none.
+  - name: "Partial-credit choice"
+    question:
+      stem: "O rio [^river] tem cerca de [^length] km e passa longe da capital [^city]."
+      blanks:
+        - id: river
+          type: short-answer
+          accept: ["Amazonas"]
+        - id: length
+          type: numeric
+          answer: 6400
+          tolerance: { absolute: 100 }
+        - id: city
+          type: multiple-choice
+          choices:
+            - { id: brasilia, text: "Brasília", score: 1 }
+            - { id: goiania, text: "Goiânia", score: 0.5 }
+            - { id: rio, text: "Rio de Janeiro" }
+    examples:
+      # [1, 1, 0.5]
+      - response: { river: "Amazonas", length: 6400, city: goiania }
+        scores: { partial: "5/6", no-mistakes: 0, all-or-nothing: 0, symmetric: "5/6" }
+      # [1, 1, -1] under symmetric, [1, 1, 0] under the others.
+      - response: { river: "Amazonas", length: 6400, city: rio }
+        scores: { partial: "2/3", no-mistakes: 0, all-or-nothing: 0, symmetric: "1/3" }
+
+  # A response that the question cannot represent is a `ResponseError`, for
+  # every strategy (responses.md, "Fill in the blanks"). A wrong answer is a
+  # score, not an error.
+  - name: "Malformed responses"
+    question:
+      stem: "O rio [^river] tem cerca de [^length] km e passa longe da capital [^city]."
+      blanks:
+        - id: river
+          type: short-answer
+          accept: ["Amazonas"]
+        - id: length
+          type: numeric
+          answer: 6400
+          tolerance: { absolute: 100 }
+        - id: city
+          type: multiple-choice
+          choices:
+            - { id: brasilia, text: "Brasília", score: 1 }
+            - { id: rio, text: "Rio de Janeiro" }
+            - { id: salvador, text: "Salvador" }
+    examples:
+      # A blank id the question does not have.
+      - response: { lake: "Titicaca" }
+        score: "malformed"
+      - response: { river: "Amazonas", lake: "Titicaca" }
+        score: "malformed"
+      # A choice id the blank does not have.
+      - response: { city: curitiba }
+        score: "malformed"
+      # A value of the wrong type for the blank.
+      - response: { river: 42 }
+        score: "malformed"
+      - response: { river: ["Amazonas"] }
+        score: "malformed"
+      - response: { length: [6400] }
+        score: "malformed"
+      - response: { city: 3 }
+        score: "malformed"
+      - response: { city: [brasilia] }
+        score: "malformed"
+      # Malformed even when the other blanks are right or empty.
+      - response: { river: "Amazonas", length: 6400, city: [brasilia] }
+        score: "malformed"
+      # The response itself is not a mapping.
+      - response: "Amazonas"
+        score: "malformed"
+      - response: ["Amazonas"]
+        score: "malformed"
+
+  # The flat feedback list follows the order of the blank definitions
+  # (`city`, `river`, `length`), not the order of the stem (`river`,
+  # `length`, `city`). A choice shows its feedback whatever it scored. An
+  # empty blank shows nothing.
+  - name: "Feedback order"
+    question:
+      stem: "O rio [^river] tem cerca de [^length] km e passa longe da capital [^city]."
+      blanks:
+        - id: city
+          type: multiple-choice
+          choices:
+            - { id: brasilia, text: "Brasília", score: 1, feedback: "Brasília é a capital desde 1960." }
+            - { id: rio, text: "Rio de Janeiro", feedback: "O Rio foi a capital até 1960." }
+            - { id: salvador, text: "Salvador" }
+        - id: river
+          type: short-answer
+          accept:
+            - { pattern: "Amazonas", feedback: "O Amazonas é o maior rio em volume de água." }
+          reject:
+            - { pattern: "Tietê", feedback: "O Tietê corre em São Paulo." }
+        - id: length
+          type: numeric
+          answer: 6400
+          tolerance: { absolute: 100 }
+          incorrectFeedback: "O Amazonas é mais longo que isso."
+    examples:
+      # Feedback of the three blanks, in the order of the definitions.
+      - response: { river: "Tietê", length: 1000, city: rio }
+        scores: { partial: 0, no-mistakes: 0, all-or-nothing: 0, symmetric: "-1/6" }
+        feedback:
+          - "O Rio foi a capital até 1960."
+          - "O Tietê corre em São Paulo."
+          - "O Amazonas é mais longo que isso."
+      # Correct answers show the feedback of their pattern or choice.
+      - response: { river: "Amazonas", length: 6400, city: brasilia }
+        scores: { partial: 1, no-mistakes: 1, all-or-nothing: 1, symmetric: 1 }
+        feedback:
+          - "Brasília é a capital desde 1960."
+          - "O Amazonas é o maior rio em volume de água."
+      # An empty blank shows nothing.
+      - response: { length: 1000, city: salvador }
+        scores: { partial: 0, no-mistakes: 0, all-or-nothing: 0, symmetric: "-1/6" }
+        feedback:
+          - "O Amazonas é mais longo que isso."
+      - response: {}
+        scores: { partial: 0, no-mistakes: 0, all-or-nothing: 0, symmetric: 0 }
+        feedback: []
+
+  # `unmatched: manual` on the question: a response of `river` that no
+  # pattern settles goes to the instructor, and so does the whole question.
+  # The instructor then scores the pending blank in [0, 1] and the strategy
+  # combines the blank scores as usual.
+  - name: "Pending short answer blank"
+    question:
+      stem: "O rio [^river] tem cerca de [^length] km."
+      unmatched: manual
+      blanks:
+        - id: river
+          type: short-answer
+          accept: ["Amazonas"]
+          reject: ["Tietê"]
+        - id: length
+          type: numeric
+          answer: 6400
+          tolerance: { absolute: 100 }
+    examples:
+      - response: { river: "Madeira", length: 6400 }
+        score: "pending"
+      # The pending blank is enough, whatever the other blank scored.
+      - response: { river: "Madeira", length: 1 }
+        score: "pending"
+      - response: { river: "Madeira" }
+        score: "pending"
+      # The others are settled: accept and reject patterns match.
+      - response: { river: "Amazonas", length: 6400 }
+        scores: { partial: 1, no-mistakes: 1, all-or-nothing: 1, symmetric: 1 }
+      - response: { river: "Tietê", length: 6400 }
+        scores: { partial: "1/2", no-mistakes: 0, all-or-nothing: 0, symmetric: "1/2" }
+      # An empty short answer blank is not pending: it scores 0.
+      - response: { length: 6400 }
+        scores: { partial: "1/2", no-mistakes: "1/2", all-or-nothing: 0, symmetric: "1/2" }
+      - response: { river: null, length: 6400 }
+        scores: { partial: "1/2", no-mistakes: "1/2", all-or-nothing: 0, symmetric: "1/2" }
+      - response: {}
+        scores: { partial: 0, no-mistakes: 0, all-or-nothing: 0, symmetric: 0 }
+      # A malformed blank is still malformed next to a pending one.
+      - response: { river: "Madeira", length: [6400] }
+        score: "malformed"
+
+  # A blank with an empty accept block and no reject block leaves every
+  # response to the instructor (`unmatched` defaults to "manual"). A
+  # question with only that blank is `manual`.
+  - name: "Manual question"
+    question:
+      stem: "O rio [^river] é o maior do Brasil em volume de água."
+      blanks:
+        - id: river
+          type: short-answer
+    examples:
+      - response: { river: "Amazonas" }
+        score: "pending"
+      - response: { river: "" }
+        score: "pending"
+      - response: { river: null }
+        scores: { partial: 0, no-mistakes: 0, all-or-nothing: 0, symmetric: 0 }
+      - response: {}
+        scores: { partial: 0, no-mistakes: 0, all-or-nothing: 0, symmetric: 0 }

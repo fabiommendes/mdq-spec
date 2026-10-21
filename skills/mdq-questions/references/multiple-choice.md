@@ -88,11 +88,12 @@ make questions harder for reasons unrelated to what they test
 * No trick questions. Difficulty must come from the content, not from
   wording [Butler 2018](references.md#multiple-choice-questions).
 
-### Stem and preamble
+### Stem
 
 * Put the whole problem in the stem. If it needs introduction of a scenario, new
   concepts, a text for the student to read, tables, code snippets, etc., include
-  in preamble paragraphs. Apply the **cover-the-options rule**: a student who
+  them in the stem, before the command. Apply the **cover-the-options rule**:
+  a student who
   knows the material should be able to answer with the choices hidden.
 * Prefer a direct question over a sentence to complete. If you want to write
   fill in the blanks type of questions, prefer the fill-in type.

@@ -35,8 +35,9 @@ allOf:
         description: >-
           The strategy used to grade the question, see the `Grading`
           section of the corresponding document in docs/question-types.
-          `inherit`, the default, takes the exam's `grading` value, and
-          is `symmetric` outside an exam.
+          `inherit`, the default, takes the exam's `grading` value (or
+          its `fill-in` entry when that value is a map), and is `symmetric`
+          outside an exam.
 
       shuffle:
         oneOf:
@@ -55,7 +56,9 @@ allOf:
         "$ref": "./short-answer.yaml#/$defs/unmatched"
         description: >-
           Applies to every short answer blank of the question, with the
-          same meaning as in a short answer question.
+          same meaning as in a short answer question. If absent, each blank
+          takes its own default: `incorrect` with an accept pattern and
+          `manual` without one.
 
     required:
       - type
@@ -75,8 +78,8 @@ unevaluatedProperties: false
     description: >-
       A single blank. `type` discriminates the three kinds; it is
       required here even though the surface syntax may leave it implicit
-      (`[^capital]:` infers its kind from the definition that follows,
-      while `[^size/numeric]:` states it).
+      (`[^capital]:` is a choice blank, while `[^size/numeric]:` and
+      `[^city/short-answer]:` state their kind).
     oneOf:
       - "$ref": "#/$defs/ChoiceBlank"
       - "$ref": "#/$defs/ShortAnswerBlank"
@@ -124,8 +127,8 @@ unevaluatedProperties: false
     description: >-
       A blank the student answers by typing a short piece of text, graded
       exactly like a short-answer question. Carries the same answer
-      machinery: a list of accepted responses, a regular expression, or
-      `accept`/`reject` pattern lists that can attach feedback.
+      machinery: `accept` and `reject` pattern lists, which can attach
+      feedback.
     additionalProperties: false
     properties:
       id:
@@ -137,8 +140,8 @@ unevaluatedProperties: false
       accept:
         description: >-
           Patterns matching a correct response. In Markdown, the
-          `[^id/short-answer/accept]` block sets it; a response is correct if
-          it matches any entry.
+          `[^id/short-answer]` block (alias `[^id/short-answer/accept]`)
+          sets it; a response is correct if it matches any entry.
         "$ref": "./short-answer.yaml#/$defs/patternList"
 
       reject:

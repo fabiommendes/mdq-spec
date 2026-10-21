@@ -20,7 +20,7 @@
   `examples/invalid/`.
 * [ ] mdq-js: port the one-severity-per-code split. `non-ascii-whitespace-in-prose`
   (info) for prose Unicode spaces, `blank-content-field` (error) for a blank
-  `preamble`, `epilogue` or `stem`. See `docs/lint-codes.md`.
+  `epilogue` or `stem`. See `docs/lint-codes.md`.
 * [ ] mdq-py: accept the `{value, unit}` numeric response of responses.md
   (valid when the unit matches the question's, malformed when the question
   declares none). Unit conversion stays optional.

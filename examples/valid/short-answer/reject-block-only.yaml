@@ -1,0 +1,7 @@
+id: bioma-pantanal-reject
+title: Wetland biome of Brazil
+type: short-answer
+stem: Name the largest wetland biome of Brazil.
+reject:
+  - pattern: Cerrado
+    feedback: The Cerrado borders the Pantanal, but it is a savanna.

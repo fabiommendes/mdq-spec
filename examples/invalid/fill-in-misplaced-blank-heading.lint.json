@@ -1,11 +1,9 @@
 [
   {
-    "code": "unreferenced-blank",
+    "code": "misplaced-blank",
     "severity": "error",
     "path": [
-      "blanks",
-      0,
-      "id"
+      "stem"
     ]
   }
 ]

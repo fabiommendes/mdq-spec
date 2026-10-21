@@ -124,19 +124,17 @@ takes precedence. An implementation SHOULD report `redundant-id` in this case,
 whether the two values are equal or not. When they are different, the message
 says that the frontmatter value wins.
 
-## Introduction 
+## Stem
 
-The introduction comprises a preamble and a stem. The preamble is a
-sequence of zero or more markdown block elements (paragraphs, tables, lists, etc). 
-
-The stem is a REQUIRED block of text before the body. It is the main instruction
-for the students (e.g. "Mark the correct alternative"). Implementations SHOULD
-require that the stem is a paragraph of text (and not other block elements such
-as tables, lists, etc).
+The stem is a REQUIRED sequence of one or more markdown block elements
+(paragraphs, tables, lists, etc) before the body. It holds the context of the
+question and the main instruction for the students (e.g. "Mark the correct
+alternative"). Every block between the frontmatter (and the [slug](#slug)) and
+the body is part of the stem.
 
 ### Forbidden elements
 
-Most markdown block elements are valid in the preamble, epilogue and stem. A few
+Most markdown block elements are valid in the stem and in the epilogue. A few
 constructions are rejected because they may be mistaken for the body element.
 For multiple choice questions, for instances, the body is the unordered list
 starting with the `[ ]` checkmarks.
@@ -261,7 +259,7 @@ such a value as an unmarked choice: the answer key would change in silence.
 ## Epilogue
 
 Any block elements below the body are collected in the epilogue. The block
-elements MUST follow the same rules as the block elements of the preamble.
+elements MUST follow the same rules as the block elements of the stem.
 
 Some question types may define optional block elements that appear
 after the epilogue.
@@ -327,9 +325,9 @@ the value `undefined`. A NULLABLE field can take the value of some type or
 `null`. If not specified, a NULLABLE field must appear in the document with a
 value of `null`. Fields can be both OPTIONAL and NULLABLE at the same time.
 
-The `preamble`, `epilogue`, and `stem` fields are derived from the corresponding
-markdown block elements and are represented by strings. `preamble` and
-`epilogue` are OPTIONAL. The string can be created by taking a verbatim copy of
+The `stem` and `epilogue` fields are derived from the corresponding
+markdown block elements and are represented by strings. `epilogue` is
+OPTIONAL. The string can be created by taking a verbatim copy of
 those elements in the body of text, but implementations MAY perform any
 normalization step that do not affect markdown semantics. For instance,
 implementations may remove word wrap and normalize whitespace since both have no
@@ -359,7 +357,7 @@ The JSON Schema is normative for the shape of a document. It validates the
 document after the removal of each `null` value of an OPTIONAL field (see
 [Frontmatter](#frontmatter)). A list field MUST have at least the number of
 items the schema states (`minItems`). Each question type lists its minimums
-below. A free-text field (`title`, `author`, `comment`, `preamble`, `stem`,
+below. A free-text field (`title`, `author`, `comment`, `stem`,
 `epilogue`, choice text, feedback and the like) and each entry of `tags` MUST
 have at least one [visible
 character](../references/grammar.md#visible-characters) when it is defined. The
@@ -370,11 +368,10 @@ the schema rejects their empty string.
 
 | Field                    | Level    | Code                      | Rule |
 | ------------------------ | -------- | ------------------------- | -------------------- |
-| title, author, comment, preamble, epilogue, stem | error    | blank-text | if defined, must have at least one visible character |
-| preamble, epilogue, stem | error    | forbidden-block-element   | cannot have explicitly forbidden block elements[^7] |
+| title, author, comment, epilogue, stem | error    | blank-text | if defined, must have at least one visible character |
+| epilogue, stem           | error    | forbidden-block-element   | cannot have explicitly forbidden block elements[^7] |
 | locale                   | error    | malformed-locale          | must be a well-formed IETF BCP 47 tag[^4] |
 | id                       | warning  | unsafe-id                 | should be url-safe[^2] |
-| stem                     | warning  | stem-not-a-paragraph      | must be a markdown `p` block element |
 | tags                     | error    | blank-text                | each entry must have at least one visible character |
 | tags                     | warning  | unsplit-tag-list          | an entry containing a comma is only split when `tags` itself is a single string, not a list |
 | uuid                     | error    | malformed-uuid            | must be a well-formed UUID[^3] |
@@ -383,8 +380,8 @@ the schema rejects their empty string.
 | id                       | info     | missing-id                | the field is not defined in the document |
 | title                    | info     | missing-title             | the field is not defined in the document |
 | locale                   | info     | locale-lookalike-language | the language subtag looks like a country code[^8]           |
-| preamble, epilogue, stem | warning  | unsafe-thematic-break     | a thematic break should be `***` or `___`, not `---`[^9] |
-| preamble, epilogue, stem | warning  | stray-choice-marker       | a list item outside the body should not start with a choice value[^7] |
+| epilogue, stem           | warning  | unsafe-thematic-break     | a thematic break should be `***` or `___`, not `---`[^9] |
+| epilogue, stem           | warning  | stray-choice-marker       | a list item outside the body should not start with a choice value[^7] |
 | any frontmatter key      | error    | invalid-frontmatter-field | must be a field of the frontmatter table of the question type or of the base table[^11] |
 | id                       | warning  | redundant-id              | should not be set both in the frontmatter and as a slug[^12] |
 | any text                 | warning  | non-ascii-whitespace      | U+0085, U+2028, U+2029, or a Unicode space in a syntax position[^10] |

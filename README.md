@@ -66,8 +66,8 @@ tags: geography, brazil
 locale: en
 ---
 
-Optional preamble: any number of paragraphs, tables, images or code blocks
-that give context to the question.
+The stem: any number of paragraphs, tables, images or code blocks that give
+context to the question, then the command.
 
 What is the capital of Brazil?
 

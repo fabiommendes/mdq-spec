@@ -126,7 +126,7 @@ string keeps digits that a float would lose:
 response: "3.1415"
 ```
 
-A string response follows the `sign? value` grammar of
+A string response follows the `sign? numeric_value` grammar of
 [numeric.md](question-types/numeric.md#body): an optional exponent
 (`"6.022e23"`, `"1E-3"`), no comma, no group separator and no space, and a
 fraction has a nonzero denominator and no exponent. The exponent has at most
@@ -230,6 +230,18 @@ A blank id not present in the question is a malformed response, see
 [Addressability](#addressability). The same holds for a choice blank: the value
 must be the id of one of its choices.
 
+A blank the response does not answer is an **empty blank**: its key is missing
+or its value is `null`. An empty blank scores 0 under every strategy and shows
+no feedback, see [Grading](question-types/fill-in.md#grading). `{}` is a
+response with every blank empty: it scores 0 and is not a skip, because only
+`null` skips the question, see [Skipping](#skipping). `""` is not an empty
+blank: for a short answer blank it is text like any other.
+
+A value of the wrong type for a blank is a malformed response
+(`ResponseError`), by the rule of the blank's type: a string for a short answer
+blank, a choice id for a choice blank, a numeric response for a numeric blank.
+A response that is not a mapping is malformed too.
+
 
 ### Ordering
 
@@ -305,7 +317,9 @@ response that matches no pattern of a short answer question with
 [Automation](question-types/question-base.md#automation).
 
 A pending response has no score until the instructor supplies one, and shows
-no feedback. An exam-level scorer accepts it and reports it as pending rather
+no feedback. For a fill in, the instructor scores each pending blank in the
+range `[0, 1]`, and the question's `grading` strategy then combines the blank
+scores as usual, see [Grading](question-types/fill-in.md#grading). An exam-level scorer accepts it and reports it as pending rather
 than scored. An LMS should not have to strip essay answers out of its response
 map before grading.
 

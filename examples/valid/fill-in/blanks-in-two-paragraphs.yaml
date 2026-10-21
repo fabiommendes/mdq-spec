@@ -1,0 +1,18 @@
+id: fill-in-amazon-basin
+title: Amazon basin
+type: fill-in
+stem: |-
+  The Amazon River crosses Brazil from west to east and ends in the [^ocean].
+
+  The basin holds about one fifth of the fresh water that rivers carry to the oceans.
+
+  Its largest tributary by volume is the [^tributary], which gives the main river a dark color in the Meeting of Waters near Manaus.
+blanks:
+  - id: ocean
+    type: short-answer
+    accept:
+      - Atlantic
+  - id: tributary
+    type: short-answer
+    accept:
+      - Rio Negro

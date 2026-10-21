@@ -15,6 +15,13 @@ First version of the specification.
 
 ### Fixed
 
+- Short answer and fill-in short answer blank: a setext underline (`===` or `---`) right after the content of a definition is a `parse-error`, because CommonMark turns the tag line into a heading. A `>` or `!` line with four or more columns of indentation continues the content (`LAZY_START` fix, with `MARK_INDENT` for the marker lines). `LAZY_START` is an approximation of the CommonMark paragraph continuation. An exact literal cannot open at the end of a line, and its closing run cannot start a continuation line (`schema-error`). New examples `short-answer-setext-after-content`, `short-answer-setext-after-continuation`, `fill-in-short-answer-setext-after-content`, `short-answer-exact-opens-at-line-end`, `short-answer-exact-opens-at-line-end-item`, `short-answer-exact-closes-at-line-start` and `valid/short-answer/indented-quote-continuation`.
+- Fill-in stem: each blank id appears at most once; a repeated `[^id]` is the new error `duplicate-blank-reference`. New `parse-error` rules in the Additional Rules: a blank line between a choice tag and its list, text on the tag line of a choice definition, an unknown kind suffix, a unit on a non-numeric tag, a second definition of an id, a list item after the content of a short answer definition.
+- Grammars: `pattern_item` starts after the list marker (no `LIST_MARK`), as `item` does. The numeric `value` rule is now `numeric_value`, so the fill-in grammar has no two rules `value`. A change of bullet character starts a new list, as in CommonMark (`grammar.md`).
+- Fill-in grading: an empty blank is a missing key or a `null` value; `{}` is a response with every blank empty (score 0, not a skip); a value of the wrong type for a blank is a malformed response. For a pending fill-in, the instructor scores each pending blank in `[0, 1]` and the strategy combines the blank scores. A choice blank is scored with the multiple choice `partial` under `partial`, `no-mistakes` and `all-or-nothing`, and with `symmetric` under `symmetric`; the "blank scores" column of the example table holds the `symmetric` values.
+- Short answer question and short answer blank: a body needs at least one of the `[short-answer]` (or `/accept`) and `[short-answer/reject]` blocks. A block with only a reject block is valid, and `unmatched` defaults to `manual` without accept patterns. New examples `valid/fill-in/reject-only-blank` and `valid/short-answer/reject-block-only`.
+- Fill-in: the blank definitions form one contiguous sequence of blocks. A blank definition tag line in the epilogue is the new error `detached-blank-definition`. New example `invalid/fill-in-detached-blank-definition`.
+- Fill-in stem: one outcome per context for a `[^slug]` (table in `fill-in.md`). Code (fenced, indented, code span) is literal text. A `[^slug]` in a heading, list item, table cell, blockquote, emphasis, strong, link text or image alt text is `misplaced-blank`; the parser reads the inline markup of the whole paragraph first. `[^x](url)` and `[^x][ref]` are links: the `blank` rule excludes a `]` followed by `(` or `[`. Examples: `fill-in-misplaced-blank-code-span` is now valid (`blank-in-code-span-is-text`); new examples for list item, table cell, blockquote and link; every example name with `preamble` now says `stem`.
 - Numeric grammar: the denominator of a fraction is a new `DENOMINATOR` terminal
   that excludes zero, so `[numeric]: 1/0` is a `parse-error` by the grammar.
 - Fill-in grammar: `choice_def` and `numeric_def` accept leading whitespace, and
@@ -59,6 +66,7 @@ First version of the specification.
 
 ### Added
 
+- Grading corpus `examples/grading/fill-in.yaml`: the rows of the example table for the four strategies, empty blanks, `{}`, malformed responses, pending blanks and the feedback order.
 - Numeric scientific notation, in the form of a JSON number: a `number` is an
   `INTEGER` or `DECIMAL` with an optional `EXPONENT` (`6.022e23`, `1E-3`,
   `2.5e+4`, `1e05`). The value, both tolerances, the string `answer` and the

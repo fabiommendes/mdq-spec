@@ -797,7 +797,7 @@ def parse_lint_codes(audit: Audit, problems: list[str]) -> None:
             if code in seen:
                 problems.append(f"{where}: {code} repeats in the {label} table")
             seen.append(code)
-            # "any (`preamble`, `stem`)" -> "any".
+            # "any (`stem`, `epilogue`)" -> "any".
             type_set = {
                 re.sub(r"\s*\(.*\)$", "", item).strip()
                 for item in re.split(r",\s*(?![^()]*\))", types)

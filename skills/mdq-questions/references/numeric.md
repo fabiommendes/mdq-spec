@@ -70,7 +70,7 @@ would lose information:
 
 `domain` still records how the value is written. When you write YAML/JSON by
 hand, either form is valid, but a string must follow the body syntax
-(`sign? value`, with the optional exponent, no zero denominator). The `answer` and the tolerances must be
+(`sign? numeric_value`, with the optional exponent, no zero denominator). The `answer` and the tolerances must be
 finite (no `.inf`, `.nan`). With `domain: fraction`, write the
 answer as a fraction string (`"3/4"`) or an integer, never as a decimal such as
 `0.75` (`answer-outside-domain`).

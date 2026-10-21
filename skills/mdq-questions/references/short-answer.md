@@ -30,6 +30,14 @@ longer fence, and put one space inside each end if the answer starts or ends
 with a backtick: ``` `` `date` `` ``` is the answer `` `date` ``, and
 ```` ```a``b``` ```` is ``` a``b ```.
 
+Keep the opening and the closing backtick next to the text. A literal cannot
+open at the end of a line, and the closing backtick cannot start a line. If you
+wrap a long literal, break it between words.
+
+A line of only `=` or `-` right under the content of a `[short-answer]:` line
+is an error: Markdown reads it as a heading underline. Leave a blank line, or
+use the list form.
+
 Demand an exact answer for code, spelling or orthography questions:
 
 ```md
@@ -41,8 +49,10 @@ Which **Python** function checks if a number is NaN?
 ## Accept / reject blocks
 
 `[short-answer]` is the accept block (`[short-answer/accept]` is an alias; use
-one spelling). `[short-answer/reject]` lists known wrong answers. Each block
-appears at most once and takes either one pattern on the tag line or a bullet
+one spelling). `[short-answer/reject]` lists known wrong answers. A question
+needs at least one of the two blocks. With only a reject block, `unmatched`
+defaults to `manual`: the instructor grades what no reject pattern settles.
+Each block appears at most once and takes either one pattern on the tag line or a bullet
 list starting on the line right after the tag. Order matters: the first
 matching pattern supplies the feedback.
 

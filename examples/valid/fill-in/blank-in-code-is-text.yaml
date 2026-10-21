@@ -1,16 +1,15 @@
-# A `[^id]` outside the stem is literal text: in a fenced code block of the
-# preamble, in a code span, and in an epilogue paragraph. Only the stem
-# reference counts (fill-in.md, "Where blanks may appear").
+# A `[^id]` is literal text in a fenced code block of the stem and in an
+# epilogue paragraph. Only the reference in a plain text run of a stem
+# paragraph counts (fill-in.md, "Where blanks may appear").
 type: fill-in
-preamble: 'Em MDQ, um blank é escrito assim:
-
+stem: |-
+  Em MDQ, um blank é escrito assim:
 
   ```md
-
   A capital é [^capital].
+  ```
 
-  ```'
-stem: 'Complete: a capital do Brasil é [^capital].'
+  Complete: a capital do Brasil é [^capital].
 blanks:
 - id: capital
   type: short-answer

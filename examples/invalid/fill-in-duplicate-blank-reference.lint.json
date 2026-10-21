@@ -1,0 +1,9 @@
+[
+  {
+    "code": "duplicate-blank-reference",
+    "severity": "error",
+    "path": [
+      "stem"
+    ]
+  }
+]

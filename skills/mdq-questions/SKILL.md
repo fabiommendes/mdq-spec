@@ -27,7 +27,7 @@ title: Capital of Brazil
 tags: geography, brazil
 ---
 
-Optional preamble paragraphs.
+Optional context paragraphs, then the command.
 
 What is the capital of Brazil?
 

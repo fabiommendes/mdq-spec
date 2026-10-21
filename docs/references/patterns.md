@@ -149,6 +149,13 @@ code span of CommonMark:
   a backtick.
 * If the text between the two runs starts and ends with a space, and is not
   only spaces, one space is removed from each end.
+* The opening run MUST be followed by text on the same line, and the closing
+  run MUST follow text on its line. In the body, a literal that opens at the
+  end of a line, or whose closing run starts a continuation line, is a
+  `schema-error`. Line endings in a literal exist for word wrap. Opening or
+  closing at a line ending would need a rule on whether the space at the edge
+  is removed. A pattern string of the YAML, JSON and frontmatter form has no
+  line ending, so the rule is already met there.
 
 | Pattern             | Exact literal |
 | ------------------- | ------------- |
@@ -249,10 +256,12 @@ either order. Both follow the rules of
 [Feedback and comment lines](grammar.md#feedback-and-comment-lines).
 
 ```lark
-pattern_item : ws? LIST_MARK ws content nl (blank_line* observations)?
-
-LIST_MARK    : /[*+-]/
+pattern_item : ws? content nl (blank_line* observations)?
 ```
+
+The rule starts after the list marker and its padding, as the grammar of any
+list item does, see
+[Content of a list item](grammar.md#content-of-a-list-item).
 
 The `content` rule is the one of the
 [short answer body](../question-types/short-answer.md#body), with its
@@ -280,6 +289,12 @@ one line:
   feedback line continues the feedback.
 * A blank line ends the part before it. After it, only the feedback or the
   comment can start. Any other line is a `parse-error`.
+* A setext underline (a line of only `=` or only `-` characters, with up to
+  three spaces of indentation and optional trailing spaces and tabs) right
+  after the lines of the pattern is a `parse-error`: in CommonMark it turns
+  the pattern lines into a heading. After a feedback or comment line it is
+  continuation text, because a setext underline cannot continue a block quote
+  by laziness.
 
 To join the lines of the pattern, an implementation replaces each line
 ending, together with the indentation of the next line, with one U+0020. The
@@ -310,10 +325,16 @@ rules are:
   continues the content. It does so up to the first blank line. This holds
   also after an empty tag line: the line after `[short-answer]:` is the
   content, and the line after `[short-answer/reject]:` is its pattern.
-* A line that starts with `>`, or with `!` (but not `![`), right after the
-  content, or right after an empty tag line, is a `parse-error`. The message suggests the list form: `* pattern`
+* A line that starts with `>`, or with `!` (but not `![`) and has up to three
+  spaces of indentation, right after the
+  content, or right after an empty tag line, is a `parse-error`. With four or
+  more columns of indentation the line is continuation text. The message suggests the list form: `* pattern`
   with the `>` or `!` lines indented under it.
 * A list item right after the content is a `parse-error`.
+* A setext underline right after the content (`[short-answer]: Rio` followed
+  by `===`), also after its continuation lines, is a `parse-error`: in
+  CommonMark the tag line would become a heading, so there would be no
+  definition. The same holds for the tag line of a fill-in short answer blank.
 * An ATX heading, a fenced code block, an HTML block or a thematic break
   right after the content ends the block. It goes to the epilogue, as in
   CommonMark.

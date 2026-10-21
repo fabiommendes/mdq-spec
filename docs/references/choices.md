@@ -43,7 +43,7 @@ character.
 The empty marker, `[]`, is a `parse-error`. It is almost always a mistyped
 `[ ]`, and the message of the error can say so.
 
-A list of links is not a choice list, and it is valid in the preamble and in
+A list of links is not a choice list, and it is valid in the stem and in
 the epilogue:
 
 ```md

@@ -1,11 +1,16 @@
 # A list whose items start with links is not a choice list: a bracket
 # followed by `(` or `[` starts a markdown link (choices.md, "Choice
-# marker"). The lists are valid in the preamble and in the epilogue.
+# marker"). The lists are valid in the stem and in the epilogue.
 id: ms-link-list
 title: Capitais estaduais
 type: multiple-selection
-preamble: "Use os dados destes institutos:\n\n* [IBGE](https://www.ibge.gov.br)\n* [INPE](https://www.inpe.br)"
-stem: Quais destas cidades são capitais estaduais?
+stem: |-
+  Use os dados destes institutos:
+
+  * [IBGE](https://www.ibge.gov.br)
+  * [INPE](https://www.inpe.br)
+
+  Quais destas cidades são capitais estaduais?
 choices:
 - id: manaus
   text: Manaus

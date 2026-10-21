@@ -481,3 +481,126 @@ M1 a M6 da seção anterior (o item M4 e a tabela `en`/`pt`/`es`).
   plana de feedback, na ordem dos blanks. Blank pulado, correto ou malformado
   (erro) não mostra nada. Corpus: `valid/fill-in/numeric-blank-incorrect-feedback`,
   `invalid/model-only/fill-in-numeric-blank-empty-incorrect-feedback`.
+
+## Auditoria de fill-in (2026-10-20)
+
+- FI1. `preamble` sai do formato; `stem` guarda todos os blocos entre a
+  frontmatter (ou o slug) e o corpo (um ou mais blocos, ainda obrigatório).
+  Tipos: tirar `preamble` de `BaseQuestion`/`QuestionBase` e dos tipos do
+  schema. YAML/JSON com `preamble` vira `schema-error`
+  (`unevaluatedProperties`); na frontmatter, `invalid-frontmatter-field`.
+  Parser: `split_intro` devolve `(stem, slug)`; o stem é a junção de todos os
+  blocos antes do corpo, e o `[slug]` inline sai só do primeiro bloco. O
+  `setext-heading` colado em um `---` dentro do stem usa o campo `stem` no
+  caminho (antes `preamble`). Modelo: `forbidden-block-element`,
+  `blank-text`, `unsafe-thematic-break` e `stray-choice-marker` valem só para
+  `stem` e `epilogue`; a exceção do `[slug]` no primeiro bloco vale para o
+  stem. `normalize_intro` virou `normalize_stem` (reconstrói os blocos do
+  stem, sem migrar nada para outro campo); `can_inline_id` recebe só o stem.
+  O lint `stem-not-a-paragraph` foi removido (o SHOULD "o stem é um parágrafo"
+  saiu). Render: `yield_introduction` escreve só o stem. Show/componentes:
+  desenhar só o `stem` (blanks marcados em todo o stem). Conversores Moodle,
+  GIFT e Aiken: o texto da questão vem de `stem` (+ `epilogue`), sem
+  `preamble`. Fill-in: um blank pode estar em qualquer parágrafo comum do
+  stem; `[^slug]` no epílogo continua literal. Estratégias de teste: o `stem`
+  gerado passa a ser uma sequência de blocos. Testes: tirar `preamble` dos
+  casos, trocar `("preamble",)` por `("stem",)` nos caminhos de lint, apagar o
+  teste de `stem-not-a-paragraph`. Corpus: os `.yaml` que tinham `preamble`
+  agora têm o texto no `stem` (juntado por uma linha em branco); apagados
+  `invalid/model-only/essay-blank-preamble` e `valid/essay/stem-not-a-paragraph`;
+  novo `valid/fill-in/blanks-in-two-paragraphs`.
+
+- FI2. Resultado de um `[^slug]` em cada contexto do stem (decisão D1b). Código
+  (cerca, bloco indentado, code span) é texto literal: não declara nem
+  referencia blank (antes o code span dava `misplaced-blank`). Heading, item de
+  lista, célula de tabela, blockquote, ênfase, strong, texto de link e alt de
+  imagem: `misplaced-blank`. `[^x](url)` e `[^x][ref]` são links (o regex do
+  marcador tem lookahead `(?![(\[])`). O parse inline do parágrafo inteiro vem
+  primeiro. Py: `mdq._markdown.find_blank_markers` devolve `(id, misplaced)`
+  e `check_blank_markers` usa esse resultado (antes um regex no stem cru, que
+  contava marcadores em código). Corpus: `invalid/fill-in-misplaced-blank-code-span`
+  virou `valid/fill-in/blank-in-code-span-is-text`; novos
+  `invalid/fill-in-misplaced-blank-{list-item,table-cell,blockquote}` e
+  `valid/fill-in/blank-link-is-not-a-blank`; todo exemplo com `preamble` no
+  nome agora diz `stem` (ex.: `valid/essay/heading-in-stem`).
+
+- FI3. Blank vazio e fill-in pendente (D2). Chave ausente ou `null` é blank
+  vazio (nota 0, sem feedback). `{}` tem todos os blanks vazios: nota 0, não é
+  skip (só `null` pula). Tipo errado para o blank (número em choice blank, lista
+  em short answer ou numeric blank, resposta que não é mapa) é `ResponseError`.
+  Pendente: o instrutor pontua cada blank pendente em [0, 1] e a estratégia
+  combina; `score_response` lança `NotAutoGradable` depois de checar os outros
+  blanks (um `ResponseError` de um blank posterior vem antes do pendente).
+  Corpus novo `examples/grading/fill-in.yaml` (formato: `scores` por estratégia
+  ou `score` único; `malformed` e `pending`; `feedback` é a lista plana). O
+  corpus não expressa a nota do instrutor.
+
+- FI4. Estratégia do choice blank (D3). `partial`, `no-mistakes` e
+  `all-or-nothing` pontuam o choice blank com o `partial` do multiple choice
+  (escolha sem nota vale 0); `symmetric` com o `symmetric` (nota derivada
+  negativa). Antes o py usava sempre 0 para escolha sem nota. Py:
+  `unspecified_choice_score` em `models/_choice.py`, usado também por
+  `MultipleChoiceQuestion.unspecified_score`.
+
+- FI5. Blocos mínimos de short answer (D9, reverte D4). A questão short-answer
+  e o short answer blank precisam de pelo menos um dos blocos `[short-answer]`
+  (alias `/accept`) e `[short-answer/reject]`. Só reject é válido: sem
+  `accept`, `unmatched` tem default `manual`. Nenhum port para D4: o mdq-js
+  não deve rejeitar o blank só com reject. Py: removido o `ParseError` de
+  `parse_fill_in_body`. Questão sem bloco nenhum continua `parse-error` (corpo
+  ausente, `MissingField("body")`). Corpus: `valid/fill-in/reject-only-blank`,
+  `valid/short-answer/reject-block-only`.
+
+- FI6. Referência repetida no stem (D6b). `[^id]` repetido no stem é o erro
+  `duplicate-blank-reference`, caminho `["stem"]`. Py: validador
+  `check_blank_references_are_unique` em `models/_fill_in.py` (conta os
+  marcadores de `find_blank_markers`, depois do `misplaced-blank`; código não
+  conta). Corpus: `invalid/fill-in-duplicate-blank-reference`.
+
+- FI7. Parse errors das definições (D6c). Só texto e tabela mudaram, mais a
+  mensagem do py para texto na linha da tag de choice (`[^capital]: Brasília`):
+  diz que a linha deve ficar vazia e sugere `[^capital/short-answer]:`. Os
+  outros casos já eram `parse-error` no py. Corpus novo:
+  `invalid/fill-in-choice-text-on-tag-line`,
+  `invalid/fill-in-short-answer-list-after-content`.
+
+- FI8. Gramáticas de lista (D7). Sem mudança de comportamento no py. O
+  `pattern_item` perdeu `ws? LIST_MARK ws`; `value` do numeric virou
+  `numeric_value` (só nome na gramática); trocar o caractere do bullet inicia
+  outra lista (markdown-it já faz; teste
+  `tests/test_fill_in_blank_references.py`). Comentários do mdq-js que citam
+  `sign? value` podem virar `sign? numeric_value`.
+
+- FI9. Definições contíguas (D6a). Uma linha de tag de definição de blank no
+  epílogo (`[^id...]:` no início da linha, fora de código em bloco) é o erro
+  `detached-blank-definition`, caminho `["epilogue"]`; vale só em Markdown.
+  Py: `report_detached_blank_definitions` em `_parser/_question.py`, chamado
+  depois de `parse_fill_in_body`; é um diagnóstico de erro do parser, então o
+  `load` para antes do modelo e a referência do stem não gera `undefined-blank`.
+  Corpus: `invalid/fill-in-detached-blank-definition`.
+
+- FI10. Linhas lazy e literal exato (D8). (1) Sublinhado setext (`=+` ou `-+`,
+  até 3 espaços de indentação, espaço/tab no fim) logo depois do conteúdo de
+  uma definição short-answer (também do blank `[^id/short-answer]`, depois de
+  linhas lazy, e depois do texto de um item de lista de padrão ou de choice) é
+  `parse-error`. Depois de linha `>`/`!` do item continua sendo texto. Py:
+  `MDQParser.check_no_setext_tag` (olha o nó heading `-`/`=` cuja primeira
+  linha é uma tag, em cada laço de blocos do short-answer e do fill-in; antes
+  só `find_body_start` via a primeira tag) e `check_no_setext_item` (heading
+  filho de um item, em `parse_item_list` e nos itens de padrão). (2) `>`/`!`
+  com 4+ colunas de indentação continua o conteúdo: `_is_comment_line` só vale
+  com indentação < 4 (o blockquote já era resolvido pelo markdown-it). O
+  `LAZY_START` da spec ganhou a alternativa de indentação 4+, e `feedback_line`
+  e `comment_line` usam `MARK_INDENT` (1 a 3 espaços). (3) Literal exato não
+  abre no fim da linha nem fecha no começo de uma linha de continuação:
+  `schema-error`. Py: `mdq._exact.join_pattern_lines` junta as linhas do
+  padrão com espaço; no caso inválido junta com `\n`, e
+  `AnswerPattern.check_pattern_string` (que já proibia quebra de linha) dá o
+  `schema-error` no `accept[i]`. `split_item` recebe `join_text`. YAML, JSON e
+  frontmatter não têm quebra de linha, então nada muda. Corpus novo:
+  `invalid/short-answer-setext-after-content`, `-setext-after-continuation`,
+  `fill-in-short-answer-setext-after-content`,
+  `short-answer-exact-opens-at-line-end` (e `-item`),
+  `short-answer-exact-closes-at-line-start`,
+  `valid/short-answer/indented-quote-continuation`. Ordenação e choice blanks
+  do fill-in não passam por `check_no_setext_item` (ver o relatório de D8).

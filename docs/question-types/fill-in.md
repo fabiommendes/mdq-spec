@@ -2,8 +2,8 @@
 
 ## Example
 
-Fill in the blanks show a text with some blanks and the students must fill in
-the correct answer on spot.
+Fill in the blanks questions show a text with some blanks and the students must fill in
+the correct answer on the spot.
 
 ```md
 The capital of Brazil is [^capital]. It has approximately [^size] inhabitants.
@@ -21,7 +21,7 @@ The capital of Brazil is [^capital]. It has approximately [^size] inhabitants.
 ## Frontmatter
 
 Fill in the blanks questions accept the following extra arguments in the
-frontmatter
+frontmatter:
 
 | Field      | Type      | Description                                       |
 | ---------- | --------- | ------------------------------------------------- |
@@ -134,56 +134,60 @@ blank with an integer answer.
 
 ## Stem
 
-This is one of the few question types that requires a specific format for the
-stem. The stem follows the grammar
+The stem of a fill-in question is a sequence of block elements, as in any other
+question type (see [Introduction](question-base.md#stem)). It MUST hold at
+least one blank. A blank may appear in any ordinary paragraph of the stem, and
+the stem can have paragraphs with no blank. The stem follows the grammar
 
 ```lark
-stem  : inline_md? (blank inline_md?)+
-blank : "[^" SLUG "]"
+stem      : block+
+block     : paragraph | other_block
+paragraph : inline_md* (blank inline_md*)*
+blank     : "[^" SLUG "]"  // not followed by "(" or "["
 ```
 
-`inline_md` represent any valid inline markdown element nested inside the stem
-and `blank` represent a reference to a blank. The terminal `SLUG` is defined in
-[Common grammar rules](../references/grammar.md). `inline_md` must be a
-well defined markdown inline element that do not contain blanks.
+`other_block` represents any other block element (heading, list, table, code
+block, etc), and `inline_md` represents one valid inline markdown element nested
+inside a paragraph. The terminal `SLUG` is defined in
+[Common grammar rules](../references/grammar.md). `inline_md` must be a well
+defined markdown inline element that does not contain blanks.
 
 ### Where blanks may appear
 
 A blank may appear **only in a regular paragraph, in a run of plain text**.
-That is the whole rule, and it cuts in two directions.
+A parser reads the inline markup of the whole paragraph first, as CommonMark
+does, and then looks for blanks in the result. So `**start [^blank] end**` is
+a strong element that contains a blank, and it is a `misplaced-blank`. A parser
+MUST NOT split the paragraph around the blank before it reads the markup.
 
-At the block level, the hosting block MUST be an ordinary paragraph. Blanks in
-headings, list items, table cells, blockquotes and fenced code blocks are all
-illegal. A `[^slug]` found in any of them is not a blank: implementations MUST
-either reject the document or leave the text exactly as written, and MUST NOT
-silently drop it. Fenced code is the one case where leaving it alone is
-obviously right -- a blank inside code is literal text.
+A `[^slug]` has one outcome in each context of the stem:
 
-At the inline level, blanks cannot occur inside markup. Consider the example
+| Context                                                         | Outcome                    |
+| --------------------------------------------------------------- | -------------------------- |
+| Plain text of an ordinary paragraph                             | A blank                    |
+| Fenced code, indented code, code span                           | Literal text, not a blank  |
+| `[^slug](url)` and `[^slug][ref]`                               | A link, not a blank        |
+| Heading, list item, table cell, blockquote                      | `misplaced-blank` (error)  |
+| Emphasis, strong, link text, image alt text                     | `misplaced-blank` (error)  |
 
-```md
-**start [^blank] end**
-```
+Literal text neither declares a blank nor references one, and an
+implementation MUST leave it as written. A `[^slug]` that is `misplaced-blank`
+MUST NOT be silently dropped.
 
-This whole snippet is a markdown bold inline element containing a blank. If the
-parser prioritizes spliting the parent block around the blanks, it would be
-interpreted as an unclosed bold element `**start `, followed by a blank and then
-the text ` end**`. In both approaches, the result would be illegal acording to
-the spec, so both parsing strategies are valid.
+The `blank` rule above does not match a `]` followed by `(` or `[`, because
+that bracket starts a markdown link: in `[^nota](https://www.ibge.gov.br)`
+the link text is `^nota`.
 
-The same reasoning rules out link text, image alt text, emphasis and inline
-code: a blank must be a direct child of the paragraph, with only plain text
-around it.
-
-Only the stem holds blanks. A `[^slug]` in the preamble or in the epilogue is
-literal text, even in an ordinary paragraph: implementations MUST leave it as
-written, and it neither declares a blank nor has to match one.
+Only the stem holds blanks. A `[^slug]` in the epilogue is literal text, even
+in an ordinary paragraph: implementations MUST leave it as written, and it
+neither declares a blank nor has to match one.
 
 
 ## Blank definitions
 
 Every blank referenced by the stem MUST be defined, and every definition MUST
-be referenced by the stem. A definition is a reference-style block whose tag
+be referenced by the stem. Each blank id MUST appear at most once in the stem:
+a second `[^id]` for the same id is a `duplicate-blank-reference`. A definition is a reference-style block whose tag
 names the blank and, optionally, its kind:
 
 ```lark
@@ -194,7 +198,7 @@ numeric_def      : ws? "[^" SLUG "/" "numeric" unit? "]" ws? ":" numeric_body
 short_answer_def : accept_def | reject_def
 accept_def       : ws? "[^" SLUG "/short-answer" "/accept"? "]" ws? ":" ws? patterns?
 reject_def       : ws? "[^" SLUG "/short-answer/reject" "]" ws? ":" ws? patterns
-patterns         : answer | nl pattern_list
+patterns         : content | nl lazy_content | nl pattern_list
 ```
 
 The rules `ws` and `nl` and the terminal `SLUG` are defined in
@@ -203,17 +207,36 @@ The rules `ws` and `nl` and the terminal `SLUG` are defined in
 The kind suffix is what tells the three apart. A bare `[^slug]:` is a choice
 blank; anything else states its kind explicitly. Note that `unit` attaches to
 `numeric` and to nothing else -- a unit of measurement is meaningless for a
-choice or a piece of text, so `[^planet/short-answer(km)]` is not valid syntax.
+choice or a piece of text, so `[^planet/short-answer(km)]` is a `parse-error`.
+
+A definition MUST NOT be any of these. Each one is a `parse-error`:
+
+* An unknown kind suffix, such as `[^resposta/essay]:`.
+* A unit on a tag that is not numeric, such as `[^planet/short-answer(km)]:`.
+* A second definition of an id. A blank id MUST NOT have two kinds, and a
+  choice or numeric blank MUST NOT be defined twice. A short answer blank MAY
+  have one `accept` and one `reject` definition, see
+  [Short answer blanks](#short-answer-blanks).
 
 Definitions may appear in any order, and that order need not match the order
 the stem references them. The `blanks` array preserves the order the
 definitions appear in the document.
 
+The definitions form one contiguous sequence of blocks, separated only by
+blank lines. The first block that is not part of a definition starts the
+epilogue. A line in the epilogue that matches the start of a `blank_def`, such
+as `[^capital/short-answer]: Brasília`, `[^estados/numeric]: 26` or a `[^x]:`
+line followed by a choice list, defines nothing. It is the error
+`detached-blank-definition`, at the path `epilogue`, and its message tells the
+author to move the paragraph after the definitions. A tag line inside fenced
+code does not count. The error is the only one reported for that id: an
+implementation MUST NOT also report `undefined-blank` for its stem reference.
 
-## Multiple choice blanks
 
-Multiple-choice blanks are represented by a reference definition followed by a 
-list of choices. It follows the grammar:
+## Choice blanks
+
+Choice blanks are represented by a reference definition followed by a 
+list of choices (JSON `type`: `multiple-choice`). It follows the grammar:
 
 ```lark
 choice_def : ws? blank ws? ":" ws? nl choice_list
@@ -223,8 +246,11 @@ choice_list : item+
 The `item` rule is defined in [Choice lists](../references/choices.md#item),
 with the `value` rule of [multiple choice](multiple-choice.md#body), and
 `choice_list` is the unordered list those items form. The list
-must start on the following line, with no blank lines in between. The `blank`
-slug MUST be present in the stem.
+MUST start on the line that follows the tag, with no blank line in between;
+otherwise the definition is a `parse-error`. The tag line MUST have no text
+after the colon: `[^capital]: Brasília` is a `parse-error`, not a choice blank.
+To define a text answer, add the suffix, as in `[^capital/short-answer]: Brasília`.
+The `blank` slug MUST be present in the stem.
 
 
 ## Numeric blanks
@@ -300,7 +326,7 @@ is the unordered list those items form. The `blank` slug MUST be present in
 the stem.
 
 The suffix `/short-answer` is REQUIRED. Without it the definition is a
-[multiple choice blank](#multiple-choice-blanks), which is what a bare
+[choice blank](#choice-blanks), which is what a bare
 `[^slug]:` introduces.
 
 A short answer blank has the two blocks of a short answer question:
@@ -310,15 +336,23 @@ takes either a single pattern on the tag line or a list on the following
 lines, with the same rules as in a [short answer](short-answer.md#body)
 question, including the rule that a list after a blank line is not part of
 the block, and that a reject block MUST declare at least one pattern. A blank
-MUST define each block at most once, in any order. A blank whose
-`[^slug/short-answer]` block has no pattern has no `accept` list, and the
-instructor grades its responses, see [Automation](#automation).
+MUST define each block at most once, in any order.
+
+A short answer blank MUST define at least one of the two blocks, as a short
+answer question does. The `[^slug/short-answer]` block MAY be empty, and a
+blank with only a `[^slug/short-answer/reject]` block is valid. A blank with
+no `[^slug/short-answer]` block, or with an empty one, has no `accept` list,
+and `unmatched` defaults to `manual`: the instructor grades the responses that
+no reject pattern settles, see [Automation](#automation). In YAML and JSON,
+`accept` is optional and a missing `accept` is the same as an empty block.
 
 The lines after the content of a `[^slug/short-answer]` definition follow the
 rules of the [short answer body](short-answer.md#pattern-lines): a lazy line
 continues the content, also after an empty tag; a `>` or `!` line (not `![`)
 or a list item right after the content (a `>` or `!` line also right after an
-empty tag) is a `parse-error`; an ATX heading,
+empty tag) MUST be a `parse-error`, and so MUST a setext underline (a line of
+only `=` or only `-` characters) right after the content, since it would turn
+the tag line into a heading; an ATX heading,
 fenced code, HTML block or thematic break ends the definition.
 
 The `content` of a definition -- on the tag line or as an item of a list -- is
@@ -358,6 +392,9 @@ A fill-in question is `automatic` if every blank is automatic, `manual` if
 every blank is manual, and `semi-automatic` in every other case. A response to
 the question is settled only when the response to every blank is settled; if
 a blank leaves its response to the instructor, the whole question is pending.
+The instructor then scores each pending blank in the range `[0, 1]`, and the
+strategy of the question combines the blank scores as usual, see
+[Grading](#grading). An empty blank is not pending: it scores 0.
 Like every automation, this is a derived property and never a field of the
 document, see [Automation](question-base.md#automation).
 
@@ -379,7 +416,7 @@ meaning it has in a [numeric](numeric.md#feedback) question: the feedback of a
 well-formed response outside the accepted tolerance. It is never shown for a
 correct response, a malformed response or an empty blank. Both are written in
 the `incorrectFeedback` map of the [frontmatter](#frontmatter). The tag of a
-numeric blank has no place for feedback.
+numeric blank has no place for feedback. An empty blank shows no feedback.
 
 A question collects the feedback of every blank into one flat list, in the
 order the blank definitions appear in the document, not the order the stem
@@ -400,21 +437,29 @@ which takes the strategy from the exam: the exam's `grading`, or its entry for
 the question nor the exam sets a strategy, and outside an exam, the strategy
 is `"symmetric"`.
 
-A blank the student left empty scores 0 under every strategy. 
+A blank the student left empty scores 0 under every strategy. A blank is empty
+when its key is missing from the response or its value is `null`, see
+[Fill in the blanks](../responses.md#fill-in-the-blanks).
 
 What each kind of blank can score:
 
 * A **choice blank** is graded like a
-  [multiple choice](multiple-choice.md#grading) question, under the strategy
-  the fill-in question declares. It is the only kind of blank that can score
-  below zero.
+  [multiple choice](multiple-choice.md#grading) question, with the strategy
+  that the table of the [exam grading](../exam.md#grading) gives for the
+  question's strategy: `partial`, `no-mistakes` and `all-or-nothing` score the
+  blank with the multiple choice `partial`, and `symmetric` scores it with
+  `symmetric`. So a wrong pick scores 0 under the first three and, under
+  `symmetric`, the negative score that multiple choice derives for a choice
+  without a score. It is the only kind of blank that can score below zero.
 * A **numeric blank** is graded like a [numeric](numeric.md#grading) question:
   1 inside the tolerance, 0 outside it.
 * A **short answer blank** is graded like a
   [short answer](short-answer.md#grading) question: 1 or 0. A response its
   patterns do not settle, under `unmatched: manual`, goes to the instructor,
   exactly as it would in a standalone question. The question is then not
-  settled either, see [Automation](#automation).
+  settled either, see [Automation](#automation). The instructor scores a
+  pending blank with any value in `[0, 1]`, and the strategy combines it with
+  the other blank scores as usual.
 
 The strategies combine those blank scores as follows:
 
@@ -436,7 +481,9 @@ The strategies combine those blank scores as follows:
 Consider a question with three blanks -- `river` (a short answer blank),
 `length` (a numeric blank) and `city` (a choice blank offering three choices).
 The "blank scores" column lists what each blank scored on its own, in that
-order, and every strategy is computed from those three numbers.
+order, under `symmetric`. Under the other three strategies a wrong pick in the
+choice blank scores 0 instead of `-0.5`, and those strategies are computed from
+the blank scores with that change.
 
 | Response                              | Blank scores   | "partial" | "no-mistakes" | "all-or-nothing" | "symmetric" |
 | ------------------------------------- | -------------- | :-------: | :-----------: | :--------------: | :---------: |
@@ -454,7 +501,8 @@ The `-0.5` is what a wrong pick scores in a three-choice blank under
 `symmetric`, where unspecified choice scores are derived so that picking at
 random averages zero. Under `partial`, `no-mistakes` and `all-or-nothing` that
 same wrong pick scores 0. The `0.5` is a score the choice declares itself, so
-it holds under every strategy.
+it holds under every strategy. The grading corpus
+`examples/grading/fill-in.yaml` has these rows.
 
 The results are rounded to 2 decimal places for clarity, but the actual
 results should be computed with full precision.
@@ -478,8 +526,16 @@ of [numeric](numeric.md#additional-rules), and a short answer blank those of
 | stem                 | error    | undefined-blank    | every `[^id]` marker must name a declared blank                    |
 | blanks[].id          | error    | unreferenced-blank | must be referenced by an `[^id]` marker in the stem                |
 | stem                 | error    | misplaced-blank    | blanks may only appear in a plain text run of a paragraph[^4]      |
+| stem                 | error    | duplicate-blank-reference | each `[^id]` marker may appear at most once in the stem     |
 | blanks[]             | error    | parse-error        | a short answer blank defines each block at most once[^5]           |
-| blanks[]             | error    | parse-error        | a `>` or `!` line must not follow the content or an empty tag line of a short answer definition without a blank line |
+| blanks[]             | error    | parse-error        | a blank id must not have a second definition of any kind (two kinds, or a choice or numeric blank twice) |
+| blanks[]             | error    | parse-error        | the kind suffix of a tag must be `numeric` or `short-answer`, with `accept` or `reject` only after the latter |
+| blanks[]             | error    | parse-error        | only a `numeric` tag may have a unit                               |
+| blanks[]             | error    | parse-error        | the choice list must start on the line right after the tag of a choice blank, with no blank line in between |
+| blanks[]             | error    | parse-error        | the tag line of a choice blank must have no text after the colon (use `/short-answer` for a text answer) |
+| epilogue             | error    | detached-blank-definition | a blank definition tag line must not follow a block that is not a definition[^12] |
+| blanks[]             | error    | parse-error        | a `>` or `!` line must not follow the content or an empty tag line of a short answer definition without a blank line, and a list item or a setext underline must not follow its content |
+| blanks[].accept, blanks[].reject | error | schema-error | an exact literal of a short answer blank must not open at the end of a line, nor close at the start of a line (see [Content](short-answer.md#content)) |
 | preAccept, preReject, incorrectFeedback | error | undefined-blank | every key must be the id of a declared blank[^8]                  |
 | preAccept, preReject | error | schema-error    | a key must not be the id of a choice or numeric blank (schema)[^8] |
 | incorrectFeedback    | error | schema-error    | a key must not be the id of a choice blank (schema)[^8] |
@@ -488,8 +544,11 @@ of [numeric](numeric.md#additional-rules), and a short answer blank those of
 | blanks[].incorrectFeedback | error | blank-text         | if defined, must have at least one visible character              |
 
 [^3]: Otherwise the stem's `[^id]` marker is ambiguous.
-[^4]: See [where blanks may appear](#where-blanks-may-appear). A `[^id]` found
-anywhere else is not a blank, and MUST NOT be silently dropped.
+[^4]: See [where blanks may appear](#where-blanks-may-appear). It applies to
+a `[^id]` in a heading, list item, table cell or blockquote of the stem, or
+inside emphasis, strong, link text or image alt text. Code and the links
+`[^id](url)` and `[^id][ref]` hold no blank. A misplaced `[^id]` MUST NOT be
+silently dropped.
 [^5]: One `[^id/short-answer]` (or its alias `[^id/short-answer/accept]`)
 and one `[^id/short-answer/reject]`, in any order.
 [^8]: In the `preAccept`, `preReject` and `incorrectFeedback` maps. A key that is not the id of a declared blank is an `undefined-blank`
@@ -502,3 +561,6 @@ declared blank is an `undefined-blank` error, at the path of the key. A key that
 is the id of a choice or short answer blank puts the value on that blank, where
 the schema rejects it. A value that is not a valid `domain` or `decimalPlaces`
 is a `schema-error` on the blank.
+[^12]: The definitions are one contiguous sequence of blocks. A tag line in the
+epilogue, outside fenced code, is this error, and the stem reference of its id
+gives no `undefined-blank`. See [Blank definitions](#blank-definitions).

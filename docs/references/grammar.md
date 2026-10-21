@@ -87,6 +87,18 @@ With five or more spaces after the list marker, the content of the first item
 is an indented code block, so the item is not a choice and the list is not a
 choice list.
 
+A list is the list of CommonMark: a change of the bullet character (`*`, `+`
+or `-`) starts a new list. A choice list or a pattern list uses one bullet
+character for all its items. The items that follow a change of bullet are a
+second list, which does not belong to the block.
+
+```md
+* [x] Rio
+- [ ] Santos
+```
+
+This is two lists of one item each.
+
 ## Tokens
 
 ```lark
@@ -147,13 +159,14 @@ observations  : feedback (blank_line* comment)?
               | comment (blank_line* feedback)?
 feedback      : feedback_line (feedback_line | lazy_line)*
 comment       : comment_line (comment_line | lazy_line)*
-feedback_line : ws? ">" ws? md_inline* nl
-comment_line  : ws? COMMENT_MARK ws? md_inline* nl
+feedback_line : MARK_INDENT? ">" ws? md_inline* nl
+comment_line  : MARK_INDENT? COMMENT_MARK ws? md_inline* nl
 lazy_line     : ws? LAZY_START md_inline* nl
 blank_line    : ws? nl
 
 COMMENT_MARK  : /!(?!\[)/
-LAZY_START    : /(?!>|!(?!\[)|[*+-][ \t]|1[.)][ \t]|#{1,6}([ \t]|(?=[\r\n]))|`{3}|~{3}|(\*[ \t]*){3,}(?=[\r\n])|(-[ \t]*){3,}(?=[\r\n])|(_[ \t]*){3,}(?=[\r\n]))[^ \t\r\n]/
+MARK_INDENT   : /[ ]{1,3}/
+LAZY_START    : /(?:(?:[ ]{4}|[ ]{0,3}\t)[ \t]*[>!]|(?!>|!(?!\[)|[*+-][ \t]|1[.)][ \t]|#{1,6}([ \t]|(?=[\r\n]))|`{3}|~{3}|(\*[ \t]*){3,}(?=[\r\n])|(-[ \t]*){3,}(?=[\r\n])|(_[ \t]*){3,}(?=[\r\n]))[^ \t\r\n])/
 ```
 
 `md_inline` is any markdown inline element except a line ending.
@@ -162,6 +175,23 @@ comment marker, and it does not start a block that interrupts a paragraph: a
 bullet list item, an ordered list item that starts with `1`, an ATX heading, a
 fenced code block or a thematic break. An HTML block also interrupts a
 paragraph; the terminal does not test it.
+
+The normative rule for a lazy line is the paragraph continuation of CommonMark.
+`LAZY_START` is an approximation of it, as the schema pattern is an
+approximation of the exact literal (see
+[Exact literals](patterns.md#exact-literals)). Where the two disagree, the rule
+of CommonMark wins. The terminal fixes one case: a line that starts with `>` or
+`!` after four or more columns of indentation is continuation text, not a
+feedback or comment line. The first alternative of the terminal reads that
+indentation and the marker as the start of the lazy line, and `MARK_INDENT`
+allows up to three spaces before a marker.
+
+The terminal does not exclude a setext underline (a line of only `=` or only
+`-` characters). After a feedback or comment line, the underline is
+continuation text, as in CommonMark. Right after the text of an element that is
+not a feedback or comment line (a pattern, a choice), it turns the text into a
+heading, which is a `parse-error`. See
+[Continuation lines](patterns.md#continuation-lines).
 
 A `feedback` block is a CommonMark block quote. A `comment` block follows the
 same rules, with `!` in place of `>`. MDQ adds the `!` block; CommonMark does

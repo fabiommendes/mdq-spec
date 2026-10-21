@@ -137,10 +137,16 @@ applies to all of its short answer blanks.
 
 The body holds two kinds of block. `[short-answer]` lists the patterns of the
 correct responses, and `[short-answer/reject]` lists the patterns of known
-incorrect responses. A question MUST have a `[short-answer]` block and MAY
-have one `[short-answer/reject]` block, in any order. Each block appears at
-most once. `[short-answer/accept]` is an alias of `[short-answer]`, so a
+incorrect responses. A question MUST have at least one of the two blocks,
+`[short-answer]` or `[short-answer/reject]`, in any order. Each block appears
+at most once. `[short-answer/accept]` is an alias of `[short-answer]`, so a
 document MUST NOT use both spellings.
+
+A question with only a `[short-answer/reject]` block is valid. It has no
+`accept` list, so `unmatched` defaults to `manual`: the instructor grades the
+responses that no reject pattern settles, see [Grading](#grading). A question
+with no block at all has no body, which is a `parse-error`. The `[short-answer]`
+block MAY be empty.
 
 Both blocks follow the same grammar:
 
@@ -173,7 +179,10 @@ a markdown unordered list, see
 
 The two `FENCE` terminals of `exact` have the same length N, and no run of
 backticks inside the text has length N. A context-free grammar cannot say it,
-so it is a rule of the text, see [Content](#content).
+so it is a rule of the text, see [Content](#content). The same holds for the
+closing run: it follows text on its line, so a line of the literal never
+starts with a run of exactly N backticks. `EXACT_TEXT` is not empty, so the
+opening run is followed by text on its line.
 
 `PLAIN_TEXT` cannot start with `/`, so content that starts with `/` is a
 `regex` or a parse failure. `REGEX_LINE` ends at the last `/` of the line, and
@@ -232,7 +241,8 @@ An exact literal can span lines: each line ending becomes one U+0020, which
 is significant, see
 [Continuation lines](../references/patterns.md#continuation-lines).
 
-An exact literal follows the CommonMark code span. A run of N backticks opens
+An exact literal follows the CommonMark code span, with one more rule on line
+endings. A run of N backticks opens
 it, and the first run of exactly N backticks after it closes it. The closing
 run MUST end the pattern. Runs of other lengths inside are text. If the content
 starts and ends with a space and is not only spaces, one space is removed from
@@ -247,6 +257,23 @@ Which shell syntax runs a command and uses its output?
 The answer is `` `date` ``, with its backticks: the two spaces next to the
 fence are removed. The pattern ``` ``a`b`` ``` is the literal `` a`b ``, and
 ```` ```a``b``` ```` is the literal ``` a``b ```.
+
+An exact literal MUST NOT open at the end of a line: text follows the opening
+run on the same line. By symmetry, the closing run MUST NOT start a
+continuation line: text precedes it on its line. The line endings of a literal
+exist for word wrap. A literal that opens or closes at a line ending would need
+a rule on whether the space at its edge is removed, so the format does not
+allow it. Both cases are a `schema-error`, as any other incomplete exact
+literal:
+
+```md
+[short-answer]: `Rio
+Negro`
+```
+
+The first example is the literal `Rio Negro`. A tag line with only a backtick,
+followed by `Rio Negro` and a closing backtick, is a `schema-error`, and so is
+`Rio Negro` followed by a line that holds only the closing backtick.
 
 Note that `PLAIN_TEXT` cannot begin with a backtick, so content that opens
 with one MUST be a complete exact literal; there is no way to write an inexact
@@ -279,11 +306,17 @@ The lines after the content of a single-line block follow these rules:
 | Line right after the content or an empty tag       | Result                          |
 | -------------------------------------------------- | ------------------------------- |
 | Lazy line (`LAZY_START`), up to a blank line       | continues the content           |
+| Setext underline[^19]                              | `parse-error`                   |
 | `>` line, or `!` line (not `![`)                   | `parse-error`                   |
 | List item                                          | `parse-error`                   |
 | ATX heading, fenced code, HTML block, thematic break | ends the block, goes to the epilogue |
 
-A lazy line continues the content also after an empty tag. A `>` or `!` line
+A lazy line continues the content also after an empty tag. The normative rule
+for a lazy line is the paragraph continuation of CommonMark. `LAZY_START` is an
+approximation of it, see
+[Feedback and comment lines](../references/grammar.md#feedback-and-comment-lines).
+A line of `>` or `!` with four or more columns of indentation cannot start a
+block quote or a comment, so it is continuation text, not a `parse-error`. A `>` or `!` line
 right after an empty tag (`[short-answer]:` then `> x`) is a `parse-error` as
 well, as it is after content. A `>` or `!` line is not feedback or a comment
 in the single-line form: it has no container to hold them, and a blank line
@@ -504,12 +537,15 @@ the same rules for its own `preAccept` and `preReject` lists.
 | accept, reject, preAccept, preReject | error    | schema-error           | a pattern list, when present, has at least one pattern (schema)                     |
 | accept, reject, preAccept, preReject | error    | schema-error           | a pattern string is not empty (schema)                                              |
 | accept, reject, preAccept, preReject | error    | schema-error           | a pattern string that opens with a backtick is a complete exact literal (schema)[^15] |
+| accept, reject                       | error    | schema-error           | an exact literal must not open at the end of a line, nor close at the start of a line[^20] |
 | accept, reject, preAccept, preReject | error    | blank-text             | a pattern string must have at least one visible character[^16]                      |
 | accept, reject, preAccept, preReject | error    | invalid-regex          | every `/`-delimited pattern must be a valid MDQ regex[^6]                           |
 | accept, reject, preAccept, preReject | error    | invalid-regex          | a regex flag must be a supported or an ignored flag, and must not repeat[^12]       |
 | accept, reject                       | error    | parse-error            | each body block may be defined at most once[^11]                                    |
 | accept, reject                       | error    | parse-error            | a tag with content must not be followed by a list without a blank line              |
 | accept, reject                       | error    | parse-error            | a `>` or `!` line must not follow the content or an empty tag line, without a blank line |
+| accept, reject                       | error    | parse-error            | a setext underline must not follow the content or an empty tag line[^19] |
+| accept, reject                       | error    | parse-error            | the Markdown body must have at least one of the `[short-answer]` and `[short-answer/reject]` blocks |
 | reject                               | error    | parse-error            | must declare at least one pattern; a list after a blank line is an epilogue element |
 | accept, reject                       | error    | parse-error            | an item carries at most one feedback block and one comment block                    |
 | accept, reject                       | error    | parse-error            | a pattern line must not be empty[^17]                                               |
@@ -559,3 +595,11 @@ a `schema-error`.
 [^17]: An item such as `*` followed by a feedback line has no pattern.
 [^18]: The block is an epilogue element that the type forbids. `preAccept` and
 `preReject` are frontmatter fields, see [Frontmatter](#frontmatter).
+[^19]: A line of only `=` or only `-` characters, with up to three spaces of
+indentation and optional trailing spaces and tabs, right after the content
+(also after its continuation lines). In CommonMark it turns the tag line into a
+heading, so there is no definition. With four or more spaces of indentation the
+line is continuation text. It applies to the single-line form and to a list
+item.
+[^20]: The body form only. A pattern string of the YAML, JSON and frontmatter
+form has no line ending at all, which is a `schema-error` already.

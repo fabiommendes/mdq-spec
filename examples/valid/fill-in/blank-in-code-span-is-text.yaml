@@ -1,0 +1,9 @@
+# A `[^id]` in a code span is literal text, as in fenced code. Only the
+# reference in a plain text run counts (fill-in.md, "Where blanks may appear").
+type: fill-in
+stem: Em MDQ, o código `[^capital]` é só texto. A capital do Brasil é [^capital].
+blanks:
+- id: capital
+  type: short-answer
+  accept:
+  - Brasília
