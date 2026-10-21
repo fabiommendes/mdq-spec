@@ -1,7 +1,7 @@
 ---
 id: ciclo-agua
 title: Ciclo da água
-input: text
+content: text
 ---
 
 Explique o ciclo da água.

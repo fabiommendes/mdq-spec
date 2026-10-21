@@ -2,7 +2,7 @@
 id: essay-code-python
 title: Fibonacci
 type: essay
-input: code
+content: code
 highlight: python
 ---
 

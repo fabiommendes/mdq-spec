@@ -1,4 +1,4 @@
-# A paragraph after the last section is the epilogue.
+# The epilogue sits between the content block and the first section.
 type: ordering
 stem: Ordene as linhas do programa.
 content: code

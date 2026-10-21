@@ -1,21 +1,21 @@
 ---
 type: handoff
 status: open
-tags: [auditoria-spec, essay]
-relatedTo: [dev/audits/spec-fill-in-2026-10-20/, dev/audits/decisoes-fill-in-2026-10-20.md, dev/handoffs/mdq-js-port-pendente.md, docs/question-types/essay.md]
+tags: [auditoria-spec, ordering]
+relatedTo: [dev/audits/spec-essay-2026-10-21/, dev/audits/decisoes-essay-2026-10-21.md, dev/handoffs/mdq-js-port-pendente.md, docs/question-types/ordering.md]
 ---
 
-# Próxima auditoria do spec: essay
+# Próxima auditoria do spec: ordering
 
 ## Estado
 
 - Feitas: multiple-choice (2026-10-13), multiple-selection (2026-10-15),
   true-false (2026-10-16/17), short-answer (2026-10-17 a 2026-10-20),
-  numeric (2026-10-20), fill-in (2026-10-20). Logs
+  numeric (2026-10-20), fill-in (2026-10-20), essay (2026-10-21). Logs
   arquivados em `dev/audits/spec-<tipo>-<data>/`.
-- Faltam, nesta ordem: essay, ordering.
+- Falta: ordering (último tipo). Depois, o port do mdq-js.
 - `docs/audits/spec/` está vazio: a próxima auditoria cria o log do zero
-  (`/audit-spec spec para questões essay`). A skill só é iniciada pelo
+  (`/audit-spec spec para questões ordering`). A skill só é iniciada pelo
   humano.
 - `.claude/skills/audit-spec/spec.md` tem mudanças que não são da auditoria:
   não commitar.
@@ -56,22 +56,13 @@ relatedTo: [dev/audits/spec-fill-in-2026-10-20/, dev/audits/decisoes-fill-in-202
   (ex.: `cjk-markers`, `non-bmp-marker`). Conferir e reportar ao humano.
 - Subagentes nunca rodam `git stash`, `checkout` ou `reset`.
 
-## Pontos já conhecidos para essay
+## Pontos já conhecidos para ordering
 
-- A auditoria de fill-in fundiu `preamble` em `stem` (D1) em todos os tipos:
-  o stem é todo bloco entre a frontmatter e o corpo. Essay era o tipo com mais
-  exemplos de preâmbulo; conferir que `docs/question-types/essay.md` não cita
-  mais preâmbulo e que a fronteira stem/corpo (rubrica, answer key) está clara.
-- D8 do fill-in: sublinhado setext depois do conteúdo é `parse-error`;
-  `LAZY_START` é aproximação da continuação de parágrafo do CommonMark;
-  `feedback_line`/`comment_line` aceitam no máximo 3 espaços antes do marcador.
-- D9: short-answer precisa de pelo menos um bloco (accept ou reject).
-- Essay não tem `grading`; o `grading` do exame não se aplica (D13 do
-  short-answer).
-- Ainda vale a lição do prompt do scanner: não rodar `list`/`status`/`show`
-  antes de terminar a própria leitura; rodar `audit-findings` só da raiz.
-- O `audit-findings check` acusa trechos de achados já corrigidos; é esperado
-  depois dos lotes.
+- D3 do essay já mudou o ordering: `## [extra]`, `## [accept]` e `## [reject]` vêm depois do epílogo; prosa entre seções é `parse-error`. Conferir prosa e gramática de `docs/question-types/ordering.md` com olhar novo.
+- D4 do essay: o campo `content` agora existe no essay (`code`/`text`/`plain`) e no ordering (`code`/`text`), com as mesmas regras de `highlight`.
+- A regra `ordering : "[" "ordering" "]" nl ...` não tem `ws?` (F1 do essay corrigiu só o essay).
+- A mensagem de `---` no exame ainda diz "epilogue" para answer key e seções; `setext-heading` de `[answer-key]` setext usa o path `epilogue`.
+- Ainda vale: não rodar `list`/`status`/`show` antes de terminar a própria leitura; rodar `audit-findings` só da raiz. `--agent` vem antes do subcomando.
 
 ## Pendências fora da auditoria
 

@@ -5,7 +5,12 @@ Ordene os eventos.
 * Independência
 * Proclamação da República
 
-Considere apenas o século de cada evento.
-
 ## [extra]
 * Fundação de Brasília
+
+Considere apenas o século de cada evento.
+
+## [reject]
+* Independência
+* Chegada de Cabral
+* Proclamação da República

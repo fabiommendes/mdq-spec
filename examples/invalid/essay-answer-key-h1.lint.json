@@ -1,9 +1,9 @@
 [
   {
-    "code": "schema-error",
+    "code": "forbidden-block-element",
     "severity": "error",
     "path": [
-      "input"
+      "answerKey"
     ]
   }
 ]

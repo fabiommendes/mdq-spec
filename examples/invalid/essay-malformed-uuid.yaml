@@ -6,7 +6,7 @@
 type: essay
 id: q
 title: Q
-input: text
+content: text
 stem: Descreva as características do bioma Cerrado.
 answerKey: Vegetação rala, solo ácido e estação seca bem definida.
 uuid: nope

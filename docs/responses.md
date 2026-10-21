@@ -35,7 +35,7 @@ error in the application, so it is never ignored and never scored as wrong.
 | true-false         | a mapping of statement id to boolean               |
 | numeric            | a number, a string, or a `{value, unit}` mapping   |
 | short-answer       | the text the student wrote                         |
-| essay              | the text the student wrote                         |
+| essay              | the text the student wrote, as a string            |
 | fill-in            | a mapping of blank id to that blank's own response |
 | ordering           | a list of `[indentation level, text]` pairs        |
 
@@ -208,6 +208,11 @@ regex) prepares the response in its own way before it compares. A regex
 sees the response in NFC, without the `UNICODE_SPACE` code points at its
 ends. See
 [patterns](references/patterns.md).
+
+An essay response follows the `content` field of the question. With `plain` or
+`code`, the response is the text the student wrote, verbatim. With `text`, the
+format of the string (Markdown, HTML or another) depends on the host, and MDQ
+does not define it. See [essay](question-types/essay.md#response).
 
 
 ### Fill in the blanks

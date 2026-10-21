@@ -5,7 +5,7 @@ id: pantanal-flooding
 title: Pantanal flooding cycle
 type: essay
 stem: Describe the annual flood pulse of the Pantanal wetland.
-input: text
+content: text
 answerKey: Seasonal rains raise river levels, flooding the plains for months.
 tags:
   - "wetlands, hydrology"

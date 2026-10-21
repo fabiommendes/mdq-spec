@@ -1,7 +1,7 @@
 ---
 id: ciclo-agua
 title: Ciclo da água
-input: plain
+content: plain
 highlight: python
 ---
 

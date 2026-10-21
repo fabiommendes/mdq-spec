@@ -14,7 +14,7 @@
     ]
   },
   {
-    "code": "code-input-without-highlight",
+    "code": "code-content-without-highlight",
     "severity": "info",
     "path": [
       "highlight"

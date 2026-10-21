@@ -1,0 +1,6 @@
+# The name of a type is a valid slug: `[essay]` at the start of the first
+# paragraph is the id `essay`. The paragraph with only `[essay]` is the tag.
+id: essay
+title: Pantanal
+type: essay
+stem: Descreva a importância do Pantanal para a biodiversidade.

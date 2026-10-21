@@ -24,7 +24,9 @@ and the fence language becomes `highlight`) or an unordered list (implies
 
 ## Extra sections
 
-All optional, all using the same block type as the main block.
+All optional, all using the same block type as the main block. They come after
+the epilogue, if there is one, and they are contiguous: no prose between two
+sections or after the last one.
 
 ````md
 ## [extra]                  # distractor lines, mixed in, must NOT be used

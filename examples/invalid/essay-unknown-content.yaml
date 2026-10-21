@@ -1,0 +1,4 @@
+# `content` is `code`, `text` or `plain` (schema enum).
+type: essay
+content: markdown
+stem: Explique o ciclo da água.

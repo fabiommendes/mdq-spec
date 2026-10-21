@@ -1,7 +1,7 @@
 ---
 id: Prova 1/Q2
 title: Biomas brasileiros
-input: text
+content: text
 ---
 
 Cite dois biomas brasileiros e uma característica de cada um.

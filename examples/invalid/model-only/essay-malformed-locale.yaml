@@ -5,5 +5,5 @@
 # but well-formed tag such as `brasil` is accepted.
 type: essay
 stem: Descreva as características do bioma Cerrado.
-input: text
+content: text
 locale: pt_BR

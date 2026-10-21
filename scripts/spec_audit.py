@@ -145,6 +145,7 @@ PSEUDO_FIELDS = {
 #: Property names that several schemas define with different types, with the
 #: reason.
 POLYMORPHIC_PROPERTIES: dict[str, str] = {
+    "content": "essay takes code, text or plain; ordering takes code or text",
     "grading": "the exam also accepts a map from question type to strategy",
     "accept": "ordering lists alternative orderings (objects), short-answer "
     "and fill-in blanks list patterns (string or object)",

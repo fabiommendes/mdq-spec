@@ -3,4 +3,4 @@
 # non-empty string), but rejected at the model level.
 type: essay
 stem: "# Bioma predominante no Nordeste"
-input: text
+content: text

@@ -158,11 +158,14 @@ followed by `id: q1` as text, and the exam has no question. Implementations
 SHOULD warn about a setext heading in the instructions or in a question of an
 exam (`setext-heading`).
 
-Inside an exam, the epilogue of a question MUST NOT use `---` as a thematic
-break. Use `***` or `___` instead. After the body of a question, a `---` line
-starts the frontmatter of the next block, so a thematic break followed by text
-that YAML can read as a mapping (like `Nota: leia com atenção.`) would start a
-new question.
+Inside an exam, no block after the body of a question MUST use `---` as a
+thematic break. This covers the epilogue and the type-specific sections that
+follow it: the `## [answer-key]` section of an essay and the `## [extra]`,
+`## [accept]` and `## [reject]` sections of an ordering question. Use `***` or
+`___` instead. After the body of a question, a `---` line starts the
+frontmatter of the next block, so a thematic break followed by text that YAML
+can read as a mapping (like `Nota: leia com atenção.`) would start a new
+question.
 
 Elsewhere in an exam, a `---` line after a blank line is a thematic break, as
 in CommonMark. But two such lines in a row are read as a frontmatter or include

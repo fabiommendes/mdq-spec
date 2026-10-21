@@ -1,0 +1,7 @@
+# A setext H2 (`[answer-key]` underlined with `---`) starts the section, as
+# CommonMark reads it as an H2.
+id: ciclo-agua-setext
+title: Ciclo da água
+type: essay
+stem: Explique o ciclo da água.
+answerKey: Evaporação, condensação e precipitação.

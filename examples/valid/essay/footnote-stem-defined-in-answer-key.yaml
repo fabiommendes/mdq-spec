@@ -1,0 +1,11 @@
+# A footnote definition belongs to the field where it is. The reference in
+# the stem has no definition in the stem, so it is text. The answer key holds
+# its own reference and definition.
+id: ciclo-agua-nota
+title: Ciclo da água
+type: essay
+stem: Explique o ciclo da água[^1].
+answerKey: |-
+  Evaporação, condensação e precipitação[^1].
+
+  [^1]: Considere apenas o ciclo na superfície do planeta.

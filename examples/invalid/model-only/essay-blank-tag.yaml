@@ -3,7 +3,7 @@ id: cerrado-biome
 title: The Cerrado biome
 type: essay
 stem: Describe the Cerrado biome and its fire-adapted vegetation.
-input: text
+content: text
 answerKey: A tropical savanna with deep-rooted, fire-resistant trees and shrubs.
 tags:
   - biology

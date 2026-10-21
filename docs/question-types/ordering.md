@@ -138,7 +138,7 @@ declared, and a declared value wins.
 The body has a very simple grammar:
 
 ```lark
-ordering : "[" "ordering" "]" nl content section*
+ordering : "[" "ordering" "]" nl content epilogue? section*
 content  : md_code_block | md_ul
 
 section : ordering_extra | ordering_accept | ordering_reject
@@ -172,13 +172,17 @@ with the same text and the same level are the same line, and a question MAY
 repeat one: duplicates are shown to the student as that many separate copies
 to be ordered.
 
-The sections below follow the content block directly. The epilogue, if any,
-comes after the last section; prose between the block and a section is an
-error (`parse-error`).
+The epilogue, if any, sits between the content block and the first section,
+as in every question type (see [epilogue](question-base.md#epilogue)). The
+sections are contiguous after it: only another section can follow a section.
+Prose after a section, whether it sits between two sections or after the last
+one, is an error (`parse-error`); a section ends with its content block and
+has no place for prose of its own, besides its observations. The epilogue MUST
+NOT contain a `## [extra]`, `## [accept]` or `## [reject]` heading, since such
+a heading starts the first section.
 
 The body can also contain additional sections that specify extra lines,
-alternative answers or known incorrect answers with feedback. These sections
-are placed after the `[ordering]` block.
+alternative answers or known incorrect answers with feedback.
 
 
 ### Extra lines
@@ -333,10 +337,11 @@ submitted, in the order they submitted them, each written as an
 | extra, accept, reject | error    | parse-error                  | must use the same content block type as `[ordering]`[^6]          |
 | extra                 | error    | parse-error                  | at most one `## [extra]` section may be declared                  |
 | accept, reject        | error    | parse-error                  | a section carries at most one feedback and one comment block[^7]  |
+| extra, accept, reject | error    | parse-error                  | only a section can follow a section; the epilogue goes before it  |
 | content               | error    | schema-error                 | must be a known content type (schema)                             |
 | indentation           | error    | schema-error                 | must be a known indentation mode (schema)                         |
 | normalizations        | error    | schema-error                 | must list known normalizations, each at most once (schema)        |
-| highlight             | warning  | ignored-highlight            | must be omitted unless `content` is "code"                        |
+| highlight             | warning  | ignored-highlight            | should be omitted unless `content` is "code"                      |
 | accept, reject        | warning  | duplicate-alternative-lines  | two sections should not hold the same lines, fully normalized[^9] |
 | accept                | warning  | accept-repeats-answer-key    | should not repeat the `[ordering]` block's own lines              |
 | indentation           | warning  | redundant-strict-indentation | `"strict"` is pointless when `dedent` is normalized away[^8]      |

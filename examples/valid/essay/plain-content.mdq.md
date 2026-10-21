@@ -2,7 +2,7 @@
 id: essay-plain
 title: Regular expression
 type: essay
-input: plain
+content: plain
 ---
 
 Write a regular expression that matches a Brazilian CEP (postal code) in

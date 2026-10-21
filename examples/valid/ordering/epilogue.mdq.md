@@ -6,9 +6,9 @@ n = int(input())
 print(n * 2)
 ```
 
+Dica: a entrada vem antes da saída.
+
 ## [extra]
 ```python
 print(n ** 2)
 ```
-
-Dica: a entrada vem antes da saída.

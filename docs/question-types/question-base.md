@@ -261,8 +261,10 @@ such a value as an unmarked choice: the answer key would change in silence.
 Any block elements below the body are collected in the epilogue. The block
 elements MUST follow the same rules as the block elements of the stem.
 
-Some question types may define optional block elements that appear
-after the epilogue.
+Sections that are specific to a type, such as the `## [answer-key]` section of
+an essay or the `## [extra]`, `## [accept]` and `## [reject]` sections of an
+ordering question, come after the epilogue. The epilogue ends where the first
+of those sections starts, so it MUST NOT contain a `## [name]` heading.
 
 
 ## Automation

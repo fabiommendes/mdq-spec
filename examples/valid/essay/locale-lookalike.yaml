@@ -3,6 +3,6 @@ id: great-wall
 title: The Great Wall
 type: essay
 stem: Descreva brevemente a Grande Muralha da China.
-input: text
+content: text
 answerKey: Uma série de fortificações construídas ao longo de séculos no norte da China.
 locale: cn

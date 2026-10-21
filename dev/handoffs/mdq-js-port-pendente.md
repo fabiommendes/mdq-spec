@@ -604,3 +604,62 @@ M1 a M6 da seção anterior (o item M4 e a tabela `en`/`pt`/`es`).
   `short-answer-exact-closes-at-line-start`,
   `valid/short-answer/indented-quote-continuation`. Ordenação e choice blanks
   do fill-in não passam por `check_no_setext_item` (ver o relatório de D8).
+
+
+## Auditoria de essay (2026-10-21)
+
+- ES1. `input` vira `content` no essay (quebra). Tipos: `EssayInput` vira
+  `EssayContent`, o campo `input` de `EssayQuestion`/`EssayQuestionDict` vira
+  `content`, com os mesmos valores (`code`, `text`, `plain`; padrão `text`).
+  O frontmatter, o YAML e o JSON com `input:` falham: `schema-error` no YAML e
+  no JSON (`unevaluatedProperties`), `invalid-frontmatter-field` no Markdown
+  (vem do bundle do schema, já regenerado em `mdq-js/src/mdq.schema.json`).
+  A saída `frontmatter()` emite `content` quando não é `text`. O conversor
+  Moodle XML usa `content` (`essay_content_from_response_format`,
+  `essay_response_format_from_content`). `mdq show` mostra a linha `content`.
+  No Python, a estratégia `essay_questions` agora passa `content` ao modelo.
+- ES2. Código de lint `code-input-without-highlight` vira
+  `code-content-without-highlight` (mensagens agora dizem "content"). A
+  mensagem de `ignored-highlight` também.
+- ES3. `H1` no answer key é `forbidden-block-element` no caminho
+  `["answerKey"]`, em Markdown e em modelo (YAML/JSON). Py:
+  `find_answer_key_forbidden_elements` em `_parser/_question.py` (um item por
+  heading `h1`, ATX ou setext) e o validador `check_answer_key_has_no_h1` em
+  `EssayQuestion`. Os outros elementos de `find_forbidden_elements` (parágrafo
+  ou heading com `[`) continuam valendo no answer key, que aceita qualquer
+  bloco menos H1.
+- ES4. Sem mudança no parser Python, mas o port deve ter o mesmo
+  comportamento (agora com exemplos no corpus): seção `## [answer-key]` vazia
+  é answer key ausente (só `missing-answer-key`); a segunda seção é
+  `parse-error`; o H2 setext (`[answer-key]` + `---`) abre a seção; os
+  headings internos (até H2) ficam no campo; `[essay]` como primeiro parágrafo
+  seguido de texto é o slug `essay`, e um parágrafo só com `[essay]` é sempre
+  a tag; a definição de footnote fica no campo em que está (a referência no
+  stem sem definição no stem fica como texto). Corpus novo:
+  `valid/essay/answer-key-inner-headings`, `answer-key-setext`,
+  `tag-slug-essay`, `footnote-stem-defined-in-answer-key`,
+  `invalid/essay-answer-key-h1`, `essay-input-frontmatter`. Renomeados:
+  `essay-unknown-input` (agora `-content`), `input-text-frontmatter` (agora
+  `content-text-frontmatter`), `plain-input` (agora `plain-content`).
+- ES5. Testes novos no Python em `tests/test_essay_answer_key.py`.
+- ES6. Ordering: a ordem muda (quebra). O epílogo fica entre o bloco
+  `[ordering]` e a primeira seção (`## [extra]`, `## [accept]`, `## [reject]`);
+  as seções são contíguas. Prosa depois de uma seção (entre duas seções ou
+  depois da última) é `parse-error`, com a mensagem "only [extra], [accept] and
+  [reject] sections can follow the first section; the epilogue goes before it".
+  A ordem antiga (epílogo depois das seções) agora falha. Py:
+  `parse_ordering_body` (`_parser/_question.py`) acha a primeira seção, devolve
+  os nós antes dela como epílogo e `parse_question` os usa; o resto depois da
+  primeira seção tem de ser só seções. Decisão do log não coberta: prosa entre
+  seções é erro, não parte da seção anterior.
+- ES7. `OrderingQuestion.render()` escreve as seções depois do epílogo
+  (`_render_lines` em `models/_ordering.py`, como o essay faz com o answer key).
+- ES8. Exame: nenhuma mudança de código no Python. A regra de `---` já valia
+  para todo bloco depois do corpo (answer key, seções do ordering); só o texto
+  da spec mudou. A mensagem de erro continua "a question's epilogue cannot use
+  '---' ...", igual no port. Corpus novo: `invalid/ordering-epilogue-after-section`,
+  `invalid/ordering-prose-between-sections`, `invalid/exam-thematic-break-in-answer-key`.
+  `valid/ordering/epilogue` foi reescrito na ordem nova e
+  `invalid/ordering-epilogue-before-section` foi removido (agora é válido).
+  Teste novo: ordering parser em `tests/test_ordering_parser.py`; o helper
+  `parse_body` de `tests/test_ordering_render.py` aceita o epílogo antes das seções.

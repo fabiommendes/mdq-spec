@@ -4,6 +4,6 @@ id: mdc-function
 title: MDC function
 type: essay
 stem: Escreva uma função que calcule o MDC de dois números inteiros.
-input: code
+content: code
 highlight: cobol85dialect
 answerKey: Qualquer implementação correta do algoritmo de Euclides é aceitável.
