@@ -1,7 +1,6 @@
-# Every generic frontmatter field plus every field ordering adds, all
-# declared explicitly. `content` and `highlight` would have been inferred
-# from the fenced code block anyway; a declared value simply wins over what
-# the body implies.
+# Every generic frontmatter field plus every frontmatter field ordering
+# adds, all declared explicitly. `content` and `highlight` are not
+# frontmatter fields: they come from the fenced code block.
 #
 # `normalizations` is spelled as a list here, the other half of the
 # shorthand `skip-blanks.mdq.md` shows.

@@ -1,0 +1,10 @@
+[
+  {
+    "code": "accept-reject-overlap",
+    "severity": "error",
+    "path": [
+      "reject",
+      0
+    ]
+  }
+]

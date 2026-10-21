@@ -1,0 +1,22 @@
+# The `## [reject]` section uses a line that neither `[ordering]` nor
+# `## [extra]` offers. The student never sees that line, so no response can
+# match the section: `unreachable-alternative` (warning). Using more copies
+# of a line than the two blocks offer together triggers it too.
+id: ordering-unreachable-reject
+title: Sucessão ecológica
+type: ordering
+stem: >-
+  Order the stages of ecological succession on bare rock in the Atlantic
+  Forest.
+content: text
+lines:
+  - [0, "Lichens colonize the bare rock."]
+  - [0, "Mosses grow on the thin layer of soil."]
+  - [0, "A mature forest forms."]
+reject:
+  - lines:
+      - [0, "Lichens colonize the bare rock."]
+      - [0, "Ferns spread under the canopy."]
+      - [0, "A mature forest forms."]
+    feedback: >-
+      Ferns do not appear in this list, so no student can write this order.

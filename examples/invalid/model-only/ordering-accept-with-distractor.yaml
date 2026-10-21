@@ -1,0 +1,17 @@
+# The `accept` entry uses a line of `extra`. A distractor MUST NOT appear in
+# a correct response (`accept-outside-answer-key`, ordering.md,
+# "Additional Rules"). JSON Schema cannot compare `accept` with `lines`.
+type: ordering
+content: text
+stem: Ordene as etapas da sucessão ecológica na Mata Atlântica.
+lines:
+  - [0, "Líquens colonizam a rocha nua."]
+  - [0, "Musgos crescem sobre o solo fino."]
+  - [0, "Forma-se a floresta madura."]
+extra:
+  - [0, "A floresta volta a ser rocha nua."]
+accept:
+  - lines:
+      - [0, "Líquens colonizam a rocha nua."]
+      - [0, "A floresta volta a ser rocha nua."]
+      - [0, "Forma-se a floresta madura."]

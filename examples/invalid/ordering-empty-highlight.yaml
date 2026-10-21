@@ -1,0 +1,8 @@
+# `highlight` must not be empty (schema `minLength: 1`).
+type: ordering
+stem: Ordene as linhas do programa.
+content: code
+highlight: ""
+lines:
+  - [0, "n = int(input())"]
+  - [0, "print(n * 2)"]

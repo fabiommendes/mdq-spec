@@ -663,3 +663,135 @@ M1 a M6 da seção anterior (o item M4 e a tabela `en`/`pt`/`es`).
   `invalid/ordering-epilogue-before-section` foi removido (agora é válido).
   Teste novo: ordering parser em `tests/test_ordering_parser.py`; o helper
   `parse_body` de `tests/test_ordering_render.py` aceita o epílogo antes das seções.
+
+## Auditoria de ordering (2026-10-21)
+
+Decisões I1 de `dev/audits/decisoes-ordering-2026-10-21.md`. Todas as
+comparações usam a normalização completa (`comparisonKey`: `normalizations`
+mais o `dedent` que `indentation: lenient` implica). Py: `models/_ordering.py`
+e `models/_lint.py`.
+
+- OR1. `accept-reject-overlap` (erro) agora também vale para key x reject: um
+  `reject` com as mesmas linhas do `lines`, depois da normalização, falha com
+  path `["reject", i]`. A checagem accept x reject vem antes e mantém o path
+  `["accept", i]`; só depois vem key x reject.
+- OR2. Erro novo `accept-outside-answer-key` (validador do modelo, path
+  `["accept", i]`): cada `accept` tem de ser sub-multiconjunto de `lines`
+  (contagem de cópias, depois da normalização). Pode omitir linhas; distrator,
+  linha estranha ou cópia a mais falha. Py: `Counter(key(accept)) -
+  Counter(key(lines))` não vazio.
+- OR3. Warning novo `unreachable-alternative` (path `["reject", i, "lines"]`):
+  `reject` que usa linha, ou mais cópias, do que o pool `lines` + `extra`
+  (normalizado) oferece. Mesma conta com `Counter`. Roda no `lint()` de
+  ordering, depois de `accept-repeats-answer-key`.
+- OR4. Só prosa: distratores são comparados depois da normalização; um que vira
+  igual a uma linha do key é cópia extra. Sem código.
+- OR5. Corpus novo: `invalid/model-only/ordering-reject-equals-answer-key`
+  (+ `-lenient`), `ordering-accept-with-distractor`,
+  `ordering-accept-foreign-line`; `valid/ordering/accept-omits-line`,
+  `unreachable-reject`. Fixture de testes: gerar `accept` como sub-multiconjunto
+  de `lines` (arbitrário viola OR2). Testes Py em `tests/test_lint_precision.py`.
+
+Decisões I2 (respostas, casamento e feedback). Py: `models/_ordering.py`.
+
+- OR6. `scoreResponse` valida o pool antes de pontuar (`checkResponseLines`,
+  `ResponseError`): o pool é `lines` + `extra`. Sob `fixed` a linha é o par
+  (nível, texto), então nível diferente do autoral cai fora do pool. Sob
+  `lenient` e `strict` só o texto identifica a linha (nível ignorado). Com
+  `skip-blanks`, linhas em branco saem dos dois lados. A conta usa as linhas
+  como enviadas, antes das outras normalizações. Linha fora do pool ou cópia a
+  mais falha; omitir linhas é válido e vai para o grading normal.
+- OR7. D6 sem mudança de lógica: a ordem de checagem já era key, `accept` em
+  ordem, `reject` em ordem. Accept e reject não casam a mesma resposta (o
+  overlap é erro), então a ordem entre as duas listas não importa. Docstring e
+  teste cobrem.
+- OR8. Testes novos em `tests/test_ordering_scoring.py`. Três testes antigos
+  mudaram: remapeamento de níveis só vale fora de `fixed`; resposta aleatória
+  pode dar `ResponseError`; cópia a mais além do pool agora é `ResponseError`
+  (antes era score 0).
+- OR9. Só prosa: D7 (casar = sequências iguais após normalização) e a frase de
+  `responses.md` sobre ids. Sem corpus novo: `examples/grading/` não tem
+  ordering.
+
+- OR10. I3, D8: linha em branco entre `[ordering]` e o bloco vira `parse-error`
+  (mensagem: "the [ordering] block must start on the line right after its tag,
+  with no blank line in between"). Checar `node.map[0] == tag.map[1]`, como em
+  fill-in. Corpus: `invalid/ordering-blank-line-after-tag`. Fontes de teste
+  antigas com linha em branco após a tag foram corrigidas no Py
+  (`test_blank_text.py`, `test_choice_items.py`).
+- OR11. I3, D10: seção sem bloco de conteúdo é `parse-error` com mensagem
+  própria ("the ## [extra] section has no content block", idem accept/reject).
+  Corpus: `invalid/ordering-{extra,accept,reject}-without-block`.
+- OR12. I3, D9: headings de seção em toda forma H2 do CommonMark (indentado,
+  espaços no fim, sequência de fechamento, setext). O Py já lia tudo isso via
+  markdown-it; só corpus novo em `valid/ordering/section-heading-*`,
+  `tag-indented-trailing-spaces` e `blank-line-before-section`. Atenção: com
+  conteúdo `ul`, heading indentado com 2+ colunas vira filho do último item
+  (erro de item multilinha); os exemplos de indentação usam bloco de código.
+- OR13. I3, D9, exam: o aviso `setext-heading` de um heading setext de seção
+  tem agora o path da seção (`answerKey`, `extra`, `accept`/`reject` + índice
+  da seção) em vez de `epilogue`. Py: `_glued_field` em
+  `mdq/_parser/_exam.py` (`_split_exam_blocks` devolve tuplas de path).
+  A mensagem do erro de `---` mudou para "a question's epilogue or section
+  cannot use '---' as a thematic break inside an exam; use '***' or '___'"
+  (`src/parser/exam.ts` e `tests/parser-exam.spec.ts` comparam o texto antigo;
+  `mdq-js/docs/handoffs/09-parser-exam.md` também cita).
+- OR14. I3, F1/D11: só prosa e gramática (`(blank_line* section)*`, linhas em
+  branco antes de seção e entre heading e bloco já eram aceitas no Py).
+- OR15. I4, D12: nível de linha em `ul` (corpo e seções) é a profundidade de
+  aninhamento do item, não coluna/MDC; a unidade vale só para bloco de código
+  (`unit = 1` quando `content` é `text`). Py: `collect_item_depths` e
+  `ordering_ul_lines` em `mdq/_parser/_ordering.py` (profundidade lida da
+  árvore do markdown-it por linha de origem). Sub-lista ordenada ou item com
+  continuação continua `parse-error`. Corpus: `valid/ordering/nested-list-*`,
+  `invalid/ordering-nested-ordered-list`.
+- OR16. I4, D13: espaços/tabs no fim de cada linha são removidos (código e
+  `ul`); linha só com espaços é `[0, ""]`. Corpus: `valid/ordering/trailing-whitespace`.
+- OR17. I4, D14: tab no recuo inicial vai à próxima coluna múltipla de 4
+  (`expandtabs(4)`), que o Py já fazia; só o texto do spec mudou. Corpus:
+  `valid/ordering/tab-stops-mixed`.
+- OR18. I4, D15: apresentação inicial. `fixed` mostra o nível autoral;
+  `lenient`/`strict` mostram tudo no nível 0. Py: `mdq show --no-answer-key`
+  (`_ordering` em `mdq/cli/_show.py`). Componentes web devem seguir a mesma regra.
+- OR19. I5, D19 (breaking): `content` e `highlight` saem do frontmatter do
+  ordering (Markdown): vêm sempre do corpo; declarar um é
+  `invalid-frontmatter-field` (a tabela de frontmatter no `ordering.md` perdeu
+  as duas linhas, e o schema `frontmatter-ordering` do bundle também). No
+  YAML/JSON, `content` é obrigatório (sem `default: text`) e `highlight` só
+  vale com `content: code` e não vazio (`if/then` em `schema/ordering.yaml`;
+  erro em `highlight`, ou em `content` quando falta). Py: `parse_ordering_body`
+  em `mdq/_parser/_question.py`; `OrderingQuestion.content` sem default e
+  validador de `highlight` em `mdq/models/_ordering.py`. O lint
+  `ignored-highlight` deixa de existir no ordering; `unknown-highlight-language`
+  continua. O JS precisa de `content` obrigatório no modelo/schema do ordering e
+  de testes de corpus com YAML sem `content` agora inválidos.
+- OR20. I5, D18: o fence de `## [extra]`/`## [accept]`/`## [reject]` usa a
+  linguagem do fence do `[ordering]` ou nenhuma; outra linguagem é `parse-error`
+  (`check_section_highlight` em `mdq/_parser/_question.py`; também quando o
+  `[ordering]` não tem linguagem e a seção tem). Corpus: removidos
+  `valid/ordering/declared-highlight-wins` e `ignored-highlight`;
+  `extra-other-highlight` virou `invalid/ordering-extra-other-highlight`;
+  novos `valid/ordering/extra-inherits-highlight`,
+  `invalid/ordering-accept-language-without-main-language`,
+  `ordering-frontmatter-{content,highlight}`, `ordering-missing-content`,
+  `ordering-highlight-with-text-content`, `ordering-empty-highlight`,
+  `valid/exam/ordering-sections` e `invalid/exam-thematic-break-in-ordering-section`.
+- OR21. I4b, D21: item de `ul` cujo único conteúdo é uma sub-lista não é linha;
+  só soma um nível (`- - Bahia` = `[1, "Bahia"]`; antes o Py lia `[1, "- Bahia"]`).
+  `-` vazio seguido de sub-lista na linha de baixo também é pulado; `-` vazio
+  sem nada continua `parse-error`; sub-lista ordenada na linha do marcador
+  (`- 1. x`) é `parse-error`. Py: `ordering_ul_lines` e `collect_item_depths`
+  (`mdq/_parser/_ordering.py`). Render: linha de `ul` mais de um nível abaixo da
+  anterior (ou primeira linha fora do nível 0) leva um `* ` extra por nível que
+  falta (`* * Bahia`; `yield_ordering_content` em `mdq/models/_render.py`).
+  Corpus: `valid/ordering/extra-nested-distractors`.
+- OR22. I4b, D20: erro novo `invalid-outline-level` (validador do modelo
+  `check_text_outline_levels`, valem YAML/JSON e Markdown). Com `content: text`,
+  `lines` e cada `accept`/`reject`: primeira linha no nível 0 e cada nível
+  <= anterior + 1. `extra` fica de fora, código também. Path: `["lines"]`,
+  `["accept", i, "lines"]`, `["reject", i, "lines"]`. Resposta de `text` fora
+  disso: `ResponseError` em `checkResponseLines` (função `outline_problem`).
+  Corpus: `invalid/model-only/ordering-text-{level-jump,starts-indented,accept-level-jump}`,
+  `invalid/ordering-text-{starts-nested,empty-parent-jump}`.
+  Atenção nos testes: fixtures com `content: text` e níveis livres passam a ser
+  inválidas; use `code` quando o teste não trata de outline.

@@ -1,0 +1,65 @@
+# An ordering question with an epilogue and the `## [extra]`, `## [accept]` and
+# `## [reject]` sections inside an exam. The thematic break of the epilogue is
+# written with `***`: a `---` would open the next block.
+type: exam
+id: sucessao
+title: Sucessão ecológica
+questions:
+- id: etapas
+  title: Etapas da sucessão
+  stem: Ordene as etapas da sucessão ecológica sobre rocha nua na Mata Atlântica,
+    da primeira à última.
+  content: text
+  lines:
+  - - 0
+    - Líquens colonizam a rocha nua.
+  - - 0
+    - Musgos crescem sobre o solo fino.
+  - - 0
+    - Gramíneas e pequenas ervas se fixam.
+  - - 0
+    - Arbustos e árvores pioneiras dominam.
+  - - 0
+    - A floresta madura se forma.
+  extra:
+  - - 0
+    - A floresta volta a ser rocha nua.
+  accept:
+  - lines:
+    - - 0
+      - Líquens colonizam a rocha nua.
+    - - 0
+      - Musgos crescem sobre o solo fino.
+    - - 0
+      - Arbustos e árvores pioneiras dominam.
+    - - 0
+      - A floresta madura se forma.
+    comment: Pular a etapa das gramíneas é um atalho válido em áreas úmidas.
+  reject:
+  - lines:
+    - - 0
+      - Arbustos e árvores pioneiras dominam.
+    - - 0
+      - Líquens colonizam a rocha nua.
+    - - 0
+      - Musgos crescem sobre o solo fino.
+    - - 0
+      - Gramíneas e pequenas ervas se fixam.
+    - - 0
+      - A floresta madura se forma.
+    feedback: Árvores pioneiras precisam de solo, que os líquens e os musgos formam
+      antes.
+  type: ordering
+  epilogue: 'Cada etapa prepara o solo para a seguinte.
+
+
+    ***
+
+
+    Nota: a sucessão leva séculos.'
+- id: bioma
+  title: Maior bioma
+  stem: Qual é o bioma que ocupa a maior parte do território brasileiro?
+  accept:
+  - Amazônia
+  type: short-answer

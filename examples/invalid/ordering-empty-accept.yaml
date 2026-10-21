@@ -1,5 +1,6 @@
 # An alternative must have at least one line (schema `minItems: 1`).
 type: ordering
+content: code
 stem: Ordene as linhas do programa.
 lines:
   - [0, "n = int(input())"]

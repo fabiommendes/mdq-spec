@@ -6,8 +6,6 @@ author: Fábio Macêdo Mendes
 locale: pt-BR
 tags: [fisica, python]
 type: ordering
-content: code
-highlight: python
 indentation: strict
 unmatched: incorrect
 normalizations:

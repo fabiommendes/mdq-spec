@@ -1,0 +1,9 @@
+[
+  {
+    "code": "invalid-outline-level",
+    "severity": "error",
+    "path": [
+      "lines"
+    ]
+  }
+]

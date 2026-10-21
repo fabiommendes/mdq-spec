@@ -1,0 +1,17 @@
+# The level is the nesting depth: 0, 1, 2, 3, 4, 5.
+type: ordering
+stem: Ordene a classificação taxonômica da onça-pintada, do reino à espécie.
+content: text
+lines:
+- - 0
+  - Animalia
+- - 1
+  - Chordata
+- - 2
+  - Mammalia
+- - 3
+  - Carnivora
+- - 4
+  - Felidae
+- - 5
+  - Panthera onca

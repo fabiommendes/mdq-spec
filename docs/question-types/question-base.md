@@ -266,6 +266,31 @@ an essay or the `## [extra]`, `## [accept]` and `## [reject]` sections of an
 ordering question, come after the epilogue. The epilogue ends where the first
 of those sections starts, so it MUST NOT contain a `## [name]` heading.
 
+The heading of such a section is a CommonMark `H2` heading whose text is the
+name in square brackets, alone on its line. It accepts every form CommonMark
+gives an `H2`:
+
+* up to 3 spaces of indentation before `##`;
+* trailing spaces;
+* an ATX closing sequence (`## [extra] ##`);
+* a setext heading, with the name underlined by `---`.
+
+```md
+[extra]
+-------
+```
+
+An implementation SHOULD warn about the setext form inside an exam, where the
+underline is easy to mistake for a block boundary (`setext-heading`, see
+[exam](../exam.md#question-and-include-blocks)). The warning points at the
+section (`answerKey`, `extra`, or `accept`/`reject` with the section index).
+A section with no content is a `parse-error`, except where the question type
+says otherwise (the `## [answer-key]` section of an essay).
+
+Inside a `ul` content block, a heading indented by 2 columns or more belongs
+to the last item of the list, as in CommonMark; indent the heading by at most 1
+column there, or use a code block.
+
 
 ## Automation
 

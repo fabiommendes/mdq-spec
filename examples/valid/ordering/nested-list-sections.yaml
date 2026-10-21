@@ -1,0 +1,27 @@
+# Nested lists in every section; the levels are depths, with mixed markers.
+type: ordering
+stem: Ordene o esboço dos biomas brasileiros.
+content: text
+indentation: strict
+lines:
+- - 0
+  - Amazônia
+- - 1
+  - Floresta ombrófila
+- - 2
+  - Várzea
+- - 0
+  - Cerrado
+- - 1
+  - Savana
+extra:
+- - 0
+  - Tundra
+accept:
+- lines:
+  - - 0
+    - Amazônia
+  - - 1
+    - Floresta ombrófila
+  - - 0
+    - Cerrado

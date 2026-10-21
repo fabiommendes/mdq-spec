@@ -1,0 +1,10 @@
+# `highlight` is allowed only when `content` is `code`.
+type: ordering
+stem: Ordene os nomes destes biomas brasileiros em ordem alfabética.
+content: text
+highlight: python
+lines:
+  - [0, "Amazônia"]
+  - [0, "Caatinga"]
+  - [0, "Cerrado"]
+  - [0, "Mata Atlântica"]

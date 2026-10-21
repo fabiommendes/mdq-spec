@@ -251,8 +251,9 @@ A response that is not a mapping is malformed too.
 ### Ordering
 
 The lines the student submitted, in the order they submitted them. Each line is
-an `[indentation level, text]` pair: the level counts indentation units, not
-spaces, and the text carries no leading indentation of its own.
+an `[indentation level, text]` pair: the level counts indentation units
+(code) or is the nesting depth (list), not spaces, and the text carries no
+leading indentation of its own.
 
 ```yaml
 response:
@@ -264,10 +265,27 @@ response:
   - [1, "y = aux"]
 ```
 
-Ordering is the one question type whose response names nothing by id: its lines
-carry none, so they are compared by content, and a line the question repeats is
-matched as many times as it appears. A response may hold a distractor from the
-question's `extra` lines -- that is a wrong answer, not a malformed response.
+Ordering lines carry no id, so they are compared by content. A response is
+malformed (`ResponseError`) when it:
+
+* holds a line that is not in the presented pool: the `[ordering]` lines and the
+  `## [extra]` lines together;
+* uses a line more times than the pool offers it;
+* under `indentation: fixed`, carries a level other than the authored level of
+  that line;
+* with `content: text`, is not a valid outline: the first line is not at level
+  0, or a line is more than one level deeper than the line before it.
+
+A line is identified in the pool as follows. Under `fixed` it is the pair of
+level and text, so a pool line at another level is a different line. Under
+`lenient` and `strict` the student may change levels, so only the text
+identifies a line. With the `skip-blanks` normalization, blank lines are left
+out on both sides. This check uses the lines as submitted, before the other
+normalizations.
+
+A response MAY leave pool lines out: it is graded normally, like an
+`## [accept]` section that omits lines. A response MAY hold a distractor from
+the `extra` lines -- that is a wrong answer, not a malformed response.
 
 The indentation level is always present. Under `indentation: fixed` it is the
 authored level, which the student cannot change, and it takes part in the
@@ -340,5 +358,6 @@ answered badly" -- a wrong answer is a score, not an error.
 | an exam still holds an unresolved `include`       | `UnresolvedInclude` |
 | a response the question cannot represent          | `ResponseError`     |
 | an id in a response not present in the question   | `ResponseError`     |
+| an ordering line outside the presented pool, used more often than the pool offers it, (under `fixed`) at another level, or (with `content: text`) not a valid outline | `ResponseError` |
 | a key naming no question in the exam              | `ResponseError`     |
 | a score asked of a pending response                | `NotAutoGradable`   |

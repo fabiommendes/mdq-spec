@@ -1,0 +1,13 @@
+# Each `accept` entry is an outline of its own: level 0 followed by level 2
+# is a jump (`invalid-outline-level`, ordering.md, "Additional Rules").
+type: ordering
+stem: Ordene o esboço das regiões do Brasil.
+content: text
+lines:
+- [0, "Região Norte"]
+- [1, "Amazonas"]
+- [2, "Manaus"]
+accept:
+- lines:
+  - [0, "Região Norte"]
+  - [2, "Manaus"]

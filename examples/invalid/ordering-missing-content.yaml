@@ -1,0 +1,6 @@
+# In YAML and JSON `content` is required: no body implies it.
+type: ordering
+stem: Ordene as linhas do programa.
+lines:
+  - [0, "n = int(input())"]
+  - [0, "print(n * 2)"]

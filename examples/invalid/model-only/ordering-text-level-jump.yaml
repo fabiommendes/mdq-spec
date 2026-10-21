@@ -1,0 +1,10 @@
+# With `content: text`, a line is at most one level deeper than the line
+# before it (`invalid-outline-level`, ordering.md, "Additional Rules"). Here
+# level 0 is followed by level 2. JSON Schema cannot compare consecutive lines.
+type: ordering
+stem: Ordene o esboço das regiões do Brasil.
+content: text
+lines:
+- [0, "Região Norte"]
+- [2, "Amazonas"]
+- [0, "Região Nordeste"]

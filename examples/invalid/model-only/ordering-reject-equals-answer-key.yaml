@@ -1,0 +1,17 @@
+# The `reject` entry holds the same lines as the `[ordering]` block. The
+# answer key is an accepted answer, so it cannot also be rejected
+# (`accept-reject-overlap`, ordering.md, "Additional Rules"). JSON Schema
+# cannot compare the two lists.
+type: ordering
+content: text
+stem: Ordene as etapas da sucessão ecológica na Mata Atlântica.
+lines:
+  - [0, "Líquens colonizam a rocha nua."]
+  - [0, "Musgos crescem sobre o solo fino."]
+  - [0, "Forma-se a floresta madura."]
+reject:
+  - lines:
+      - [0, "Líquens colonizam a rocha nua."]
+      - [0, "Musgos crescem sobre o solo fino."]
+      - [0, "Forma-se a floresta madura."]
+    feedback: Esta é a ordem do gabarito.

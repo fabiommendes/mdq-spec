@@ -1,0 +1,8 @@
+# With `content: text`, the first line is at level 0 (`invalid-outline-level`,
+# ordering.md, "Additional Rules"). Here the first line is at level 1.
+type: ordering
+stem: Ordene o esboço das regiões do Brasil.
+content: text
+lines:
+- [1, "Amazonas"]
+- [0, "Região Nordeste"]

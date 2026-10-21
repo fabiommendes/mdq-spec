@@ -1,0 +1,15 @@
+# The `accept` entry holds a line that is neither in `lines` nor in `extra`
+# (`accept-outside-answer-key`). An accepted answer may leave lines out of
+# the answer key, but it may not add any.
+type: ordering
+content: text
+stem: Ordene as etapas da sucessão ecológica na Mata Atlântica.
+lines:
+  - [0, "Líquens colonizam a rocha nua."]
+  - [0, "Musgos crescem sobre o solo fino."]
+  - [0, "Forma-se a floresta madura."]
+accept:
+  - lines:
+      - [0, "Líquens colonizam a rocha nua."]
+      - [0, "Surgem as primeiras samambaias."]
+      - [0, "Forma-se a floresta madura."]

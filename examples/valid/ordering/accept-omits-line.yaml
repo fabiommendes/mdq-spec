@@ -1,0 +1,23 @@
+# The lines of an `## [accept]` section need only be a subset of the
+# `[ordering]` block's lines: an accepted answer MAY leave lines out. It may
+# not add lines the answer key lacks (`accept-outside-answer-key`).
+id: ordering-accept-omits-line
+title: Sucessão ecológica
+type: ordering
+stem: >-
+  Order the stages of ecological succession on bare rock in the Atlantic
+  Forest.
+content: text
+lines:
+  - [0, "Lichens colonize the bare rock."]
+  - [0, "Mosses grow on the thin layer of soil."]
+  - [0, "Grasses and small herbs take root."]
+  - [0, "A mature forest forms."]
+accept:
+  - lines:
+      - [0, "Lichens colonize the bare rock."]
+      - [0, "Mosses grow on the thin layer of soil."]
+      - [0, "A mature forest forms."]
+    feedback: >-
+      In humid areas, mosses can lead directly to shrubs, so the grass stage
+      may be skipped.

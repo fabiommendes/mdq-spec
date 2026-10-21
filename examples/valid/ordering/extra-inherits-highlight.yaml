@@ -1,0 +1,20 @@
+# The fence of `## [extra]` has no language and inherits the language of the
+# `[ordering]` fence; the fence of `## [accept]` repeats it. Both are valid.
+type: ordering
+stem: Ordene as linhas do programa.
+content: code
+highlight: python
+lines:
+- - 0
+  - n = int(input())
+- - 0
+  - print(n * 2)
+extra:
+- - 0
+  - print(n ** 2)
+accept:
+- lines:
+  - - 0
+    - print(n * 2)
+  - - 0
+    - n = int(input())

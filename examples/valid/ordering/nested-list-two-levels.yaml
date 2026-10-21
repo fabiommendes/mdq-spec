@@ -1,0 +1,17 @@
+# A nested list item is a line of its own; its level is its nesting depth.
+type: ordering
+stem: Ordene o esboço das regiões do Brasil e de alguns de seus estados.
+content: text
+lines:
+- - 0
+  - Região Norte
+- - 1
+  - Amazonas
+- - 1
+  - Pará
+- - 0
+  - Região Nordeste
+- - 1
+  - Bahia
+- - 1
+  - Ceará

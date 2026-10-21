@@ -3,6 +3,7 @@
 # disjoint", so this passes the schema and is only rejected by the rule in
 # ordering.md, "Additional Rules".
 type: ordering
+content: code
 stem: Ordene as linhas do algoritmo de Euclides para o MDC.
 lines:
   - [0, "a, b = b, a % b"]

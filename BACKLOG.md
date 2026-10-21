@@ -115,6 +115,13 @@ Those need discussion and design.
   run of the stem paragraph (fill-in.md, "Where blanks may appear"). Needs
   a stem that holds a block, a render for an input inside a cell or item,
   and the `misplaced-blank` rule relaxed.
+* [ ] Ordering: explicit indentation in a `ul` body. Today a list line gets
+  its level only from nesting (ordering.md, "Indentation"). Idea: in an item
+  that starts with a code span, the spaces after the opening backtick are
+  indentation, resolved by the GCD as in a code block. Needs rules for the
+  source (CommonMark strips one space from each end of a code span), the
+  text of the line, and a mix with nesting. Hosts must render the inline
+  code with `white-space: pre`. Today a fenced block covers this case.
 
 
 * [ ] Choices with blocks: allow several blocks (paragraphs, code, lists) as

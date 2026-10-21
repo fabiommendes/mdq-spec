@@ -69,8 +69,9 @@ The `content` field describes the kind of response the student writes. It is
 * "plain": the response is plain text without any formatting. Rich text widgets
   are not shown to students.
 
-The ordering type has a `content` field too, with the values "code" and "text".
-See [Ordering](ordering.md#frontmatter).
+The ordering type has a `content` field too, with the values "code" and "text",
+but it is not a frontmatter field there: the body of the question sets it. See
+[Ordering](ordering.md#body).
 
 The response is always a string. For "plain" and "code", it is the text the
 student wrote, as typed. For "text", its format depends on the host (for
@@ -89,15 +90,18 @@ line. It holds the blocks after the heading, up to the end of the question: the
 end of the file or, in an exam, the next block.
 
 ```lark
-answer_key : ws? "##" ws "[answer-key]" ws? nl md_block*
+answer_key : ws? "##" ws "[answer-key]" ws? ("#"+ ws?)? nl md_block*
 ```
 
 The rules `ws` and `nl` are defined in
 [Common grammar rules](../references/grammar.md). `md_block` is any
 CommonMark block.
 
-The heading is an ATX heading (`## [answer-key]`) or a setext heading, as
-CommonMark reads both as `H2`:
+The heading follows the
+[heading rule of type-specific sections](question-base.md#epilogue): an ATX
+heading (`## [answer-key]`, with the indentation, trailing spaces and closing
+sequence CommonMark allows) or a setext heading, as CommonMark reads both as
+`H2`:
 
 ```md
 [answer-key]

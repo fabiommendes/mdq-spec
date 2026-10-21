@@ -1,0 +1,11 @@
+[
+  {
+    "code": "unreachable-alternative",
+    "severity": "warning",
+    "path": [
+      "reject",
+      0,
+      "lines"
+    ]
+  }
+]

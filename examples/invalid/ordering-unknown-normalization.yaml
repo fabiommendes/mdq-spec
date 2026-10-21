@@ -1,5 +1,6 @@
 # `normalizations` entries are `dedent` or `skip-blanks` (schema enum).
 type: ordering
+content: code
 stem: Ordene as linhas do programa.
 normalizations: [trim]
 lines:

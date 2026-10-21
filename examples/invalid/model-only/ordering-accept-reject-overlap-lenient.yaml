@@ -3,6 +3,7 @@
 # the same lines: `accept-reject-overlap` (ordering.md, "Additional Rules"
 # [^9]). JSON Schema cannot compare the two lists.
 type: ordering
+content: code
 stem: Ordene as linhas para imprimir os números de 0 a 9.
 indentation: lenient
 lines:

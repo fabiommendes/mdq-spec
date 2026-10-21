@@ -1,0 +1,16 @@
+# A section heading may be a setext H2: the name underlined by dashes.
+type: ordering
+stem: Ordene as camadas da atmosfera, da mais próxima da superfície até a mais distante.
+content: text
+lines:
+- [0, Troposfera]
+- [0, Estratosfera]
+- [0, Mesosfera]
+extra:
+- [0, Hidrosfera]
+reject:
+- lines:
+  - [0, Troposfera]
+  - [0, Mesosfera]
+  - [0, Estratosfera]
+  feedback: A estratosfera vem depois da troposfera.

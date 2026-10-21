@@ -1,5 +1,5 @@
-# A tab counts as 4 spaces when the indentation unit is inferred
-# (ordering.md, "Indentation"), so one tab is level 1 and two tabs level 2.
+# A tab advances to the next multiple of 4 columns (ordering.md,
+# "Indentation"), so one tab is level 1 and two tabs level 2.
 type: ordering
 stem: Ordene as linhas para somar os números de `valores`.
 content: code

@@ -1,0 +1,16 @@
+# Trailing whitespace is removed; a whitespace-only line is blank (level 0, empty text).
+type: ordering
+stem: Ordene as linhas para imprimir os rios da Amazônia.
+content: code
+highlight: python
+lines:
+- - 0
+  - rios = ["Negro", "Solimões"]
+- - 0
+  - 'for rio in rios:'
+- - 1
+  - print(rio)
+- - 0
+  - ''
+- - 0
+  - print("fim")

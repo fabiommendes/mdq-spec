@@ -1,0 +1,24 @@
+# An item of a `ul` that only holds a nested list is not a line: it adds a
+# level. `* * Maranhão` is `[1, "Maranhão"]` and `* * * Imperatriz` is
+# `[2, "Imperatriz"]`, so a nested distractor can stand alone in `## [extra]`.
+type: ordering
+stem: Ordene o esboço das regiões do Brasil e de alguns de seus estados.
+content: text
+lines:
+- - 0
+  - Região Norte
+- - 1
+  - Amazonas
+- - 1
+  - Pará
+- - 0
+  - Região Nordeste
+- - 1
+  - Bahia
+- - 1
+  - Ceará
+extra:
+- - 1
+  - Maranhão
+- - 2
+  - Imperatriz

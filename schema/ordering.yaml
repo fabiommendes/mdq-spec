@@ -34,7 +34,10 @@ allOf:
         type: array
         description: >-
           Alternative orderings that are also correct, each scoring 1 like
-          `lines` itself.
+          `lines` itself. An alternative may leave lines out, but it may
+          only use lines of `lines`, and no more copies of one than
+          `lines` has (not a distractor from `extra`). A model rule, not
+          expressed in this schema.
         items:
           "$ref": "#/$defs/Alternative"
         minItems: 1
@@ -43,7 +46,10 @@ allOf:
         type: array
         description: >-
           Orderings known to be wrong, each scoring 0. They exist to
-          attach feedback to a mistake the author expects.
+          attach feedback to a mistake the author expects. An alternative
+          must not equal `lines` or an `accept` entry, and one that uses
+          lines `lines` and `extra` do not offer can never match. Model
+          rules, not expressed in this schema.
         items:
           "$ref": "#/$defs/Alternative"
         minItems: 1
@@ -55,16 +61,15 @@ allOf:
         description: >-
           How the lines are written and presented: `code` for a fenced
           code block, normally paired with `highlight`, and `text` for an
-          unordered list. Inferred from the body when the frontmatter
-          leaves it out.
-        default: text
+          unordered list. In Markdown the body implies it, so it is never
+          written in the frontmatter; a YAML or JSON document MUST state it.
 
       highlight:
         type: string
         description: >-
-          Programming language used for syntax highlighting. Only
-          applicable when `content` is `code`; it is ignored (and the
-          linter warns) otherwise.
+          Programming language used for syntax highlighting. Only allowed
+          when `content` is `code`. A code block with no language leaves
+          it out.
         minLength: 1
         examples:
           - python
@@ -82,7 +87,8 @@ allOf:
           indentation and does not let the student change it; `lenient`
           lets them change it but ignores it when grading, which implies
           the `dedent` normalization; `strict` lets them change it and
-          compares it.
+          compares it. Under `lenient` and `strict` the lines are first
+          shown at level 0.
 
       unmatched:
         enum:
@@ -110,6 +116,16 @@ allOf:
     required:
       - type
       - lines
+      - content
+
+    # `highlight` is allowed only for code content.
+    if:
+      required:
+        - highlight
+    then:
+      properties:
+        content:
+          const: code
 
 # Rejects any key not defined by question-base.yaml or by the object
 # schema above. Plain `additionalProperties: false` can't be used here
@@ -139,18 +155,22 @@ unevaluatedProperties: false
     type: array
     title: Line
     description: >-
-      One line, as an `[indentation level, text]` pair. The level is a
-      count of indentation units, not of spaces -- the unit itself is
-      inferred from the question, see
+      One line, as an `[indentation level, text]` pair. The level is not
+      a count of spaces: in a code block it counts indentation units
+      (the unit is inferred from the question), and in a `ul` list it is
+      the nesting depth of the item, see
       docs/question-types/ordering.md#indentation. A response carries the
       same pair shape.
     prefixItems:
       - type: integer
-        description: Indentation level, in indentation units.
+        description: >-
+          Indentation level, in indentation units (code) or nesting
+          depth (list).
         minimum: 0
       - type: string
         description: >-
-          The text of the line, with its leading indentation removed.
+          The text of the line, with its leading indentation and its
+          trailing whitespace removed.
     items: false
     minItems: 2
     maxItems: 2

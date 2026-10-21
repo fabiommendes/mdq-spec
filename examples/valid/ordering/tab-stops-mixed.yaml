@@ -1,0 +1,18 @@
+# Tabs follow CommonMark tab stops: "  \t" is 4 columns and " \t  " is 6, so the unit is 2 here.
+type: ordering
+stem: Ordene as linhas para somar os números de `valores`.
+content: code
+highlight: python
+lines:
+- - 0
+  - total = 0
+- - 0
+  - 'for x in valores:'
+- - 2
+  - total += x
+- - 2
+  - 'if x < 0:'
+- - 3
+  - print("negativo")
+- - 0
+  - print(total)

@@ -58,6 +58,11 @@ check it (`answer`, `accept`, per-choice `score`) or only a human can
 (an essay's `answerKey`). Carrying one does not make a question auto-gradable.
 _Avoid_: solution, the correct answer, gabarito
 
+### Declared answer
+An ordering an ordering question declares: the answer key (`[ordering]` and
+`## [accept]`) or a `## [reject]` section. A response is graded by the first
+declared answer it matches.
+
 ### Skip
 The absence of a response to a whole question, distinct from a response that
 happens to mark nothing.

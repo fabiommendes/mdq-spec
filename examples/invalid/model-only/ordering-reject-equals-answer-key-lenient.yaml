@@ -1,0 +1,16 @@
+# The `reject` entry differs from the `[ordering]` block only in
+# indentation. `indentation: lenient` implies `dedent`, so once fully
+# normalized the two hold the same lines: `accept-reject-overlap`.
+type: ordering
+content: code
+stem: Ordene as linhas para somar os números de 0 a 9.
+indentation: lenient
+lines:
+  - [0, "total = 0"]
+  - [0, "for i in range(10):"]
+  - [1, "total += i"]
+reject:
+  - lines:
+      - [0, "total = 0"]
+      - [0, "for i in range(10):"]
+      - [0, "total += i"]
