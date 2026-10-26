@@ -1,0 +1,17 @@
+# `blank-text` on the `feedback` and `comment` of a pattern: defined, but empty
+# or only whitespace. The same rule holds for `reject` and `preReject`.
+type: short-answer
+stem: Cite um bioma do Brasil central.
+accept:
+  - pattern: Cerrado
+    feedback: ""
+    comment: "   "
+reject:
+  - pattern: Tundra
+    feedback: " "
+preAccept:
+  - pattern: "/\\w+/"
+    feedback: " "
+preReject:
+  - pattern: "/\\d+/"
+    comment: " "

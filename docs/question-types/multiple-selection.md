@@ -22,23 +22,24 @@ Which cities were capitals of Brazil?
 
 ## Frontmatter
 
-Multiple selection questions accept the following extra arguments in the
+Multiple selection questions accept the following extra fields in the
 frontmatter:
 
 | Field   | Type                 | Description                         |
 | ------- | -------------------- | ----------------------------------- |
 | type    | "multiple-selection" | The type discriminator              |
 | shuffle | boolean or "inherit" | True if choices can be shuffled[^1] |
-| grading | grading              | The grading strategy to use.[^1]    |
+| grading | "partial", "all-or-nothing", "symmetric" or "inherit" | The grading strategy to use.[^1] |
 
 [^1]: Grading is `"partial" | "all-or-nothing" | "symmetric" | "inherit"`.
 Default is `"inherit"`, which takes the strategy from the exam, and is
 `"symmetric"` outside an exam. `shuffle` is `boolean | "inherit"` with the
 same rule: `"inherit"` is the default and resolves to `false` outside an
 exam. See [exam inheritance](../exam.md#inheritance).
-With `shuffle: true`, an implementation MAY present the choices in any
-order. With `shuffle: false`, it MUST NOT change their order. This rule is
-for implementations that present the question: it has no diagnostic.
+
+**Shuffle.** With `shuffle: true`, an implementation that presents the question
+MAY show the choices in any order. With `shuffle: false`, it MUST NOT change
+their order. This rule is for hosts: no lint checks it.
 
 
 ## Body
@@ -51,6 +52,10 @@ items. Each item follows the `item` rule of
 value : ws
       | ws? "x" ws?
 ```
+
+The rule reads the normalized value (see
+[Choice marker](../references/choices.md#choice-marker)), so `[X]` and
+`[` U+FF38 `]` are `x`.
 
 
 ## Choices
@@ -163,6 +168,7 @@ questions.
 | choices[].text     | error    | duplicate-choice-text      | must be unique among the choices of the question          |
 | choices[].id       | error    | duplicate-choice-id        | must be unique among the choices of the question          |
 | choices[]          | error    | parse-error                | carries at most one feedback block and one comment block  |
+| choices[]          | error    | parse-error                | holds only its first paragraph, the feedback and the comment, see [Item](../references/choices.md#item) |
 | choices[]          | error    | parse-error                | must not use the empty marker `[]`                        |
 | choices[].text     | info     | visually-identical-choices | is visually equivalent to another choice[^2]              |
 | choices            | info     | no-correct-choice          | no choice is correct                                      |
@@ -171,4 +177,6 @@ questions.
 
 [^2]: Visual equivalence is not defined by this spec, see
 [choice text](../references/choices.md#choice-text).
-[^3]: Derived ids are only as stable as the slugifier that produced them.
+[^3]: Derived ids are only as stable as the slugifier that produced them, and
+are not portable across implementations, see
+[Choice id](../references/choices.md#choice-id).

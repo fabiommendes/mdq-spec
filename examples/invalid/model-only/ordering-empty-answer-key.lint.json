@@ -1,0 +1,9 @@
+[
+  {
+    "code": "empty-ordering-answer",
+    "severity": "error",
+    "path": [
+      "lines"
+    ]
+  }
+]

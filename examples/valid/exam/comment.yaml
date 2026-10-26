@@ -1,0 +1,11 @@
+type: exam
+id: prova-cerrado
+title: Prova sobre o Cerrado
+author: Ana
+comment: Revisada pela coordenação em março. Não mostrar aos alunos.
+questions:
+- stem: Qual bioma brasileiro é conhecido como savana tropical?
+  accept:
+  - Cerrado
+  type: short-answer
+  author: Ana

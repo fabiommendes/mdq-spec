@@ -1,0 +1,17 @@
+# `fil` has its own row, a copy of `tl`: `V` is a TRUE letter that the row
+# does not accept, so it gets `locale-mismatched-true-false-marker`.
+id: tf-brazil-fil
+title: Mga katotohanan tungkol sa Brazil
+locale: fil
+stem: Suriin ang mga pahayag tungkol sa Brazil.
+choices:
+- text: Ang Brasília ang kabisera ng Brazil.
+  correct: true
+  marker: T
+- text: Ang Brazil ay may hangganan sa Chile.
+  correct: false
+  marker: F
+- text: Ang Ilog Amazonas ay dumadaloy sa Brazil.
+  correct: true
+  marker: V
+type: true-false

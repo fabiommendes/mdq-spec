@@ -1,0 +1,11 @@
+# The `marker` holds the letter without the whitespace around it:
+# `" T "` is not a marker (`malformed-true-false-marker`).
+type: true-false
+stem: Judge the alternatives.
+choices:
+  - text: A Amazônia fica na Região Norte.
+    correct: true
+    marker: " T "
+  - text: O Pantanal fica na Região Sul.
+    correct: false
+    marker: F

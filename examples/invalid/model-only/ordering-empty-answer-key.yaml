@@ -1,0 +1,9 @@
+# The `lines` block is empty after normalization (`empty-ordering-answer`).
+# With `skip-blanks`, a block of blank lines holds no line.
+type: ordering
+content: code
+normalizations: [skip-blanks]
+stem: Ordene as linhas do programa.
+lines:
+  - [0, ""]
+  - [0, ""]

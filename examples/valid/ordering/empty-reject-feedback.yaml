@@ -1,0 +1,18 @@
+# An empty `reject` entry is valid, unlike an empty `accept` entry
+# (`empty-ordering-answer`): with `skip-blanks`, it gives feedback to an empty
+# submission.
+id: ordering-empty-reject
+title: Média das chuvas
+type: ordering
+stem: Ordene as linhas do programa que soma as chuvas do mês.
+content: code
+highlight: python
+normalizations: [skip-blanks]
+lines:
+  - [0, "total = 0"]
+  - [0, "for x in chuvas:"]
+  - [1, "total += x"]
+reject:
+  - lines:
+      - [0, ""]
+    feedback: Faltou escrever o programa.

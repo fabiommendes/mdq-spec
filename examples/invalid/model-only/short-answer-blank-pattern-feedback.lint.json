@@ -1,0 +1,47 @@
+[
+  {
+    "code": "blank-text",
+    "severity": "error",
+    "path": [
+      "accept",
+      0,
+      "feedback"
+    ]
+  },
+  {
+    "code": "blank-text",
+    "severity": "error",
+    "path": [
+      "accept",
+      0,
+      "comment"
+    ]
+  },
+  {
+    "code": "blank-text",
+    "severity": "error",
+    "path": [
+      "reject",
+      0,
+      "feedback"
+    ]
+  },
+  {
+    "code": "blank-text",
+    "severity": "error",
+    "path": [
+      "preAccept",
+      0,
+      "feedback"
+    ]
+  },
+  {
+    "code": "blank-text",
+    "severity": "error",
+    "path": [
+      "preReject",
+      0,
+      "comment"
+    ]
+  }
+]

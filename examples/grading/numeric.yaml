@@ -41,6 +41,9 @@ questions:
         score: "malformed"
       - response: "1/2"
         score: "malformed"
+      # A boolean is not a number, even where the host language counts it as one.
+      - response: true
+        score: "malformed"
 
   # Absolute tolerance: |answer - response| <= absolute.
   - name: "Absolute tolerance"

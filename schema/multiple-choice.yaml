@@ -3,8 +3,8 @@
 title: Multiple choice question
 description: >-
   A question where the student must select exactly one choice out of a
-  list of options. Extends the common question-base schema with a
-  `choices` field.
+  list of options. Extends the common question-base schema with the
+  `choices`, `grading` and `shuffle` fields.
 
 allOf:
   - "$ref": "./question-base.yaml"
@@ -82,9 +82,12 @@ unevaluatedProperties: false
         maximum: 1
         description: >-
           Numeric grade associated with the choice, on a scale from -1 to
-          1. 1 is considered correct and 0 incorrect. The instructor may
-          omit this for incorrect choices, or set negative values as
-          penalties for selecting a wrong choice. A question never clamps
+          1. 1 is considered correct and 0 incorrect. When the score is
+          omitted, its value depends on the grading strategy: 0 under
+          `partial`, and the score that the `symmetric` strategy derives
+          under `symmetric` (see the Grading section of
+          docs/question-types/multiple-choice.md). The instructor may
+          set negative values as penalties for selecting a wrong choice. A question never clamps
           its own score -- whether a negative value survives into the
           exam total is decided entirely by the exam's `penalty` policy
           (see schema/exam.yaml), never here. A value outside [-1, 1] is a

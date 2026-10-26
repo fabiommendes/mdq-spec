@@ -12,7 +12,7 @@ Describe how the greenhouse effect works and how it affects the climate.
 
 ## Frontmatter
 
-Essay questions accept the following extra arguments in the
+Essay questions accept the following extra fields in the
 frontmatter:
 
 | Field     | Type    | Description                                |
@@ -49,12 +49,25 @@ The rule `ws` is defined in
 [Common grammar rules](../references/grammar.md). The rule applies to the text
 of a paragraph. A list item or a heading that holds `[essay]`, such as
 `* [essay]` or `## [essay]`, is not the tag. A paragraph with more text than the
-tag, such as `[essay] with at most 200 words` or `[Essay]`, is a `parse-error`.
-A second paragraph with only `[essay]` is in the epilogue, so it is a
+tag, such as `[essay] with at most 200 words`, is a `parse-error`, when it is
+at the tag position: no paragraph with only `[essay]` follows it. Before a
+real tag, `[essay] with at most 200 words` is text of the stem, and a stem
+paragraph that starts with `[` is a `forbidden-block-element`, see
+[Forbidden elements](question-base.md#forbidden-elements). A second paragraph with only `[essay]` is in the epilogue, so it is a
 `detached-tag` error, see
 [Tags after the epilogue starts](question-base.md#tags-after-the-epilogue-starts).
 A tag in another case, such as `[Essay]`, is a `parse-error` too, see
 [Case of tags](question-base.md#case-of-tags).
+
+These cases have no tag, and each one has its own diagnostic:
+
+| Body                                                       | Result                                                     |
+| ---------------------------------------------------------- | ---------------------------------------------------------- |
+| `## [essay]`, `> [essay]`, or `[essay]` indented 4 spaces  | `parse-error`: the question has no body                    |
+| no `[essay]` paragraph at all                              | `parse-error`: the question has no body                    |
+| an `## [answer-key]` section before the tag                | `forbidden-block-element` at `stem`                        |
+| `* [essay]` (a list item) and no `type`                    | `foreign-choice-marker` at `choices`                       |
+| `* [essay]` (a list item) with `type: essay`               | `schema-error` at `choices`                                |
 
 A paragraph with only `[essay]` is always the tag. It is never a
 [slug](question-base.md#slug). A slug can be `essay`, since the name of a type
@@ -87,8 +100,9 @@ Implementations MAY report, at the info level, a `highlight` that is not a
 recognized language identifier (`unknown-highlight-language`), and a question
 with `content` "code" and no `highlight` (`code-content-without-highlight`).
 
-The ordering type has a `content` field too, but with other values and another
-source: the body of the question sets it. See [Ordering](ordering.md#content).
+The ordering type has a `content` field too, but it takes a subset of these
+values ("code" and "text"), with another meaning and source: the body of the
+question sets it. See [Ordering](ordering.md#content).
 
 The response is always a string. For "plain" and "code", it is the text the
 student wrote, as typed. For "text", its format depends on the host (for
@@ -107,14 +121,17 @@ line. It holds the blocks after the heading, up to the end of the question: the
 end of the file or, in an exam, the next block.
 
 ```lark
-answer_key : answer_key_heading nl md_block*
-answer_key_heading : ws? "##" ws "[answer-key]" (ws ("#"+ ws?)?)?
-                   | ws? "[answer-key]" ws? nl ws? "-"+ ws?
+answer_key : blank_line* atx_answer_key nl md_block*
+           | blank_line+ setext_answer_key nl md_block*
+atx_answer_key    : ws? "##" ws "[answer-key]" (ws ("#"+ ws?)?)?
+setext_answer_key : ws? "[answer-key]" ws? nl ws? "-"+ ws?
 ```
 
-The rules `ws` and `nl` are defined in
-[Common grammar rules](../references/grammar.md). `md_block` is any
-CommonMark block.
+The rules `ws`, `nl` and `blank_line` are defined in
+[Common grammar rules](../references/grammar.md). A setext heading needs a blank
+line before it: without one, `[answer-key]` is a lazy line of the paragraph
+before it, as in CommonMark. `md_block` is any CommonMark
+block except an H1 heading.
 
 The heading follows the
 [heading rule of type-specific sections](question-base.md#epilogue): an ATX
@@ -239,9 +256,12 @@ An empty response is a response, not a skip.
 | answerKey | info     | missing-answer-key             | is not defined in the document[^6]                         |
 
 [^3]: Any alias of a [Pygments](https://pygments.org/) lexer is a recognized
-language identifier -- Pygments' own lexer aliases are the reference list.
+language identifier. The match is case-insensitive (`Python` is `python`), and
+the reference list is the one of the Pygments version that the implementation
+ships.
 [^4]: A list item such as `* [essay]` reads as a choice with a foreign marker
 (see [Type inference](question-base.md#type-inference)).
-[^5]: Examples are `[essay] with at most 200 words` and `[Essay]`.
+[^5]: An example is `[essay] with at most 200 words`, when no tag follows it.
+Other cases are in [Body](#body).
 [^6]: An `## [answer-key]` section with no content is also reported, since it
 defines no answer key.

@@ -17,14 +17,14 @@ Judge the alternatives.
 
 ## Frontmatter
 
-True/False questions accept the following extra arguments in the
+True/False questions accept the following extra fields in the
 frontmatter:
 
 | Field   | Type                 | Description                         |
 | ------- | -------------------- | ----------------------------------- |
 | type    | "true-false"         | The type discriminator              |
 | shuffle | boolean or "inherit" | True if choices can be shuffled[^1] |
-| grading | grading              | The grading strategy to use.[^1]    |
+| grading | "partial", "no-mistakes", "all-or-nothing", "symmetric" or "inherit" | The grading strategy to use.[^1] |
 
 [^1]: Grading is `"partial" | "no-mistakes" | "all-or-nothing" | "symmetric" | "inherit"`.
 Default is `"inherit"`, which takes the strategy from the exam, and is
@@ -63,7 +63,7 @@ Latin letters used above (`T` is `Lu`, `t` is `Ll`) and the CJK ideographs,
 which are `Lo`: 对 is U+5BF9, 真 is U+771F, 错 is U+9519, 偽 is U+507D, all four
 `Lo` (Letter, other) in the Han script.
 
-Three consequences follow:
+Five consequences follow:
 
 * Marks that look like answers but are not letters are NOT valid markers:
   `✓` (U+2713) and `✗` (U+2717) are `So`, `×` (U+00D7) is `Sm`, `○` (U+25CB)
@@ -220,8 +220,8 @@ When `marker` is present, these rules apply:
   letter.
 * It MUST NOT be `X` or `x`, nor a letter that normalizes to `x`
   (`reserved-true-false-marker`).
-* It MUST be one letter, as defined in [Body](#body)
-  (`malformed-true-false-marker`).
+* It MUST be one letter, as defined in [Body](#body), with no whitespace
+  around it (`malformed-true-false-marker`): `" T "` and `"T "` are errors.
 
 These rules check the `marker` field of model input (YAML, JSON, dict). In a
 markdown document a bracket value that is not allowed in a true/false list
@@ -256,8 +256,10 @@ of the letters are implied, as in the sets of [Body](#body).
   letters (`C`, `W`, `R`, `O`, `K`). Under that locale such a letter is
   accepted without `unlisted-true-false-marker`, and it still means true.
 * **False friends** are letters that mean false in that language but true
-  globally. A letter enters this column by practice or by romanization. They
-  are WARNING letters, or TRUE letters. A TRUE letter can be a false friend
+  globally. A letter enters this column by practice, or by a Latin
+  romanization of the word for false. The native initial of a secondary word,
+  one that is neither the test convention nor a Latin romanization, stays out.
+  They are WARNING letters, or TRUE letters. A TRUE letter can be a false friend
   only through a romanization: `B` under `bn` (Bengali "bhul") and under `ja`
   (Japanese "batsu").
 
@@ -269,26 +271,27 @@ a warning, and the score is the same.
 | Language subtag | TRUE accepted | FALSE accepted | False friends | Words                                  |
 | --------------- | ------------- | -------------- | ------------- | -------------------------------------- |
 | `en`            | `T`           | `F`            | `W`           | true / false (right / wrong)           |
-| `zh`            | `T` 对 對 是   | `F` 错 錯 非    | `C`           | 对/错, 是/非                            |
+| `zh`            | `T` 对 對 是   | `F` 错 錯 非    | `C` 否        | 对/错, 是/非, 是/否                      |
 | `yue`           | `T` 對         | `F` 錯          | `C`           | 對/錯                                   |
 | `hi`            | `T` स          | `F` ग           | `G`           | सही / गलत                               |
 | `es`            | `T V`         | `F`            |               | verdadero / falso                      |
 | `ar`            | `T` ص          | `F` خ           | `K`           | صح / خطأ                                |
 | `fr`            | `T V`         | `F`            |               | vrai / faux                            |
-| `bn`            | `T` স          | `F M` ম         | `B`           | সত্য / মিথ্যা                             |
+| `bn`            | `T` স          | `F` ম           | `B`           | সত্য / মিথ্যা                             |
 | `pt`            | `T V C`       | `F E`          |               | verdadeiro / falso, certo / errado     |
 | `id`            | `T B`         | `F`            | `S`           | benar / salah                          |
 | `ms`            | `T B`         | `F`            | `S`           | betul / salah                          |
 | `ur`            | `T` ص          | `F` غ           | `G J`         | صحیح / غلط                              |
-| `ru`            | `T V` В        | `F` Н           | `N`           | верно / неверно                        |
+| `ru`            | `T` В          | `F` Н           | `N`           | верно / неверно                        |
 | `de`            | `T W R`       | `F`            |               | wahr, richtig / falsch                 |
 | `ja`            | `T` 真 `O`     | `F` 偽          | `B`           | 真/偽, ○/×                               |
-| `mr`            | `T B` ब        | `F` च           | `C`           | बरोबर / चूक                             |
+| `mr`            | `T` ब          | `F` च           | `C`           | बरोबर / चूक                             |
 | `vi`            | `T D` Đ        | `F`            | `S`           | đúng / sai                             |
 | `te`            | `T` ఒ          | `F` త           |               | ఒప్పు / తప్పు                             |
-| `sw`            | `T K`         | `F`            | `S H`         | kweli / sio kweli, hapana              |
+| `sw`            | `T`           | `F`            | `S`           | kweli / sio kweli                      |
 | `tr`            | `T D`         | `F Y`          |               | doğru / yanlış                         |
 | `tl`            | `T`           | `F M`          |               | tama / mali                            |
+| `fil`           | `T`           | `F M`          |               | tama / mali                            |
 | `ta`            | `T` ச          | `F` த           |               | சரி / தவறு                              |
 | `fa`            | `T` ص          | `F` غ           | `G N`         | صحیح, درست / غلط                        |
 | `ko`            | `T` 참 `O`     | `F` 거          | `G`           | 참/거짓, O/X                             |
@@ -331,9 +334,13 @@ true.
 | `vi`     | `S`    | 1    | Only `false-friend-true-false-marker`                 |
 | `bn`     | `B`    | 1    | Only `false-friend-true-false-marker` (`B` is TRUE)   |
 | `en`     | `B`    | 5    | `locale-mismatched-true-false-marker`                 |
-| `hi`     | `S`    | 2    | No warning                                            |
+| `hi`     | `S`    | 3    | Only `unlisted-true-false-marker`                     |
 | `ru`     | `Н`    | 2    | No warning (Cyrillic)                                 |
 | `en`     | `Н`    | 5    | `locale-mismatched-true-false-marker` (Cyrillic)      |
+| `ru`     | `V`    | 5    | `locale-mismatched-true-false-marker`                 |
+| `bn`     | `M`    | 5    | `locale-mismatched-true-false-marker`                 |
+| `mr`     | `B`    | 5    | `locale-mismatched-true-false-marker`                 |
+| `sw`     | `K`    | 3    | Only `unlisted-true-false-marker`                     |
 | `fr`     | `V`    | 2    | No warning                                            |
 | `it-IT`  | `V`    | 2    | No warning                                            |
 | `ko`     | `O`    | 2    | No warning                                            |
@@ -447,7 +454,7 @@ all true and the all false cases.
 | grading            | error    | schema-error                             | must be `partial`, `no-mistakes`, `all-or-nothing`, `symmetric` or `inherit` (schema) |
 | shuffle            | error    | schema-error                             | must be a boolean or `inherit` (schema)                    |
 | choices[]          | error    | foreign-choice-marker                    | must use a value allowed in a true/false list[^7]          |
-| choices[].marker   | error    | malformed-true-false-marker              | must be a single letter[^2][^6][^7]                        |
+| choices[].marker   | error    | malformed-true-false-marker              | must be a single letter, with no whitespace around it[^2][^6][^7] |
 | choices[].marker   | error    | reserved-true-false-marker               | must not be `X` or `x`[^2][^7]                             |
 | choices[].marker   | error    | true-false-marker-disagrees-with-correct | must agree with `correct` according to its category[^3][^7] |
 | choices[].text     | error    | blank-text                               | must have at least one visible character                   |
@@ -456,6 +463,7 @@ all true and the all false cases.
 | choices[].text     | error    | duplicate-choice-text                    | must be unique among the statements of the question        |
 | choices[].id       | error    | duplicate-choice-id                      | must be unique among the statements of the question        |
 | choices[]          | error    | parse-error                              | carries at most one feedback block and one comment block   |
+| choices[]          | error    | parse-error                              | holds only its first paragraph, the feedback and the comment, see [Item](../references/choices.md#item) |
 | choices[]          | error    | parse-error                              | must not use the empty marker `[]`                         |
 | choices[].marker   | warning  | unlisted-true-false-marker               | should not be a WARNING letter, unless the `locale` accepts it[^3][^4] |
 | choices[].marker   | warning  | locale-mismatched-true-false-marker      | should be `T`, `F` or a letter its `locale` accepts[^4]    |
@@ -464,6 +472,10 @@ all true and the all false cases.
 | choices            | info     | uniform-true-false-answers               | the statements all have the same `correct` value[^8]       |
 | choices[].marker   | info     | non-nfkc-true-false-marker               | is not its own NFKC form; read as that form[^2]            |
 | choices[].id       | info     | missing-choice-id                        | has no id in the document                                  |
+
+The table lists diagnostics only, see
+[Additional Rules](question-base.md#additional-rules). The `shuffle` rule of the
+frontmatter binds hosts and has no row.
 
 [^2]: A letter is one code point in `LETTER` after normalization, see [body](#body).
     `X` and `x` are also reserved in their compatibility forms, such as `Ｘ`.

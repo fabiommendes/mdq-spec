@@ -17,17 +17,20 @@ allOf:
       lines:
         description: >-
           The lines to be ordered, in the main correct order (part of the
-          answer key, with `accept`). Students are always shown them shuffled, together
-          with `extra`. The same line may appear more than once; each
+          answer key, with `accept`). Students are shown them shuffled,
+          together with `extra`. The `lines` need at least one line after
+          normalization (a model rule). The same line may appear more than once; each
           occurrence is a separate copy the student must place.
         "$ref": "#/$defs/Lines"
         minItems: 2
 
       extra:
         description: >-
-          Distractor lines, shuffled in among `lines` and never part of a
-          correct response. A distractor may repeat a line of `lines`,
-          which hands the student a spare copy of a line they do need.
+          Distractor lines, shuffled in among `lines`. A distractor may
+          repeat a line of `lines`, which hands the student another copy
+          of a line they do need. A correct response is any response equal
+          to a declared answer after normalization, whatever pool lines
+          it uses.
         "$ref": "#/$defs/Lines"
 
       accept:
@@ -35,9 +38,11 @@ allOf:
         description: >-
           Alternative orderings that are also correct, each scoring 1 like
           `lines` itself. An alternative may leave lines out, but it may
-          only use lines of `lines`, and no more copies of one than
-          `lines` has (not a distractor from `extra`). A model rule, not
-          expressed in this schema.
+          only use lines of `lines`, identified by line identity (see
+          docs/question-types/ordering.md#line-identity), and no more
+          copies of one than `lines` has (not a distractor from `extra`).
+          It must have at least one line after normalization. Model
+          rules, not expressed in this schema.
         items:
           "$ref": "#/$defs/Alternative"
         minItems: 1
@@ -49,9 +54,10 @@ allOf:
           feedback to a mistake the author expects, and under
           `unmatched: manual` they settle a matching response that would
           otherwise be pending. An alternative
-          must not equal `lines` or an `accept` entry, and one that uses
-          lines `lines` and `extra` do not offer can never match. Model
-          rules, not expressed in this schema.
+          must not equal `lines` or an `accept` entry after normalization,
+          and one that uses lines `lines` and `extra` do not offer can
+          never match. An alternative that is empty after normalization is
+          valid. Model rules, not expressed in this schema.
         items:
           "$ref": "#/$defs/Alternative"
         minItems: 1
@@ -110,7 +116,7 @@ allOf:
           Feedback for an incorrect response that no `reject` entry gave
           feedback to: a response that matches nothing under `unmatched:
           incorrect`, or one that matches a `reject` entry with no
-          feedback. Inline markdown, like the feedback of an entry. Never
+          feedback. Block Markdown, like the feedback of an entry. Never
           shown for a pending response.
 
       normalizations:
@@ -187,6 +193,15 @@ unevaluatedProperties: false
     items: false
     minItems: 2
     maxItems: 2
+    # A blank line has the level 0.
+    if:
+      minItems: 2
+      prefixItems:
+        - true
+        - const: ""
+    then:
+      prefixItems:
+        - const: 0
 
   Alternative:
     type: object

@@ -4,7 +4,8 @@ title: Numeric question
 description: >-
   A question where the student must enter a numeric value, graded against
   an expected answer within an optional tolerance. Extends the common
-  question-base schema with `answer` and `tolerance` fields.
+  question-base schema with the `answer`, `unit`, `domain`,
+  `decimalPlaces`, `tolerance` and `incorrectFeedback` fields.
 
 allOf:
   - "$ref": "./question-base.yaml"
@@ -64,7 +65,8 @@ allOf:
           Feedback for an incorrect response: a well-formed response outside
           the accepted tolerance. Never shown for a correct, malformed or
           skipped response (docs/question-types/numeric.md, "Feedback").
-          Inline markdown, like the feedback of a pattern.
+          Block Markdown (paragraphs allowed) with at least one visible
+          character.
 
     required:
       - type

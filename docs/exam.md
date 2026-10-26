@@ -73,23 +73,29 @@ Exams accept the following arguments in the frontmatter
     question can never have.
 [^2]: Same rules as a question id -- see
     [generic fields](question-types/question-base.md).
-[^3]: Must be a well-formed UUID.
-[^4]: Must be a well-formed IETF BCP 47 language tag.
+[^3]: MUST be a well-formed UUID.
+[^4]: MUST be a well-formed IETF BCP 47 language tag.
 [^5]: See [Penalty](#penalty) below.
 [^6]: See [Grading](#grading) below.
 [^7]: A valid ISO 8601 date or date-time. See [Duration and Start Time](#duration-and-start-time).
 [^8]: An ISO 8601 duration without years or months, `HH:MM`, or `Xd Yh Zm`.
     See [Duration and Start Time](#duration-and-start-time).
 
+As in a question, the first paragraph of `#` comment lines of the frontmatter
+is the **comment string**, and the exam stores it as `comment`, see
+[Frontmatter](question-types/question-base.md#frontmatter). A comment is shown
+only to instructors.
+
 All properties in the frontmatter are optional. `title` and `id` may be given
 either in the frontmatter or in the H1 heading; if both are set, the
 frontmatter takes precedence, consistently with the rule for questions.
 
-The frontmatter MAY hold only the fields of the table above. Any other key is
-the `invalid-frontmatter-field` error, as for a question, see
+The frontmatter MUST NOT hold a key that is not a field of the table above. Any
+other key is the `invalid-frontmatter-field` error, as for a question, see
 [Frontmatter](question-types/question-base.md#frontmatter). This covers the
 fields that the body sets: `instructions` (the text before the first question)
-and `questions` (the question and include blocks). The rule is for Markdown;
+and `questions` (the question and include blocks), and `comment` (the `#` lines
+at the start of the frontmatter). The rule is for Markdown;
 an exam written in YAML or JSON may use all the fields of its schema.
 
 As for a question, a mapping MUST NOT repeat a key, in the exam frontmatter
@@ -102,8 +108,10 @@ for the YAML schema.
 
 ## The title
 
-The exam title is a required H1 heading that either starts the document or
-follows the frontmatter.
+The exam has a required H1 heading that either starts the document or follows
+the frontmatter. The text of the H1 is optional: `# [p1]` is a valid H1 with a
+slug and no title. An exam with no title at all (no text in the H1 and no
+`title` in the frontmatter) gets the `missing-title` info.
 
 The title identifies the exam and MAY include a slug id in square brackets. The
 usual format is `# [slug] Title`, where `slug` is a unique identifier for the exam and
@@ -145,15 +153,17 @@ separator: `====`, `   ===` (indented) and `= = =` are text. Implementations
 SHOULD warn about such a line (`malformed-separator`), because the questions
 that follow it are read as part of the text before it. A `===` line right
 after a paragraph is a setext underline, which `setext-heading` reports
-instead. An inline question that does not contain
-a frontmatter block MUST be preceded by a separator. If the inline question has
-a frontmatter block, the separator is optional. An include block SHOULD NOT be
+instead. An inline question without a frontmatter block starts only after a
+separator: without it, the text belongs to the block before (the instructions or
+the previous question), and `malformed-separator` or `setext-heading` can report
+the cause. If the inline question has a frontmatter block, the separator is
+optional. An include block SHOULD NOT be
 preceded by a separator, since its `---` lines already mark where it starts.
 This rule helps distinguish between the instructions and the first question,
 and between the epilogue of a question and the next one.
 
-The `---` line that opens a frontmatter or include block MUST also be preceded
-by a blank line, unless it is the first line of the file or follows a `===`
+The `---` line that opens a frontmatter or include block starts a block only
+after a blank line, unless it is the first line of the file or follows a `===`
 separator. MDQ is a subset of CommonMark, and CommonMark reads a `---` (or
 `===`) line right after a paragraph as the underline of a setext heading, not
 as a block boundary. The block is then swallowed into the text before it:
@@ -250,7 +260,8 @@ tab, form feed, carriage return and line feed. A query with any other
 
 Tags do not use a `#` prefix: YAML reads an unquoted value that starts with
 `#` as a comment. A tag that contains a `UNICODE_SPACE`, a comma or a
-parenthesis cannot be written in a query.
+parenthesis, and a tag that is one of `AND`, `OR`, `NOT` and `EXCEPT`, cannot
+be written in a query. The same holds for an `ID`.
 
 An `includeAll` never adds a question that the exam already contains by
 other means: the target of an `include`, an inline question with the same
@@ -432,7 +443,9 @@ The `start` and `duration` fields in the frontmatter define when the exam begins
 and how long it lasts. The `start` field must be a valid ISO 8601 date or
 date-time string; the date and the time MAY be separated by a space instead of
 `T`, as RFC 3339 allows, so `start: 2026-03-10 09:00:00-03:00` needs no quotes.
-If not timezone-aware, it is assumed to be in the local time.
+A `start` with no offset is a floating local time: it names no zone, and the
+host decides which zone applies. The host SHOULD show the zone it uses to the
+students.
 
 The `duration` field can use ISO 8601 durations (e.g., `P1DT2H30M`). Only
 fixed-length units are allowed -- weeks, days, hours, minutes and seconds --
@@ -489,6 +502,7 @@ exam frontmatter.
 | questions[].id  | error    | duplicate-question-id           | must be unique within the exam after includes resolve[^9]                                                                                                                                                         |
 | start           | error    | malformed-start                 | must be an ISO 8601 date or date-time, see [Duration and Start Time](#duration-and-start-time)                                                                                                                    |
 | duration        | error    | invalid-duration                | must be a positive ISO 8601 duration without years or months, `HH:MM` or `Xd Yh Zm`                                                                                                                               |
+| title           | info     | missing-title                   | no text in the H1 and no `title` in the frontmatter                                                                                                                                                              |
 | description, course | error | blank-text                  | if defined, must have at least one visible character                                                                                                                                                              |
 | instructions    | error    | blank-text                      | must have at least one visible character                                                                                                                                                                          |
 | questions[].{epilogue,answerKey,extra,accept,reject} | error    | parse-error                     | must not use `---` as a thematic break inside an exam                                                                                                                                                             |

@@ -1,0 +1,14 @@
+# `V` is not in the accepted letters of the `ru` row, so it gets
+# `locale-mismatched-true-false-marker`. It keeps its global meaning.
+id: tf-brazil-ru-v
+title: Brazil facts
+type: true-false
+locale: ru
+stem: Rate the statements about Brazil.
+choices:
+- text: Brasília is the capital of Brazil.
+  correct: true
+  marker: V
+- text: Brazil borders Chile.
+  correct: false
+  marker: F

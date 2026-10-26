@@ -47,8 +47,8 @@ allOf:
           content of the `## [answer-key]` section, without the heading. It
           guides the instructor while grading. A host MUST NOT show it to the
           student before the student submits the response, and MAY show it
-          after, even while the response is pending. An empty or
-          whitespace-only value is a `blank-text` error, like `title`.
+          after, even while the response is pending. An empty value
+          or one with no visible character is a `blank-text` error, like `title`.
 
     required:
       - type

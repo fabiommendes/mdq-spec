@@ -1,0 +1,9 @@
+type: exam
+id: prova-bioma
+author: Ana
+questions:
+- stem: Qual bioma cobre a maior parte do território do Amazonas?
+  accept:
+  - Floresta Amazônica
+  type: short-answer
+  author: Ana

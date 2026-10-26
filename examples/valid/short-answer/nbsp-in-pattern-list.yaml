@@ -1,0 +1,8 @@
+# A U+00A0 in an item of the `[short-answer]:` list is in a syntax position
+# (grammar.md, "Unicode spaces"), as in the list after `[short-answer/accept]`:
+# `non-ascii-whitespace` is a `warning`.
+type: short-answer
+stem: Qual é a capital do Brasil?
+accept:
+- Brasília DF
+- Brasília

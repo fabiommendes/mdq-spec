@@ -168,3 +168,15 @@ cases:
     pattern: "/neg(?!r)[a-z]+/"
     accept: ["negxa"]
     reject: ["negra"]
+  - name: shorthand-folds-under-i
+    pattern: "/\\w/i"
+    accept: ["\u017f", "\u212a", "a"]
+    reject: ["-"]
+  - name: word-boundary-folds-under-i
+    pattern: "/a\\b.*/i"
+    accept: ["a b"]
+    reject: ["a\u017f"]
+  - name: class-ampersand-escape
+    pattern: "/[&\\x26]+/"
+    accept: ["&&"]
+    reject: ["&a"]

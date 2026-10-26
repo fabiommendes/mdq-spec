@@ -394,6 +394,22 @@ questions:
         score: 0
         feedback: "Check the spelling."
 
+  # The feedback comes from the list that decided the outcome only. A correct
+  # response whose `accept` pattern has no feedback shows none, even when a
+  # `reject` pattern that matches it has feedback.
+  - name: "Feedback of reject never reaches a correct response"
+    question:
+      accept: ["Cerrado"]
+      reject:
+        - { pattern: "/.*rrad.*/", feedback: "Check the spelling: Cerrado has two r." }
+    examples:
+      - response: "Cerrado"
+        score: 1
+        feedback: null
+      - response: "Serrado"
+        score: 0
+        feedback: "Check the spelling: Cerrado has two r."
+
   # `incorrectFeedback` is for an incorrect response that no pattern gave
   # feedback to: one that matches no pattern, and one that matches a
   # `reject` pattern with no feedback. A correct response never shows it.

@@ -1,0 +1,14 @@
+# An `accept` entry that is empty after normalization (`empty-ordering-answer`).
+# With `skip-blanks`, an entry of blank lines holds no line, so it would
+# accept the empty response.
+type: ordering
+content: code
+normalizations: [skip-blanks]
+stem: Ordene as linhas do programa.
+lines:
+  - [0, "chuva = 10"]
+  - [0, ""]
+  - [0, "total = chuva * 2"]
+accept:
+  - lines:
+      - [0, ""]

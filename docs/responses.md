@@ -2,10 +2,11 @@
 
 A **response** is what a student marked for a question. MDQ does not define a
 human-readable format to represent responses. It is rather defined as a
-YAML-like document with a schema.
+YAML-like document.
 
-Responses structures are the inputs to the grading functions, and this document
-is their whole specification.
+Responses structures are the inputs to the grading functions. There is no JSON
+schema for them: this document and the cases of
+[`examples/grading/`](../examples/grading/) are their whole specification.
 
 The shapes below are written as YAML for legibility, however any other
 equivalent format can be used in practice. 
@@ -19,6 +20,11 @@ is NOT enforced by parsing. A document in which every question and every choice
 carries an id is called **addressable**. Grading refuses a document that is not,
 but implementations MAY provide schemes for filling in ids automatically, when
 possible.
+
+The ids that an implementation derives from the choice text are not portable
+across implementations or versions, see
+[Choice id](references/choices.md#choice-id). A host SHOULD write them into the
+document before it collects responses.
 
 An id in a response that is not present in the question MUST be rejected as a
 malformed response. This applies to every response that is keyed by id or
@@ -362,6 +368,10 @@ map before grading.
 
 
 ## Errors
+
+The error names below are the class names of the Python implementation. They
+are not normative: an implementation names its errors as its language asks, but
+it MUST fail in each condition of the table.
 
 Every failure below means "this is not ready to be graded", never "the student
 answered badly" -- a wrong answer is a score, not an error.

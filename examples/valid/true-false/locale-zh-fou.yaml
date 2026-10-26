@@ -1,0 +1,17 @@
+# `否` is a false friend in `zh`: it means false there, but it is a WARNING
+# letter that reads as true everywhere else (true-false.md, "Locale").
+id: tf-brazil-zh
+title: 巴西的事实
+locale: zh
+stem: 判断下列关于巴西的说法。
+choices:
+- text: 巴西利亚是巴西的首都。
+  correct: true
+  marker: 是
+- text: 巴西与智利接壤。
+  correct: false
+  marker: 非
+- text: 亚马孙河流经巴西。
+  correct: true
+  marker: 否
+type: true-false

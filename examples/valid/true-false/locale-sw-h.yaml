@@ -1,0 +1,18 @@
+# `H` is the initial of "hapana" ("no") in `sw`, but the `sw` row does not
+# list it: a letter that is the initial of a word for yes or no is not a
+# conflict. It gets `unlisted-true-false-marker` and reads as true.
+id: tf-brazil-sw
+title: Ukweli kuhusu Brazil
+locale: sw
+stem: Tathmini kauli kuhusu Brazil.
+choices:
+- text: Brasília ni mji mkuu wa Brazil.
+  correct: true
+  marker: T
+- text: Brazil inapakana na Chile.
+  correct: false
+  marker: F
+- text: Mto Amazon unapita Brazil.
+  correct: true
+  marker: H
+type: true-false

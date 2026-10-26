@@ -4,10 +4,12 @@ Ordering questions ask the student to sort a list of textual lines according
 to some criteria.
 
 The lines in the `[ordering]` block are ALWAYS written in the correct order:
-the block holds the correct order. Students are never shown that order --
-implementations MUST present the lines shuffled, in a random or pseudo-random
-arrangement, together with any distractors declared in the `## [extra]`
-section.
+the block holds the correct order. Implementations that present the question
+MUST present the lines shuffled, in a random or pseudo-random arrangement,
+together with any distractors declared in the `## [extra]` section. The
+arrangement MAY coincide with a correct order (a random arrangement of `n`
+distinct lines does with probability `1/n!`), and a host MAY draw again. This
+rule binds hosts: no lint checks it.
 
 The *answer key* is the `[ordering]` block and the `## [accept]` sections:
 the orderings that are correct. The *declared answers* are the answer key and
@@ -151,7 +153,7 @@ they would appear in a geography textbook.
 
 ## Frontmatter
 
-Ordering questions accept the following extra arguments in the
+Ordering questions accept the following extra fields in the
 frontmatter:
 
 | Field          | Type            | Description                                                                |
@@ -159,8 +161,8 @@ frontmatter:
 | type           | "ordering"      | The type discriminator.                                                    |
 | indentation    | Indentation     | Whether students may change the indentation of each line[^1].              |
 | unmatched      | Unmatched       | What happens to a response no declared answer matches[^2].                 |
-| incorrectFeedback | string       | Feedback for an incorrect response that no `## [reject]` section gave feedback to[^11]. |
-| normalizations | Normalization[] | Transformations applied before comparing responses to the declared answers[^3]. |
+| incorrectFeedback | string       | Feedback for an incorrect response that no `## [reject]` section gave feedback to[^3]. |
+| normalizations | Normalization[] | Transformations applied before comparing responses to the declared answers[^4]. |
 
 The `content` and `highlight` fields are not frontmatter fields of an ordering
 question: the [body](#body) always sets them. A frontmatter that declares
@@ -183,11 +185,13 @@ The default follows [short answer](short-answer.md#automation): an ordering
 question always has an answer key, so it is `"incorrect"`. See
 [grading](#grading).
 
-[^11]: Inline markdown, like the feedback of a
-`## [reject]` section. It MUST have at least one visible character
+[^3]: Block Markdown (paragraphs allowed), like the feedback of a
+`## [reject]` section, see
+[Feedback and comment lines](../references/grammar.md#feedback-and-comment-lines).
+It MUST have at least one visible character
 (`blank-text`). See [Feedback](#feedback).
 
-[^3]: `Normalization = "dedent" | "skip-blanks"`. Defaults to the empty list. A
+[^4]: `Normalization = "dedent" | "skip-blanks"`. Defaults to the empty list. A
 bare string MAY be written instead of a list. It is a comma-delimited list: each
 part is stripped of surrounding whitespace, and an empty part after a final comma
 is dropped, exactly as for `tags` in [base](question-base.md#frontmatter). So
@@ -205,7 +209,7 @@ markdown `ul` element holding the lines to be ordered. The `content` and
 The body has a very simple grammar:
 
 ```lark
-ordering : ws? "[" "ordering" "]" ws? ":" ws? nl content epilogue? (blank_line* section)*
+ordering : ws? "[" "ordering" "]" ws? ":" ws? nl content epilogue? section*
 content  : md_code_block | md_ul
 
 section : ordering_extra | ordering_accept | ordering_reject
@@ -214,15 +218,19 @@ ordering_extra  : section_heading{"extra"} nl blank_line* content
 ordering_accept : section_heading{"accept"} nl blank_line* (observations blank_line*)? content
 ordering_reject : section_heading{"reject"} nl blank_line* (observations blank_line*)? content
 
-section_heading{name} : ws? "##" ws "[" name "]" (ws ("#"+ ws?)?)?
-                      | ws? "[" name "]" ws? nl ws? "-"+ ws?
+section_heading{name} : blank_line* atx_heading{name}
+                      | blank_line+ setext_heading{name}
+atx_heading{name}     : ws? "##" ws "[" name "]" (ws ("#"+ ws?)?)?
+setext_heading{name}  : ws? "[" name "]" ws? nl ws? "-"+ ws?
 ```
 
 `md_code_block` and `md_ul` are respectively markdown representations of
 fenced code blocks and unordered lists. The rules `ws`, `nl`, `blank_line` and
 `observations` are defined in [Common grammar rules](../references/grammar.md).
 `section_heading` has two forms: an ATX heading (`## [extra]`) and a setext
-heading (`[extra]` followed by a line of `-`).
+heading (`[extra]` followed by a line of `-`). A setext heading MUST follow a
+blank line: without one, CommonMark reads `[extra]` as a lazy line of the block
+before it (a list item or an epilogue paragraph), so there is no heading.
 The "same content block type" rule and the "at most one `## [extra]`" rule are
 not part of the grammar: an implementation checks them after parsing (see
 [Additional Rules](#additional-rules)).
@@ -247,7 +255,7 @@ CommonMark. The rest of the info string is ignored. For example, the fence
 compared as strings, with case: `Python` and `python` are two languages. A
 fence with no language leaves `highlight` out. Implementations
 MAY report, at the info level, a language that is not a recognized identifier
-(`unknown-highlight-language`)[^8], and a fence with no language
+(`unknown-highlight-language`)[^5], and a fence with no language
 (`code-content-without-highlight`).
 
 If it is a `ul` list, the question has `content: "text"` and no `highlight`.
@@ -257,8 +265,10 @@ without its trailing whitespace. A nested list item is a line of its own: it
 does not become part of its parent item. A nested list MUST be a `ul` too, as
 the body itself is (`*`, `-` and `+` markers MAY be mixed); an ordered
 sub-list is an error (`parse-error`), as an ordered list body is.
-An item is exactly one line: an item with a continuation line or a second
-paragraph is an error (`parse-error`), whatever the rendered markdown shows.
+An item is exactly one line, and it MUST be one paragraph: an item with a
+continuation line or a second paragraph, or one that holds another block
+(indented code, a heading, a block quote), is an error (`parse-error`),
+whatever the rendered markdown shows.
 An item with no text is an error (`parse-error`) too: a list holds no blank
 line. An item that has no text of its own but holds a nested list is not a
 line, see [indentation](#indentation).
@@ -290,6 +300,11 @@ section MUST use the same language as the `[ordering]` fence, or none, in which
 case it inherits that language. A fence with another language, or the same
 language written with other case, is a `parse-error`: the whole question is shown with one `highlight`.
 
+The `[ordering]` block MUST hold at least two lines. The count is made before
+normalization: with `skip-blanks`, blank lines count, even though the comparison
+leaves them out. The schema checks it (`minItems`), see
+[Additional Rules](#additional-rules).
+
 In the YAML and JSON form there is no body to derive the fields from.
 `content` is a required field there, either `"code"` or `"text"`. `highlight`
 is OPTIONAL, it MUST NOT be empty, and it is allowed only when `content` is
@@ -302,14 +317,11 @@ There can be at most one `## [extra]` section following the main `[ordering]`
 block and it must use the same content block type (code block or `ul` list).
 A fence of the section follows the language rule of the [body](#body).
 
-Its lines are distractors: they are shuffled in among the lines of the `[ordering]` block
-and MUST NOT appear in a correct response. A distractor MAY repeat a line of
-the `[ordering]` block; that simply hands the student spare copies of a line
-they do need, and a correct response still uses it exactly as many times as
-the `[ordering]` block does. Distractors are compared after normalization: a
-distractor that becomes equal to a line of the `[ordering]` block -- for example, one
-that differs only by level under `indentation: "lenient"` -- is a spare copy of
-that line.
+Its lines are distractors: they are shuffled in among the lines of the `[ordering]` block.
+A distractor MAY repeat a line of
+the `[ordering]` block; that simply hands the student another copy of a line
+they do need. A correct response is any response that is equal to a declared
+answer after normalization, whatever pool lines it uses.
 
 
 ### Accepted/rejected answers
@@ -366,9 +378,10 @@ default: the body sets it, and a YAML or JSON document MUST state it. The
 | "code" | a fenced code block in the body | Each line is a line of code. The language of the fence is `highlight`.  |
 | "text" | a `ul` list in the body         | Each line is a list item, compared by its raw markdown source.          |
 
-The [essay](essay.md#content) type has a `content` field too, but with other
-values and another source: there it is a frontmatter field, with the default
-"text".
+The [essay](essay.md#content) type has a `content` field too, with other
+meaning and source: there it is an optional frontmatter field with the values
+"code", "text" and "plain", and the default "text". Ordering values are a subset
+of them.
 
 
 ## AST
@@ -385,9 +398,10 @@ The body maps to these fields of the AST:
   OPTIONAL.
 * The content block sets `content` and `highlight`, see [Body](#body).
 
-The `accept` and `reject` fields of ordering differ in shape from the fields of
-the same name in [short answer](short-answer.md), where an item is a pattern
-string or an object with a `pattern`.
+The `accept` and `reject` fields of ordering differ in shape and meaning from
+the fields of the same name in [short answer](short-answer.md) and in the short
+answer blanks of [fill-in](fill-in.md), where an item is a pattern string or an
+object with a `pattern`. Here an item is a whole alternative ordering.
 
 The full example of [Example](#example) as YAML:
 
@@ -478,7 +492,7 @@ lines are left out in all modes.
 `"strict"` is pointless when `dedent` is listed in `normalizations`: nothing is
 left to compare, and the question grades as under `"lenient"`. A question
 SHOULD NOT combine them. Implementations SHOULD warn about it
-(`redundant-strict-indentation`)[^7].
+(`redundant-strict-indentation`)[^6].
 
 ### Code blocks
 
@@ -491,7 +505,9 @@ every non-blank line that is indented at all. Non-indented lines contribute a
 
 A tab in the leading whitespace follows the CommonMark tab stops: it advances
 to the next column that is a multiple of 4. So `"  \t"` and `"\t"` are both 4
-columns wide, and `" \t  "` is 6.
+columns wide, and `" \t  "` is 6. The columns are counted in the content line,
+after CommonMark strips the indentation of the fence: in a fence indented by two
+spaces, the source line `  \tc = 2` is the content line `\tc = 2`, 4 columns wide.
 
 If no indented line exists, the unit is 4 spaces.
 
@@ -556,6 +572,11 @@ The initial presentation of the lines depends on `indentation`:
 
 ## Normalizations
 
+An `[ordering]` block or an `## [accept]` section that holds no line after
+normalization is an error (`empty-ordering-answer`): with `skip-blanks`, a code
+block of only blank lines is empty. An `## [reject]` section that is empty after
+normalization stays valid, because it can give feedback to an empty submission.
+
 The following normalizations can be applied before comparing a response to a
 declared answer:
 
@@ -610,11 +631,9 @@ Instructor comments (`!` lines) are never shown to students.
 ## Grading
 
 Grading compares the response to the declared answers **by content**: lines carry no
-id, so a line is identified by its text -- its raw markdown source, when the
-content is a `ul` list -- and by its indentation level, unless `dedent` is in
-effect (listed in `normalizations`, or implied by `indentation: "lenient"`).
-A response matches a declared answer when the two sequences of lines are equal
-after full normalization.
+id. The text of a line is its raw markdown source, when the content is a `ul`
+list. A response matches a declared answer when the two sequences of lines are
+equal after full normalization.
 
 After all forms of normalization:
 
@@ -684,39 +703,45 @@ text outline is valid), and falls under `unmatched`. It scores 0 under
 `unmatched: incorrect` (the default) and is pending under `unmatched: manual`.
 
 The empty list `[]` is a response, not a skip. It is graded like any other
-response. No declared answer is empty, so it matches none: under
-`unmatched: incorrect` (the default) it scores 0, and under `unmatched: manual`
-it is pending.
+response. The `[ordering]` block and the `## [accept]` sections are never empty
+after normalization (`empty-ordering-answer`), so `[]` is never correct. It
+matches a `## [reject]` section that is empty after normalization, and that
+section gives feedback to the empty submission. Otherwise it matches no declared
+answer: under `unmatched: incorrect` (the default) it scores 0, and under
+`unmatched: manual` it is pending.
 
 
 ## Additional Rules
 
 | Field                 | Level    | Code                         | Rule                                                              |
 | --------------------- | -------- | ---------------------------- | ----------------------------------------------------------------- |
-| lines                 | error    | schema-error                 | must have at least two lines (schema)                             |
+| lines                 | error    | schema-error                 | must have at least two lines, counted before normalization (schema) |
 | lines[]               | error    | schema-error                 | each line must be a `[level, text]` pair (schema)                 |
 | lines[]               | error    | schema-error                 | `level` must be a non-negative integer (schema)                   |
 | lines, extra, accept, reject | error | schema-error              | a line text has no leading or trailing space or tab and no line break (schema) |
 | lines, extra, accept, reject | error | empty-ordering-line      | with `content: text`, a line text must not be empty               |
 | extra, accept, reject | error    | schema-error                 | when present, must have at least one entry (schema)               |
 | accept, reject        | error    | schema-error                 | an alternative must have at least one line (schema)               |
-| accept, reject        | error    | accept-reject-overlap        | the same lines must not be both accepted and rejected[^4]         |
-| accept                | error    | accept-outside-answer-key    | must be a subset of the `[ordering]` block's lines, by line identity[^4] |
-| lines, accept, reject | error    | invalid-outline-level        | with `content: text`, the first line is at level 0 and no line is more than one level deeper than the previous one[^10] |
+| lines, accept         | error    | empty-ordering-answer        | must have at least one line after normalization; an empty `reject` is valid |
+| lines, accept, reject | error    | schema-error                 | a line with an empty text must have the level 0 (schema)          |
+| accept, reject        | error    | accept-reject-overlap        | the same lines must not be both accepted and rejected[^7]         |
+| accept                | error    | accept-outside-answer-key    | must be a subset of the `[ordering]` block's lines, by line identity[^7] |
+| lines, accept, reject | error    | invalid-outline-level        | with `content: text`, the first line is at level 0 and no line is more than one level deeper than the previous one[^8] |
 | epilogue              | error    | detached-tag                 | a tag must not come after the epilogue started, see [Body tags](question-base.md#tags-after-the-epilogue-starts) |
 | lines, extra, accept, reject | error | parse-error             | a list must not start on the line right after a `ul` content block, see [Lists after a content list](question-base.md#lists-after-a-content-list) |
-| extra, accept, reject | error    | parse-error                  | must use the same content block type as `[ordering]`[^5]         |
+| extra, accept, reject | error    | parse-error                  | must use the same content block type as `[ordering]`[^9]         |
 | extra, accept, reject | error    | parse-error                  | a code fence must use the language of the `[ordering]` fence or none |
 | extra                 | error    | parse-error                  | at most one `## [extra]` section may be declared                  |
-| accept, reject        | error    | parse-error                  | a section carries at most one feedback and one comment block[^6]  |
+| accept, reject        | error    | parse-error                  | a section carries at most one feedback and one comment block[^10]  |
 | extra, accept, reject | error    | parse-error                  | only a section can follow a section; the epilogue goes before it  |
 | lines                 | error    | parse-error                  | the `[ordering]:` block must start on the line right after its tag |
 | lines                 | error    | parse-error                  | the tag must be `[ordering]:`, with a colon and no text after it  |
 | extra, accept, reject | error    | parse-error                  | a section must have a content block                               |
 | lines, extra, accept, reject | error | parse-error               | a list must be a `ul` at every level                              |
-| lines, extra, accept, reject | error | parse-error               | an item must be exactly one line                                  |
+| lines, extra, accept, reject | error | parse-error               | an item must be exactly one line, and one paragraph: no heading, block quote, code or other block |
 | lines, extra, accept, reject | error | parse-error               | a list item must have text, unless it holds a nested list         |
 | {accept,reject}[].{feedback,comment} | error | blank-text        | if defined, must have at least one visible character              |
+| content, highlight    | error    | invalid-frontmatter-field    | must not be in the frontmatter; the body sets them                |
 | automation            | error    | invalid-frontmatter-field    | must not be in the frontmatter                                    |
 | automation            | error    | schema-error                 | must not be a field of the YAML or JSON form                      |
 | content               | error    | schema-error                 | is required in YAML and JSON (schema)                             |
@@ -727,17 +752,28 @@ it is pending.
 | indentation           | error    | schema-error                 | must be a known indentation mode (schema)                         |
 | unmatched             | error    | schema-error                 | must be a known unmatched mode (schema)                           |
 | normalizations        | error    | schema-error                 | must list known normalizations, each at most once (schema)        |
-| accept, reject        | warning  | duplicate-alternative-lines  | two sections should not hold the same lines, fully normalized[^4] |
-| accept                | warning  | accept-repeats-answer-key    | should not repeat the `[ordering]` block's own lines[^4]          |
-| reject                | warning  | unreachable-alternative      | should not use lines the `[ordering]` and `extra` blocks lack, by line identity[^4] |
-| indentation           | warning  | redundant-strict-indentation | `"strict"` is pointless when `dedent` is normalized away[^7]      |
+| accept, reject        | warning  | duplicate-alternative-lines  | two sections should not hold the same lines, fully normalized[^7] |
+| accept                | warning  | accept-repeats-answer-key    | should not repeat the `[ordering]` block's own lines[^7]          |
+| reject                | warning  | unreachable-alternative      | should not use lines the `[ordering]` and `extra` blocks lack, by line identity[^7] |
+| indentation           | warning  | redundant-strict-indentation | `"strict"` is pointless when `dedent` is normalized away[^6]      |
 | lines, extra          | info     | blank-ordering-line          | a line of a code block is blank and `skip-blanks` is not normalized |
-| highlight             | info     | unknown-highlight-language   | is not a recognized language identifier[^8]                       |
+| highlight             | info     | unknown-highlight-language   | is not a recognized language identifier[^5]                       |
 | highlight             | info     | code-content-without-highlight | is not defined when `content` is "code"                         |
 | reject                | info     | reject-without-feedback      | declares no feedback; it explains nothing to the student, and settles its ordering only under `unmatched: manual` |
-| lines, extra          | info     | visually-identical-lines     | two lines render alike but differ in source[^9]                   |
+| lines, extra          | info     | visually-identical-lines     | two lines render alike but differ in source[^11]                   |
 
-[^4]: `accept-reject-overlap`, `duplicate-alternative-lines` and
+The table lists diagnostics only, see
+[Additional Rules](question-base.md#additional-rules). The shuffle of the
+presented lines and the rules for responses (the pool, the levels) bind hosts and
+graders, and have no row here.
+
+[^5]: Any alias of a [Pygments](https://pygments.org/) lexer is a recognized
+language identifier -- Pygments' own lexer aliases are the reference list.
+[^6]: `dedent` flattens every line to level 0, so nothing is left for
+`"strict"` to compare, and `"strict"` then grades exactly as `"lenient"`.
+`indentation: "lenient"` implies `dedent` and therefore never combines with
+`"strict"` in the first place.
+[^7]: `accept-reject-overlap`, `duplicate-alternative-lines` and
 `accept-repeats-answer-key` compare whole answers after all forms of
 normalization: every entry of `normalizations`, plus what the `indentation`
 field implies. The `[ordering]` block counts as an accepted answer for
@@ -745,18 +781,12 @@ field implies. The `[ordering]` block counts as an accepted answer for
 `unreachable-alternative` check which lines a section uses, so they follow
 [Line identity](#line-identity): under `"lenient"` and `"strict"` the level of
 a line is not compared.
-[^5]: A code block and a `ul` list cannot be compared line for line.
-[^6]: They may appear in either order, see
-[Feedback and comment lines](../references/grammar.md#feedback-and-comment-lines).
-[^7]: `dedent` flattens every line to level 0, so nothing is left for
-`"strict"` to compare, and `"strict"` then grades exactly as `"lenient"`.
-`indentation: "lenient"` implies `dedent` and therefore never combines with
-`"strict"` in the first place.
-[^8]: Any alias of a [Pygments](https://pygments.org/) lexer is a recognized
-language identifier -- Pygments' own lexer aliases are the reference list.
-[^9]: Lines are compared by their raw markdown source, so a student ordering
-the rendered text cannot tell such a pair apart.
-[^10]: In Markdown, an item that only holds a nested list adds a level without
+[^8]: In Markdown, an item that only holds a nested list adds a level without
     being a line, so `- a` followed by `- - - b` gives the levels 0 and 2, and
     `- - a` alone gives a first line at level 1. Both are errors. The rule is
     checked on the model, so it applies to YAML and JSON as well.
+[^9]: A code block and a `ul` list cannot be compared line for line.
+[^10]: They may appear in either order, see
+[Feedback and comment lines](../references/grammar.md#feedback-and-comment-lines).
+[^11]: Lines are compared by their raw markdown source, so a student ordering
+the rendered text cannot tell such a pair apart.

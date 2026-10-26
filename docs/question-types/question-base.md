@@ -67,11 +67,13 @@ The frontmatter object is a mapping of fields and the corresponding values. The
 exact list of fields depends on the question type, but some are common to all
 questions. All fields are optional.
 
-The frontmatter MAY hold only the fields of the frontmatter table of its
-question type and the fields of the table below. Any other key is an error
+The frontmatter MUST NOT hold a key that is not a field of the frontmatter
+table of its question type or of the table below. Any other key is an error
 (`invalid-frontmatter-field`). This covers a field that the body sets (for
-example `stem`, `choices`, `answer`, `blanks`, `accept` or `reject`, and the
-`unit` of a numeric question) and a key that no question type defines. The
+example `stem`, `choices`, `answer`, `blanks`, `accept` or `reject`, the
+`unit` of a numeric question, and the `comment`, which the `#` lines at the
+start of the frontmatter set, see above) and a key that no question type
+defines. The
 message of the error says when the key is a field of the body, and shows the
 body syntax that sets it. Only `id` and `type` can be set both in the
 frontmatter and in the body.
@@ -94,7 +96,7 @@ frontmatter: all the fields of its schema are valid, and an unknown key is a
 
 [^1]: MUST be a valid question type.
 [^2]: Slug SHOULD be url-safe according to the REGEX `[a-zA-Z0-9]+(?:[-_][a-zA-Z0-9]+)*`.
-[^3]: Must be a valid UUID, ``xxxxxxxx-xxxx-Mxxx-Nxxx-xxxxxxxxxxxx`` where `M` is the version and `N` is the variant. `M` and `N` SHOULD correspond to a existing standard.
+[^3]: MUST be a valid UUID, ``xxxxxxxx-xxxx-Mxxx-Nxxx-xxxxxxxxxxxx`` where `M` is the version and `N` is the variant. `M` and `N` SHOULD correspond to a existing standard.
 [^4]: MUST be a well-formed [IETF BCP 47](https://www.rfc-editor.org/rfc/rfc5646)
 language tag: a string the grammar of RFC 5646 section 2.1 accepts (`langtag`,
 `privateuse` or a grandfathered tag), compared case-insensitively. Whether a
@@ -144,17 +146,20 @@ constructions are rejected because they may be mistaken for the body element.
 For multiple choice questions, for instance, the body is the unordered list
 starting with the `[ ]` checkmarks.
 
-Below is the list of invalid elements. In each, a bracket that starts a
-markdown link (`[text](url)`, `[text][ref]`) does not count: a paragraph, a
-heading or a list item can start with a link. A link reference definition
+Below is the list of invalid elements. In each, a bracket that starts an
+inline, full or collapsed link (`[text](url)`, `[text][ref]`, `[text][]`) does
+not count: a paragraph, a heading or a list item can start with such a link.
+A shortcut reference link (`[ref]`) is not a link here: a bracket that
+matches `SLUG` at the start of the stem is a [slug](#slug). A link reference definition
 (`[ref]: url`) is not a paragraph, so it is valid too, unless its label is
 reserved, see [Reserved tag names](#reserved-tag-names). A reserved label is an
 MDQ tag line such as `[numeric]: 42`, or a mistyped one such as
 `[short-answer/preAccept]: b`.
 
 * Unordered lists if all elements start with optional `ws` + `[`.
-* Paragraph that starts with optional `ws` + `[`, except the first paragraph, or
-  if the `[` character is immediately followed by a `^` character[^6].
+* Paragraph that starts with optional `ws` + `[`, except the first block of the
+  stem, when it is a paragraph, or if the `[` character is immediately followed
+  by a `^` character[^6]. The epilogue has no exception for its first block.
 * H1 headings.
 * Heading starting with optional `ws` + `[`.
 
@@ -178,8 +183,8 @@ paragraph starting with a blank.
 
 ### Slug
 
-If the first element is a paragraph element, it may begin with a slug identifier
-between square brackets. The slug should be unique in the context of a single
+If the first block of the stem is a paragraph, it may begin with a slug
+identifier between square brackets. The slug should be unique in the context of a single
 question set, but often parsers cannot validate this from only local file 
 information.
 
@@ -199,15 +204,26 @@ The slug MUST match the `SLUG` terminal of
 letters or digits, in groups joined by a single `-` or `_`.
 
 A bracket at the start of the paragraph is a slug only when its content
-matches `SLUG` and the next character is not `(` or `[`, which open a markdown
-link (`[text](url)`, `[text][ref]`). A paragraph that starts with a link has no
-slug, and the link is part of the text:
+matches `SLUG` and the next character is not `(` or `[`, which open an inline,
+full or collapsed link (`[text](url)`, `[text][ref]`, `[text][]`). A paragraph
+that starts with such a link has no slug, and the link is part of the text:
 
 ```md
 [Amazonia](https://pt.wikipedia.org/wiki/Amazônia) é o maior bioma de qual país?
 ```
 
-Implementations MAY widen the allowed characters under an option flag.
+The slug wins over a shortcut reference link, as a choice id does, see
+[Choice id](../references/choices.md#choice-id). A stem that starts with a shortcut link
+writes the collapsed form `[ibge][]`:
+
+```md
+[ibge][] coleta dados do censo a cada dez anos. Qual o nome do órgão?
+
+[ibge]: https://www.ibge.gov.br
+```
+
+With `[ibge]` instead, the question gets the `id: ibge`, and the word is not in
+the stem.
 
 
 ### Bracketed tags
@@ -256,11 +272,11 @@ one convention. The colon tells whether content follows:
   list, or a lazy line that continues the text of the tag line.
 
 ```lark
-bare_tag  : ws? TAG ws?
-colon_tag : ws? TAG ws? ":" ws? (content | nl block)
+bare_tag  : ws? BODY_TAG ws?
+colon_tag : ws? BODY_TAG ws? ":" ws? (content | nl block)
 ```
 
-`TAG` is a bracketed tag, `content` is the text on the tag line and `block`
+`BODY_TAG` is a bracketed tag, `content` is the text on the tag line and `block`
 is the block that starts on the next line. Both depend on the tag, see the
 table. The rules `ws` and `nl` are defined in
 [Common grammar rules](../references/grammar.md).
@@ -310,10 +326,13 @@ label is reserved. A label is reserved when it is one of these:
 ```lark
 reserved_label : TYPE_NAME (label_end | "/" LABEL_REST | "(" LABEL_REST)
                | "^" ID "/" LABEL_REST
-TYPE_NAME      : "essay" | "numeric" | "short-answer" | "ordering"
-               | "true-false" | "multiple-choice" | "multiple-selection"
-               | "fill-in"
+TYPE_NAME      : "essay"i | "numeric"i | "short-answer"i | "ordering"i
+               | "true-false"i | "multiple-choice"i | "multiple-selection"i
+               | "fill-in"i
 ```
+
+The names match in any case, so `[Numeric]: 26` is a reserved label too. The
+check of [Case of tags](#case-of-tags) runs after the label is found reserved.
 
 A reserved label that is not one of the tags in the table above is a
 `parse-error` with the message "unknown tag". This holds for a suffix that does
@@ -390,7 +409,7 @@ and `[ * ]` have the values `T`, `x` and `*`:
 
 1. a value is `*` or a percentage: multiple choice;
 2. a value is `x` or `X`: multiple selection;
-3. a value is a [letter](true-false.md#body), as written: true/false;
+3. a value is a [letter](true-false.md#body): true/false;
 4. otherwise: multiple selection. This covers a list whose values are all
    blank, and a list of blank and unknown values such as `[ ]` and `[?]`.
 
@@ -498,11 +517,12 @@ an OPTIONAL field is an absent field, see [Frontmatter](#frontmatter).
 
 The `stem` and `epilogue` fields are derived from the corresponding
 markdown block elements and are represented by strings. `epilogue` is
-OPTIONAL. The string can be created by taking a verbatim copy of
-those elements in the body of text, but implementations MAY perform any
-normalization steps that do not affect markdown semantics. For instance,
-implementations may remove word wrap and normalize whitespace since both have no
-influence in the resulting rendered markdown.
+OPTIONAL. The string is the source of those elements, with one change: the soft
+line breaks of each paragraph MUST be joined into one space. Nothing else
+changes. A hard break (two or more trailing spaces, or `\`, before the line
+ending) is kept byte for byte, line ending included. Whitespace in code spans,
+code blocks and tables is content and is kept too. The same rule applies to the
+`instructions` of an exam.
 
 The same license applies to the frontmatter **comment string**: a comment
 that spans several `#` lines MAY be joined into one line with single spaces.
@@ -523,6 +543,10 @@ is assigned a strictness level of "error", "warning", "info".
 * **info**: violations that may indicate flaws in the document and might be
   relevant to know for a user authoring a question, but still produce valid and
   usable documents.
+
+The tables of Additional Rules list document diagnostics only. Other RFC 2119
+keywords of a document bind hosts, graders and authors, and have no lint: an
+implementation MAY report them, but no table row exists for them.
 
 The JSON Schema is normative for the shape of a document. It validates the
 document after the removal of each `null` value of an OPTIONAL field (see

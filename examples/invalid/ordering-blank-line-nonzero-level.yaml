@@ -1,0 +1,10 @@
+# A blank line of a code ordering question is at level 0, as in the Markdown
+# form: the schema requires `level: 0` when the text is empty.
+type: ordering
+content: code
+highlight: python
+stem: Ordene as linhas do programa que soma as chuvas do mês.
+lines:
+  - [0, "for x in chuvas:"]
+  - [3, ""]
+  - [1, "total += x"]

@@ -6,9 +6,9 @@ of [true-false.md](../question-types/true-false.md).
 
 ## Method
 
-* Ranking: the 32 languages with most speakers (Ethnologue figures, see the
-  references). Gujarati, Polish, Ukrainian and Malay are cited because they are
-  in the locale table or in the classification.
+* Ranking: the 32 languages with the most speakers (Ethnologue figures, see the
+  references). Gujarati, Kannada, Polish, Ukrainian and Malay are cited because they
+  are in the locale table or in the classification, or have a Moodle pack.
 * Words: the language packs of Moodle 4.5, file `qtype_truefalse.php`, which
   holds the strings of the true/false question. When a pack has no such
   string, the table uses a `correct`/`incorrect` string of another component.

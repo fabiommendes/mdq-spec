@@ -1,0 +1,14 @@
+# `B` is not in the accepted letters of the `mr` row, so it gets
+# `locale-mismatched-true-false-marker`. It keeps its global meaning.
+id: tf-brazil-mr-b
+title: Brazil facts
+type: true-false
+locale: mr
+stem: Rate the statements about Brazil.
+choices:
+- text: Brasília is the capital of Brazil.
+  correct: true
+  marker: B
+- text: Brazil borders Chile.
+  correct: false
+  marker: F

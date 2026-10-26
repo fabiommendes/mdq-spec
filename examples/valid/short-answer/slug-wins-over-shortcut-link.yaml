@@ -1,0 +1,9 @@
+# A bracket at the start of the stem is the slug, even when a link reference
+# definition with that label exists: the id is `ibge` and the word leaves the stem.
+title: Census agency
+id: ibge
+stem: coleta dados do censo a cada dez anos. Qual o nome do órgão?
+accept:
+- IBGE
+type: short-answer
+epilogue: '[ibge]: https://www.ibge.gov.br'

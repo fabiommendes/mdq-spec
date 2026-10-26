@@ -90,6 +90,7 @@ _Avoid_: gradable, identified, id-complete
 ### Derived id
 An id that the author did not write, given to a choice (from its text) or to
 a question in an exam (`q<position>`) to make the document addressable.
+A derived choice id is not portable across implementations or versions.
 _Avoid_: implicit id, generated id, auto id
 
 ### Resolved
@@ -202,6 +203,17 @@ accepted. A submission that fails is invalid. It never contributes to a score.
 _Avoid_: input validation, pre-grading
 
 ## Fields
+
+### Accept and reject
+Fields whose meaning depends on the `type`. In short answer and fill in blanks,
+a list of patterns. In ordering, a list of alternative orders of the lines.
+_Avoid_: allow and deny
+
+### Content
+A field whose meaning depends on the `type`. In essay, the kind of response
+(`code`, `text` or `plain`), set in the frontmatter. In ordering, the kind of
+the lines (`code` or `text`), set by the body.
+_Avoid_: format, kind
 
 ### Exam-context field
 A field describing a question's role within one exam rather than the question

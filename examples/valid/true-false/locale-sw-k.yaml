@@ -1,0 +1,14 @@
+# `K` is not in the accepted letters of the `sw` row, so it gets
+# `unlisted-true-false-marker`. It keeps its global meaning.
+id: tf-brazil-sw-k
+title: Brazil facts
+type: true-false
+locale: sw
+stem: Rate the statements about Brazil.
+choices:
+- text: Brasília is the capital of Brazil.
+  correct: true
+  marker: K
+- text: Brazil borders Chile.
+  correct: false
+  marker: F

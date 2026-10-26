@@ -187,8 +187,8 @@ the rendering system they might still appear equivalent to a human reader.
 ## Choice id
 
 The choice id is a slugified identifier for the choice so we can refer to it by
-content, and not by position. It follows the same rules for slugs mentioned
-before. If given, the choice ids for each choice MUST be unique
+content, and not by position. It matches the `CHOICE_ID` and `SLUG` terminals of
+[Tokens](grammar.md#tokens). If given, the choice ids for each choice MUST be unique
 (`duplicate-choice-id`).
 
 The id is not mandatory. Implementations MAY report a choice without an id,
@@ -197,7 +197,14 @@ the text content when it needs an
 [addressable](../responses.md#addressability) document; but it is not part of
 the parse step itself. This transformation
 SHOULD be stable in practical applications, although there might be edge cases
-where it cannot be guaranteed. A stable assignment should preserve the choice id
+where it cannot be guaranteed.
+
+Derived ids are NOT portable. The spec gives no algorithm, so two
+implementations, or two versions of one implementation, can derive different
+ids from the same text. A host SHOULD write the derived ids into the document
+(make it addressable) before it collects responses, and grade those responses
+against the document with the ids. A response with an id that the question does
+not have is rejected, see [Addressability](../responses.md#addressability). A stable assignment should preserve the choice id
 assignments for the following operations:
 
 * **Reordering of choices:** each choice preserves its original id.

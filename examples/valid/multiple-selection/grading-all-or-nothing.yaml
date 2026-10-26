@@ -1,0 +1,14 @@
+id: ms-grading-all-or-nothing
+title: Brazilian biomes
+stem: Which of these are Brazilian biomes?
+choices:
+- text: Cerrado
+  correct: true
+- text: Caatinga
+  correct: true
+- text: Tundra
+  correct: false
+- text: Pantanal
+  correct: true
+type: multiple-selection
+grading: all-or-nothing

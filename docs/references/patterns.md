@@ -278,7 +278,7 @@ block or a thematic break, the item is a `parse-error`, as for a
 [choice item](choices.md). The item `* > Brasília` is a block quote, not the
 pattern `> Brasília`. The message suggests an exact literal: `` * `> Brasília` ``.
 A pattern is plain text, so `\#` is the pattern `\#` and not `#`. The
-single-line form (`[short-answer]: > Brasília`) is a `schema-error` for the same
+single-line form (`[short-answer]: > Brasília`) is a `block-start-pattern` for the same
 reason, see [Pattern string](#pattern-string).
 
 ```lark
@@ -414,8 +414,8 @@ rather than a literal string, in a pattern line and in a frontmatter
 | Escape     | `\` and a syntax character, or `\/` | that character                                         |
 | Escape     | `\t` `\n` `\v` `\f` `\r`     | U+0009, U+000A, U+000B, U+000C and U+000D                     |
 | Escape     | `\xHH`                       | the code point with two hex digits                            |
-| Escape     | `\uHHHH`                     | the code point with four hex digits                           |
-| Escape     | `\u{H...}`                   | the code point with one to six hex digits, at most `10FFFF`   |
+| Escape     | `\uHHHH`                     | the code point with four hex digits. A value from `D800` to `DFFF` (a surrogate) is an `invalid-regex` |
+| Escape     | `\u{H...}`                   | the code point with one to six hex digits, at most `10FFFF`. A surrogate (`D800` to `DFFF`) is an `invalid-regex` |
 | Shorthand  | `\d` `\D` `\w` `\W` `\s` `\S` | see [Shorthand classes](#shorthand-classes)                  |
 | Class      | `[items]`, `[^items]`        | one code point that is, or is not, in the items. At least one item is REQUIRED |
 | Class item | a code point other than `\` and `]` | that code point. `[` is a literal here                 |
@@ -450,8 +450,9 @@ These edge rules complete the table:
 * A shorthand class is not the end of a range: `[a-\d]` and `[\d-z]` are
   invalid. `[\d-]` is valid.
 * In a class, `&&` is an `invalid-regex`: it is the class intersection
-  operator of other dialects, for example `/[a-z&&[^aeiou]]/`. Write `\&` for
-  a pair of ampersands.
+  operator of other dialects, for example `/[a-z&&[^aeiou]]/`. To put two
+  ampersands in a class, write one of them as `\x26`: `[&\x26]`. Outside a
+  class, `&&` is two literal ampersands (`\x26\x26` is the same).
 * An escape that is not in the table is an `invalid-regex`. This includes the
   escapes that JavaScript with `u` accepts, such as `\0`, a backreference
   (`\1`, `\k<name>`) and `\cA`, `\p{...}` and `\P{...}`; and the escapes that
@@ -462,7 +463,8 @@ These edge rules complete the table:
   `(?P<name>...)`), lookbehind (`(?<=...)` and `(?<!...)`), atomic groups
   (`(?>...)`), inline modifiers (`(?i:...)`) and comments (`(?#...)`).
 * An unbalanced `(` or `)` is an `invalid-regex`.
-* A surrogate pair such as `😀` is NOT a code point: write
+* A `\uHHHH` or `\u{...}` escape of a surrogate (`D800` to `DFFF`) is an `invalid-regex`,
+  and so is the escape pair `\uD83D\uDE00`. Write the character `😀` or
   `\u{1F600}`.
 
 ### Semantics
@@ -497,8 +499,9 @@ the `u` flag:
   here, so `.` matches them. An implementation whose engine reads `.`
   differently MUST translate it to the class `[^\n\r\u2028\u2029]`.
 * `i` uses the simple case folding of Unicode. `/s/i` accepts `ſ` (U+017F) and
-  `/k/i` accepts U+212A KELVIN SIGN. The shorthand classes below are not
-  affected by `i`: `/\w/i` does not accept `ſ`.
+  `/k/i` accepts U+212A KELVIN SIGN. The shorthand classes below fold like any
+  other class, as in JavaScript with `ui`: `/\w/i` accepts `ſ` and U+212A, and
+  `\b` folds in the same way.
 * `\u{1F600}` is one code point.
 
 A JavaScript implementation MUST compile every regex with the `u` flag.
@@ -517,7 +520,7 @@ classes below. They apply inside a character class too, so `[\d_]` is
 | `\d`, `\D` | `[0-9]` and its complement                                   |
 | `\w`, `\W` | `[A-Za-z0-9_]` and its complement                            |
 | `\s`, `\S` | `UNICODE_SPACE` and its complement                           |
-| `\b`, `\B` | a word boundary, and a position that is not one, both defined by `\w` |
+| `\b`, `\B` | a word boundary, and a position that is not one, both defined by `\w` (and folded by `i` as `\w` is) |
 
 `UNICODE_SPACE` is the class of
 [grammar.md](grammar.md#unicode-spaces): 25 code points, without U+FEFF. A

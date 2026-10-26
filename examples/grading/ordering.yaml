@@ -143,3 +143,198 @@ questions:
     examples:
       - response: [[0, "Sul"], [0, "Norte"], [0, "Nordeste"]]
         score: pending
+
+  # Code content: the lines are compared as they are. Under `fixed` a level
+  # other than the authored one is malformed, and a wrong order is a wrong
+  # answer, as for text.
+  - name: "Fixed, code"
+    question:
+      content: code
+      lines:
+        - [0, "for x in chuvas:"]
+        - [1, "total += x"]
+        - [0, "print(total)"]
+    examples:
+      - response: [[0, "for x in chuvas:"], [1, "total += x"], [0, "print(total)"]]
+        score: 1
+      - response: [[0, "print(total)"], [0, "for x in chuvas:"], [1, "total += x"]]
+        score: 0
+      # The authored level of `total += x` is 1.
+      - response: [[0, "for x in chuvas:"], [0, "total += x"], [0, "print(total)"]]
+        score: malformed
+
+  # `lenient` implies `dedent`: the student sets the levels, and they take no
+  # part in the comparison.
+  - name: "Lenient, code"
+    question:
+      content: code
+      indentation: lenient
+      lines:
+        - [0, "for x in chuvas:"]
+        - [1, "total += x"]
+        - [0, "print(total)"]
+    examples:
+      - response: [[0, "for x in chuvas:"], [0, "total += x"], [0, "print(total)"]]
+        score: 1
+      - response: [[0, "for x in chuvas:"], [3, "total += x"], [0, "print(total)"]]
+        score: 1
+      - response: [[0, "total += x"], [0, "for x in chuvas:"], [0, "print(total)"]]
+        score: 0
+
+  # `dedent` flattens every level on both sides, under `fixed` too.
+  - name: "Fixed with dedent"
+    question:
+      content: code
+      normalizations: [dedent]
+      lines:
+        - [0, "for x in chuvas:"]
+        - [1, "total += x"]
+    examples:
+      - response: [[0, "for x in chuvas:"], [1, "total += x"]]
+        score: 1
+      - response: [[1, "total += x"], [0, "for x in chuvas:"]]
+        score: 0
+
+  # `skip-blanks` leaves the blank lines out on both sides: the response
+  # may keep them, drop them or move them.
+  - name: "skip-blanks"
+    question:
+      content: code
+      normalizations: [skip-blanks]
+      lines:
+        - [0, "total = 0"]
+        - [0, ""]
+        - [0, "print(total)"]
+    examples:
+      - response: [[0, "total = 0"], [0, ""], [0, "print(total)"]]
+        score: 1
+      - response: [[0, "total = 0"], [0, "print(total)"]]
+        score: 1
+      - response: [[0, ""], [0, "total = 0"], [0, "print(total)"]]
+        score: 1
+      - response: [[0, "print(total)"], [0, ""], [0, "total = 0"]]
+        score: 0
+
+  # Without `skip-blanks`, a blank line is a line like any other.
+  - name: "Blank line without skip-blanks"
+    question:
+      content: code
+      lines:
+        - [0, "total = 0"]
+        - [0, ""]
+        - [0, "print(total)"]
+    examples:
+      - response: [[0, "total = 0"], [0, ""], [0, "print(total)"]]
+        score: 1
+      - response: [[0, "total = 0"], [0, "print(total)"]]
+        score: 0
+
+  # A response may leave lines out: it is graded as an `accept` section that
+  # omits lines is.
+  - name: "Omitted lines"
+    question:
+      content: text
+      indentation: lenient
+      lines:
+        - [0, "Norte"]
+        - [0, "Nordeste"]
+        - [0, "Sul"]
+      accept:
+        - lines:
+            - [0, "Norte"]
+            - [0, "Sul"]
+    examples:
+      - response: [[0, "Norte"], [0, "Nordeste"], [0, "Sul"]]
+        score: 1
+      - response: [[0, "Norte"], [0, "Sul"]]
+        score: 1
+      - response: [[0, "Norte"], [0, "Nordeste"]]
+        score: 0
+      - response: [[0, "Sul"], [0, "Norte"]]
+        score: 0
+
+  # When a response matches more than one declared answer, the feedback of
+  # the first match in document order is shown. Under `lenient` the two
+  # `accept` entries are equal after normalization.
+  - name: "First match gives the feedback"
+    question:
+      content: text
+      indentation: lenient
+      lines:
+        - [0, "Nordeste"]
+        - [0, "Bahia"]
+      accept:
+        - feedback: "First."
+          lines:
+            - [0, "Bahia"]
+            - [1, "Nordeste"]
+        - feedback: "Second."
+          lines:
+            - [0, "Bahia"]
+            - [0, "Nordeste"]
+    examples:
+      - response: [[0, "Bahia"], [0, "Nordeste"]]
+        score: 1
+        feedback: "First."
+
+  # A correct response is any response equal to a declared answer after
+  # normalization, whatever pool lines it uses. Here the distractor
+  # `total += x` is another copy of a line the response needs, and the
+  # response may use either.
+  - name: "Distractor copy of a line"
+    question:
+      content: code
+      normalizations: [dedent]
+      lines:
+        - [0, "for x in chuvas:"]
+        - [1, "total += x"]
+      extra:
+        - [0, "total += x"]
+    examples:
+      - response: [[0, "for x in chuvas:"], [1, "total += x"]]
+        score: 1
+      - response: [[0, "for x in chuvas:"], [0, "total += x"]]
+        score: 1
+
+  # The empty response `[]` is graded like any other. No `lines` or `accept`
+  # entry is empty after normalization, so it is never correct.
+  - name: "Empty response"
+    question:
+      content: text
+      lines:
+        - [0, "Norte"]
+        - [0, "Sul"]
+    examples:
+      - response: []
+        score: 0
+
+  - name: "Empty response, unmatched manual"
+    question:
+      content: text
+      unmatched: manual
+      lines:
+        - [0, "Norte"]
+        - [0, "Sul"]
+    examples:
+      - response: []
+        score: pending
+
+  # An empty `reject` entry matches the empty response and gives it feedback.
+  - name: "Empty response matches an empty reject entry"
+    question:
+      content: code
+      normalizations: [skip-blanks]
+      lines:
+        - [0, "total = 0"]
+        - [0, "print(total)"]
+      reject:
+        - feedback: "Write the program."
+          lines:
+            - [0, ""]
+    examples:
+      - response: []
+        score: 0
+        feedback: "Write the program."
+      - response: [[0, ""]]
+        score: 0
+        feedback: "Write the program."

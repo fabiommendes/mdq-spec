@@ -20,21 +20,21 @@ The capital of Brazil is [^capital]. It has approximately [^size] inhabitants.
 
 ## Frontmatter
 
-Fill in the blanks questions accept the following extra arguments in the
+Fill in the blanks questions accept the following extra fields in the
 frontmatter:
 
 | Field      | Type      | Description                                       |
 | ---------- | --------- | ------------------------------------------------- |
 | type       | "fill-in" | The type discriminator                            |
-| shuffle    | boolean or "inherit"   | True if the inner choices can be shuffled[^1]     |
-| grading    | grading   | The grading strategy to use.[^1]                  |
+| shuffle    | boolean or "inherit" | True if the inner choices can be shuffled[^1] |
+| grading    | "partial", "no-mistakes", "all-or-nothing", "symmetric" or "inherit" | The grading strategy to use.[^1] |
 | diacritics | string    | Either "fold" (the default) or "keep"[^2]         |
-| unmatched  | string    | Either "incorrect" or "manual"[^6]                |
-| preAccept  | map       | Blank id to the patterns a response must match[^7] |
-| preReject  | map       | Blank id to the patterns a response must not match[^7] |
-| incorrectFeedback | map | Blank id to the feedback of an incorrect response that no pattern gave feedback to[^9] |
-| domain     | map       | Blank id to the `domain` of a [numeric blank](#numeric-blanks)[^10] |
-| decimalPlaces | map    | Blank id to the `decimalPlaces` of a [numeric blank](#numeric-blanks)[^10] |
+| unmatched  | string    | Either "incorrect" or "manual"[^3]                |
+| preAccept  | map       | Blank id to the patterns a response must match[^4] |
+| preReject  | map       | Blank id to the patterns a response must not match[^4] |
+| incorrectFeedback | map | Blank id to the feedback of an incorrect response that no pattern gave feedback to[^5] |
+| domain     | map       | Blank id to the `domain` of a [numeric blank](#numeric-blanks)[^6] |
+| decimalPlaces | map    | Blank id to the `decimalPlaces` of a [numeric blank](#numeric-blanks)[^6] |
 
 [^1]: Grading is `"partial" | "no-mistakes" | "all-or-nothing" | "symmetric" | "inherit"`.
 Default is `"inherit"`, which takes the strategy from the exam, and is
@@ -47,11 +47,11 @@ for implementations that present the question: it has no diagnostic.
 [^2]: Applies to every [short answer blank](#short-answer-blanks) of
 the question, with the same meaning as in a standalone short answer question.
 See [short answer diacritics](short-answer.md#diacritics).
-[^6]: Applies to every [short answer blank](#short-answer-blanks) of the
+[^3]: Applies to every [short answer blank](#short-answer-blanks) of the
 question, with the same meaning as in a standalone short answer question. If
 absent, each blank takes its own default: `"incorrect"` if the blank has an
 `accept` pattern, `"manual"` if it has none. See [Automation](#automation).
-[^7]: Frontmatter-only, like the `preAccept` and `preReject` fields of a
+[^4]: Frontmatter-only, like the `preAccept` and `preReject` fields of a
 [short answer](short-answer.md#frontmatter) question. Each key is the id of a
 [short answer blank](#short-answer-blanks) and its value a pattern list, with
 the same entries and the same meaning as in a standalone short answer
@@ -81,7 +81,7 @@ blanks:
         feedback: Write the season, not a month number.
 ```
 
-[^9]: Frontmatter-only, like `preAccept` and `preReject`. Each key is the id of
+[^5]: Frontmatter-only, like `preAccept` and `preReject`. Each key is the id of
 a [short answer blank](#short-answer-blanks) or of a
 [numeric blank](#numeric-blanks) and its value a string, with the same meaning
 as the `incorrectFeedback` of a standalone
@@ -106,7 +106,7 @@ blanks:
     incorrectFeedback: The Pico da Neblina is higher than that.
 ```
 
-[^10]: Frontmatter-only, like `preAccept` and `preReject`. Each key is the id of
+[^6]: Frontmatter-only, like `preAccept` and `preReject`. Each key is the id of
 a [numeric blank](#numeric-blanks) and its value is the field of the same name
 of a [numeric](numeric.md#frontmatter) question, with the same meaning. It wins
 over the value inferred from the body of the blank. In JSON they are fields of
@@ -178,11 +178,15 @@ A `[^slug]` has one outcome in each context of the stem:
 | --------------------------------------------------------------- | -------------------------- |
 | Plain text of an ordinary paragraph                             | A blank                    |
 | Fenced code, indented code, code span                           | Literal text, not a blank  |
+| Autolink: `<https://...>`, bare URL or `www.` address[^7]      | Literal text, not a blank  |
 | `[^slug](url)` and `[^slug][ref]`                               | A link, not a blank        |
 | Heading, list item, table cell, blockquote                      | `misplaced-blank` (error)  |
 | Emphasis, strong, strikethrough, link text, image alt text      | `misplaced-blank` (error)  |
 | HTML block                                                      | Literal text, not a blank  |
 | Text between inline HTML tags, as in `<span>[^slug]</span>`     | A blank                    |
+
+[^7]: The URL of an autolink is one token, like a code span. A `[^slug]` inside
+it stays as written, and a definition of that id is an `unreferenced-blank`.
 
 An HTML block is raw text in CommonMark, like a code block: a `[^slug]` in it
 is literal text, so a definition of that blank is an `unreferenced-blank`. An
@@ -200,7 +204,8 @@ the link text is `^nota`.
 
 Only the stem holds blanks. A `[^slug]` in the epilogue is literal text, even
 in an ordinary paragraph: implementations MUST leave it as written, and it
-neither declares a blank nor has to match one.
+neither declares a blank nor has to match one. The one exception is a line
+that starts like a definition, see [Blank definitions](#blank-definitions).
 
 
 ## Blank definitions
@@ -251,10 +256,13 @@ a `reject` definition takes the position of its first definition.
 
 The definitions form one contiguous sequence of blocks, separated only by
 blank lines. The first block that is not part of a definition starts the
-epilogue. A line in the epilogue that matches the start of a `blank_def`, such
-as `[^capital/short-answer]: Brasília`, `[^estados/numeric]: 26`, a `[^x]:`
-line followed by a choice list or a `[^cidade/short-answer]` paragraph, defines
-nothing. It is the error
+epilogue. In the epilogue, a line that starts with `[^SLUG]`, with or without a kind
+suffix, followed by `:` defines nothing, whether or not text follows the colon.
+Examples are `[^capital/short-answer]: Brasília`, `[^estados/numeric]: 26`,
+`[^nota]: Brasília foi inaugurada em 1960.` and a `[^x]:` line followed by a
+choice list. A paragraph that holds only a short answer tag, such as
+`[^cidade/short-answer]`, defines nothing either. A `[^SLUG]` elsewhere in a
+line stays literal text. Each of these cases is the error
 `detached-tag`, at the path `epilogue`, and its message tells the
 author to move the tag up, before the epilogue, see
 [Tags after the epilogue starts](question-base.md#tags-after-the-epilogue-starts).
@@ -453,8 +461,9 @@ and `comment` exactly as it would in a
 same rule -- the choice the student picked shows its feedback, whatever that
 choice scored. A pattern of a short answer blank takes `feedback` and `comment`
 exactly as it would in a [short answer](short-answer.md#feedback) question, and
-shows it under the same rule -- the first pattern that matches the response
-and defines a feedback message, with `accept` taking precedence over `reject`.
+shows it under the same rule -- the first pattern with a feedback message
+among the matching patterns of the list that decided the outcome (`accept` or
+`reject`), see [Feedback](short-answer.md#feedback).
 A short answer blank also takes `incorrectFeedback`, with the same meaning as
 in a short answer question: the feedback of an incorrect response that no
 pattern gave feedback to. A numeric blank takes `incorrectFeedback` with the
@@ -575,16 +584,16 @@ alone, such as `blanks[].accept` for `accept`, is not a reason to restate a row.
 
 | Field                | Level    | Code               | Rule                                                               |
 | -------------------- | -------- | ------------------ | ------------------------------------------------------------------ |
-| blanks               | error    | schema-error       | must have at least one blank (schema)                              |
+| blanks               | error    | schema-error       | must have at least one blank (schema). A Markdown stem with no `[^id]` marker gives `blanks: []`, so the error is at `blanks`; the message MAY hint at the `[^id]` marker |
 | blanks[].id          | error    | schema-error       | must be present and match `SLUG` ([grammar.md](../references/grammar.md)) (schema) |
 | blanks[].choices     | error    | schema-error       | a choice blank must have at least two choices (schema)             |
 | blanks[].unit        | error    | schema-error       | only a numeric blank may have a `unit` (schema)                    |
 | blanks[].unit        | error    | blank-text         | if defined, must have at least one visible character               |
-| blanks[].id          | error    | duplicate-blank-id | must be unique within the question[^3]                             |
+| blanks[].id          | error    | duplicate-blank-id | must be unique within the question[^8]                             |
 | blanks[].id          | warning  | case-variant-blank-id | two ids must not differ only in ASCII case, see [Blank definitions](#blank-definitions) |
 | stem                 | error    | undefined-blank    | every `[^id]` marker must name a declared blank                    |
 | blanks[].id          | error    | unreferenced-blank | must be referenced by an `[^id]` marker in the stem                |
-| stem                 | error    | misplaced-blank    | blanks may only appear in a plain text run of a paragraph[^4]      |
+| stem                 | error    | misplaced-blank    | blanks may only appear in a plain text run of a paragraph[^9]      |
 | stem                 | error    | duplicate-blank-reference | each `[^id]` marker may appear at most once in the stem     |
 | blanks[]             | error    | parse-error        | a blank id must not have a second definition of any kind (two kinds, or a choice or numeric blank twice) |
 | blanks[]             | error    | parse-error        | the kind suffix of a tag must be `numeric` or `short-answer`, with `accept` or `reject` only after the latter |
@@ -594,39 +603,47 @@ alone, such as `blanks[].accept` for `accept`, is not a reason to restate a row.
 | blanks[]             | error    | parse-error        | a tag is in lower case, and a tag with a reserved label has a known suffix, see [Body tags](question-base.md#body-tags) |
 | blanks[]             | error    | parse-error        | a list must not start on the line right after the choice list or the pattern list of a blank, see [Lists after a content list](question-base.md#lists-after-a-content-list) |
 | blanks[]             | error    | parse-error        | the tag line of a choice blank must have no text after the colon (use `/short-answer` for a text answer) |
-| epilogue             | error    | detached-tag       | a blank definition tag line must not follow a block that is not a definition[^12] |
-| preAccept, preReject, incorrectFeedback | error | undefined-blank | every key must be the id of a declared blank[^8]                  |
-| preAccept, preReject | error | schema-error    | a key must not be the id of a choice or numeric blank (schema)[^8] |
-| incorrectFeedback    | error | schema-error    | a key must not be the id of a choice blank (schema)[^8] |
-| domain, decimalPlaces | error | undefined-blank | every key must be the id of a declared blank[^11]                  |
-| domain, decimalPlaces | error | schema-error    | a key must not be the id of a choice or short answer blank (schema)[^11] |
+| epilogue             | error    | detached-tag       | a blank definition tag line must not follow a block that is not a definition[^10] |
+| preAccept, preReject, incorrectFeedback | error | undefined-blank | every key must be the id of a declared blank[^11]                  |
+| preAccept, preReject | error | schema-error    | a key must not be the id of a choice or numeric blank (schema)[^11] |
+| incorrectFeedback    | error | schema-error    | a key must not be the id of a choice blank (schema)[^11] |
+| domain, decimalPlaces | error | undefined-blank | every key must be the id of a declared blank[^12]                  |
+| domain, decimalPlaces | error | schema-error    | a key must not be the id of a choice or short answer blank (schema)[^12] |
 | diacritics           | error    | schema-error       | must be "fold" or "keep" (schema)                                    |
 | unmatched            | error    | schema-error       | must be "incorrect" or "manual" (schema)                             |
-| blanks[].incorrectFeedback | error | blank-text         | if defined, must have at least one visible character              |
+| grading              | error    | schema-error       | must be `partial`, `no-mistakes`, `all-or-nothing`, `symmetric` or `inherit` (schema) |
+| shuffle              | error    | schema-error       | must be a boolean or `inherit` (schema)                            |
+| blanks[].incorrectFeedback | error | blank-text         | if defined, must have at least one visible character[^13]         |
 | preAccept, preReject, incorrectFeedback, domain, decimalPlaces | error | parse-error | the frontmatter value must be a mapping from blank ids to values |
 | automation           | error    | invalid-frontmatter-field | must not be in the frontmatter                              |
 | automation           | error    | schema-error       | must not be a field of the YAML or JSON form                       |
 
 The table lists diagnostics only. The MAY permissions of a short answer blank
 (one `accept` and one `reject` block, an `accept` block with no pattern) have no
-row, because they cannot fail.
+row, because they cannot fail. Other RFC keywords bind hosts and graders and have
+no lint, see [Additional Rules](question-base.md#additional-rules). The
+`shuffle` rule is one of them: a host that presents the question applies it,
+see the footnote of the frontmatter table.
 
-[^3]: Otherwise the stem's `[^id]` marker is ambiguous.
-[^4]: See [where blanks may appear](#where-blanks-may-appear). It applies to
+[^8]: Otherwise the stem's `[^id]` marker is ambiguous.
+[^9]: See [where blanks may appear](#where-blanks-may-appear). It applies to
 a `[^id]` in a heading, list item, table cell or blockquote of the stem, or
 inside emphasis, strong, link text or image alt text. Code and the links
 `[^id](url)` and `[^id][ref]` hold no blank. A misplaced `[^id]` MUST NOT be
 silently dropped.
-[^8]: In the `preAccept`, `preReject` and `incorrectFeedback` maps. A key that is not the id of a declared blank is an `undefined-blank`
+[^10]: The definitions are one contiguous sequence of blocks. A tag line in the
+epilogue, outside fenced code, is this error, and the stem reference of its id
+gives no `undefined-blank`. See [Blank definitions](#blank-definitions).
+[^11]: In the `preAccept`, `preReject` and `incorrectFeedback` maps. A key that is not the id of a declared blank is an `undefined-blank`
 error, at the path of the key. A key that is the id of a blank that does not
 take the field (a choice or numeric blank for `preAccept` and `preReject`; a
 choice blank for `incorrectFeedback`) puts the value on that blank, where the
 schema rejects it.
-[^11]: In the `domain` and `decimalPlaces` maps. A key that is not the id of a
+[^12]: In the `domain` and `decimalPlaces` maps. A key that is not the id of a
 declared blank is an `undefined-blank` error, at the path of the key. A key that
 is the id of a choice or short answer blank puts the value on that blank, where
 the schema rejects it. A value that is not a valid `domain` or `decimalPlaces`
 is a `schema-error` on the blank.
-[^12]: The definitions are one contiguous sequence of blocks. A tag line in the
-epilogue, outside fenced code, is this error, and the stem reference of its id
-gives no `undefined-blank`. See [Blank definitions](#blank-definitions).
+[^13]: The path is the model path `blanks[i].incorrectFeedback`, also when the
+`incorrectFeedback` map of the frontmatter gave the value. The message says
+`incorrectFeedback`.

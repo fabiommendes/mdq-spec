@@ -20,23 +20,24 @@ What is the capital of Brazil?
 
 ## Frontmatter
 
-Multiple choice questions accept the following extra arguments in the
+Multiple choice questions accept the following extra fields in the
 frontmatter:
 
 | Field   | Type                 | Description                         |
 | ------- | -------------------- | ----------------------------------- |
 | type    | "multiple-choice"    | The type discriminator              |
 | shuffle | boolean or "inherit" | True if choices can be shuffled[^1] |
-| grading | grading              | The grading strategy to use.[^1]    |
+| grading | "partial", "symmetric" or "inherit" | The grading strategy to use.[^1] |
 
 [^1]: Grading is `"partial" | "symmetric" | "inherit"`.
 Default is `"inherit"`, which takes the strategy from the exam, and is
 `"symmetric"` outside an exam. `shuffle` is `boolean | "inherit"` with the
 same rule: `"inherit"` is the default and resolves to `false` outside an
 exam. See [exam inheritance](../exam.md#inheritance).
-With `shuffle: true`, an implementation MAY present the choices in any
-order. With `shuffle: false`, it MUST NOT change their order. This rule is
-for implementations that present the question: it has no diagnostic.
+
+**Shuffle.** With `shuffle: true`, an implementation that presents the question
+MAY show the choices in any order. With `shuffle: false`, it MUST NOT change
+their order. This rule is for hosts: no lint checks it.
 
 
 ## Body
@@ -90,7 +91,7 @@ the body syntax above: `*` is 1. A percentage is its own fraction, so `[50%]` is
 zero; a blank value, `[ ]`, omits `score` from the document.
 
 A question can have negative scores, but the exam aggregation method may clamp
-it to non-negative values depending on the exam settings. Question authors have
+them to non-negative values depending on the exam settings. Question authors have
 no control over this (see [exam](../exam.md#penalty)).
 
 An omitted value is treated differently depending on the `grading` parameter in
@@ -173,6 +174,7 @@ results should be computed with full precision.
 | choices[].text     | error    | duplicate-choice-text      | must be unique among the choices of the question          |
 | choices[].id       | error    | duplicate-choice-id        | must be unique among the choices of the question          |
 | choices[]          | error    | parse-error                | carries at most one feedback block and one comment block  |
+| choices[]          | error    | parse-error                | holds only its first paragraph, the feedback and the comment, see [Item](../references/choices.md#item) |
 | choices[]          | error    | parse-error                | must not use the empty marker `[]`                        |
 | choices[].text     | info     | visually-identical-choices | is visually equivalent to another choice[^2]              |
 | choices            | info     | no-correct-choice          | no choice has a score of 1                                |
@@ -181,4 +183,6 @@ results should be computed with full precision.
 | choices[].id       | info     | missing-choice-id          | has no id in the document[^3]                             |
 
 [^2]: Visual equivalence is not defined by this spec, see [choice text](../references/choices.md#choice-text).
-[^3]: Derived ids are only as stable as the slugifier that produced them.
+[^3]: Derived ids are only as stable as the slugifier that produced them, and
+are not portable across implementations, see
+[Choice id](../references/choices.md#choice-id).

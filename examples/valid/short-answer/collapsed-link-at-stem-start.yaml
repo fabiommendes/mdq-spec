@@ -1,0 +1,8 @@
+# To keep a link at the start of the stem, write the collapsed form `[ibge][]`:
+# it is a link, not a slug, so the stem keeps it.
+title: Census agency
+stem: '[ibge][] coleta dados do censo a cada dez anos. Qual o nome do órgão?'
+accept:
+- IBGE
+type: short-answer
+epilogue: '[ibge]: https://www.ibge.gov.br'

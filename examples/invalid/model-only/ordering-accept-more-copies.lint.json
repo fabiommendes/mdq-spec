@@ -1,0 +1,10 @@
+[
+  {
+    "code": "accept-outside-answer-key",
+    "severity": "error",
+    "path": [
+      "accept",
+      0
+    ]
+  }
+]

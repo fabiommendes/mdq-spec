@@ -1,0 +1,10 @@
+# A tolerance of 0 is valid. It counts as an explicit choice, so it silences
+# `missing-tolerance` (numeric.md, "Tolerance").
+id: num-zero-tolerance
+title: Brazilian states
+stem: Quantos estados tem a Região Sudeste do Brasil?
+answer: 4
+domain: integer
+tolerance:
+  absolute: 0.0
+type: numeric

@@ -1,0 +1,12 @@
+# A decimal that ends in a zero after the point stays a string, even when it
+# is a whole value: JavaScript writes the float 4.0 as 4 (numeric.md, "Answer
+# representation").
+id: num-rio-negro-ph
+title: pH of the Rio Negro
+stem: Qual é o pH aproximado da água do rio Negro, um rio de águas pretas?
+answer: '4.0'
+domain: decimal
+decimalPlaces: 1
+tolerance:
+  absolute: 0.5
+type: numeric

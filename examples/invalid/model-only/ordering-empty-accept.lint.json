@@ -1,0 +1,10 @@
+[
+  {
+    "code": "empty-ordering-answer",
+    "severity": "error",
+    "path": [
+      "accept",
+      0
+    ]
+  }
+]

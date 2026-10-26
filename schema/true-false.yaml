@@ -36,8 +36,8 @@ allOf:
           section of the corresponding document in docs/question-types.
           `inherit`, the default, takes the strategy the exam's `grading`
           gives for true/false: its `true-false` entry when it is a map,
-          `symmetric` if the entry is missing, or the translation of a
-          scalar by the table of docs/exam.md (Grading). It is `symmetric`
+          `symmetric` if the exam has no `grading` or its map has no
+          `true-false` entry, or the translation of a scalar by the table of docs/exam.md (Grading). It is `symmetric`
           outside an exam.
 
       shuffle:
@@ -99,7 +99,8 @@ unevaluatedProperties: false
           `correct` (`true-false-marker-disagrees-with-correct`). The schema
           checks only that it is not empty. The letter check (one code point
           of category Lu, Ll, Lt or Lo, after NFKC normalization and ASCII
-          lowercase) and the reserved `X` are lint rules
+          lowercase, with no whitespace around it) and the reserved `X` are
+          lint rules
           (`malformed-true-false-marker`, `reserved-true-false-marker`).
         minLength: 1
 

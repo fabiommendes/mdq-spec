@@ -1,0 +1,7 @@
+# A hard break (two spaces or `\` before the line ending) stays in the stem
+# byte for byte; the soft break after "Andes" becomes one space
+# (question-base.md, "Stem").
+id: essay-rivers
+title: Rivers of Brazil
+type: essay
+stem: "O rio Amazonas nasce nos Andes e deságua no Atlântico.  \nLinha com quebra dura (dois espaços).\\\nOutra quebra dura (barra).\n\nExplique por que o Amazonas é o rio de maior vazão do planeta."

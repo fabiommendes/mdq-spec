@@ -127,8 +127,7 @@ CHOICE_ID    : /\[[a-zA-Z0-9]+([-_][a-zA-Z0-9]+)*\](?![(\[])/
   frontmatter SHOULD match it: any other string is valid, but gets the
   `unsafe-id` warning. A host cannot always show an id on the web, can derive a
   URL-safe slug from any id, and can use ids internally, for example to map
-  questions to files.
-  Implementations MAY accept more characters under an option flag. See
+  questions to files. See
   [Slug](../question-types/question-base.md#slug).
 * `INTEGER` and `DECIMAL` have no sign and no leading zeros. The rules that use
   them add the sign.
@@ -189,9 +188,16 @@ LAZY_START    : /(?:(?:[ ]{4}|[ ]{0,3}\t)[ \t]*[^ \t\r\n]|(?!>|!(?!\[)|[*+-][ \t
 comment marker, and it does not start a block that interrupts a paragraph: a
 bullet list item, an ordered list item that starts with `1` (with up to eight
 leading zeros, so `01.` and `001)` count), an ATX heading, a fenced code block
-or a thematic break. An HTML block also interrupts a paragraph; the terminal
-does not test it. This is a stated gap: a line that starts an HTML block is
-read as a lazy line, and CommonMark reads it as a new block.
+or a thematic break. The terminal has three stated gaps, where it reads a line
+as a lazy line and CommonMark reads it as a new block, or the reverse:
+
+* A line that starts an HTML block. The terminal does not test it, and
+  CommonMark reads a new block.
+* An empty list item: a marker (`*`, `1.`) followed only by spaces. The terminal
+  reads a block start, and an empty list item cannot interrupt a paragraph in
+  CommonMark, so the line is a lazy line.
+* A backtick fence whose info string holds a backtick (```` ```a`b ````). The
+  terminal reads a fence, and CommonMark does not, so the line is a lazy line.
 
 The normative rule for a lazy line is the paragraph continuation of CommonMark.
 `LAZY_START` is an approximation of it, as the schema pattern is an
@@ -206,11 +212,12 @@ heading or a fence. `MARK_INDENT` allows up to three spaces before a marker.
 The second alternative covers the lines with less indentation: it excludes the
 starts of the blocks above.
 
-The terminal does not exclude a setext underline (a line of only `=` or only
-`-` characters). After a feedback or comment line, the underline is
-continuation text, as in CommonMark. Right after the text of an element that is
-not a feedback or comment line (a pattern, a choice), it turns the text into a
-heading, which is a `parse-error`. See
+The terminal excludes `---` (and the other thematic breaks of `-`), and lets
+`--` and `===` pass. After a feedback or comment line, `--` and `===` are
+continuation text, as in CommonMark, and `---` is a thematic break that ends the
+block. Right after the text of an element that is not a feedback or comment
+line (a pattern, a choice), each of `---`, `--` and `===` is a setext
+underline: it turns the text into a heading, which is a `parse-error`. See
 [Continuation lines](patterns.md#continuation-lines).
 
 A `feedback` block is a CommonMark block quote. A `comment` block follows the
@@ -238,6 +245,11 @@ not define it. The rules are:
   at most one comment block, in either order. A second block of the same kind
   is a `parse-error`. This is also true when a blank line separates the two
   blocks, or when a block of the other kind is between them.
+
+The text of a feedback or comment is block Markdown: it MAY hold several
+paragraphs, separated by an empty marker line. The same holds for the
+`incorrectFeedback` field and for the feedback and comment of any element
+that uses these rules, whatever the footnote of its type calls it.
 
 The value of a block is its lines, each without the marker and the `ws` after
 it, and a lazy line without the `ws` at its start. The lines join into one
@@ -313,7 +325,7 @@ digit group separator (`6 400`).
 A Unicode space is in a **syntax position** when it is:
 
 * at the start of a line: before it, there are only spaces, tabs, Unicode
-  spaces, list markers (`*`, `+`, `-`, `1.`, `1)`), heading markers (`#`) and
+  spaces, list markers (`*`, `+`, `-`, and `<1-9 digits>.` or `<1-9 digits>)`), heading markers (`#`) and
   the line prefixes `>` and `!`;
 * at the end of a line: after it, there are only spaces, tabs and Unicode
   spaces;
@@ -322,4 +334,14 @@ A Unicode space is in a **syntax position** when it is:
   the answer after the colon;
 * in the bracketed tags at the start of a line and in the spaces after them,
   such as `[*] [ipe]` in a choice item or `[Q1]` before a stem;
-* in the first line of an item of an `accept` or `reject` pattern list.
+* in a line of a pattern list of a short answer or fill-in blank: every
+  pattern line, including the list after `[short-answer]:` and the lists after
+  `[short-answer/accept]:` and `[short-answer/reject]:`, and the lines of the
+  same fill-in tags.
+
+Everything else is prose, even when it is a list item: the lines of an
+ordering question (the `[ordering]:` list and the items of the `## [extra]`,
+`## [accept]` and `## [reject]` sections, since students pick these lines and
+never type them) and the text of a choice. A Unicode space there gets
+`non-ascii-whitespace-in-prose`, except where the rules above make it a
+syntax position (the start or the end of the line, for example).

@@ -72,6 +72,13 @@ properties:
       The paragraphs between the title and the first question, shown to
       the student before the assessment begins. May contain Markdown.
 
+  comment:
+    type: string
+    description: >-
+      Free-form text shown only to instructors, never to students. In
+      Markdown it is the comment string of the frontmatter: the leading `#`
+      lines, as for a question.
+
   tags:
     type: array
     description: >-

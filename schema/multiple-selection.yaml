@@ -33,8 +33,8 @@ allOf:
           section of the corresponding document in docs/question-types.
           `inherit`, the default, takes the strategy the exam's `grading`
           gives for multiple selection: its `multiple-selection` entry when it is a map,
-          `symmetric` if the entry is missing, or the translation of a
-          scalar by the table of docs/exam.md (Grading). It is `symmetric`
+          `symmetric` if the exam has no `grading` or its map has no
+          `multiple-selection` entry, or the translation of a scalar by the table of docs/exam.md (Grading). It is `symmetric`
           outside an exam.
 
       shuffle:

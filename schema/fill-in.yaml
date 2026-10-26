@@ -176,8 +176,8 @@ unevaluatedProperties: false
         description: >-
           Feedback for an incorrect response that no pattern gave feedback
           to, with the same meaning as the `incorrectFeedback` of a
-          short-answer question (short-answer.md, "Feedback"). Inline
-          markdown, like the feedback of a pattern. In Markdown, the
+          short-answer question (short-answer.md, "Feedback"). Block
+          Markdown, like the feedback of a pattern. In Markdown, the
           `incorrectFeedback` map of the frontmatter sets it, keyed by blank
           id (`incorrectFeedback: {<id>: ...}`).
 
@@ -254,7 +254,7 @@ unevaluatedProperties: false
           Feedback for an incorrect response: a well-formed response outside
           the accepted tolerance, with the same meaning as the
           `incorrectFeedback` of a numeric question (numeric.md, "Feedback").
-          Inline markdown, like the feedback of a pattern. In Markdown, the
+          Block Markdown, like the feedback of a pattern. In Markdown, the
           `incorrectFeedback` map of the frontmatter sets it, keyed by blank
           id (`incorrectFeedback: {<id>: ...}`).
 

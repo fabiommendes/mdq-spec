@@ -69,17 +69,17 @@ supplies its feedback. See [Grading](#grading) and [Feedback](#feedback).
 
 ## Frontmatter
 
-Short answer questions accept the following extra arguments in the
+Short answer questions accept the following extra fields in the
 frontmatter:
 
 | Field      | Type           | Description                                |
 | ---------- | -------------- | ------------------------------------------ |
 | type       | "short-answer" | The type discriminator                     |
-| preAccept  | pattern-list   | Patterns a submission must match [^3]      |
-| preReject  | pattern-list   | Patterns a submission must not match [^4]  |
-| diacritics | string         | Either "fold" (the default) or "keep" [^5] |
-| unmatched  | string         | Either "incorrect" or "manual": what happens to a response that matches no pattern [^13] |
-| incorrectFeedback | string  | Feedback for an incorrect response that no pattern gave feedback to [^14] |
+| preAccept  | pattern-list   | Patterns a submission must match [^1]      |
+| preReject  | pattern-list   | Patterns a submission must not match [^2]  |
+| diacritics | string         | Either "fold" (the default) or "keep" [^3] |
+| unmatched  | string         | Either "incorrect" or "manual": what happens to a response that matches no pattern [^4] |
+| incorrectFeedback | string  | Feedback for an incorrect response that no pattern gave feedback to [^5] |
 
 `pattern-list` is an array of at least one pattern; an empty array is the
 `schema-error` of the table below. Each entry is either a pattern string
@@ -95,7 +95,7 @@ above is the `invalid-frontmatter-field` error, see
 `reject` pattern is incorrect, unless it also matches an `accept` pattern, see
 [Grading](#grading).
 
-[^3]: Frontmatter-only -- there is no `[short-answer/preAccept]` block, and
+[^1]: Frontmatter-only -- there is no `[short-answer/preAccept]` block, and
 a Markdown document with one has the `parse-error` error. If
 given, every string that does NOT match at least one `preAccept`
 pattern is considered invalid. Semantically, this is a pre-validator and
@@ -103,7 +103,7 @@ systems SHOULD warn students about the invalidity of their answer before
 accepting a submission. It plays no part in grading. See
 [Pre-validation](#pre-validation) for the feedback of an invalid submission.
 
-[^4]: Frontmatter-only, like `preAccept`: a `[short-answer/preReject]` block is
+[^2]: Frontmatter-only, like `preAccept`: a `[short-answer/preReject]` block is
 a `parse-error` error. Similar rules, but flags invalid
 submissions instead.
 Every string that DOES match a `preReject` pattern is considered invalid. In
@@ -111,14 +111,16 @@ pre-validation, if a string matches both `preAccept` and `preReject`, it is
 considered rejected. Note this precedence rule is the opposite of the one
 used by `accept`/`reject` when grading.
 
-[^5]: See [Diacritics](#diacritics).
+[^3]: See [Diacritics](#diacritics).
 
-[^13]: Frontmatter-only. If absent, it is `"incorrect"` for a question with
+[^4]: Frontmatter-only. If absent, it is `"incorrect"` for a question with
 at least one `accept` pattern and `"manual"` for a question with none. See
 [Grading](#grading).
 
-[^14]: Frontmatter-only. Inline markdown, like the feedback of a pattern. It
-MUST have at least one visible character (`blank-text`). See
+[^5]: Frontmatter-only. Block Markdown (paragraphs allowed), like the feedback of
+a pattern, see
+[Feedback and comment lines](../references/grammar.md#feedback-and-comment-lines).
+It MUST have at least one visible character (`blank-text`). See
 [Feedback](#feedback).
 
 
@@ -153,8 +155,9 @@ responses that no reject pattern settles, see [Grading](#grading). A question
 with no block at all has no body, which is a `parse-error`.
 
 In the YAML and JSON form, `accept` and `reject` are both optional. A missing
-list is the same as a `[short-answer]` block with no pattern, so a question
-with neither, and with the default `unmatched`, is `manual`.
+`accept` is the same as a `[short-answer]` block with no pattern, and a missing
+`reject` is the same as no `[short-answer/reject]` block. A question with
+neither, and with the default `unmatched`, is `manual`.
 
 The blocks follow this grammar:
 
@@ -163,36 +166,51 @@ accept_block : bare_accept | colon_accept
 bare_accept  : ws? "[" "short-answer" "/accept"? "]" ws?
 colon_accept : ws? "[" "short-answer" "/accept"? "]" ws? ":" ws? patterns
 reject_block : ws? "[" "short-answer" "/reject" "]" ws? ":" ws? patterns
-patterns     : content | nl lazy_content | nl pattern_list
+patterns     : content | nl ws? lazy_content | nl pattern_list
 content      : exact | regex | inexact
-exact        : FENCE EXACT_TEXT (nl ws? LAZY_EXACT_TEXT)* FENCE ws?
+exact        : FENCE EXACT_TEXT FENCE ws?
+             | FENCE EXACT_OPEN (nl ws? LAZY_EXACT_MID)* nl ws? LAZY_EXACT_TEXT FENCE ws?
 regex        : REGEX_LINE ws?
              | REGEX_OPEN (nl ws? LAZY_TEXT)* nl ws? REGEX_CLOSE ws?
 inexact      : PLAIN_TEXT (nl ws? LAZY_TEXT)*
-lazy_content : ws? LAZY_TEXT (nl ws? LAZY_TEXT)*
+lazy_content : lazy_exact | regex | lazy_inexact
+lazy_exact   : LAZY_FENCE EXACT_TEXT FENCE ws?
+             | LAZY_FENCE EXACT_OPEN (nl ws? LAZY_EXACT_MID)* nl ws? LAZY_EXACT_TEXT FENCE ws?
+lazy_inexact : LAZY_PLAIN_TEXT (nl ws? LAZY_TEXT)*
 pattern_list : pattern_item+
 
 FENCE           : /`+/
 EXACT_TEXT      : /[^`\n\r]+(`+[^`\n\r]+)*/
+EXACT_OPEN      : /[^`\n\r]+(`+[^`\n\r]*)*/
 PLAIN_TEXT      : /[^`\/ \t\r\n][^\r\n]*/
 REGEX_LINE      : /\/[^\r\n]*\/[A-Za-z]*/
 REGEX_OPEN      : /\/[^\r\n]*/
 REGEX_CLOSE     : LAZY_START /[^\r\n]*\/[A-Za-z]*/ | /\/[A-Za-z]*/
 LAZY_TEXT       : LAZY_START /[^\r\n]*/
+LAZY_EXACT_MID  : LAZY_START /[^`\r\n]*(`+[^`\r\n]*)*/
 LAZY_EXACT_TEXT : LAZY_START /[^`\r\n]*(`+[^`\r\n]+)*/
+LAZY_FENCE      : /`{1,2}/
+LAZY_PLAIN_TEXT : /(?!>|!(?!\[)|[*+-][ \t]|0{0,8}1[.)][ \t]|#{1,6}([ \t]|(?=[\r\n]))|~{3}|(\*[ \t]*){3,}(?=[\r\n])|(-[ \t]*){3,}(?=[\r\n])|(_[ \t]*){3,}(?=[\r\n]))[^`\/ \t\r\n][^\r\n]*/
 ```
 
 The rules `ws` and `nl`, and the terminal `LAZY_START`, are defined in
 [Common grammar rules](../references/grammar.md). `pattern_item` is an item of
 a markdown unordered list, see
-[Pattern items](../references/patterns.md#pattern-items).
+[Pattern items](../references/patterns.md#pattern-items). `lazy_content` is the
+`content` on the line after a tag with a colon and no text. It reads the same
+three forms, but its first line MUST be a lazy line, as `LAZY_START` tests it:
+a `>`, `!` or `#` line, a list item or a fence is not content there.
+`LAZY_FENCE` and `LAZY_PLAIN_TEXT` carry that test. A regex starts with `/`,
+which `LAZY_START` always passes, so `lazy_content` reuses `regex`.
 
 The two `FENCE` terminals of `exact` have the same length N, and no run of
 backticks inside the text has length N. A context-free grammar cannot say it,
 so it is a rule of the text, see [Content](#content). The same holds for the
 closing run: it follows text on its line, so a line of the literal never
 starts with a run of exactly N backticks. `EXACT_TEXT` is not empty, so the
-opening run is followed by text on its line.
+opening run is followed by text on its line. A line before the last may end
+with a run of backticks of another length than N (`EXACT_OPEN` and
+`LAZY_EXACT_MID`).
 
 `PLAIN_TEXT` cannot start with `/`, so content that starts with `/` is a
 `regex` or a parse failure. `REGEX_LINE` ends at the last `/` of the line, and
@@ -200,8 +218,10 @@ opening run is followed by text on its line.
 that starts with `/` is an `invalid-regex`, not a `parse-error`: the regex has
 no closing `/`. A grammar failure on content that opens with a backtick is a
 `parse-error` in the Markdown body, see [Content](#content). The grammar does not check the spaces
-and tabs at the ends of a pattern string, nor the visible character rule. See
-[Pattern string](../references/patterns.md#pattern-string).
+and tabs at the ends of a pattern string, nor the visible character rule, nor
+that the content of a pattern item is not a block other than a paragraph (an
+item such as `* > Brasília`, see [Pattern items](../references/patterns.md#pattern-items)).
+See [Pattern string](../references/patterns.md#pattern-string).
 
 A block takes its patterns in one of two forms:
 
@@ -257,6 +277,9 @@ exactly and content delimited by `/` is a regex. See
 
 An exact literal can span lines: each line ending becomes one U+0020, which
 is significant, see
+[Continuation lines](../references/patterns.md#continuation-lines). Authors
+SHOULD write an exact literal or a regex on one line: a literal on more than one
+line gets the `multi-line-pattern` warning, see
 [Continuation lines](../references/patterns.md#continuation-lines).
 
 An exact literal follows the CommonMark code span, with one more rule on line
@@ -289,7 +312,8 @@ literal in the Markdown body:
 Negro`
 ```
 
-The first example is the literal `Rio Negro`. A tag line with only a backtick,
+The first example is the literal `Rio Negro`, with the `multi-line-pattern`
+warning. A tag line with only a backtick,
 followed by `Rio Negro` and a closing backtick, is a `parse-error`, and so is
 `Rio Negro` followed by a line that holds only the closing backtick.
 
@@ -321,8 +345,17 @@ with a colon and no pattern is a `parse-error`, see
 [Body tags](question-base.md#body-tags).
 
 A list on the line right after `[short-answer]` is a `parse-error`: the colon is
-missing, and the list would show to the student as an epilogue element. A block
-of another kind, or a list after a blank line, is an epilogue element.
+missing, and the list would show to the student as an epilogue element. So is a
+`>` or `!` line right after the tag, as after a tag with a colon. This holds for
+all four bare tags: `[short-answer]`, `[short-answer/accept]` and, in a
+[fill-in](fill-in.md#short-answer-blanks) question, `[^id/short-answer]` and
+`[^id/short-answer/accept]`. Only the line right after the tag counts.
+
+A paragraph that starts with the bare tag and holds more text, on the same line
+(`[short-answer] Cerrado`) or on a lazy line after it, is a `parse-error` too.
+It is neither a block with no pattern nor a block with a pattern. The message is
+free; it SHOULD suggest `[short-answer]:`. A block of another kind, or a list
+after a blank line, is an epilogue element.
 
 
 ### Pattern lines
@@ -340,10 +373,10 @@ The lines after the content of a single-line block follow these rules:
 | Line right after the content                       | Result                          |
 | -------------------------------------------------- | ------------------------------- |
 | Lazy line (`LAZY_START`), up to a blank line       | continues the content           |
-| Setext underline[^19]                              | `parse-error`                   |
+| Setext underline[^6] (a line of `=` characters, or of `-` characters such as `---`) | `parse-error` |
 | `>` line, or `!` line (not `![`)                   | `parse-error`                   |
 | List item                                          | `parse-error`                   |
-| ATX heading, fenced code, HTML block, thematic break | ends the block, goes to the epilogue |
+| ATX heading, fenced code, HTML block, thematic break (`***`, `___`, `- - -`) | ends the block, goes to the epilogue |
 
 A lazy line right after a tag with a colon and no text on its line is the
 content: `[short-answer]:` followed by `Brasília` on the next line is the same
@@ -460,7 +493,7 @@ What is the capital of Brazil?
   > It was the capital until 1960.
 ```
 
-`Rio de Janeiro` is incorrect and gets its own feedback. `Salvador` is
+`Rio de Janeiro` is incorrect and gets its own feedback. `Manaus` is
 incorrect and gets `incorrectFeedback`.
 
 Semi-automatic. The instructor knows some correct and some incorrect answers:
@@ -526,16 +559,13 @@ No response is settled. The question works like a one-line essay.
 
 ## Feedback
 
-Feedback is shown to students whose response matches a pattern that defines a
-feedback message, in either the `[short-answer]` or the
-`[short-answer/reject]` block. The order in which the patterns are defined is
-important: the student must receive the feedback of the FIRST pattern that
-matches their response AND defines a feedback message.
-
-The list that decided the outcome is the one consulted: a correct response
-draws its feedback from `accept`, and an incorrect one from `reject`. A
-response that matches an accept pattern is correct even when it also matches
-a reject pattern, and so takes the feedback of the accept pattern.
+The feedback of a settled response is the feedback of the first pattern that
+defines a feedback message among the patterns that match the response in the
+list that decided the outcome. A correct response draws its feedback from
+`accept`, and an incorrect one from `reject`. A response that matches an
+accept pattern is correct even when it also matches a reject pattern, and so
+takes the feedback of the accept pattern, even if that pattern has no feedback.
+The order in which the patterns are defined is important.
 
 An incorrect response that no pattern gave feedback to shows the
 `incorrectFeedback` of the question, if the question declares one. It MUST
@@ -573,26 +603,27 @@ the same rules for its own `preAccept` and `preReject` lists.
 | ------------------------------------ | -------- | ---------------------- | ----------------------------------------------------------------------------------- |
 | accept, reject, preAccept, preReject | error    | schema-error           | a pattern list, when present, has at least one pattern (schema)                     |
 | accept, reject, preAccept, preReject | error    | schema-error           | a pattern string is not empty (schema)                                              |
-| accept, reject, preAccept, preReject | error    | schema-error           | in a YAML, JSON or frontmatter pattern string, one that opens with a backtick is a complete exact literal (schema)[^15] |
-| accept, reject                       | error    | parse-error            | in the Markdown body, a pattern that opens with a backtick is a complete exact literal, and it does not open at the end of a line nor close at the start of a line[^20] |
-| accept, reject, preAccept, preReject | error    | block-start-pattern    | an inexact pattern must not start a block other than a paragraph in CommonMark[^24] |
-| accept, reject, preAccept, preReject | error    | blank-text             | a pattern string must have at least one visible character[^16]                      |
+| accept, reject, preAccept, preReject | error    | schema-error           | in a YAML, JSON or frontmatter pattern string, one that opens with a backtick is a complete exact literal (schema)[^7] |
+| accept, reject                       | error    | parse-error            | in the Markdown body, a pattern that opens with a backtick is a complete exact literal, and it does not open at the end of a line nor close at the start of a line[^8] |
+| accept, reject, preAccept, preReject | error    | block-start-pattern    | an inexact pattern must not start a block other than a paragraph in CommonMark[^9] |
+| accept, reject, preAccept, preReject | error    | blank-text             | a pattern string must have at least one visible character[^10]                      |
 | {accept,reject,preAccept,preReject}[].{feedback,comment} | error | blank-text | if defined, must have at least one visible character                     |
-| accept, reject, preAccept, preReject | error    | invalid-regex          | every `/`-delimited pattern must be a valid MDQ regex[^6]                           |
+| accept, reject, preAccept, preReject | error    | invalid-regex          | every `/`-delimited pattern must be a valid MDQ regex[^11]                           |
 | accept, reject, preAccept, preReject | error    | invalid-regex          | a regex flag must be a supported or an ignored flag, and must not repeat[^12]       |
-| accept, reject                       | error    | parse-error            | each body block may be defined at most once[^11]                                    |
+| accept, reject                       | error    | parse-error            | each body block may be defined at most once[^13]                                    |
 | accept, reject                       | error    | parse-error            | a tag with content must not be followed by a list without a blank line              |
 | accept, reject                       | error    | parse-error            | a tag with a colon must have a pattern on its line or in a list on the line right after it (a blank line before the list included) |
-| accept                               | error    | parse-error            | a list must not start on the line right after a tag without a colon |
+| accept                               | error    | parse-error            | a list, or a `>` or `!` line, must not start on the line right after a tag without a colon |
+| accept                               | error    | parse-error            | a bare tag must not be followed by text, on its line or on a lazy line |
 | reject                               | error    | parse-error            | the tag must have a colon |
 | accept, reject                       | error    | parse-error            | a `>` or `!` line must not follow the content or a tag line with a colon, without a blank line |
-| accept, reject                       | error    | parse-error            | a setext underline must not follow the content[^19] |
+| accept, reject                       | error    | parse-error            | a setext underline (`=` or `-` characters) must not follow the content[^6] |
 | accept, reject                       | error    | parse-error            | the Markdown body must have at least one of the `[short-answer]` and `[short-answer/reject]` blocks |
 | reject                               | error    | parse-error            | must declare at least one pattern |
 | accept, reject                       | error    | parse-error            | an item carries at most one feedback block and one comment block                    |
-| accept, reject                       | error    | parse-error            | a pattern line must not be empty[^17]                                               |
-| accept, reject                       | error    | parse-error            | the content of an item must start a paragraph in CommonMark, not another block[^22]  |
-| preAccept, preReject                 | error    | parse-error            | there is no `[short-answer/preAccept]` or `[short-answer/preReject]` tag, in the single-line form or in the block form[^18] |
+| accept, reject                       | error    | parse-error            | a pattern line must not be empty[^14]                                               |
+| accept, reject                       | error    | parse-error            | the content of an item must start a paragraph in CommonMark, not another block[^15]  |
+| preAccept, preReject                 | error    | parse-error            | there is no `[short-answer/preAccept]` or `[short-answer/preReject]` tag, in the single-line form or in the block form[^16] |
 | accept, reject                       | error    | parse-error            | a tag is in lower case, and a tag with a reserved label has a known suffix, see [Body tags](question-base.md#body-tags) |
 | accept, reject                       | error    | parse-error            | a list must not start on the line right after a pattern list, see [Lists after a content list](question-base.md#lists-after-a-content-list) |
 | epilogue                             | error    | detached-tag           | a tag must not come after the epilogue started, see [Body tags](question-base.md#tags-after-the-epilogue-starts) |
@@ -601,75 +632,76 @@ the same rules for its own `preAccept` and `preReject` lists.
 | automation                           | error    | schema-error           | must not be a field of the YAML or JSON form                                        |
 | diacritics                           | error    | schema-error           | must be "fold" or "keep" (schema)                                                   |
 | unmatched                            | error    | schema-error           | must be "incorrect" or "manual" (schema)                                            |
-| unmatched                            | warning  | no-correct-answer      | should not be "incorrect" when the question has no `accept` pattern[^8]               |
+| unmatched                            | warning  | no-correct-answer      | should not be "incorrect" when the question has no `accept` pattern[^17]               |
 | incorrectFeedback                    | error    | blank-text             | if defined, must have at least one visible character                                |
-| accept, reject                       | warning  | multi-line-pattern     | an exact literal or a regex in the Markdown body should be on one line[^23]         |
-| accept, reject, preAccept, preReject | info     | redundant-regex-anchor | an anchor that is already implicit is redundant[^9]                                 |
-| accept, reject, preAccept, preReject | info     | ignored-regex-flag     | carries a flag that is accepted but ignored[^10]                                    |
+| accept, reject                       | warning  | multi-line-pattern     | an exact literal or a regex in the Markdown body should be on one line[^18]         |
+| accept, reject, preAccept, preReject | info     | redundant-regex-anchor | an anchor that is already implicit is redundant[^19]                                 |
+| accept, reject, preAccept, preReject | info     | ignored-regex-flag     | carries a flag that is accepted but ignored[^20]                                    |
 | accept, reject, preAccept, preReject | info     | unmatchable-regex-escape | under the `n` flag, has an escape that the strip changes[^21]                     |
 
-The table lists diagnostics only. The MAY permissions of the type (a
-`[short-answer/reject]` block, a `[short-answer]` block with no pattern) and
-the SHOULD about `automation` as a read-only property have no row, because
-they cannot fail.
+The table lists diagnostics only, see
+[Additional Rules](question-base.md#additional-rules). The MAY permissions of
+the type (a `[short-answer/reject]` block, a `[short-answer]` block with no
+pattern) and the SHOULD about `automation` as a read-only property have no row,
+because they cannot fail.
 
-[^6]: The supported syntax is the closed table of
-[Regex](../references/patterns.md#regex). A construct that the table does not
-list is an `invalid-regex`, also when JavaScript or Python accepts it.
-[^8]: No response can be correct: every response is incorrect, by a `reject`
-pattern or by `unmatched`. The lint code is `no-correct-answer`.
-[^9]: Without the `f` flag, a leading `^` is implicit. Without the `f` or `b`
-flag, a trailing `$` is implicit. See
-[Regex flags](../references/patterns.md#regex-flags).
-[^10]: `m`, `g`, `s`, `u`, `v`, `y` and `d` are accepted for compatibility and
-have no effect, see [Regex flags](../references/patterns.md#regex-flags).
-[^11]: `[short-answer/accept]` is an alias of `[short-answer]`, so a document
-with both has the block twice.
-[^12]: For example, `/brasil/x` and `/brasil/ii` are invalid. See
-[Regex flags](../references/patterns.md#regex-flags).
-[^15]: For example, `` `math.isnan` (x) ``, `` `math.isnan `` and ``` ``x` ```.
-The same holds for the single-line form and for the list form. In the Markdown
-body these patterns are a `parse-error`. The schema
-checks that the pattern opens and closes with a backtick. It cannot compare
-the length of the two runs, so the models check the rest.
-[^16]: Without a visible character, as
-[grammar.md](../references/grammar.md#visible-characters) defines it. For an
-exact literal, the text between the backticks is checked. `"   "`, an exact
-literal of one space and a lone U+200B are `blank-text`. An empty string is
-a `schema-error`.
-[^17]: An item such as `*` followed by a feedback line has no pattern.
-[^18]: `preAccept` and `preReject` are frontmatter fields, see
-[Frontmatter](#frontmatter). A line `[short-answer/preAccept]: b` is a tag with a
-reserved label and an unknown suffix, see
-[Reserved tag names](question-base.md#reserved-tag-names). It is not a link
-reference definition.
-[^19]: A line of only `=` or only `-` characters, with up to three spaces of
+[^6]: A line of only `=` or only `-` characters, with up to three spaces of
 indentation and optional trailing spaces and tabs, right after the content
 (also after its continuation lines). In CommonMark it turns the tag line into a
 heading, so there is no definition. With four or more spaces of indentation the
 line is continuation text. It applies to the single-line form and to a list
 item.
-[^20]: The body form only. A pattern string of the YAML, JSON and frontmatter
+[^7]: For example, `` `math.isnan` (x) ``, `` `math.isnan `` and ``` ``x` ```.
+In the Markdown body, in the single-line and in the list form, these patterns
+are a `parse-error`. The schema
+checks that the pattern opens and closes with a backtick. It cannot compare
+the length of the two runs, so the models check the rest.
+[^8]: The body form only. A pattern string of the YAML, JSON and frontmatter
 form has no line ending at all, so a literal of it never opens or closes at a
 line ending. A body pattern that is not a complete literal is a `schema-error`
 in that form.
-[^21]: An escape that denotes a code point (`\uXXXX`, `\xXX`, `\u{...}`) is
-never changed by `n`. If the strip changes that code point (a combining mark of
-the `nonspacing` table, or a code point whose NFD holds one, such as U+00E1), the
-response cannot contain it. See [Regex flags](../references/patterns.md#regex-flags).
-[^22]: A block quote, an ATX heading, a list, a fenced or indented code block,
-an HTML block or a thematic break. The item `* > Brasília` is a block quote
-in CommonMark, so it is not a pattern. Write an exact literal instead:
-`` * `> Brasília` ``. A pattern is plain text, so `\#` is the pattern `\#` and
-not `#`. See [Pattern items](../references/patterns.md#pattern-items).
-[^23]: The line ending between two lines of the pattern becomes a U+0020 that
-is part of the exact literal or of the regex. An inexact literal ignores the
-amount of whitespace, so it has no row. See
-[Continuation lines](../references/patterns.md#continuation-lines).
-[^24]: A block quote, an ATX heading, a list item (`*`, `-`, `+`, `1.`), a
+[^9]: A block quote, an ATX heading, a list item (`*`, `-`, `+`, `1.`), a
 fenced code block, an HTML block or a thematic break, in every form: YAML, JSON,
 frontmatter, the single-line tag and the blanks of a fill-in question. The
 schema cannot say it, because the check needs a CommonMark parser. In a pattern
 item of the Markdown body it is a `parse-error` (the item content row). Write an exact
 literal (`` `# Brasília` ``) or a regex. See
 [Pattern string](../references/patterns.md#pattern-string).
+[^10]: Without a visible character, as
+[grammar.md](../references/grammar.md#visible-characters) defines it. For an
+exact literal, the text between the backticks is checked. `"   "`, an exact
+literal of one space and a lone U+200B are `blank-text`. An empty string is
+a `schema-error`.
+[^11]: The supported syntax is the closed table of
+[Regex](../references/patterns.md#regex). A construct that the table does not
+list is an `invalid-regex`, also when JavaScript or Python accepts it.
+[^12]: For example, `/brasil/x` and `/brasil/ii` are invalid. See
+[Regex flags](../references/patterns.md#regex-flags).
+[^13]: `[short-answer/accept]` is an alias of `[short-answer]`, so a document
+with both has the block twice.
+[^14]: An item such as `*` followed by a feedback line has no pattern.
+[^15]: A block quote, an ATX heading, a list, a fenced or indented code block,
+an HTML block or a thematic break. The item `* > Brasília` is a block quote
+in CommonMark, so it is not a pattern. Write an exact literal instead:
+`` * `> Brasília` ``. A pattern is plain text, so `\#` is the pattern `\#` and
+not `#`. See [Pattern items](../references/patterns.md#pattern-items).
+[^16]: `preAccept` and `preReject` are frontmatter fields, see
+[Frontmatter](#frontmatter). A line `[short-answer/preAccept]: b` is a tag with a
+reserved label and an unknown suffix, see
+[Reserved tag names](question-base.md#reserved-tag-names). It is not a link
+reference definition.
+[^17]: No response can be correct: every response is incorrect, by a `reject`
+pattern or by `unmatched`. The lint code is `no-correct-answer`.
+[^18]: The line ending between two lines of the pattern becomes a U+0020 that
+is part of the exact literal or of the regex. An inexact literal ignores the
+amount of whitespace, so it has no row. See
+[Continuation lines](../references/patterns.md#continuation-lines).
+[^19]: Without the `f` flag, a leading `^` is implicit. Without the `f` or `b`
+flag, a trailing `$` is implicit. See
+[Regex flags](../references/patterns.md#regex-flags).
+[^20]: `m`, `g`, `s`, `u`, `v`, `y` and `d` are accepted for compatibility and
+have no effect, see [Regex flags](../references/patterns.md#regex-flags).
+[^21]: An escape that denotes a code point (`\uXXXX`, `\xXX`, `\u{...}`) is
+never changed by `n`. If the strip changes that code point (a combining mark of
+the `nonspacing` table, or a code point whose NFD holds one, such as U+00E1), the
+response cannot contain it. See [Regex flags](../references/patterns.md#regex-flags).

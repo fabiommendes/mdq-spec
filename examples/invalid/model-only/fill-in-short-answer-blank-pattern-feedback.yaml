@@ -1,0 +1,14 @@
+# `blank-text` on the `feedback` and `comment` of a pattern of a short answer
+# blank of a fill-in question.
+type: fill-in
+stem: A capital da Bahia é [^capital].
+blanks:
+  - id: capital
+    type: short-answer
+    accept:
+      - pattern: Salvador
+        feedback: ""
+        comment: "   "
+    reject:
+      - pattern: Recife
+        feedback: " "
