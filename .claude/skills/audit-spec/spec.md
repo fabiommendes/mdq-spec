@@ -145,6 +145,10 @@ Instruct it to:
    Record a finding when it rejects the document, or reports a warning that
    the text does not expect. Use `--format yaml` or `--format json` for a
    `yaml` or `json` block.
+6. Verify if all MUST, SHOULD, and MAY requirements are documented in the
+   `Additional Rules` section. Report any missing rules, rules not described in
+   the document, or incorrectly documented levels. Levels map like MUST:
+   error, SHOULD: warning, MAY: info.
 
 After each subagent finishes, review its findings as `audit-report` describes
 in "Reviewing subagent findings". When you disagree with a finding and
@@ -163,3 +167,6 @@ recorded as `audit-report` defines, write the synthesis and render the report.
   specification more coherent and usable.
 - Each issue is a decision for the human. When more than one fix is
   reasonable, list the options in `summary` and recommend one.
+
+When the audit leaves more than five decisions, do not ask the human one by
+one: run the decision committee in [committee.md](committee.md).

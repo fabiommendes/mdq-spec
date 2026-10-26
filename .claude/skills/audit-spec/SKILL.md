@@ -31,3 +31,9 @@ only the relevant document for the part being audited.
   consistency. More info at [spec.md](spec.md).
 - py: Audit the Python implementation for adherence to the specification. More info at [py.md](py.md).
 - js: Audit the JavaScript implementation for adherence to the specification. More info at [js.md](js.md).
+
+## Decisions
+
+When an audit leaves more than five decisions for the human, run the decision
+committee described in [committee.md](committee.md). It applies to the three
+parts.
