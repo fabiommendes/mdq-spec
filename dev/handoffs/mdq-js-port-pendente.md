@@ -795,3 +795,78 @@ Decisões I2 (respostas, casamento e feedback). Py: `models/_ordering.py`.
   `invalid/ordering-text-{starts-nested,empty-parent-jump}`.
   Atenção nos testes: fixtures com `content: text` e níveis livres passam a ser
   inválidas; use `code` quando o teste não trata de outline.
+
+## Auditoria completa do spec (2026-10-26)
+
+Ver `CHANGELOG.md` e `mdq-py/CHANGELOG.md` [Unreleased]. Decisões e contexto:
+`/tmp/committee/FINAL-*.md` (temporário; o resumo está aqui).
+
+Tags do corpo:
+- SP1. Tag com dois-pontos exige conteúdo (mesma linha ou bloco na linha seguinte);
+  sem dois-pontos, sem conteúdo. Linha em branco depois da tag é `parse-error`;
+  `detached-answer-list` foi removido. Tag vazia `[short-answer]:` é `parse-error`;
+  manual é `[short-answer]`, lacuna aberta `[^id/short-answer]`. Lista logo após
+  tag sem dois-pontos é `parse-error`. `[short-answer/reject]` sem dois-pontos é
+  `parse-error`.
+- SP2. Ordering usa `[ordering]:`; `[ordering]` e `[ordering]: texto` são
+  `parse-error`. Render e scaffold escrevem `[ordering]:`.
+- SP3. Tags só em minúscula (`parse-error` com mensagem específica); nomes de tag
+  reservados (sufixo desconhecido, `/preAccept`, `/preReject` = `parse-error`);
+  `detached-blank-definition` virou `detached-tag`, em todos os tipos.
+- SP4. Lista colada a uma lista de conteúdo (troca de marcador) é `parse-error`.
+- SP5. Literal exato malformado no corpo é `parse-error` (não `schema-error`).
+- Py: `check_tag_lines`, `check_no_adjacent_list`, `check_exact_pattern`,
+  `report_detached_tags` em `mdq/_parser/_question.py`.
+
+Choices:
+- SP6. Marcador: NFKC + lowercase ASCII primeiro, depois valida e interpreta.
+  `[U+00A0]` é desmarcado; `[ﬁ]`, `[ǅ]` são `foreign-choice-marker`. Schema do
+  `marker` sem `maxLength`. Py: `mdq/_letters.py` (`strip_marker_space`),
+  `mdq/_parser/_choices.py`.
+- SP7. `[050%]` é `foreign-choice-marker` (sem zero à esquerda). `shuffle: false`
+  é MUST NOT (só texto).
+- SP8. True/false: `E` e `Y` são FALSE (muda nota). Tabela de locale: `S` sai de
+  hi/ar/bn/ur/ta/fa, `D` sai de fa; false friends novos `G` (ko), `B` (bn, ja),
+  `K` (gu); regra 1 antes da 5 para false friend TRUE.
+
+Ordering:
+- SP9. Identidade de linha por modo (`identity_key`): fixed = nível+texto,
+  lenient/strict = texto; usada por `accept-outside-answer-key`,
+  `unreachable-alternative` e `check_response_lines`. Em fixed, outline inválido
+  é resposta normal (cai em `unmatched`), não `ResponseError`.
+- SP10. Default de `unmatched` é `incorrect`. Campo novo `incorrectFeedback`
+  (feedback de reject tem precedência). Info `code-content-without-highlight`.
+- SP11. Linguagem da cerca = primeira palavra do info string, case-sensitive.
+  Item vazio é `parse-error`. `extra: []` é `schema-error`. Texto de linha sem
+  espaço nas pontas nem quebra (pattern no schema); linha vazia com
+  `content: text` é `empty-ordering-line`. `normalizations` string separada por
+  vírgula.
+
+Essay:
+- SP12. `highlight` sem `content: code` é `schema-error`; `ignored-highlight`
+  removido. `unsafe-thematic-break` cobre `answerKey`.
+
+Numeric:
+- SP13. Fração sob `decimal` sem casas (sem `decimalPlaces` nem tolerância
+  decimal) é `missing-decimal-places`. `+- p%` com deslocamento decimal exato.
+  `tolerance: {}` é `schema-error`. Unidade sem caractere visível é `blank-text`.
+
+Short answer, padrões e regex:
+- SP14. Regex: allow-list da tabela fechada de `docs/references/patterns.md`;
+  `.` não casa LF, CR, U+2028, U+2029; remoção de `Mn` pela tabela `nonspacing`
+  de `inexact-tables.json`.
+- SP15. Item de padrão que não é parágrafo é `parse-error`; padrão inexato que
+  abre bloco é `block-start-pattern` (YAML/JSON, frontmatter, tag de uma linha).
+  `starts_block` em `mdq/_markdown.py`. Importador escreve esses textos como
+  literal exato. `LAZY_START` corrigido (`0{0,8}1[.)]`). Warning
+  `multi-line-pattern`.
+
+Fill-in:
+- SP16. Comparação exata de id de lacuna; warning `case-variant-blank-id`;
+  `undefined-blank` aponta a variante de caixa. Lacuna pendente: sem feedback.
+  Linhas de contexto para HTML block, HTML inline e tachado.
+
+Exam e base:
+- SP17. Separador `===` estrito + warning `malformed-separator` (só Markdown).
+  `unsplit-tag-list` nas `tags` do exam. `EXCEPT` usa `ID : TAG`.
+- SP18. Comentário do frontmatter: trim, vazio não é guardado.
