@@ -22,7 +22,7 @@ stem: >-
 content: code
 highlight: python
 indentation: strict
-unmatched: incorrect
+unmatched: manual
 normalizations:
   - skip-blanks
 lines:

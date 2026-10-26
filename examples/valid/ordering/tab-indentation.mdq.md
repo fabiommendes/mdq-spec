@@ -1,6 +1,6 @@
 Ordene as linhas para somar os números de `valores`.
 
-[ordering]
+[ordering]:
 ```python
 total = 0
 for x in valores:

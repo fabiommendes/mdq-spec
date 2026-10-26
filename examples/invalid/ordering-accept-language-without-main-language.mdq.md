@@ -1,6 +1,6 @@
 Ordene as linhas do programa.
 
-[ordering]
+[ordering]:
 ```
 n = int(input())
 print(n * 2)

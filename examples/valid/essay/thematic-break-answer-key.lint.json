@@ -1,0 +1,9 @@
+[
+  {
+    "code": "unsafe-thematic-break",
+    "severity": "warning",
+    "path": [
+      "answerKey"
+    ]
+  }
+]

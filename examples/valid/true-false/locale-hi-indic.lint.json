@@ -25,5 +25,14 @@
       2,
       "id"
     ]
+  },
+  {
+    "code": "unlisted-true-false-marker",
+    "severity": "warning",
+    "path": [
+      "choices",
+      2,
+      "marker"
+    ]
   }
 ]

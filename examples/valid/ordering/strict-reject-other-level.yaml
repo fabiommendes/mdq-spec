@@ -1,0 +1,26 @@
+# Under `indentation: strict` the student sets the levels, so only the text
+# of a line identifies it. The `## [reject]` section uses `Salvador` at
+# level 0 while `## [extra]` offers it at level 1. The student can place
+# the line at level 0, so the section is reachable and the linter reports no
+# `unreachable-alternative`. Under `fixed` the two would be different lines.
+id: ordering-strict-reject-other-level
+title: Hierarquia territorial do Brasil
+type: ordering
+stem: >-
+  Build the outline of the Brazilian territory: a region, one of its states
+  and the capital of that state.
+content: text
+indentation: strict
+lines:
+  - [0, "Nordeste"]
+  - [1, "Bahia"]
+  - [2, "Salvador"]
+extra:
+  - [1, "Salvador"]
+reject:
+  - lines:
+      - [0, "Nordeste"]
+      - [0, "Salvador"]
+      - [1, "Bahia"]
+    feedback: >-
+      Salvador is a city of Bahia, not a state of Nordeste.

@@ -1,13 +1,13 @@
 # Ordering
 
-Sort lines into the right order. The `[ordering]` block is **always written in
+Sort lines into the right order. The `[ordering]:` block is **always written in
 the correct order** — it is the answer key, and implementations shuffle it
 before showing it to the student.
 
 ````md
 Sort the lines below into a program that prints the first 10 Fibonacci numbers.
 
-[ordering]
+[ordering]:
 ```python
 x, y = 1, 1
 for _ in range(10):
@@ -78,8 +78,9 @@ implies) in the rules below:
 * A `[reject]` that needs a line `[ordering]` plus `[extra]` do not offer can
   never match (warning).
 * A distractor that equals a key line after normalization is a spare copy.
-* The block after `[ordering]` starts on the next line; a blank line between
-  them is an error. A section heading with no block under it is an error.
+* The tag is `[ordering]:`, with a colon (`[ordering]` alone is an error). The
+  block after it starts on the next line; a blank line between them is an
+  error. A section heading with no block under it is an error.
 * A section heading may be indented up to 3 spaces, end with spaces or `##`, or
   be setext (`[extra]` underlined by `---`). Prefer `## [extra]`.
 
@@ -88,7 +89,7 @@ implies) in the rules below:
 | Field          | Values                                                    |
 | -------------- | --------------------------------------------------------- |
 | indentation    | `fixed` (default), `lenient`, `strict`                     |
-| unmatched      | `manual` (default) or `incorrect`                          |
+| unmatched      | `incorrect` (default) or `manual`                          |
 | normalizations | `dedent` (flattens every level to 0), `skip-blanks`        |
 
 * `fixed` keeps the authored indentation and the student cannot change it. The
@@ -102,10 +103,11 @@ implies) in the rules below:
 
 `content` and `highlight` are not frontmatter fields here. Only in YAML or JSON
 they exist: `content` (`code` or `text`) is required, `highlight` is optional
-and only with `content: code`.
+and only with `content: code`. A code fence with no language is valid but gets
+an info: give it one.
 
 ## Grading
 
 A response matching the answer key or an `## [accept]` block is correct; one
-matching `## [reject]` is wrong. Anything else goes to the instructor, unless
-`unmatched: incorrect` scores it 0.
+matching `## [reject]` is wrong. Anything else scores 0 (`unmatched: incorrect`,
+the default). Write `unmatched: manual` to send it to the instructor.

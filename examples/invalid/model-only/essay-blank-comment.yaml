@@ -1,6 +1,6 @@
-# A `#` line followed by spaces is a comment string of only whitespace:
-# `comment` is `"  "`, which is `blank-text`. A comment string with no
-# character at all is not stored (see `comment-bare-hash`).
+# A YAML `comment` of only whitespace is `blank-text`. In Markdown, a `#`
+# line followed by spaces gives no comment (see
+# `valid/multiple-choice/comment-only-spaces.mdq.md`).
 id: ciclo-agua
 title: Ciclo da água
 type: essay

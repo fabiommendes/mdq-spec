@@ -73,10 +73,12 @@ Notes:
 
 ## Classification of the candidate letters
 
-The criterion is in
+The criterion is a guide, in
 [true-false.md](../question-types/true-false.md#why-a-letter-is-true-false-or-warning):
-a letter joins TRUE or FALSE only when it has no conflict in actual practice. A
-romanization alone does not count as practice.
+a letter joins TRUE or FALSE when it has no conflict in actual practice. A
+romanization is not practice. The lists of true-false.md and the tables below
+decide the category. The criterion explains most rows, not all of them. A yes
+or no initial is not a conflict.
 
 ### Promoted
 
@@ -88,6 +90,8 @@ romanization alone does not count as practice.
 | `D` | TRUE | tr (Doğru, D/Y practice) | none | No conflict. fa, zh and yue add romanizations. |
 | `Đ` `đ` | TRUE | vi (Đúng, Đ/S practice) | none | No conflict. NFKC does not map `Đ` to `D`, and ASCII lowercase does not map `Đ` to `đ`, so both cases are listed. |
 | `B` | TRUE | id (benar, B/S practice), mr, jv, ms | bn "bhul" and ja "batsu" (romanizations of secondary forms) | The only conflicts are romanizations. |
+| `E` | FALSE | am (ewnet, romanization, unverified) | pt (errado, C/E practice) | The conflict is a romanization. "Yes" in Turkish ("evet") does not count. |
+| `Y` | FALSE | none | tr (Yanlış, D/Y practice) | No conflict. "Yes" in English and Indonesian does not count. |
 | `M` | FALSE | none | tl (Mali), bn (mithya, romanization) | The conflicts are ko "majda" and ja "maru", romanizations that nobody writes as a marker. |
 | 对 對 是 真 | TRUE | zh, yue, zh-Hant, ja | none | Han letters. 對 is the traditional form of 对 (unverified). |
 | 错 錯 非 偽 | FALSE | none | zh, yue, zh-Hant, ja | Han letters. 錯 is the traditional form of 错 (unverified). |
@@ -112,16 +116,14 @@ them costs nothing, but the practical gain is small.
 | Letter | True in | False in | Reason |
 | ------ | ------- | -------- | ------ |
 | `S` | hi, ar, bn, ur, ta, ja, zh-Hant (all romanizations) | id, ms, jv (salah), vi (sai), sw (Sio kweli): real practice | The practice is false. It was in TRUE before and graded Indonesian and Vietnamese documents wrong without a warning. |
-| `C` | pt (certo, C/E practice), es (cierto) | zh (cuò, romanization of 错), yue, mr (chuk) | 错 is FALSE, so `C` cannot be TRUE. |
-| `E` | am (ewnet, romanization, unverified) | pt (errado, C/E practice) | Also "yes" in Turkish ("evet"). |
-| `G` | ha (gaskiya) | hi (galat, Moodle), ur, fa, arz, ko (romanizations) | Also "real" in Turkish ("gerçek"). |
-| `K` | sw (Kweli) | ha, ar (khata), gu (khotu) | Swahili against Arabic. |
-| `N` | sw (Ndiyo), te (nijam) | ru, fa (romanizations) | Also "no" in English, German and French. |
+| `C` | pt (certo, C/E practice), es (cierto) | zh (cuò, romanization of 错), yue, mr (chuk) | Kept out by decision, not by the criterion. The `pt` row accepts it. |
+| `G` | ha (gaskiya, unverified) | hi (galat, Moodle), ur, fa, arz, ko (romanizations) | The only true side is unverified. |
+| `K` | sw (Kweli): words only | ha, ar (khata), gu (khotu): romanizations | Swahili against Arabic. No letter practice on the true side. |
+| `N` | te (nijam, romanization) | ru, fa (romanizations) | No practice. |
 | `W` | de (wahr, Moodle) | en (wrong) | German against English. |
-| `Y` | none | tr (Yanlış, D/Y practice) | Also "yes" in English and Indonesian. |
-| `P` | pl (Prawda), ru, uk (pravda, pravilno) | th (phit, romanization) | Weak: the false side is a romanization only. |
-| `H` | none | sw (Hapana), am (hasset, unverified) | Also "yes" in Hindi ("haan"), "no" in Turkish and Tagalog. |
-| `J` | th (jing, romanization) | ur (jhoot, romanization) | Weak: no practice. Also "yes" in German and Dutch. |
+| `P` | pl (Prawda), ru, uk (pravda, pravilno): words only | th (phit, romanization) | No letter practice in Polish tests. |
+| `H` | none | am (hasset, romanization, unverified) | No practice. |
+| `J` | th (jing, romanization) | ur (jhoot, romanization) | No practice. |
 | `O` | ko, ja (O/X practice), te (oppu) | none | Needs `X`, which is reserved. The `ja` and `ko` rows accept it. |
 | `A` | none | hi (asatya), te (abaddham) | No practice. Also the first option of a multiple-choice list. |
 | `L` `U` `R` `Ƙ` | R: de (richtig, R/F practice, unverified) | L: ru (lozh). U: sw (uongo). Ƙ: ha (ƙarya) | No practice, or no source. |

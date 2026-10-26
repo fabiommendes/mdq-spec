@@ -1,6 +1,6 @@
 Ordene os biomas brasileiros do maior para o menor em área.
 
-[ordering]
+[ordering]:
 * Amazônia
 * Cerrado
 * Mata Atlântica

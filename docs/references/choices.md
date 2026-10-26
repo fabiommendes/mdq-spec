@@ -33,12 +33,22 @@ and every value MUST then belong to the `value` rule of that type
 The **normalized value** of a choice is its value after two steps: NFKC
 normalization, then ASCII lowercase (`A` to `Z` only, with no other case
 folding). The parser applies them to the value of every choice marker, in
-every choice list, before it infers the type of the question. Type inference,
-the `value` rules of each type and the meaning of the value all use the
-normalized value. So `[Ｘ]` (U+FF38) is `x`, `[＊]` is `*` and `[Ｆ]` (U+FF26)
-is `f`. A type that keeps the written letter (`marker` in
+every choice list, before it infers the type of the question. The order is
+always the same: normalize, then validate, then interpret. Type inference, the
+`value` rules of each type (`foreign-choice-marker`) and the meaning of the
+value all use the normalized value. The written text is never checked
+against the `value` rule. So `[Ｘ]` (U+FF38) is `x`, `[＊]` is `*` and `[Ｆ]`
+(U+FF26) is `f`. A type that keeps the written letter (`marker` in
 [true/false](../question-types/true-false.md#choices)) keeps the original
 character.
+
+The `ws` of the `value` rule is read on the normalized value. A character
+whose NFKC form is a space (U+00A0, U+2003, U+3000) is therefore `ws` here, so
+`[` U+00A0 `]` is the same as `[ ]`: an unchecked choice. The marker is the
+only place of MDQ where a non-ASCII space acts as `ws` (see
+[Start and end of a block](grammar.md#start-and-end-of-a-block)). The
+`non-ascii-whitespace` warning still applies to it, because the space is in a
+syntax position.
 
 The empty marker, `[]`, is a `parse-error`. It is almost always a mistyped
 `[ ]`, and the message of the error can say so.

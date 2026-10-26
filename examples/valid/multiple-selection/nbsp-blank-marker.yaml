@@ -1,0 +1,15 @@
+# A U+00A0 between the brackets normalizes to a space, so `[U+00A0]` is the
+# same as `[ ]`: an unchecked choice. The `non-ascii-whitespace` warning
+# still applies. Quais destes biomas ficam inteiramente no Brasil?
+id: ms-nbsp-blank-marker
+type: multiple-selection
+stem: Quais destes biomas ficam inteiramente no Brasil?
+choices:
+  - text: Caatinga
+    correct: true
+  - text: Pampa
+    correct: false
+  - text: Pantanal
+    correct: true
+  - text: Cerrado
+    correct: false

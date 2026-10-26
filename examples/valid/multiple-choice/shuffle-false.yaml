@@ -1,0 +1,11 @@
+# `shuffle: false`: an implementation must not change the order of the choices.
+id: biomas-litoral
+type: multiple-choice
+shuffle: false
+stem: Qual bioma brasileiro acompanha a maior parte do litoral?
+choices:
+- text: Mata Atlântica
+  score: 1
+- text: Cerrado
+- text: Pampa
+- text: Nenhuma das anteriores

@@ -1,0 +1,9 @@
+# No `comment`: the `#` lines of the source hold no visible character.
+id: pantanal
+title: Maior planície alagável
+type: multiple-choice
+stem: Qual bioma brasileiro é a maior planície alagável do mundo?
+choices:
+- text: Pantanal
+  score: 1
+- text: Caatinga

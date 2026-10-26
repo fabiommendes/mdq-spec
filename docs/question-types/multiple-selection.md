@@ -36,6 +36,9 @@ Default is `"inherit"`, which takes the strategy from the exam, and is
 `"symmetric"` outside an exam. `shuffle` is `boolean | "inherit"` with the
 same rule: `"inherit"` is the default and resolves to `false` outside an
 exam. See [exam inheritance](../exam.md#inheritance).
+With `shuffle: true`, an implementation MAY present the choices in any
+order. With `shuffle: false`, it MUST NOT change their order. This rule is
+for implementations that present the question: it has no diagnostic.
 
 
 ## Body
@@ -46,7 +49,7 @@ items. Each item follows the `item` rule of
 
 ```lark
 value : ws
-      | ws? ("x" | "X") ws?
+      | ws? "x" ws?
 ```
 
 
@@ -98,11 +101,11 @@ because its grading formula never runs.
 
 The `grading` field of the frontmatter selects one of the three strategies
 below. It can be set in the question, or left as `"inherit"`, the default,
-which takes the strategy from the exam: the exam's `grading`, or its entry for
-`multiple-selection` when it is a map (see [exam grading](../exam.md#grading)). The
-strategy is `"symmetric"` outside an exam, and in an exam that does not set one
-for multiple selection (no `grading`, or a map without a `multiple-selection`
-key).
+which takes the strategy the exam's `grading` gives for multiple selection: its
+`multiple-selection` entry when it is a map, or the translation of a scalar by
+the table of [exam grading](../exam.md#grading). The strategy is `"symmetric"`
+outside an exam, and in an exam that does not set one for multiple selection
+(no `grading`, or a map without a `multiple-selection` key).
 
 A choice is **judged correctly** when the student ticked it and it is correct,
 or left it unticked and it is incorrect. Every choice is judged, since an
@@ -151,7 +154,8 @@ questions.
 | choices            | error    | schema-error               | must have at least two choices (schema)                   |
 | choices[].id       | error    | schema-error               | must be a valid slug (schema)                             |
 | choices[].correct  | error    | schema-error               | must be declared in every choice (schema)                 |
-| grading            | error    | schema-error               | must be one of the strategies above, or `inherit` (schema) |
+| grading            | error    | schema-error               | must be `partial`, `all-or-nothing`, `symmetric` or `inherit` (schema) |
+| shuffle            | error    | schema-error               | must be a boolean or `inherit` (schema)                   |
 | choices[]          | error    | foreign-choice-marker      | must use a value allowed in a multiple selection list     |
 | choices[].text     | error    | blank-text                 | must have at least one visible character                  |
 | choices[].feedback | error    | blank-text                 | must have at least one visible character                  |

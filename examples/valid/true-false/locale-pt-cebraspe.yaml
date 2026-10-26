@@ -1,6 +1,5 @@
-# Cebraspe style: `C` (certo) is accepted under `locale: pt-BR` and gets no
-# warning. `E` (errado) is a WARNING letter that reads as true, so the `pt` row lists
-# it as a false friend: `false-friend-true-false-marker`. Write `F` for false.
+# Cebraspe style: `C` (certo) and `E` (errado) are accepted under `locale: pt-BR`
+# and get no warning. `E` is a FALSE letter, so the statement it marks is false.
 id: tf-cebraspe-brasil
 title: Julgamento de itens
 type: true-false
@@ -11,7 +10,7 @@ choices:
   correct: true
   marker: C
 - text: O Brasil faz fronteira com o Equador.
-  correct: true
+  correct: false
   marker: E
 - text: A Chapada Diamantina fica no Rio Grande do Sul.
   correct: false

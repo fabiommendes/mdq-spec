@@ -1,0 +1,145 @@
+# Document structure
+#
+# Question {
+#   name: string
+#
+#   // The question's own fields, as in its YAML form: `content`, `lines`
+#   // and any of `extra`, `accept`, `reject`, `indentation`, `unmatched`,
+#   // `incorrectFeedback`, `normalizations`.
+#   question: { content: string, lines: [number, string][], ... }
+#
+#   // Responses and what they score (ordering.md, "Response" and
+#   // "Grading"). A response is a list of `[level, text]` pairs.
+#   // "malformed" is a response the question cannot represent: it is
+#   // rejected, never scored (responses.md, "Errors"). "pending" is a
+#   // response no declared answer matches under `unmatched: manual`.
+#   examples: {
+#     response: [number, string][],
+#     score: 0 | 1 | "malformed" | "pending",
+#     // Optional. The feedback shown, or null for none: the feedback of
+#     // the matched `accept` or `reject` entry, else `incorrectFeedback`
+#     // for an incorrect response (ordering.md, "Feedback").
+#     feedback?: string | null
+#   }[]
+# }
+questions:
+  # Under `fixed` the student cannot change levels, so a text response that
+  # is not a valid outline is a wrong answer, not a malformed one.
+  - name: "Fixed, text, default unmatched (incorrect)"
+    question:
+      content: text
+      lines:
+        - [0, "Nordeste"]
+        - [1, "Bahia"]
+        - [2, "Salvador"]
+    examples:
+      - response: [[0, "Nordeste"], [1, "Bahia"], [2, "Salvador"]]
+        score: 1
+      # First line below level 0.
+      - response: [[2, "Salvador"], [0, "Nordeste"], [1, "Bahia"]]
+        score: 0
+      # A jump of two levels.
+      - response: [[0, "Nordeste"], [2, "Salvador"], [1, "Bahia"]]
+        score: 0
+      # A level other than the authored one.
+      - response: [[0, "Nordeste"], [0, "Bahia"], [2, "Salvador"]]
+        score: malformed
+
+  - name: "Fixed, text, unmatched manual"
+    question:
+      content: text
+      unmatched: manual
+      lines:
+        - [0, "Nordeste"]
+        - [1, "Bahia"]
+        - [2, "Salvador"]
+    examples:
+      - response: [[2, "Salvador"], [0, "Nordeste"], [1, "Bahia"]]
+        score: pending
+
+  # Under `lenient` and `strict` the student sets the levels, so an
+  # invalid outline stays malformed.
+  - name: "Strict, text"
+    question:
+      content: text
+      indentation: strict
+      unmatched: incorrect
+      lines:
+        - [0, "Nordeste"]
+        - [1, "Bahia"]
+        - [2, "Salvador"]
+    examples:
+      - response: [[0, "Nordeste"], [1, "Bahia"], [2, "Salvador"]]
+        score: 1
+      - response: [[0, "Nordeste"], [1, "Salvador"], [2, "Bahia"]]
+        score: 0
+      - response: [[2, "Salvador"], [0, "Nordeste"], [1, "Bahia"]]
+        score: malformed
+      - response: [[0, "Nordeste"], [2, "Salvador"], [1, "Bahia"]]
+        score: malformed
+
+  - name: "Lenient, text"
+    question:
+      content: text
+      indentation: lenient
+      unmatched: incorrect
+      lines:
+        - [0, "Nordeste"]
+        - [1, "Bahia"]
+        - [2, "Salvador"]
+    examples:
+      - response: [[0, "Nordeste"], [0, "Bahia"], [0, "Salvador"]]
+        score: 1
+      - response: [[1, "Bahia"], [0, "Nordeste"]]
+        score: malformed
+
+  # `incorrectFeedback` is for an incorrect response that no `reject`
+  # entry gave feedback to. The feedback of an entry wins. A correct
+  # response and a pending response show none.
+  - name: "incorrectFeedback"
+    question:
+      content: text
+      incorrectFeedback: "Review the political map of Brazil."
+      lines:
+        - [0, "Norte"]
+        - [0, "Nordeste"]
+        - [0, "Sul"]
+      reject:
+        - lines:
+            - [0, "Nordeste"]
+            - [0, "Norte"]
+            - [0, "Sul"]
+        - feedback: "Norte is larger than Nordeste."
+          lines:
+            - [0, "Sul"]
+            - [0, "Nordeste"]
+            - [0, "Norte"]
+    examples:
+      - response: [[0, "Norte"], [0, "Nordeste"], [0, "Sul"]]
+        score: 1
+        feedback: null
+      # Matches no declared answer.
+      - response: [[0, "Sul"], [0, "Norte"], [0, "Nordeste"]]
+        score: 0
+        feedback: "Review the political map of Brazil."
+      # A `reject` entry with no feedback.
+      - response: [[0, "Nordeste"], [0, "Norte"], [0, "Sul"]]
+        score: 0
+        feedback: "Review the political map of Brazil."
+      # A `reject` entry with feedback.
+      - response: [[0, "Sul"], [0, "Nordeste"], [0, "Norte"]]
+        score: 0
+        feedback: "Norte is larger than Nordeste."
+
+  - name: "incorrectFeedback is not shown for a pending response"
+    question:
+      content: text
+      unmatched: manual
+      incorrectFeedback: "Review the political map of Brazil."
+      lines:
+        - [0, "Norte"]
+        - [0, "Nordeste"]
+        - [0, "Sul"]
+    examples:
+      - response: [[0, "Sul"], [0, "Norte"], [0, "Nordeste"]]
+        score: pending

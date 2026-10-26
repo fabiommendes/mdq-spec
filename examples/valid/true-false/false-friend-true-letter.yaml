@@ -1,0 +1,19 @@
+# `B` is a TRUE letter (Indonesian "benar"), but it is the initial of Bengali
+# "bhul" (false) in a romanization. The `bn` row lists `B` as a false friend:
+# rule 1 comes before rule 5, so the warning is `false-friend-true-false-marker`
+# and not `locale-mismatched-true-false-marker`.
+id: tf-amazonia-bn
+title: অ্যামাজন সম্পর্কে তথ্য
+type: true-false
+locale: bn
+stem: অ্যামাজন সম্পর্কে বিবৃতিগুলো মূল্যায়ন করুন।
+choices:
+- text: অ্যামাজন নদী ব্রাজিলের ভেতর দিয়ে বয়ে গেছে।
+  correct: true
+  marker: স
+- text: অ্যামাজন নদী প্রশান্ত মহাসাগরে পড়েছে।
+  correct: true
+  marker: B
+- text: অ্যামাজন নদী আফ্রিকায় অবস্থিত।
+  correct: false
+  marker: ম

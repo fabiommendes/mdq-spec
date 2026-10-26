@@ -1,0 +1,11 @@
+# A line with four or more columns of indentation continues the feedback,
+# whatever it starts with: here it starts with a code fence.
+id: mc-indented-fence
+title: Biomes only in Brazil
+type: multiple-choice
+stem: Which biome exists only in Brazil?
+choices:
+  - text: Caatinga
+    score: 1
+    feedback: "It occurs only ```"
+  - text: Amazon rainforest

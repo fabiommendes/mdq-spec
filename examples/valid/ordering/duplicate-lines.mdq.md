@@ -1,6 +1,6 @@
 Ordene as linhas para ler dois números e imprimir a soma.
 
-[ordering]
+[ordering]:
 ```python
 a = int(input())
 b = int(input())

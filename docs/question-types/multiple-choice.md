@@ -23,17 +23,20 @@ What is the capital of Brazil?
 Multiple choice questions accept the following extra arguments in the
 frontmatter:
 
-| Field   | Type              | Description                      |
-| ------- | ----------------- | -------------------------------- |
-| type    | "multiple-choice" | The type discriminator           |
-| shuffle | boolean or "inherit"           | True if choices can be shuffled[^1] |
-| grading | grading           | The grading strategy to use.[^1] |
+| Field   | Type                 | Description                         |
+| ------- | -------------------- | ----------------------------------- |
+| type    | "multiple-choice"    | The type discriminator              |
+| shuffle | boolean or "inherit" | True if choices can be shuffled[^1] |
+| grading | grading              | The grading strategy to use.[^1]    |
 
 [^1]: Grading is `"partial" | "symmetric" | "inherit"`.
 Default is `"inherit"`, which takes the strategy from the exam, and is
 `"symmetric"` outside an exam. `shuffle` is `boolean | "inherit"` with the
 same rule: `"inherit"` is the default and resolves to `false` outside an
 exam. See [exam inheritance](../exam.md#inheritance).
+With `shuffle: true`, an implementation MAY present the choices in any
+order. With `shuffle: false`, it MUST NOT change their order. This rule is
+for implementations that present the question: it has no diagnostic.
 
 
 ## Body
@@ -73,13 +76,16 @@ A question MAY mark any number of choices as correct, and typically marks
 exactly one. A choice is correct when its score is 1. Implementations MAY
 report the unusual counts, at the `info` level: no correct choice
 (`no-correct-choice`), more than one (`many-correct-choices`), and every choice
-(`all-choices-correct`). The count
-does not change how the question is answered -- the student still picks a
+(`all-choices-correct`). A question where every choice is correct also has
+more than one correct choice, so it gets both `all-choices-correct` and
+`many-correct-choices`. The count does not change how the question is answered -- the student still picks a
 single choice -- only how it is graded, see [Grading](#grading).
 
 A choice can carry a `score` on a scale from -1 to 1, derived from `value` in
 the body syntax above: `*` is 1. A percentage is its own fraction, so `[50%]` is
-0.5 and `[-25%]` is -0.25. A percentage that would put `score` outside [-1, 1]
+0.5 and `[-25%]` is -0.25. The number of a percentage is an `INTEGER` or a
+`DECIMAL`, so it has no leading zero: `[050%]` is not a percentage and is a
+`foreign-choice-marker` error. A percentage that would put `score` outside [-1, 1]
 -- `[150%]`, say -- makes the question malformed (`schema-error`, the score is out of range). `[0%]` is an explicit
 zero; a blank value, `[ ]`, omits `score` from the document.
 
@@ -98,6 +104,9 @@ whatever that choice scored. A correct pick shows its feedback just as a wrong
 one does, so feedback on the right answer is a good place to explain why it is
 right.
 
+A skipped question shows no feedback at all, because its grading formula never
+runs.
+
 Other question types trigger feedback differently: see
 [multiple selection](multiple-selection.md#feedback),
 [true/false](true-false.md#feedback) and [fill in the blanks](fill-in.md#feedback).
@@ -107,10 +116,11 @@ Other question types trigger feedback differently: see
 
 The `grading` field of the frontmatter selects one of the two strategies
 below. It can be set in the question, or left as `"inherit"`, the default,
-which takes the strategy from the exam: the exam's `grading`, or its entry for
-`multiple-choice` when it is a map (see [exam grading](../exam.md#grading)). When neither
-the question nor the exam sets a strategy, and outside an exam, the strategy
-is `"symmetric"`.
+which takes the strategy the exam's `grading` gives for multiple choice: its
+`multiple-choice` entry when it is a map, or the translation of a scalar by the
+table of [exam grading](../exam.md#grading). The strategy is `"symmetric"`
+outside an exam, and in an exam that does not set one for multiple choice (no
+`grading`, or a map without a `multiple-choice` key).
 
 The grading strategy is ignored if the picked choice defines a score, and the question is
 graded according to that score, under every strategy: a picked `[50%]` choice
@@ -144,7 +154,7 @@ score) and the effect of picking a choice with an omitted score.
 | `[1, -1, _, _]`  |   0.00    |    0.00     |
 | `[1, -1, -1, _]` |   0.00    |    0.00     |
 
-The results are truncated to 2 decimal places for clarity, but the actual 
+The results are rounded to 2 decimal places for clarity, but the actual 
 results should be computed with full precision.
 
 ## Additional Rules
@@ -154,6 +164,7 @@ results should be computed with full precision.
 | choices            | error    | schema-error               | must have at least two choices (schema)                   |
 | choices[].id       | error    | schema-error               | must be a valid slug (schema)                             |
 | grading            | error    | schema-error               | must be `partial`, `symmetric` or `inherit` (schema)      |
+| shuffle            | error    | schema-error               | must be a boolean or `inherit` (schema)                   |
 | choices[].score    | error    | schema-error               | must be between -1 and 1 (schema)                         |
 | choices[]          | error    | foreign-choice-marker      | must use a value allowed in a multiple choice list        |
 | choices[].text     | error    | blank-text                 | must have at least one visible character                  |
@@ -164,9 +175,9 @@ results should be computed with full precision.
 | choices[]          | error    | parse-error                | carries at most one feedback block and one comment block  |
 | choices[]          | error    | parse-error                | must not use the empty marker `[]`                        |
 | choices[].text     | info     | visually-identical-choices | is visually equivalent to another choice[^2]              |
-| choices[].score    | info     | no-correct-choice          | no choice has a score of 1                                |
-| choices[].score    | info     | all-choices-correct        | every choice is correct                                   |
-| choices[].score    | info     | many-correct-choices       | more than one choice has a score of 1                     |
+| choices            | info     | no-correct-choice          | no choice has a score of 1                                |
+| choices            | info     | all-choices-correct        | every choice is correct                                   |
+| choices            | info     | many-correct-choices       | more than one choice has a score of 1                     |
 | choices[].id       | info     | missing-choice-id          | has no id in the document[^3]                             |
 
 [^2]: Visual equivalence is not defined by this spec, see [choice text](../references/choices.md#choice-text).

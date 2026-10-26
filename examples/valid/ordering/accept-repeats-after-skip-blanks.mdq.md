@@ -4,7 +4,7 @@ normalizations: [skip-blanks]
 
 Ordene as linhas do programa.
 
-[ordering]
+[ordering]:
 ```python
 n = int(input())
 

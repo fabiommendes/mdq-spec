@@ -1,5 +1,6 @@
-# Devanagari `स` ("सही") is TRUE and `ग` ("गलत") is FALSE. The `hi` row also accepts
-# `S`, a WARNING letter that reads as true, without a warning.
+# Devanagari `स` ("सही") is TRUE and `ग` ("गलत") is FALSE. The `hi` row has no `S`:
+# it is a romanization of "sahi", not a letter that authors write. `S` is a
+# WARNING letter, so it gets `unlisted-true-false-marker` and still reads as true.
 id: tf-amazon-hi
 title: अमेज़न के तथ्य
 type: true-false

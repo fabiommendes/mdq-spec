@@ -1,9 +1,7 @@
 [
   {
-    "code": "forbidden-block-element",
+    "code": "parse-error",
     "severity": "error",
-    "path": [
-      "epilogue"
-    ]
+    "path": []
   }
 ]

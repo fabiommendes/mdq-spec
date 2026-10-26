@@ -1,0 +1,50 @@
+[
+  {
+    "code": "unsplit-tag-list",
+    "severity": "warning",
+    "path": [
+      "tags",
+      0
+    ]
+  },
+  {
+    "code": "missing-id",
+    "severity": "info",
+    "path": [
+      "questions",
+      0,
+      "id"
+    ]
+  },
+  {
+    "code": "missing-title",
+    "severity": "info",
+    "path": [
+      "questions",
+      0,
+      "title"
+    ]
+  },
+  {
+    "code": "missing-choice-id",
+    "severity": "info",
+    "path": [
+      "questions",
+      0,
+      "choices",
+      0,
+      "id"
+    ]
+  },
+  {
+    "code": "missing-choice-id",
+    "severity": "info",
+    "path": [
+      "questions",
+      0,
+      "choices",
+      1,
+      "id"
+    ]
+  }
+]

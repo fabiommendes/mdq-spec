@@ -1,0 +1,9 @@
+# `automation` is a derived property, never a field of the document.
+type: fill-in
+stem: The capital of Brazil is [^capital].
+automation: automatic
+blanks:
+  - id: capital
+    type: short-answer
+    accept:
+      - Brasília

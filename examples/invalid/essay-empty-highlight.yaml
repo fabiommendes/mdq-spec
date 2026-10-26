@@ -1,0 +1,5 @@
+# `highlight` must not be empty (schema `minLength: 1`).
+type: essay
+stem: Escreva uma função que calcule a área do Cerrado em hectares.
+content: code
+highlight: ""

@@ -54,17 +54,22 @@ The tag line of a choice blank is empty and the list follows on the next line.
 Short answer blanks follow the [short answer](short-answer.md) rules:
 `[^slug/short-answer]` is the accept block (`/accept` is an alias),
 `[^slug/short-answer/reject]` the reject block, each at most once per blank,
-with one pattern on the tag line or a list right after the tag. A list after a
-blank line is epilogue text (`detached-answer-list`), a reject block needs at
-least one pattern, and a blank needs at least one of the two blocks (only a
-reject block is valid, and the accept block may be empty). Without accept
+with one pattern on the tag line or a list right after the tag. A blank line
+between the tag and its list is an error, a tag with a colon and no content is
+an error, a reject block needs a colon and at least one pattern, and a blank
+needs at least one of the two blocks (only a reject block is valid). An open
+blank, with no pattern, is written `[^slug/short-answer]` without a colon.
+Without accept
 patterns, `unmatched` defaults to `manual`: the instructor grades the responses
 that no reject pattern settles. `unmatched` in the frontmatter applies to every short
 answer blank.
 
 The definitions are one run of blocks separated only by blank lines. A
 definition tag line after any other block is epilogue text, and it is the error
-`detached-blank-definition`: move the paragraph after the definitions.
+`detached-tag`: move the tag up, before the epilogue. Tags are lower case
+(`[^id/short-answer]`, never `[^id/Short-Answer]`). A list on the line right
+after a blank list, with another marker, is an error: use one marker, or leave a
+blank line.
 
 ## Where blanks may appear
 

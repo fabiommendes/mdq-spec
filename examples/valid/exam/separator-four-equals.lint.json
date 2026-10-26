@@ -1,0 +1,23 @@
+[
+  {
+    "code": "malformed-separator",
+    "severity": "warning",
+    "path": [
+      "instructions"
+    ]
+  },
+  {
+    "code": "malformed-separator",
+    "severity": "warning",
+    "path": [
+      "instructions"
+    ]
+  },
+  {
+    "code": "exam-without-questions",
+    "severity": "warning",
+    "path": [
+      "questions"
+    ]
+  }
+]

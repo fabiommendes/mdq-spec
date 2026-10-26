@@ -5,7 +5,7 @@ title: Fases da mitose
 
 Order the phases of mitosis.
 
-[ordering]
+[ordering]:
 * Prófase
 * Metáfase
 * Anáfase

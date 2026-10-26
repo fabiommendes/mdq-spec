@@ -1,0 +1,10 @@
+# The inline question is the only one tagged `biomas`, and the query excepts
+# its id `questão-1`. The `includeAll` adds nothing: `empty-include-all`.
+questions:
+- questão-1
+diagnostics:
+- code: empty-include-all
+  severity: warning
+  path:
+  - questions
+  - 1

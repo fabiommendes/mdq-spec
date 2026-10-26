@@ -17,3 +17,5 @@ Julgue as afirmações sobre a Mata Atlântica.
 * [M] A Mata Atlântica é o maior bioma do Brasil.
 * [f] A Mata Atlântica é um bioma desértico.
 * [m] A Mata Atlântica não tem rios.
+* [E] A Mata Atlântica fica apenas no interior do continente.
+* [y] A Mata Atlântica não tem nenhuma espécie endêmica.

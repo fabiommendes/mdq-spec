@@ -1,0 +1,33 @@
+[
+  {
+    "code": "unsafe-id",
+    "severity": "warning",
+    "path": [
+      "questions",
+      0,
+      "id"
+    ]
+  },
+  {
+    "code": "missing-choice-id",
+    "severity": "info",
+    "path": [
+      "questions",
+      0,
+      "choices",
+      0,
+      "id"
+    ]
+  },
+  {
+    "code": "missing-choice-id",
+    "severity": "info",
+    "path": [
+      "questions",
+      0,
+      "choices",
+      1,
+      "id"
+    ]
+  }
+]

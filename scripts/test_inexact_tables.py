@@ -24,6 +24,7 @@ from inexact_tables import (
     ignorable_ranges,
     latin_ascii_sections,
     main,
+    nonspacing_ranges,
     output_files,
 )
 
@@ -68,10 +69,19 @@ DERIVED_CORE_PROPERTIES = """\
 0041..005A    ; Uppercase # L&  [26] LATIN CAPITAL LETTER A..LATIN CAPITAL LETTER Z
 """
 
+DERIVED_GENERAL_CATEGORY = """\
+0300..036F    ; Mn #  [112] COMBINING GRAVE ACCENT..COMBINING LATIN SMALL LETTER X
+0370..0373    ; Lu #   [4] GREEK CAPITAL LETTER HETA
+0483..0487    ; Mn #   [5] COMBINING CYRILLIC TITLO..COMBINING CYRILLIC POKRYTIE
+0488          ; Me #       COMBINING CYRILLIC HUNDRED THOUSANDS SIGN
+0489          ; Mn #       FAKE MARK
+"""
+
 SOURCES = {
     "latin-ascii": LATIN_ASCII,
     "case-folding": CASE_FOLDING,
     "derived-core-properties": DERIVED_CORE_PROPERTIES,
+    "derived-general-category": DERIVED_GENERAL_CATEGORY,
 }
 
 
@@ -88,6 +98,15 @@ def test_ignorable_has_the_default_ignorable_code_points() -> None:
 def test_ignorable_needs_the_property_in_the_source() -> None:
     with pytest.raises(TablesError):
         ignorable_ranges("0041..005A ; Uppercase # L&\n")
+
+
+def test_nonspacing_takes_the_mn_lines_and_merges_adjacent_ranges() -> None:
+    assert nonspacing_ranges(DERIVED_GENERAL_CATEGORY) == [[0x300, 0x36F], [0x483, 0x487], [0x489, 0x489]]
+
+
+def test_nonspacing_needs_mn_in_the_source() -> None:
+    with pytest.raises(TablesError):
+        nonspacing_ranges("0370..0373 ; Lu # x\n")
 
 
 def test_latin_ascii_rules_are_read_by_section() -> None:
@@ -126,12 +145,13 @@ def test_every_copy_in_the_checkout_is_up_to_date() -> None:
     assert main(["--check"]) == 0
 
 
-def test_the_tables_file_is_ascii_json_with_the_four_tables() -> None:
+def test_the_tables_file_is_ascii_json_with_the_tables() -> None:
     text = (MDQ_ROOT / "docs" / "references" / TABLES_FILENAME).read_text(encoding="utf-8")
     assert text.isascii()
     tables = json.loads(text)
-    assert set(tables) == {"unicode", "cldr", "ignorable", "letters", "punctuation", "caseFolding"}
+    assert set(tables) == {"unicode", "cldr", "ignorable", "nonspacing", "letters", "punctuation", "caseFolding"}
     assert tables["letters"]["ø"] == "o"
     assert tables["punctuation"]["’"] == "'"
     assert tables["caseFolding"]["ß"] == "ss"
     assert [0x200B, 0x200F] in tables["ignorable"]
+    assert [0x300, 0x36F] in tables["nonspacing"]

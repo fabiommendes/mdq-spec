@@ -1,6 +1,6 @@
 Ordene as etapas da fotossíntese.
 
-[ordering]
+[ordering]:
 * Absorção de luz pela clorofila
   nos tilacoides
 * Fotólise da água

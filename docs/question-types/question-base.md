@@ -2,19 +2,19 @@
 
 All question types share a common structure and define a common set of fields.
 The markdown document is divided into 5 sections in this exact order: a YAML 
-front-matter, introduction, body, epilogue and a question specific additional
+frontmatter, stem, body, epilogue and a question specific additional
 section.
 
 This is the basic structure:
 
 ```md
 ---
-# Optional YAML front-matter. It expects a valid YAML document with some specific
+# Optional YAML frontmatter. It expects a valid YAML document with some specific
 # fields. This initial comment block is meaningful and is stored in the 
 # parsed outcome.
 ---
 
-Question introduction and instructions.
+Question stem and instructions.
 
 <Question body, this depends on the question type>
 
@@ -23,7 +23,7 @@ Epilogue paragraphs, after the question body.
 <Special sections for specific question types, usually empty>
 ```
 
-Both the frontmatter and the epilogue are optional. The introduction and body 
+Both the frontmatter and the epilogue are optional. The stem and body 
 are required.
 
 
@@ -31,21 +31,26 @@ are required.
 
 The frontmatter is a YAML document representing an object. The first paragraph
 of comments MUST be read and stored as a **comment string**. The **comment
-string** does not include the `#` and first space, if present. An empty
-**comment string** (no character after the `#`) is not stored; one of only
-whitespace is stored.
+string** is the `#` lines joined with one space, without the `#` and first
+space of each line, and with leading and trailing whitespace removed. An empty
+**comment string** is not stored. So `#` followed by spaces, or several lines
+of only `#`, gives no comment.
 
 The grammar for the frontmatter is:
 
 ```lark
 frontmatter    : separator nl blank_line* comment_string? yaml separator nl
 separator      : "---"
-blank_line     : ws? nl
 comment_string : COMMENT_LINE+
 ```
 
-The terminals `ws`, `nl` and `COMMENT_LINE` are defined in
+The rule `blank_line` and the terminals `nl` and `COMMENT_LINE` are defined in
 [Common grammar rules](../references/grammar.md).
+
+`comment_string` is greedy: when the first lines after the opening separator
+and the blank lines start with `#`, they are always the comment string, and
+`yaml` starts after them. The grammar alone also lets `yaml` start with these
+lines, but this parse does not apply.
 
 WARNING: a blank line (without `#`) breaks the comment string, as in the example:
 
@@ -136,14 +141,16 @@ the body is part of the stem.
 
 Most markdown block elements are valid in the stem and in the epilogue. A few
 constructions are rejected because they may be mistaken for the body element.
-For multiple choice questions, for instances, the body is the unordered list
+For multiple choice questions, for instance, the body is the unordered list
 starting with the `[ ]` checkmarks.
 
 Below is the list of invalid elements. In each, a bracket that starts a
 markdown link (`[text](url)`, `[text][ref]`) does not count: a paragraph, a
 heading or a list item can start with a link. A link reference definition
-(`[ref]: url`) is not a paragraph, so it is valid too, unless it is an MDQ tag
-line such as `[numeric]: 42`.
+(`[ref]: url`) is not a paragraph, so it is valid too, unless its label is
+reserved, see [Reserved tag names](#reserved-tag-names). A reserved label is an
+MDQ tag line such as `[numeric]: 42`, or a mistyped one such as
+`[short-answer/preAccept]: b`.
 
 * Unordered lists if all elements start with optional `ws` + `[`.
 * Paragraph that starts with optional `ws` + `[`, except the first paragraph, or
@@ -188,11 +195,8 @@ frontmatter field `id: Q1`. If both are set, the frontmatter takes precedence
 and the `redundant-id` warning is reported, see [Frontmatter](#frontmatter).
 
 The slug MUST match the `SLUG` terminal of
-[Common grammar rules](../references/grammar.md):
-
-```lark
-SLUG: /[a-zA-Z0-9]+([-_][a-zA-Z0-9]+)*/
-```
+[Common grammar rules](../references/grammar.md#tokens): one or more ASCII
+letters or digits, in groups joined by a single `-` or `_`.
 
 A bracket at the start of the paragraph is a slug only when its content
 matches `SLUG` and the next character is not `(` or `[`, which open a markdown
@@ -229,8 +233,149 @@ question type. Multiple choice, for instance, requires the block to be an
 unordered list with every item starting with `[value]`, and value is either
 spaces and tabs, the character `*`, or a percentage like in `[50%]`.
 
-Each question type defines their body elements. For all questions the body is 
+Each question type defines its body elements. For all questions the body is 
 REQUIRED.
+
+### Body tags
+
+Short answer, numeric, essay, ordering and fill in the blanks questions open
+their body, or each of its blocks, with a bracketed tag. All the tags follow
+one convention. The colon tells whether content follows:
+
+* A tag **with a colon** requires content. The content is on the tag line, or
+  in a block that starts on the line right after the tag. Each tag below says
+  which of the two it takes.
+* A tag **without a colon** has no content. It is a paragraph whose only
+  content is the tag, in lower case. The tag MAY be indented and MAY be
+  followed by spaces or tabs, as the [essay](essay.md#body) tag.
+* A blank line between a tag with a colon and its content block is a
+  `parse-error`.
+* A tag with a colon and no content is a `parse-error`. This covers a tag
+  at the end of the body, and a tag followed by a blank line and then any
+  block. A block that starts on the line right after the tag is content: a
+  list, or a lazy line that continues the text of the tag line.
+
+```lark
+bare_tag  : ws? TAG ws?
+colon_tag : ws? TAG ws? ":" ws? (content | nl block)
+```
+
+`TAG` is a bracketed tag, `content` is the text on the tag line and `block`
+is the block that starts on the next line. Both depend on the tag, see the
+table. The rules `ws` and `nl` are defined in
+[Common grammar rules](../references/grammar.md).
+
+| Type                | Tag                                                          | Form     | Content                                                      |
+| ------------------- | ------------------------------------------------------------ | -------- | ------------------------------------------------------------ |
+| essay               | `[essay]`                                                    | no colon | none                                                         |
+| ordering            | `[ordering]:`                                                | colon    | a code block or a `ul` list, on the next line                |
+| short answer        | `[short-answer]:`, `[short-answer/accept]:`                  | colon    | one pattern on the tag line, or a pattern list on the next line |
+| short answer        | `[short-answer]`, `[short-answer/accept]`                    | no colon | none: the block has no pattern                               |
+| short answer        | `[short-answer/reject]:`                                     | colon    | one pattern on the tag line, or a pattern list on the next line |
+| numeric             | `[numeric]:`, `[numeric(unit)]:`                             | colon    | the numeric value, on the tag line                           |
+| fill in, choice     | `[^id]:`                                                     | colon    | a choice list on the next line, and no text on the tag line  |
+| fill in, numeric    | `[^id/numeric]:`, `[^id/numeric(unit)]:`                     | colon    | the numeric value, on the tag line                           |
+| fill in, short answer | `[^id/short-answer]:`, `[^id/short-answer/accept]:`        | colon    | one pattern on the tag line, or a pattern list on the next line |
+| fill in, short answer | `[^id/short-answer]`, `[^id/short-answer/accept]`          | no colon | none: the blank has no pattern                               |
+| fill in, short answer | `[^id/short-answer/reject]:`                               | colon    | one pattern on the tag line, or a pattern list on the next line |
+
+`[short-answer/reject]` and `[^id/short-answer/reject]` have no form without a
+colon, since a `reject` block MUST have at least one pattern. `[ordering]`
+has no form without a colon: it is a `parse-error` and its message suggests
+`[ordering]:`. A list that starts on the line right after a tag without a
+colon, such as `[short-answer]` or `[^id/short-answer]`, is a `parse-error`
+too: the colon is missing.
+
+The headings of the sections of a type (`## [extra]`, `## [accept]`,
+`## [reject]`, `## [answer-key]`) are not body tags. See
+[Epilogue](#epilogue).
+
+#### Case of tags
+
+A tag is in lower case, in every type. The name of a type and the suffixes
+(`accept`, `reject`) are lower case, and so is the kind of a fill-in tag. The
+unit of `[numeric(unit)]` is not a keyword: it keeps the case that the author
+writes. A tag in another case, such as `[Numeric]: 26`, `[Short-Answer]: x`,
+`[^cap/Short-Answer]: x`, `[Ordering]:`, `[Essay]` or
+`[SHORT-ANSWER/reject]: x`, is a `parse-error`. The message tells the author
+the tag to write, for example "tags are lower case: write `[numeric]:`". The
+case is the only fault: a tag in lower case is read as the tables above say.
+
+#### Reserved tag names
+
+A line in the form of a link reference definition (`[label]:` followed by
+text) and a paragraph that holds only a bracketed label are a tag when the
+label is reserved. A label is reserved when it is one of these:
+
+```lark
+reserved_label : TYPE_NAME (label_end | "/" LABEL_REST | "(" LABEL_REST)
+               | "^" ID "/" LABEL_REST
+TYPE_NAME      : "essay" | "numeric" | "short-answer" | "ordering"
+               | "true-false" | "multiple-choice" | "multiple-selection"
+               | "fill-in"
+```
+
+A reserved label that is not one of the tags in the table above is a
+`parse-error` with the message "unknown tag". This holds for a suffix that does
+not exist, such as `[short-answer/foo]: b` and `[^cap/foo]: x`, and for a type
+name without a tag, such as `[true-false]: x`. The `preAccept` and `preReject`
+suffixes are the same case, with a specific message: they are fields of the
+frontmatter only, so `[short-answer/preAccept]: b` is a `parse-error`, as is
+the block form `[short-answer/preAccept]:` followed by a list.
+
+Any other label is an ordinary link reference definition, valid in the stem
+and in the epilogue: `[ibge]: https://www.ibge.gov.br`. Without this rule,
+a mistyped tag would be a link definition that passes with no sign.
+
+#### Tags after the epilogue starts
+
+The tags of a question are one run of blocks: the first block that is not part
+of the run starts the [epilogue](#epilogue). A known tag in the epilogue
+defines nothing. It is a `detached-tag` error at the path `epilogue`, in every
+type: a tag of a short answer after a paragraph (`[short-answer/reject]: x`),
+a second tag of a type that has one (`[numeric]:`), a blank definition of a
+fill-in question, and the tags of an ordering or essay question. The message
+tells the author to move the tag up, before the epilogue. A tag inside a code
+block does not count. `forbidden-block-element` stays for the forbidden
+elements that are not tags.
+
+#### Lists after a content list
+
+A list that starts on the line right after a content list, with no blank line
+in between, is a `parse-error`. The content lists are the pattern list of a
+short answer, the pattern list of a short answer blank, the choice list of a
+choice blank, and the `ul` list of an ordering question. In CommonMark, a
+change of the list marker (`*` to `-`, or to `1.`) starts a new list. That
+list would go to the epilogue, and an item would leave the answer and show to
+the student. The message says to use the same list marker for every item, or to
+separate the epilogue with a blank line. With a blank line, the list is an
+ordinary element of the epilogue. The nested lists of an ordering `ul` list
+are part of one list and MAY mix `*`, `-` and `+`.
+
+```md
+Cite um bioma exclusivamente brasileiro.
+
+[short-answer]:
+* Caatinga
+- Pampa
+```
+
+The question above is a `parse-error`: `- Pampa` starts a second list. Use `*`
+for both items, or add a blank line before `- Pampa` to make it part of the
+epilogue.
+
+```md
+Qual é o maior bioma do Brasil?
+
+[short-answer]:
+
+Amazônia.
+```
+
+The question above is a `parse-error`: the tag has a colon, so its content
+starts on the line right after it, with no blank line. To declare the answer,
+write `[short-answer]: Amazônia`. To declare a question with no pattern, that
+the instructor grades, write `[short-answer]` with no colon.
 
 ### Type inference
 
@@ -319,11 +464,11 @@ response that is not settled is reported as pending, see
 ## AST representation
 
 The spec defines both a markdown and the parsed corresponding YAML/JSON AST 
-representation. For each question AST MUST conforms to a JSON Schema. The schema
-provides only a initial validation step: all ASTs are valid acording to the
+representation. For each question AST MUST conform to a JSON Schema. The schema
+provides only an initial validation step: all ASTs are valid according to the
 schema, but a conforming AST needs to obey additional rules.
 
-Also, we define some optional rules that are desired for a well formed
+Also, we define some optional rules that are desired for well-formed
 documents, but are not strictly required. Implementations SHOULD provide
 validations for those optional rules in the form of linting or warnings.
 
@@ -340,44 +485,43 @@ fields in the AST, with two exceptions: `tags` written as a single
 comma-delimited string becomes the list of its parts, each stripped of
 surrounding whitespace (an empty part after a final comma is dropped, so
 `"cerrado, bioma,"` is `[cerrado, bioma]`), and the per-type shorthands that each question type
-documents (`normalizations` as a bare string in ordering, the `preAccept`,
-`preReject` and `incorrectFeedback` maps in fill in the blanks). The fields carry the same name,
+documents (`normalizations` as a bare comma-delimited string in ordering, the `preAccept`,
+`preReject`, `incorrectFeedback`, `domain` and `decimalPlaces` maps in fill in
+the blanks). The fields carry the same name,
 types, optionality and validation rules as in the frontmatter. Validation rules that can be described
 by a JSON Schema are defined in the corresponding schema document. We only
 document here the validations that require additional processing.
 
-This spec distinguish optional from nullable fields. An OPTIONAL field may or
-may not appear in a document. In Javascript, OPTIONAL fields might also assume
-the value `undefined`. A NULLABLE field can take the value of some type or
-`null`. If not specified, a NULLABLE field must appear in the document with a
-value of `null`. Fields can be both OPTIONAL and NULLABLE at the same time.
+An OPTIONAL field may or may not appear in a document. In Javascript, OPTIONAL
+fields might also assume the value `undefined`. No field is nullable: `null` in
+an OPTIONAL field is an absent field, see [Frontmatter](#frontmatter).
 
 The `stem` and `epilogue` fields are derived from the corresponding
 markdown block elements and are represented by strings. `epilogue` is
 OPTIONAL. The string can be created by taking a verbatim copy of
 those elements in the body of text, but implementations MAY perform any
-normalization step that do not affect markdown semantics. For instance,
+normalization steps that do not affect markdown semantics. For instance,
 implementations may remove word wrap and normalize whitespace since both have no
 influence in the resulting rendered markdown.
 
 The same license applies to the frontmatter **comment string**: a comment
 that spans several `#` lines MAY be joined into one line with single spaces.
 
-Each question defines their own rules for translating the body and eventual 
+Each question defines its own rules for translating the body and eventual 
 additional fields. Those rules are covered in their own dedicated document.
 
 
 ## Additional Rules
 
 This section documents only the rules that are NOT captured by the JSON schema and
-requires additional programatic support in compliant implementations. Each rule
+require additional programmatic support in compliant implementations. Each rule
 is assigned a strictness level of "error", "warning", "info". 
 
 * **error:** MUST be enforced on compliant documents. 
 * **warning**: considered to be bad practices, but still can produce usable
   documents. SHOULD be enforced on compliant documents under some optional flag.
 * **info**: violations that may indicate flaws in the document and might be
-  relevant to know for a user authoring a question, but still produces valid and
+  relevant to know for a user authoring a question, but still produce valid and
   usable documents.
 
 The JSON Schema is normative for the shape of a document. It validates the
@@ -395,8 +539,14 @@ the schema rejects their empty string.
 
 | Field                    | Level    | Code                      | Rule |
 | ------------------------ | -------- | ------------------------- | -------------------- |
-| title, author, comment, epilogue, stem | error    | blank-text | if defined, must have at least one visible character |
+| title, author, epilogue, stem | error    | blank-text | if defined, must have at least one visible character |
+| comment                  | error    | blank-text                | if defined, must have at least one visible character. It applies to YAML and JSON input only: a Markdown comment string with no visible character is not stored |
 | epilogue, stem           | error    | forbidden-block-element   | cannot have explicitly forbidden block elements[^7] |
+| body                     | error    | parse-error               | a tag with a colon has content on its line or in a block on the next line, and a tag without a colon has none, see [Body tags](#body-tags) |
+| any text                 | error    | parse-error               | a tag is in lower case, see [Case of tags](#case-of-tags) |
+| any text                 | error    | parse-error               | a reserved label is a known tag, see [Reserved tag names](#reserved-tag-names) |
+| body                     | error    | parse-error               | a list does not start on the line right after a content list, see [Lists after a content list](#lists-after-a-content-list) |
+| epilogue                 | error    | detached-tag              | a known tag does not come after the epilogue started, see [Tags after the epilogue starts](#tags-after-the-epilogue-starts) |
 | locale                   | error    | malformed-locale          | must be a well-formed IETF BCP 47 tag[^4] |
 | id                       | warning  | unsafe-id                 | should be url-safe[^2] |
 | tags                     | error    | blank-text                | each entry must have at least one visible character |
@@ -408,6 +558,7 @@ the schema rejects their empty string.
 | title                    | info     | missing-title             | the field is not defined in the document |
 | locale                   | info     | locale-lookalike-language | the language subtag looks like a country code[^8]           |
 | epilogue, stem           | warning  | unsafe-thematic-break     | a thematic break should be `***` or `___`, not `---`[^9] |
+| any section              | warning  | unsafe-thematic-break     | the same rule for the `answerKey`, `extra`, `accept` and `reject` sections of a question type[^9] |
 | epilogue, stem           | warning  | stray-choice-marker       | a list item outside the body should not start with a choice value[^7] |
 | any frontmatter key      | error    | invalid-frontmatter-field | must be a field of the frontmatter table of the question type or of the base table[^11] |
 | id                       | warning  | redundant-id              | should not be set both in the frontmatter and as a slug[^12] |
@@ -425,6 +576,10 @@ not whether the subtag names a real language.
 [^9]: Inside an exam a `---` line opens a frontmatter or include block, so a
 thematic break written with `-` changes meaning when the question is pasted
 into one (`unsafe-thematic-break`, see [exam.md](../exam.md#question-and-include-blocks)).
+The check runs on `stem`, `epilogue`, the `answerKey` of an essay and the
+`extra`, `accept` and `reject` sections of an ordering question, the fields in
+which an exam reads `---` as a block boundary. An ordering section holds only
+list items or code, so only the essay `answerKey` can carry a thematic break.
 [^10]: Specified in [Common grammar rules](../references/grammar.md#the-non-ascii-whitespace-lint):
 `non-ascii-whitespace` (warning) for U+0085, U+2028, U+2029 and for a Unicode
 space in a syntax position, `non-ascii-whitespace-in-prose` (info) for any other

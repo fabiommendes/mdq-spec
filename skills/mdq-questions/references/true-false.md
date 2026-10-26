@@ -28,12 +28,13 @@ such as `Ｆ` read as their plain letter (`F`), but write plain letters. Use the
 pair matching the document's language:
 
 * Always true: `T`, `V`, `B`, `D`, `Đ`, and a few non-Latin letters (such as `对`, `真`, `是`, `В`, `स`).
-* Always false: `F`, `M`, and a few non-Latin letters (such as `错`, `偽`, `非`, `Н`, `ग`).
+* Always false: `F`, `M`, `E`, `Y`, and a few non-Latin letters (such as `错`, `偽`, `非`, `Н`, `ग`).
 * Any other letter means true but raises a warning, so avoid it. `S` is one of them: it means false in Indonesian, Vietnamese and Malay.
 
 `T`/`F` are valid under every `locale`. For `locale: pt-BR` write `V`/`F`,
-`T`/`F` or `C` (Cebraspe style). `E` for false is a trap: it reads as true and
-gets `false-friend-true-false-marker`, so write `F`. Other TRUE or FALSE letters
+`T`/`F` or `C`/`E` (Cebraspe style: `E` means false). Under `tr`, `D`/`Y` is
+accepted and `Y` means false. A TRUE letter can still be a trap, such as `B`
+under `bn` (`false-friend-true-false-marker`), so write `F`. Other TRUE or FALSE letters
 (`B` under `pt-BR`, `V` under `en`) get a `locale-mismatched-true-false-marker`
 warning. The letter itself is kept in the parsed document, without the spaces
 around it (`[ T ]` stores `T`), so `V` and `T` stay distinguishable. A `marker`

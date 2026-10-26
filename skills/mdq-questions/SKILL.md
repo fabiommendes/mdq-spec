@@ -62,7 +62,7 @@ optional.
 | A number, with tolerance             | `[numeric(unit)]: ...`              | [numeric](references/numeric.md) |
 | Gaps inside a sentence               | `[^slug]` markers + definitions     | [fill-in](references/fill-in.md) |
 | Free text, graded by hand            | `[essay]`                           | [essay](references/essay.md) |
-| Sort lines into the right order      | `[ordering]` + code block or list   | [ordering](references/ordering.md) |
+| Sort lines into the right order      | `[ordering]:` + code block or list  | [ordering](references/ordering.md) |
 | Several questions in one file        | `# Title` + `===` separators        | [exam](references/exam.md) |
 
 Set `type:` in the frontmatter only to disambiguate; otherwise let it be inferred.

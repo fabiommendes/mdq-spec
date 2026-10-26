@@ -5,7 +5,7 @@ title: Ciclo da água
 
 Order the steps of the water cycle.
 
-[ordering]
+[ordering]:
 * Evaporação da água dos oceanos e rios.
 * Condensação do vapor em nuvens.
 * Precipitação em forma de chuva.

@@ -7,7 +7,7 @@ indentation: lenient
 Sort the clauses below into a query that lists the most populous
 municipalities of Goiás first.
 
-[ordering]
+[ordering]:
 ```sql
 SELECT nome, populacao
   FROM municipios

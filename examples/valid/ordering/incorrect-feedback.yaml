@@ -1,0 +1,24 @@
+# `incorrectFeedback` is for an incorrect response that no `reject` entry
+# gave feedback to: one that matches nothing under the default
+# `unmatched: incorrect`, or one that matches a `reject` entry with no
+# feedback. The feedback of an entry wins over it.
+id: ordering-brazilian-regions
+title: Regiões do Brasil
+type: ordering
+stem: Order the Brazilian regions from the largest to the smallest by area.
+content: text
+incorrectFeedback: Revise o mapa político do Brasil.
+lines:
+  - [0, "Norte"]
+  - [0, "Nordeste"]
+  - [0, "Centro-Oeste"]
+  - [0, "Sudeste"]
+  - [0, "Sul"]
+reject:
+  - feedback: Nordeste is larger than Centro-Oeste.
+    lines:
+      - [0, "Norte"]
+      - [0, "Centro-Oeste"]
+      - [0, "Nordeste"]
+      - [0, "Sudeste"]
+      - [0, "Sul"]

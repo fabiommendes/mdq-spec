@@ -106,5 +106,23 @@
       11,
       "id"
     ]
+  },
+  {
+    "code": "missing-choice-id",
+    "severity": "info",
+    "path": [
+      "choices",
+      12,
+      "id"
+    ]
+  },
+  {
+    "code": "missing-choice-id",
+    "severity": "info",
+    "path": [
+      "choices",
+      13,
+      "id"
+    ]
   }
 ]

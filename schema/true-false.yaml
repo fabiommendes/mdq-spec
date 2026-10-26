@@ -34,9 +34,11 @@ allOf:
         description: >-
           The strategy used to grade the question, see the `Grading`
           section of the corresponding document in docs/question-types.
-          `inherit`, the default, takes the exam's `grading` (its
-          `true-false` entry when it is a map), and is `symmetric`
-          outside an exam or when the exam sets none.
+          `inherit`, the default, takes the strategy the exam's `grading`
+          gives for true/false: its `true-false` entry when it is a map,
+          `symmetric` if the entry is missing, or the translation of a
+          scalar by the table of docs/exam.md (Grading). It is `symmetric`
+          outside an exam.
 
       shuffle:
         oneOf:
@@ -44,8 +46,8 @@ allOf:
           - const: inherit
         default: inherit
         description: >-
-          If true, the statements are safe to shuffle. If false, they should
-          never be shuffled. `inherit`, the default, takes the exam's
+          If true, the statements may be shown in any order. If false, an implementation must
+          not change their order. `inherit`, the default, takes the exam's
           `shuffle` value, and is false outside an exam.
 
     required:
@@ -95,12 +97,11 @@ unevaluatedProperties: false
           locale mismatches, and to round-trip the document. When
           present, its category (TRUE, FALSE or WARNING) must agree with
           `correct` (`true-false-marker-disagrees-with-correct`). The schema
-          checks only the length. The letter check (one code point of
-          category Lu, Ll, Lt or Lo, before NFKC normalization) and the
-          reserved `X` are lint rules (`malformed-true-false-marker`,
-          `reserved-true-false-marker`).
+          checks only that it is not empty. The letter check (one code point
+          of category Lu, Ll, Lt or Lo, after NFKC normalization and ASCII
+          lowercase) and the reserved `X` are lint rules
+          (`malformed-true-false-marker`, `reserved-true-false-marker`).
         minLength: 1
-        maxLength: 1
 
       feedback:
         type: string

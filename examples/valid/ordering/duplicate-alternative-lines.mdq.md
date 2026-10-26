@@ -5,7 +5,7 @@ title: Cheia sazonal do Pantanal
 
 Order the steps that describe the seasonal flooding cycle of the Pantanal.
 
-[ordering]
+[ordering]:
 * O nível dos rios sobe durante a estação chuvosa.
 * A planície é gradualmente inundada.
 * A fauna aquática se espalha pelas áreas alagadas.

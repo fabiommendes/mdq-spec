@@ -5,7 +5,7 @@ title: Multiplicação distributiva
 
 Order the steps to compute 6 × 7 using distributive multiplication.
 
-[ordering]
+[ordering]:
 * Multiplique 6 por 5.
 * *Multiplique 6 por 2.*
 * _Multiplique 6 por 2._

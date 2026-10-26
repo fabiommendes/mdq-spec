@@ -12,12 +12,5 @@
     "path": [
       "title"
     ]
-  },
-  {
-    "code": "detached-answer-list",
-    "severity": "warning",
-    "path": [
-      "epilogue"
-    ]
   }
 ]

@@ -5,7 +5,7 @@ title: Seleção natural
 
 Order the steps of natural selection as Darwin described them.
 
-[ordering]
+[ordering]:
 * Individuals in a population vary in the traits they inherit.
 * More offspring are born than the environment can support.
 * Individuals whose traits suit that environment survive and reproduce more often.

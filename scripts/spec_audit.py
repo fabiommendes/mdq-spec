@@ -138,6 +138,8 @@ PSEUDO_FIELDS = {
     "body": "the Markdown body of the document, not a frontmatter key",
     "any frontmatter key": "stands for every key of the frontmatter",
     "any text": "stands for every piece of text of the document",
+    "any section": "stands for every type-specific section after the epilogue "
+    "(`answerKey`, `extra`, `accept`, `reject`)",
     "automation": "a property derived from the answer key, never a field of the "
     "document",
 }

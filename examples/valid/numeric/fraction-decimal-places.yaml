@@ -1,0 +1,7 @@
+# A fraction answer under `decimal` has no decimal places of its own, so the
+# frontmatter declares them. The answer is exact, and it rounds to 0.33.
+type: numeric
+stem: Qual fração do território brasileiro é ocupada pela Amazônia Legal, aproximadamente?
+answer: "1/3"
+domain: decimal
+decimalPlaces: 2

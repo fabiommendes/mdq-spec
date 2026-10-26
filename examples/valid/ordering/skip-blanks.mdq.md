@@ -7,7 +7,7 @@ normalizations: skip-blanks
 Sort the lines below into a module that defines a function returning the
 hypotenuse of a right triangle.
 
-[ordering]
+[ordering]:
 ```python
 from math import sqrt
 

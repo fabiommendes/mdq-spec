@@ -1,6 +1,6 @@
 Ordene as linhas do programa.
 
-[ordering]
+[ordering]:
 ```brainfudge
 n = int(input())
 print(n * 2)

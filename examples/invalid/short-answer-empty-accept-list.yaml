@@ -1,0 +1,6 @@
+# A pattern list, when present, has at least one pattern. An empty
+# `accept` list is a schema error; omit the field instead.
+id: sa-empty-accept-list
+type: short-answer
+stem: Which river crosses the Brazilian city of Manaus?
+accept: []

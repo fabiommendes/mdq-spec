@@ -4,7 +4,7 @@ indentation: lenient
 
 Ordene as linhas para ler um número e imprimir seu dobro e seu quadrado.
 
-[ordering]
+[ordering]:
 ```python
 n = int(input())
 print(n * 2)

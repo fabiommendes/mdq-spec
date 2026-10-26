@@ -1,0 +1,8 @@
+# With `content: text`, an empty line text is a `schema-error`: only a code block holds a blank line.
+type: ordering
+content: text
+stem: Ordene as capitais do Brasil da mais antiga para a mais recente.
+lines:
+  - [0, Salvador]
+  - [0, ""]
+  - [0, Brasília]

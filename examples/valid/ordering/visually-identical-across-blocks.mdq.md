@@ -1,6 +1,6 @@
 Ordene os eventos.
 
-[ordering]
+[ordering]:
 * Chegada de Cabral ao Brasil, em *1500*
 * Fundação de Salvador
 

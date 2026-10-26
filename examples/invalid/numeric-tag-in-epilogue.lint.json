@@ -1,0 +1,7 @@
+[
+  {
+    "code": "detached-tag",
+    "severity": "error",
+    "path": ["epilogue"]
+  }
+]

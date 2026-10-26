@@ -115,6 +115,13 @@ cases:
     response: "acao"
     fold: true
     keep: false
+  # The marks come from the `nonspacing` table, not from the runtime: U+10EF0
+  # was assigned after Unicode 15.1.
+  - name: nonspacing mark of a recent Unicode version
+    pattern: "Tupi"
+    response: "Tupi\U00010EF0"
+    fold: true
+    keep: false
   - name: missing Greek tonos
     pattern: "σοφία"
     response: "ΣΟΦΙΑ"

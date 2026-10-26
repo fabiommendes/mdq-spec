@@ -1,6 +1,6 @@
 Ordene os períodos da história do Brasil, do mais antigo ao mais recente.
 
-[ordering]
+[ordering]:
 - Período colonial
 - Império
 - República Velha

@@ -16,7 +16,7 @@ equivalent format can be used in practice.
 A response names the thing it refers to by `id` to avoid issues with shuffling
 of choices or question ordering. This makes ids a precondition for grading that
 is NOT enforced by parsing. A document in which every question and every choice
-carries an id is called **addressable**. Grading refuse a document that is not,
+carries an id is called **addressable**. Grading refuses a document that is not,
 but implementations MAY provide schemes for filling in ids automatically, when
 possible.
 
@@ -86,11 +86,16 @@ response:
 ```
 
 An id not present in the question is a malformed response, see
-[Addressability](#addressability).
+[Addressability](#addressability). A value that is not a mapping, such as a
+list of ids, is also a malformed response.
 
 A `null` value is the same as an absent key: an abstention. Any other value that
 is not a boolean, such as `"T"` or `1`, makes the response a malformed response,
 not a statement judged wrongly.
+
+The empty mapping `{}` and a mapping where every value is `null` abstain on
+every statement. They are graded, not skipped: only a `null` response is a
+skip, see [Skipping](#skipping). They show the feedback of every statement.
 
 ```yaml
 response:
@@ -273,8 +278,9 @@ malformed (`ResponseError`) when it:
 * uses a line more times than the pool offers it;
 * under `indentation: fixed`, carries a level other than the authored level of
   that line;
-* with `content: text`, is not a valid outline: the first line is not at level
-  0, or a line is more than one level deeper than the line before it.
+* under `indentation: lenient` or `strict` with `content: text`, is not a
+  valid outline: the first line is not at level 0, or a line is more than one
+  level deeper than the line before it.
 
 A line is identified in the pool as follows. Under `fixed` it is the pair of
 level and text, so a pool line at another level is a different line. Under
@@ -283,8 +289,15 @@ identifies a line. With the `skip-blanks` normalization, blank lines are left
 out on both sides. This check uses the lines as submitted, before the other
 normalizations.
 
+Under `fixed` the student cannot change levels, so a `content: text` response
+that is not a valid outline is not malformed. It is a wrong answer: it is
+graded, matches no declared answer, and falls under `unmatched` (score 0 for
+`incorrect`, pending for `manual`).
+
 A response MAY leave pool lines out: it is graded normally, like an
-`## [accept]` section that omits lines. A response MAY hold a distractor from
+`## [accept]` section that omits lines. The empty list `[]` is a response, not
+a skip: it matches no declared answer, so it scores 0 under
+`unmatched: incorrect` (the default) and is pending under `unmatched: manual`. A response MAY hold a distractor from
 the `extra` lines -- that is a wrong answer, not a malformed response.
 
 The indentation level is always present. Under `indentation: fixed` it is the
@@ -335,13 +348,14 @@ and not silently ignored.
 A response is **pending** when the question does not settle it: every response
 to an essay question, a response to a `manual` short answer question, a
 response that matches no pattern of a short answer question with
-`unmatched: manual`, an ordering response that matches no answer key under
-`unmatched: manual`, and a fill-in response with a pending blank. See
+`unmatched: manual`, an ordering response that matches no declared answer
+under `unmatched: manual`, and a fill-in response with a pending blank. See
 [Automation](question-types/question-base.md#automation).
 
 A pending response has no score until the instructor supplies one, and shows
-no feedback. For a fill in, the instructor scores each pending blank in the
-range `[0, 1]`, and the question's `grading` strategy then combines the blank
+no feedback. The score of an instructor for a pending response is in the range
+`[0, 1]`, for every question type. For a fill in, the instructor scores each
+pending blank in that range, and the question's `grading` strategy then combines the blank
 scores as usual, see [Grading](question-types/fill-in.md#grading). An exam-level scorer accepts it and reports it as pending rather
 than scored. An LMS should not have to strip essay answers out of its response
 map before grading.
@@ -358,6 +372,6 @@ answered badly" -- a wrong answer is a score, not an error.
 | an exam still holds an unresolved `include`       | `UnresolvedInclude` |
 | a response the question cannot represent          | `ResponseError`     |
 | an id in a response not present in the question   | `ResponseError`     |
-| an ordering line outside the presented pool, used more often than the pool offers it, (under `fixed`) at another level, or (with `content: text`) not a valid outline | `ResponseError` |
+| an ordering line outside the presented pool, used more often than the pool offers it, (under `fixed`) at another level, or (under `lenient` or `strict`, with `content: text`) not a valid outline | `ResponseError` |
 | a key naming no question in the exam              | `ResponseError`     |
 | a score asked of a pending response                | `NotAutoGradable`   |

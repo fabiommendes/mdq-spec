@@ -159,7 +159,7 @@ def _normalizations_shorthand(defs: dict[str, Any], stem: str) -> dict[str, Any]
     return {
         "anyOf": [
             _ref(defs, "ordering", "normalizations"),
-            {"$ref": defs["ordering"]["$id"] + "#/$defs/Normalization"},
+            {"type": "string"},
         ]
     }
 
@@ -203,7 +203,7 @@ FRONTMATTER_SHORTHANDS: dict[
         _blank_decimal_places_map,
     ),
     ("ordering", "normalizations"): (
-        "a single normalization may be a bare string",
+        "a bare string is a comma-delimited list",
         _normalizations_shorthand,
     ),
     ("exam", "start"): (

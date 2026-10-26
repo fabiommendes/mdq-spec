@@ -31,6 +31,7 @@ A straightforward iterative solution keeps the two previous values and loops n
 times, running in O(n) time and O(1) space.
 ```
 
-Use `highlight` only together with `content: code`.
+Use `highlight` only together with `content: code`: with any other content (the
+default is `text`) it is an error.
 
 The tag paragraph holds only `[essay]`. Put length limits in the stem.

@@ -1,6 +1,6 @@
 Ordene as linhas para imprimir uma mensagem por item de `valores`.
 
-[ordering]
+[ordering]:
 ```python
 for x in valores:
     if x:

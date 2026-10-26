@@ -6,7 +6,7 @@ title: Média de uma lista
 Sort the lines below to compute the arithmetic mean of the numbers in
 `values`. Not every line belongs to the answer.
 
-[ordering]
+[ordering]:
 ```python
 total = 0
 for x in values:

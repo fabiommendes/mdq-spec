@@ -1,0 +1,13 @@
+# `---` in the answer key is a thematic break in a question file. Inside an
+# exam it is a `parse-error`, so it earns `unsafe-thematic-break`
+# (question-base.md, "Additional Rules").
+type: essay
+id: pantanal-formation
+title: Formation of the Pantanal
+stem: Explain how the Pantanal formed.
+answerKey: |-
+  A floodplain in the Paraguay river basin.
+
+  ---
+
+  Note: accept a mention of the seasonal floods.

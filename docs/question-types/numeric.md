@@ -136,9 +136,13 @@ and `3.14159265358979323846` (more digits than a float holds) stay
 strings. A fraction always stays a string, even one with an exact
 floating-point value such as `3/4`.
 
-A value with an exponent follows the same test, on the mantissa: `6.022e23`
-and `1E-3` convert to the numbers `6.022e+23` and `0.001`, but `1.50e3` stays
-a string because of the trailing zero of the mantissa after the point. An
+A value with an exponent follows the same test, on the whole value: take the
+shortest decimal form of the nearest double, remove its exponent, its leading
+zeros and its trailing zeros, and compare the digits that remain with the
+digits of the mantissa as written. `6.022e23` and `1E-3` convert to the numbers
+`6.022e+23` and `0.001`, but `1.50e3` stays a string because of the trailing
+zero of the mantissa after the point. `3e-324` also stays a string: the nearest
+double is `5e-324`, and its digit `5` differs from the digit `3` as written. An
 exponent never makes a number an integer: `1e3` is not an `INTEGER`, so it is
 never coerced to the integral value `1000`.
 
@@ -211,6 +215,13 @@ string `"4.0"`.
 The parsed document carries the inferred `domain`: the field is written out,
 not only inferred at grading time.
 
+A declared `domain` MAY be wider than the values need, but it SHOULD NOT be
+narrower than the answer. When `domain` is `integer`, the answer SHOULD be a
+whole number. When `domain` is `fraction`, the answer SHOULD be a whole number
+or a fraction. An answer that breaks this rule gets the `answer-outside-domain`
+warning. A decimal absolute tolerance under a narrower declared domain gets
+the `domain-mismatch` info, see [Tolerances](#tolerances).
+
 Equivalently, rank the domains `integer` < `fraction` < `decimal` and take the
 maximum. If no absolute tolerance is given, the domain is the domain of the
 value alone.
@@ -244,12 +255,30 @@ responses:
 * Relative tolerance: The response is accepted if
   `|answer - response| ≤ |answer| × relative`.
 
-Both tolerances are not negative. A relative tolerance is a fraction, not a
+Neither tolerance is negative. A relative tolerance is a fraction, not a
 percentage: in Markdown, `+- p%` is stored as `tolerance.relative: p / 100`, so
-`+- 5%` is `relative: 0.05`. Two cases are flagged by a diagnostic, see
-[Additional Rules](#additional-rules): a relative tolerance around a zero
-answer (`relative-tolerance-around-zero`), and a `decimal` question without
-tolerance (`missing-tolerance`).
+`+- 5%` is `relative: 0.05`. The division is exact decimal arithmetic on the
+spelling of `p` (the decimal point moves two places), and the result is stored
+as the nearest double. So `+- 0.7%` is `relative: 0.007`, and a response of
+`1007` is accepted for `1000 +- 0.7%`. The stored double is exact for up to
+about 15 significant digits. A tolerance with more digits loses precision,
+unlike the answer, which MAY stay a string. A tolerance has no string form.
+
+`tolerance` has at least one field: `tolerance: {}` is a `schema-error`.
+
+These cases are flagged by a diagnostic, see
+[Additional Rules](#additional-rules):
+
+* A relative tolerance SHOULD NOT be given when the answer is zero
+  (`relative-tolerance-around-zero`).
+* Implementations MAY report, at the info level, a relative tolerance above 1
+  (`relative-tolerance-over-one`): it is a fraction, so it is likely a
+  percentage written by mistake.
+* Implementations MAY report, at the info level, a `decimal` question without
+  tolerance (`missing-tolerance`).
+* Implementations MAY report, at the info level, a declared `integer` or
+  `fraction` domain with a decimal absolute tolerance (`domain-mismatch`), see
+  [Number type/domain](#number-typedomain).
 
 If both tolerances are defined, a response is accepted if it passes ANY of those
 criteria. When the domain is `decimal`, the response and the answer are first
@@ -276,8 +305,10 @@ that is outside this specification.
 
 When the frontmatter does not give `decimalPlaces` and the domain is
 `decimal`, it is inferred from the value and from the absolute tolerance: the
-larger of the number of decimal places of the two. The decimal places of a
-`number` are `max(0, d - e)`, where `d` is the count of digits after the
+larger of the number of decimal places of the two. A fraction has no decimal
+places of its own, so for a fraction answer only the absolute tolerance gives
+them (see [Fraction answer under `decimal`](#fraction-answer-under-decimal)).
+The decimal places of a `number` are `max(0, d - e)`, where `d` is the count of digits after the
 decimal point of the mantissa (0 if there is none) and `e` is the exponent
 (0 if there is none). So `6.022e23` has 0 places and `1.5e-3` has 4. `2.50 +- 0.01` and
 `0 +- 0.01` both give 2; `3.14 +- 0.1` gives 2; `1.5 +- 1` gives 1.
@@ -293,6 +324,24 @@ In Markdown the places are the digits as written. In a YAML or JSON document:
   the formula is the same: the places do not depend on how the platform
   writes the number. `1e-7` and `0.0000001` both have 7 places, and `1.5e-7`
   has 8.
+
+### Fraction answer under `decimal`
+
+A fraction answer is valid when the domain is `decimal`. The answer is an
+exact value, the response is a decimal, and the rounding to
+[`decimalPlaces`](#decimal-places) makes the two comparable. A `decimal`
+question does not accept a fraction response (see
+[Numeric](../responses.md#numeric)), but this is not a contradiction: the
+rule for the response is about what a student types, and the answer is what
+the author knows to be true. `[numeric]: 1/3 +- 0.01` is an example: the
+domain is `decimal`, the tolerance gives 2 places, and the answer rounds to
+`0.33`.
+
+If the answer is a fraction, the domain is `decimal` and `decimalPlaces` is not
+given, the places come from the absolute tolerance. When there is no absolute
+tolerance, or it has 0 places (`1/3 +- 1`), nothing gives the places and the
+document is not valid (`missing-decimal-places`). Without the rule, the
+answer would round to 0 places and accept every response that rounds to 0.
 
 The parsed document carries the inferred value. The field has no meaning for an
 `integer` or `fraction` question (`ignored-decimal-places`).
@@ -313,7 +362,9 @@ Units are non-empty strings that may hold any character except a
 terminal of [Common grammar rules](../references/grammar.md).
 
 This admits units an ASCII-only class would reject, such as `µm`, `°C`,
-`km/h`, and `Ω`.
+`km/h`, and `Ω`. A unit MUST have at least one visible character (see
+[Visible characters](../references/grammar.md#visible-characters)): a unit of
+format characters only, such as U+200B, is `blank-text`.
 
 
 ## Grading
@@ -349,12 +400,14 @@ values is outside this specification.
 
 | Field              | Level    | Code                           | Rule                                                               |
 | ------------------ | -------- | ------------------------------ | ------------------------------------------------------------------ |
-| answer             | error    | parse-error                    | a Markdown body must match the grammar of [Body](#body), which rejects U+2212, `±`, the decimal comma and the digit group separator |
-| answer             | error    | malformed-numeric-answer       | a string must be a valid `sign? numeric_value`, with a nonzero denominator; a number must be finite; the value must fit the range of a double |
-| tolerance.absolute | error    | malformed-numeric-answer       | must be finite and fit the range of a double                       |
-| tolerance.relative | error    | malformed-numeric-answer       | must be finite and fit the range of a double                       |
+| epilogue           | error    | detached-tag                   | a tag must not come after the epilogue started, see [Body tags](question-base.md#tags-after-the-epilogue-starts) |
+| answer             | error    | parse-error                    | a Markdown body must match the grammar of [Body](#body), which rejects U+2212, `±`, the decimal comma and the digit group separator; the value and both tolerances must fit the range of a double |
+| answer             | error    | malformed-numeric-answer       | in a JSON/YAML document, a string must be a valid `sign? numeric_value`, with a nonzero denominator; a number must be finite; the value must fit the range of a double |
+| tolerance.absolute | error    | malformed-numeric-answer       | in a JSON/YAML document, must be finite and fit the range of a double |
+| tolerance.relative | error    | malformed-numeric-answer       | in a JSON/YAML document, must be finite and fit the range of a double |
 | answer             | warning  | answer-outside-domain          | should be a whole number when `domain` is "integer", and a whole number or a fraction string when `domain` is "fraction"[^6] |
 | tolerance.absolute | error    | schema-error                   | must not be negative (schema)                                      |
+| tolerance.relative | error    | schema-error                   | must not be negative (schema)                                      |
 | tolerance.relative | warning  | relative-tolerance-around-zero | should not be given when `answer` is zero[^2]                      |
 | tolerance.relative | info     | relative-tolerance-over-one    | is a fraction, so a value above 1 is likely a mistake[^4]          |
 | domain             | info     | domain-mismatch                | is "integer" or "fraction" and `tolerance.absolute` is a decimal[^3] |
@@ -362,13 +415,18 @@ values is outside this specification.
 | decimalPlaces      | info     | ignored-decimal-places         | is ignored unless `domain` is "decimal"[^7]                        |
 | incorrectFeedback  | error    | blank-text                     | if defined, must have at least one visible character               |
 | unit               | error    | schema-error                   | must not contain whitespace or brackets (schema)                   |
+| unit               | error    | blank-text                     | if defined, must have at least one visible character               |
+| tolerance          | error    | schema-error                   | must have at least one field: `{}` is not a tolerance (schema)     |
+| decimalPlaces      | error    | missing-decimal-places         | is not given, `domain` is "decimal" and `answer` is a fraction, and `tolerance.absolute` is not defined or has 0 decimal places[^8] |
 | tolerance          | info     | missing-tolerance              | is not defined when `domain` is "decimal"[^5]                      |
 
 [^2]: The relative tolerance is `|answer| × relative`, which is 0 for a zero
 answer, so only an exact 0 would be accepted.
 [^3]: See [number type/domain](#number-typedomain). A tolerance is a
-decimal when it is not whole (`0.5`, not `1.0`: see the inference of the
-domain). A declared domain MAY be wider than
+decimal when its value is not whole (`0.5`, not `1.0`). This lint reads the
+value in every form. The inference of the domain reads a Markdown tolerance by
+its spelling instead (`1.0` is a `DECIMAL`), see
+[number type/domain](#number-typedomain). A declared domain MAY be wider than
 the values need: `decimal` fits an integer answer, and `fraction` fits an
 integer (see [answer representation](#answer-representation)). A non-whole
 answer under a narrower domain is `answer-outside-domain`, not this code.
@@ -384,3 +442,7 @@ not whole, such as `0.75` or `"0.75"`, is a decimal and contradicts the
 domain.
 [^7]: The declared domain, or the one inferred from the answer and the absolute
 tolerance when `domain` is not given.
+[^8]: A fraction has no decimal places of its own, see
+[Fraction answer under `decimal`](#fraction-answer-under-decimal). The domain
+is the declared one or the inferred one; a decimal absolute tolerance infers
+`decimal`, and it has places, so the error needs a declared `decimal`.

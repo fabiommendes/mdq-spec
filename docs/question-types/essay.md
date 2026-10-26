@@ -21,8 +21,9 @@ frontmatter:
 | content   | string  | Either "code", "text" or "plain"[^2]       |
 | highlight | string  | Programming language of "code" content[^1] |
 
-[^1]: This property is ignored if `content` is not "code", and SHOULD be
-omitted. It MUST NOT be the empty string.
+[^1]: Allowed only when `content` is "code". With any other content, or with
+no `content` (the default is "text"), it is a `schema-error`. It MUST NOT be
+the empty string.
 [^2]: Default is "text".
 
 The `answerKey` field is not a frontmatter field. A Markdown source sets it with
@@ -36,8 +37,9 @@ in `meta`. MDQ does not enforce it.
 ## Body
 
 The body is a paragraph whose only content is the `[essay]` tag, in lower case.
-The tag MAY be indented, as in other types, and MAY be followed by spaces or
-tabs.
+The tag has no colon and no content, see
+[Body tags](question-base.md#body-tags). It MAY be indented, as in other types,
+and MAY be followed by spaces or tabs.
 
 ```lark
 essay : ws? "[essay]" ws?
@@ -48,8 +50,11 @@ The rule `ws` is defined in
 of a paragraph. A list item or a heading that holds `[essay]`, such as
 `* [essay]` or `## [essay]`, is not the tag. A paragraph with more text than the
 tag, such as `[essay] with at most 200 words` or `[Essay]`, is a `parse-error`.
-A second paragraph with only `[essay]` is a forbidden element of the epilogue,
-see [Forbidden elements](question-base.md#forbidden-elements).
+A second paragraph with only `[essay]` is in the epilogue, so it is a
+`detached-tag` error, see
+[Tags after the epilogue starts](question-base.md#tags-after-the-epilogue-starts).
+A tag in another case, such as `[Essay]`, is a `parse-error` too, see
+[Case of tags](question-base.md#case-of-tags).
 
 A paragraph with only `[essay]` is always the tag. It is never a
 [slug](question-base.md#slug). A slug can be `essay`, since the name of a type
@@ -69,9 +74,21 @@ The `content` field describes the kind of response the student writes. It is
 * "plain": the response is plain text without any formatting. Rich text widgets
   are not shown to students.
 
-The ordering type has a `content` field too, with the values "code" and "text",
-but it is not a frontmatter field there: the body of the question sets it. See
-[Ordering](ordering.md#body).
+| Value   | Set by                                 | Meaning                                                      |
+| ------- | -------------------------------------- | ------------------------------------------------------------ |
+| "text"  | the frontmatter; the default           | The response is rich text. The format depends on the host.   |
+| "plain" | the frontmatter                        | The response is plain text, as typed.                        |
+| "code"  | the frontmatter                        | The response is code. `highlight` is the language.           |
+
+The `highlight` field is allowed only with `content` "code". With "text" or
+"plain", and when `content` is omitted, `highlight` is a `schema-error`.
+
+Implementations MAY report, at the info level, a `highlight` that is not a
+recognized language identifier (`unknown-highlight-language`), and a question
+with `content` "code" and no `highlight` (`code-content-without-highlight`).
+
+The ordering type has a `content` field too, but with other values and another
+source: the body of the question sets it. See [Ordering](ordering.md#content).
 
 The response is always a string. For "plain" and "code", it is the text the
 student wrote, as typed. For "text", its format depends on the host (for
@@ -90,7 +107,9 @@ line. It holds the blocks after the heading, up to the end of the question: the
 end of the file or, in an exam, the next block.
 
 ```lark
-answer_key : ws? "##" ws "[answer-key]" ws? ("#"+ ws?)? nl md_block*
+answer_key : answer_key_heading nl md_block*
+answer_key_heading : ws? "##" ws "[answer-key]" (ws ("#"+ ws?)?)?
+                   | ws? "[answer-key]" ws? nl ws? "-"+ ws?
 ```
 
 The rules `ws` and `nl` are defined in
@@ -113,7 +132,7 @@ heading of the section, such as `### Criteria`, does not end it. Text after the
 section is part of the answer key, not an epilogue.
 
 The blocks of the section, without the heading, are the `answerKey` field. The
-field has the same license of normalization as `stem` and `epilogue`.
+field allows the same normalization as `stem` and `epilogue`.
 
 ```md
 Describe how the greenhouse effect works and how it affects the climate.
@@ -139,10 +158,16 @@ answerKey: >-
   increased the concentration of these gases, which leads to global warming.
 ```
 
-A section with no content defines no answer key: it is the same as no section.
-It is not a `blank-text` error, since `## [answer-key]` with nothing after it
-is a common placeholder in a template. A document MUST NOT have a second
-`## [answer-key]` section.
+A section with no block, only blank lines, defines no answer key: it is the
+same as no section. It is not a `blank-text` error, since `## [answer-key]`
+with nothing after it is a common placeholder in a template. Any other content
+is a defined answer key, even when it shows nothing, such as an HTML comment.
+The `blank-text` rule checks the raw string of that content: a section whose
+only content is a U+200B is a `blank-text` error. A document MUST NOT have a second
+`## [answer-key]` section (`parse-error`).
+
+Implementations MAY report, at the info level, a question that defines no
+answer key (`missing-answer-key`).
 
 A footnote definition belongs to the field where it is. A reference defined in
 the stem is not defined by a definition in the answer key, or in the epilogue.
@@ -150,7 +175,7 @@ A reference with no definition in its own field is text, as in CommonMark.
 
 The answer key MUST NOT be shown to the student before the student submits the
 response. A host MAY show it after that, even if the response is still
-[pending](../responses.md#pending).
+[pending](../responses.md#pending). This is a rule for hosts: no lint checks it.
 
 
 ## Grading
@@ -164,6 +189,23 @@ The [automation](question-base.md#automation) of an essay is `manual`: every
 response is pending until the instructor supplies a score. The `grading` field
 of the exam does not apply to essays, and `penalty` does, as for any other
 question. See [Grading](../exam.md#grading).
+
+
+## Feedback
+
+An essay has no feedback syntax. A `>` block after the `[essay]` tag is an
+ordinary block quote of the epilogue, not feedback:
+
+```md
+Describe the Pantanal.
+
+[essay]
+
+> Good answers mention the floods.
+```
+
+Here the epilogue is `> Good answers mention the floods.`. A pending response
+shows no feedback, see [Pending](../responses.md#pending).
 
 
 ## Response
@@ -184,14 +226,14 @@ An empty response is a response, not a skip.
 | --------- | -------- | ------------------------------ | ---------------------------------------------------------- |
 | content   | error    | schema-error                   | must be "code", "text" or "plain" (schema)                 |
 | highlight | error    | schema-error                   | must not be empty (schema)                                 |
+| highlight | error    | schema-error                   | must be omitted unless `content` is "code" (schema)        |
 | body      | error    | parse-error                    | the paragraph of the tag must be only `[essay]`, in lower case[^5] |
 | body      | error    | foreign-choice-marker          | the `[essay]` tag cannot be a list item[^4]                |
-| epilogue  | error    | forbidden-block-element        | cannot have a paragraph with only `[essay]`                |
+| epilogue  | error    | detached-tag                   | cannot have a paragraph with only `[essay]`                |
 | answerKey | error    | parse-error                    | at most one `## [answer-key]` section may be declared      |
 | answerKey | error    | forbidden-block-element        | cannot have an `H1` heading                                |
 | answerKey | error    | invalid-frontmatter-field      | cannot be set in the frontmatter of a Markdown source      |
 | answerKey | error    | blank-text                     | if defined, must have at least one visible character       |
-| highlight | warning  | ignored-highlight              | should be omitted unless `content` is "code"               |
 | highlight | info     | unknown-highlight-language     | is not a recognized language identifier[^3]                |
 | highlight | info     | code-content-without-highlight | is not defined when `content` is "code"                    |
 | answerKey | info     | missing-answer-key             | is not defined in the document[^6]                         |

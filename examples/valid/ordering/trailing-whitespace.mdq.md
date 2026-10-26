@@ -1,6 +1,6 @@
 Ordene as linhas para imprimir os rios da Amazônia.
 
-[ordering]
+[ordering]:
 ```python
 rios = ["Negro", "Solimões"]   
 for rio in rios:	

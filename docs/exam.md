@@ -73,8 +73,8 @@ Exams accept the following arguments in the frontmatter
     question can never have.
 [^2]: Same rules as a question id -- see
     [generic fields](question-types/question-base.md).
-[^3]: Must be a valid UUID.
-[^4]: Must be a valid IETF BCP 47 language tag.
+[^3]: Must be a well-formed UUID.
+[^4]: Must be a well-formed IETF BCP 47 language tag.
 [^5]: See [Penalty](#penalty) below.
 [^6]: See [Grading](#grading) below.
 [^7]: A valid ISO 8601 date or date-time. See [Duration and Start Time](#duration-and-start-time).
@@ -132,8 +132,20 @@ A question block is one of:
   stored outside the exam. See [Include](#include) and
   [Include all](#include-all).
 
-Any block MAY be preceded by a `===` separator, which is a line with three
-equal signs preceded by a blank line. An inline question that does not contain
+Any block MAY be preceded by a `===` separator. A separator is a line that
+matches `SEPARATOR`, at column 0, after a blank line or at the start of the
+file:
+
+```lark
+SEPARATOR : /===[ \t]*/
+```
+
+No blank line is needed after it. Any other line of `=` is text, not a
+separator: `====`, `   ===` (indented) and `= = =` are text. Implementations
+SHOULD warn about such a line (`malformed-separator`), because the questions
+that follow it are read as part of the text before it. A `===` line right
+after a paragraph is a setext underline, which `setext-heading` reports
+instead. An inline question that does not contain
 a frontmatter block MUST be preceded by a separator. If the inline question has
 a frontmatter block, the separator is optional. An include block SHOULD NOT be
 preceded by a separator, since its `---` lines already mark where it starts.
@@ -158,7 +170,7 @@ followed by `id: q1` as text, and the exam has no question. Implementations
 SHOULD warn about a setext heading in the instructions or in a question of an
 exam (`setext-heading`).
 
-Inside an exam, no block after the body of a question MUST use `---` as a
+Inside an exam, a block after the body of a question MUST NOT use `---` as a
 thematic break. This covers the epilogue and the type-specific sections that
 follow it: the `## [answer-key]` section of an essay and the `## [extra]`,
 `## [accept]` and `## [reject]` sections of an ordering question. Use `***` or
@@ -200,20 +212,21 @@ follow it is a warning, not an error. An implementation that cannot read the
 query adds no questions for that block.
 
 ```lark
-query      : logic ("EXCEPT" slugs)?
+query      : logic ("EXCEPT" ids)?
 
 ?logic     : logic "OR" logic_and
            | logic_and
 ?logic_and : logic_and "AND" logic_not
            | logic_not
-?logic_not : "NOT" logic_not
+?logic_not : "NOT" logic_not -> not_
            | atom
 ?atom      : TAG
            | "(" logic ")"
 
-slugs      : SLUG ("," SLUG)*
+ids        : ID ("," ID)*
 
 TAG        : /(?!(AND|OR|NOT|EXCEPT)(?![^(),\t\n\v\f\r \x85\xa0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]))[^(),\t\n\v\f\r \x85\xa0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+/
+ID         : TAG
 
 %import common.WS
 %ignore WS
@@ -223,12 +236,15 @@ A `TAG` matches a question when it is equal to one of the question's `tags`.
 The comparison is exact and case-sensitive. The keywords `AND`, `OR`, `NOT` and
 `EXCEPT` are uppercase only: `and` is an ordinary tag. `NOT` binds tighter than
 `AND`, and `AND` binds tighter than `OR`. `EXCEPT` removes the questions with
-the listed ids from the result. A `SLUG` has the same format as the value of
-`include`.
+the listed ids from the result.
 
-`SLUG` and `UNICODE_SPACE` are defined in
-[Common grammar rules](references/grammar.md). A `TAG` holds no parenthesis,
-no comma and no `UNICODE_SPACE`. The query ignores only the Lark `WS`: space,
+`UNICODE_SPACE` is defined in
+[Common grammar rules](references/grammar.md). A `TAG` and an `ID` have the
+same format: they hold no parenthesis, no comma and no `UNICODE_SPACE`. An `ID`
+is not limited to a `SLUG`, so `questão-1` is valid in `EXCEPT`. A question id
+with a space, a comma or a parenthesis cannot be listed in `EXCEPT`.
+
+The query ignores only the Lark `WS`: space,
 tab, form feed, carriage return and line feed. A query with any other
 `UNICODE_SPACE` does not follow the language.
 
@@ -325,7 +341,7 @@ The floor does not make the grading strategies agree. For a
 multiple-selection question, `"symmetric"` is `2 * partial - 1`, so the two
 differ whenever the score is positive: the ticked set `{a}` of the
 example in [multiple selection](question-types/multiple-selection.md#grading)
-score 0.75 under `"partial"` and 0.5 under `"symmetric"`, with any `penalty`.
+scores 0.75 under `"partial"` and 0.5 under `"symmetric"`, with any `penalty`.
 Under `"none"` the floor only removes the negative part of a `"symmetric"`
 score, so `{b}` scores 0.25 under `"partial"` and 0 under
 `"symmetric"`.
@@ -464,7 +480,7 @@ it, since an exam with no questions cannot be answered.
 
 ## Additional Rules
 
-The rules for `id`, `uuid`, `locale` and `title` in
+The rules for `id`, `uuid`, `locale`, `title`, `author`, `tags` and `meta` in
 [generic fields](question-types/question-base.md#additional-rules) also apply to the
 exam frontmatter.
 
@@ -473,6 +489,7 @@ exam frontmatter.
 | questions[].id  | error    | duplicate-question-id           | must be unique within the exam after includes resolve[^9]                                                                                                                                                         |
 | start           | error    | malformed-start                 | must be an ISO 8601 date or date-time, see [Duration and Start Time](#duration-and-start-time)                                                                                                                    |
 | duration        | error    | invalid-duration                | must be a positive ISO 8601 duration without years or months, `HH:MM` or `Xd Yh Zm`                                                                                                                               |
+| description, course | error | blank-text                  | if defined, must have at least one visible character                                                                                                                                                              |
 | instructions    | error    | blank-text                      | must have at least one visible character                                                                                                                                                                          |
 | questions[].{epilogue,answerKey,extra,accept,reject} | error    | parse-error                     | must not use `---` as a thematic break inside an exam                                                                                                                                                             |
 | questions[]     | error    | unknown-include-field           | an include block allows only `include`, or `includeAll` with `max`                                                                                                                                               |
@@ -482,6 +499,7 @@ exam frontmatter.
 | instructions    | warning  | unsafe-thematic-break           | should not write a thematic break with `-`, see [Question and include blocks](#question-and-include-blocks); the same rule for questions is in [generic fields](question-types/question-base.md#additional-rules) |
 | questions[].includeAll | warning  | empty-include-all               | should add at least one question when it resolves                                                                                                                                                                 |
 | questions[].id  | warning  | undeclared-id-after-include-all | should be declared on an inline question after `includeAll`                                                                                                                                                      |
+| instructions, questions[] | warning | malformed-separator          | should not have a line of `=` that is not a separator, see [Question and include blocks](#question-and-include-blocks)                                                                                           |
 | questions[]     | warning  | separator-before-include        | an include block should not be preceded by `===`                                                                                                                                                                  |
 | questions[].includeAll | warning  | nonstandard-include-query       | should follow the recommended query language                                                                                                                                                                      |
 

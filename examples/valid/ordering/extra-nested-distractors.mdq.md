@@ -1,6 +1,6 @@
 Ordene o esboço das regiões do Brasil e de alguns de seus estados.
 
-[ordering]
+[ordering]:
 * Região Norte
   * Amazonas
   * Pará

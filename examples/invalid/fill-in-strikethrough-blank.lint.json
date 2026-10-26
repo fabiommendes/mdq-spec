@@ -1,0 +1,7 @@
+[
+  {
+    "code": "misplaced-blank",
+    "severity": "error",
+    "path": ["stem"]
+  }
+]

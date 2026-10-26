@@ -1,0 +1,15 @@
+[
+  {
+    "code": "foreign-choice-marker",
+    "severity": "error",
+    "path": [
+      "choices",
+      1
+    ]
+  },
+  {
+    "code": "non-ascii-whitespace",
+    "severity": "warning",
+    "path": []
+  }
+]

@@ -1,6 +1,6 @@
 Ordene os períodos da história do Brasil.
 
-[ordering]
+[ordering]:
 * Período colonial
 * Império
 

@@ -1,0 +1,9 @@
+# The text between inline HTML tags is plain text, so a `[^id]` there is a
+# blank (fill-in.md, "Where blanks may appear").
+type: fill-in
+stem: A capital do Brasil é <span>[^capital]</span>.
+blanks:
+- id: capital
+  type: short-answer
+  accept:
+  - Brasília

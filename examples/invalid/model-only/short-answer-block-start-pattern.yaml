@@ -1,0 +1,8 @@
+# An inexact pattern cannot start a markdown block: `# Brasília` would be a
+# heading in the Markdown form. Write an exact literal or a regex.
+id: sa-block-start-pattern
+type: short-answer
+stem: Como se escreve um título de nível 1 em Markdown com o texto Brasília?
+accept:
+  - pattern: "# Brasília"
+    feedback: Correto.

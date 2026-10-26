@@ -1,0 +1,5 @@
+# A tolerance has at least one field: `minProperties: 1`.
+type: numeric
+stem: What is the average depth of the Amazon River at Óbidos, in meters?
+answer: 40.5
+tolerance: {}

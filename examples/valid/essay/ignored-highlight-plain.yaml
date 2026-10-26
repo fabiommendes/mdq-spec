@@ -1,7 +1,0 @@
-# `highlight` with `content: plain` gets `ignored-highlight`, like `content: text`.
-id: ciclo-agua
-title: Ciclo da água
-type: essay
-stem: Explique o ciclo da água.
-content: plain
-highlight: python

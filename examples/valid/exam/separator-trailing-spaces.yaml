@@ -1,0 +1,19 @@
+# exam.md, "Question and include blocks": trailing spaces and tabs after `===`
+# are allowed. Both lines are separators.
+type: exam
+id: biomas
+title: Brazilian biomes
+instructions: Answer every question about the biomes of Brazil.
+questions:
+- stem: Which biome covers most of northern Brazil?
+  choices:
+  - text: Amazon
+    score: 1.0
+  - text: Pampa
+  type: multiple-choice
+- stem: Which biome is found only in Brazil?
+  choices:
+  - text: Caatinga
+    score: 1.0
+  - text: Taiga
+  type: multiple-choice

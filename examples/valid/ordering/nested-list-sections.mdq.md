@@ -4,7 +4,7 @@ indentation: strict
 
 Ordene o esboço dos biomas brasileiros.
 
-[ordering]
+[ordering]:
 * Amazônia
   * Floresta ombrófila
     * Várzea

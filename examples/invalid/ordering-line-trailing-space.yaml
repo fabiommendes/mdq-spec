@@ -1,0 +1,8 @@
+# A line text with trailing whitespace is a `schema-error`.
+type: ordering
+content: text
+stem: Ordene as capitais do Brasil da mais antiga para a mais recente.
+lines:
+  - [0, Salvador]
+  - [0, "Rio de Janeiro "]
+  - [0, Brasília]

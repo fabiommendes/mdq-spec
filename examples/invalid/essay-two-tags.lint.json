@@ -1,6 +1,6 @@
 [
   {
-    "code": "forbidden-block-element",
+    "code": "detached-tag",
     "severity": "error",
     "path": [
       "epilogue"

@@ -66,7 +66,7 @@ id: ordem
 
 Ordene os eventos.
 
-[ordering]
+[ordering]:
 * Chegada de Cabral
 * Independência
 * Proclamação da República

@@ -6,6 +6,13 @@ The grammar snippets in [exam.md](../exam.md) and in the
 rules and terminals that several snippets share. A snippet that uses them does
 not define them again.
 
+## Markdown dialect
+
+MDQ Markdown is [CommonMark](https://commonmark.org/) with three GitHub
+Flavored Markdown extensions: tables, strikethrough (`~~text~~`) and the
+autolinks of bare URLs and `www.` addresses. No other extension is part of it.
+Raw HTML is allowed, as in CommonMark.
+
 ## Regex dialect
 
 Python, JavaScript and JSON Schema do not agree on the shorthand classes `\s`,
@@ -44,7 +51,10 @@ it as if it ended with `nl`.
 
 Where the grammar expects `ws` or `nl`, every other character is text. After
 `[short-answer]:`, a U+00A0 followed by `Brasília` is the answer U+00A0
-`Brasília`, and not the answer `Brasília`.
+`Brasília`, and not the answer `Brasília`. The only exception is the value of a
+[choice marker](choices.md#choice-marker): it is read on its normalized value
+(NFKC), so a U+00A0 or a U+2003 between the brackets is `ws`, and `[` U+00A0
+`]` is the same as `[ ]`.
 
 A U+FEFF at the start of a file is a byte order mark. Implementations MUST
 remove it before they parse the file.
@@ -112,7 +122,12 @@ COMMENT_LINE : /#[^\r\n]*(\r\n|\r|\n)/
 CHOICE_ID    : /\[[a-zA-Z0-9]+([-_][a-zA-Z0-9]+)*\](?![(\[])/
 ```
 
-* `SLUG` is the format of question ids, choice ids, blank ids and exam slugs.
+* `SLUG` is the format of the body slug of a question, choice ids, blank ids
+  and the slug of the exam H1. A question `id` and an exam `id` in the
+  frontmatter SHOULD match it: any other string is valid, but gets the
+  `unsafe-id` warning. A host cannot always show an id on the web, can derive a
+  URL-safe slug from any id, and can use ids internally, for example to map
+  questions to files.
   Implementations MAY accept more characters under an option flag. See
   [Slug](../question-types/question-base.md#slug).
 * `INTEGER` and `DECIMAL` have no sign and no leading zeros. The rules that use
@@ -166,25 +181,30 @@ blank_line    : ws? nl
 
 COMMENT_MARK  : /!(?!\[)/
 MARK_INDENT   : /[ ]{1,3}/
-LAZY_START    : /(?:(?:[ ]{4}|[ ]{0,3}\t)[ \t]*[>!]|(?!>|!(?!\[)|[*+-][ \t]|1[.)][ \t]|#{1,6}([ \t]|(?=[\r\n]))|`{3}|~{3}|(\*[ \t]*){3,}(?=[\r\n])|(-[ \t]*){3,}(?=[\r\n])|(_[ \t]*){3,}(?=[\r\n]))[^ \t\r\n])/
+LAZY_START    : /(?:(?:[ ]{4}|[ ]{0,3}\t)[ \t]*[^ \t\r\n]|(?!>|!(?!\[)|[*+-][ \t]|0{0,8}1[.)][ \t]|#{1,6}([ \t]|(?=[\r\n]))|`{3}|~{3}|(\*[ \t]*){3,}(?=[\r\n])|(-[ \t]*){3,}(?=[\r\n])|(_[ \t]*){3,}(?=[\r\n]))[^ \t\r\n])/
 ```
 
 `md_inline` is any markdown inline element except a line ending.
 `LAZY_START` is the first character of a lazy line. It is not a feedback or
 comment marker, and it does not start a block that interrupts a paragraph: a
-bullet list item, an ordered list item that starts with `1`, an ATX heading, a
-fenced code block or a thematic break. An HTML block also interrupts a
-paragraph; the terminal does not test it.
+bullet list item, an ordered list item that starts with `1` (with up to eight
+leading zeros, so `01.` and `001)` count), an ATX heading, a fenced code block
+or a thematic break. An HTML block also interrupts a paragraph; the terminal
+does not test it. This is a stated gap: a line that starts an HTML block is
+read as a lazy line, and CommonMark reads it as a new block.
 
 The normative rule for a lazy line is the paragraph continuation of CommonMark.
 `LAZY_START` is an approximation of it, as the schema pattern is an
 approximation of the exact literal (see
 [Exact literals](patterns.md#exact-literals)). Where the two disagree, the rule
-of CommonMark wins. The terminal fixes one case: a line that starts with `>` or
-`!` after four or more columns of indentation is continuation text, not a
-feedback or comment line. The first alternative of the terminal reads that
-indentation and the marker as the start of the lazy line, and `MARK_INDENT`
-allows up to three spaces before a marker.
+of CommonMark wins. The first alternative of the terminal covers a line with
+four or more columns of indentation (four spaces, or up to three spaces and a
+tab) and any character after it: the line is continuation text, whatever it
+starts with. A `>` or `!`, a bullet marker, `#` and a code fence are all
+continuation text there, so they are not a feedback or comment line, a list, a
+heading or a fence. `MARK_INDENT` allows up to three spaces before a marker.
+The second alternative covers the lines with less indentation: it excludes the
+starts of the blocks above.
 
 The terminal does not exclude a setext underline (a line of only `=` or only
 `-` characters). After a feedback or comment line, the underline is

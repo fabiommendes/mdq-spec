@@ -24,7 +24,9 @@
 #   //
 #   // `feedback` is the whole flat list of feedback strings, in the order
 #   // the blank definitions appear (fill-in.md, "Feedback"). When the key
-#   // is absent, the vector does not check the feedback.
+#   // is absent, the vector does not check the feedback. For a "pending"
+#   // example, `feedback` is the list shown before the instructor scores:
+#   // always empty, also when some blanks are settled.
 #   examples: {
 #     response: any,
 #     score?: number | string,
@@ -236,11 +238,14 @@ questions:
     examples:
       - response: { river: "Madeira", length: 6400 }
         score: "pending"
+        feedback: []
       # The pending blank is enough, whatever the other blank scored.
       - response: { river: "Madeira", length: 1 }
         score: "pending"
+        feedback: []
       - response: { river: "Madeira" }
         score: "pending"
+        feedback: []
       # The others are settled: accept and reject patterns match.
       - response: { river: "Amazonas", length: 6400 }
         scores: { partial: 1, no-mistakes: 1, all-or-nothing: 1, symmetric: 1 }
@@ -269,8 +274,10 @@ questions:
     examples:
       - response: { river: "Amazonas" }
         score: "pending"
+        feedback: []
       - response: { river: "" }
         score: "pending"
+        feedback: []
       - response: { river: null }
         scores: { partial: 0, no-mistakes: 0, all-or-nothing: 0, symmetric: 0 }
       - response: {}

@@ -7,7 +7,7 @@ title: Etapas do ciclo
 
 Ordene as etapas do ciclo da água, da evaporação ao retorno ao oceano.
 
-[ordering]
+[ordering]:
 ```text
 A água evapora dos oceanos e rios.
 O vapor sobe e condensa em nuvens.

@@ -1,0 +1,13 @@
+# The language of a fence is the first word of its info string. The rest of the
+# info string is ignored.
+type: ordering
+stem: Ordene as linhas para converter a temperatura de Brasília de Celsius para Fahrenheit.
+content: code
+highlight: python
+lines:
+- - 0
+  - celsius = 31.0
+- - 0
+  - fahrenheit = celsius * 9 / 5 + 32
+- - 0
+  - print(fahrenheit)

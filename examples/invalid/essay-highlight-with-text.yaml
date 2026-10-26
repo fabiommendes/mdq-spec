@@ -1,0 +1,5 @@
+# `highlight` is allowed only with `content: code`. Here `content` is "text".
+type: essay
+stem: Explique o que é uma troca de contexto em um sistema operacional.
+content: text
+highlight: python

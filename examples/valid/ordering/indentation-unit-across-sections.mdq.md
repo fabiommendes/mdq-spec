@@ -1,6 +1,6 @@
 Ordene as linhas para contar os números pares de `valores`.
 
-[ordering]
+[ordering]:
 ```python
 pares = 0
 for x in valores:

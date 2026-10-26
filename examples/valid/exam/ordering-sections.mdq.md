@@ -10,7 +10,7 @@ title: Etapas da sucessão
 Ordene as etapas da sucessão ecológica sobre rocha nua na Mata Atlântica, da
 primeira à última.
 
-[ordering]
+[ordering]:
 * Líquens colonizam a rocha nua.
 * Musgos crescem sobre o solo fino.
 * Gramíneas e pequenas ervas se fixam.

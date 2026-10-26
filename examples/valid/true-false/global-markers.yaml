@@ -1,5 +1,5 @@
 # Every ASCII letter of the TRUE list (`T`, `V`, `B`, `D`) and of the FALSE
-# list (`F`, `M`), in both cases. There is no `locale`, so no letter gets a
+# list (`F`, `M`, `E`, `Y`), in both cases. There is no `locale`, so no letter gets a
 # locale warning. `S` is not here: it is a WARNING letter.
 id: tf-global-markers
 title: Fatos sobre a Mata Atlântica
@@ -42,3 +42,9 @@ choices:
 - text: A Mata Atlântica não tem rios.
   correct: false
   marker: m
+- text: A Mata Atlântica fica apenas no interior do continente.
+  correct: false
+  marker: E
+- text: A Mata Atlântica não tem nenhuma espécie endêmica.
+  correct: false
+  marker: y

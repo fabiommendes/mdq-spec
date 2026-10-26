@@ -3,9 +3,7 @@
     "code": "schema-error",
     "severity": "error",
     "path": [
-      "accept",
-      0,
-      "lines"
+      "accept"
     ]
   }
 ]

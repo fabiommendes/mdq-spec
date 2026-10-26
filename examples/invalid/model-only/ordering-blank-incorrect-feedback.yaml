@@ -1,0 +1,9 @@
+# `incorrectFeedback` must have at least one visible character.
+type: ordering
+stem: Ordene os biomas do maior para o menor em área no Brasil.
+content: text
+incorrectFeedback: "   "
+lines:
+  - [0, "Amazônia"]
+  - [0, "Cerrado"]
+  - [0, "Mata Atlântica"]

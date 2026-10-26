@@ -1,0 +1,11 @@
+[
+  {
+    "code": "block-start-pattern",
+    "severity": "error",
+    "path": [
+      "accept",
+      0,
+      "pattern"
+    ]
+  }
+]

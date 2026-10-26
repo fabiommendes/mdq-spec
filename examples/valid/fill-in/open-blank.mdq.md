@@ -8,4 +8,4 @@ de visitar é [^cidade].
 
 [^capital/short-answer]: Brasília
 
-[^cidade/short-answer]:
+[^cidade/short-answer]

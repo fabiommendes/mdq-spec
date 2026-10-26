@@ -7,7 +7,7 @@ locale: pt-BR
 tags: [fisica, python]
 type: ordering
 indentation: strict
-unmatched: incorrect
+unmatched: manual
 normalizations:
     - skip-blanks
 meta:
@@ -17,7 +17,7 @@ meta:
 Ordene as linhas abaixo em um programa que simula o decaimento radioativo de
 uma amostra, imprimindo quantos núcleos restam a cada passo de tempo.
 
-[ordering]
+[ordering]:
 ```python
 from math import exp
 

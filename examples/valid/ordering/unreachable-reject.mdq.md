@@ -5,7 +5,7 @@ title: Sucessão ecológica
 
 Order the stages of ecological succession on bare rock in the Atlantic Forest.
 
-[ordering]
+[ordering]:
 * Lichens colonize the bare rock.
 * Mosses grow on the thin layer of soil.
 * A mature forest forms.

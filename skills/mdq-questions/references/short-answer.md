@@ -73,9 +73,13 @@ What is the capital of Brazil?
   > Sorry, that is not the correct answer.
 ```
 
-* A list after a blank line is NOT part of the block: it is epilogue text
-  (warning `detached-answer-list`).
+* A tag with a colon needs a pattern: on its line, or in a list that starts on
+  the very next line. A blank line before the list is an error (the list would
+  leak to the student as epilogue text). `[short-answer]:` with nothing after
+  it is an error too.
 * A tag with a pattern on its line must not be followed directly by a list.
+* `[short-answer]` without a colon is a block with no pattern (manual grading).
+  `[short-answer/reject]` always needs the colon and a pattern.
 * A reject block needs at least one pattern.
 * Per item: at most one `>` feedback block and one `!` comment block, in
   either order, never interleaved.
@@ -123,5 +127,5 @@ Always binary: 1 or 0. A response that matches no pattern follows `unmatched`:
 (the default when there is none) sends it to the instructor. Set
 `unmatched: manual` in the frontmatter to grade unknown responses by hand.
 `incorrectFeedback` in the frontmatter is the feedback for an incorrect
-response that no pattern gave feedback to. An empty `[short-answer]:` with no
-patterns means fully manual grading.
+response that no pattern gave feedback to. A `[short-answer]` tag
+with no colon and no patterns means fully manual grading.

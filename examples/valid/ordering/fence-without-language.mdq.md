@@ -1,6 +1,6 @@
 Ordene as etapas do método científico.
 
-[ordering]
+[ordering]:
 ```
 Observar um fenômeno
 Formular uma hipótese

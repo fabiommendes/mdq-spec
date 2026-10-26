@@ -5,7 +5,7 @@ title: Biome of central Brazil
 
 Name a biome of central Brazil.
 
-[short-answer]:
+[short-answer]
 
 [short-answer/reject]:
 * Savana

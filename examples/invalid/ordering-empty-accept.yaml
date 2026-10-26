@@ -1,9 +1,9 @@
-# An alternative must have at least one line (schema `minItems: 1`).
+# An empty `accept` list is a `schema-error`.
 type: ordering
-content: code
-stem: Ordene as linhas do programa.
+content: text
+stem: Ordene as capitais do Brasil da mais antiga para a mais recente.
 lines:
-  - [0, "n = int(input())"]
-  - [0, "print(n * 2)"]
-accept:
-  - lines: []
+  - [0, Salvador]
+  - [0, Rio de Janeiro]
+  - [0, Brasília]
+accept: []

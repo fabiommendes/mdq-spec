@@ -1,0 +1,9 @@
+# An empty `extra` list is a `schema-error`, as an empty `accept` or `reject`.
+type: ordering
+content: text
+stem: Ordene as capitais do Brasil da mais antiga para a mais recente.
+lines:
+  - [0, Salvador]
+  - [0, Rio de Janeiro]
+  - [0, Brasília]
+extra: []

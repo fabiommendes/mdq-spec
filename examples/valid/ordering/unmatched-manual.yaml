@@ -1,0 +1,20 @@
+# `unmatched: manual` leaves a response that matches neither the answer
+# key nor any accepted or rejected alternative ungraded, and flags it for
+# the instructor, the way an essay is. The default, `incorrect`, would
+# score it 0.
+#
+# The field decides nothing else: a response that does match an answer key
+# is graded automatically either way, and the score is binary -- 1 or 0,
+# never partial credit for a nearly correct ordering.
+id: ordering-brazilian-rivers
+title: Rios brasileiros
+type: ordering
+stem: Order the rivers below from the longest to the shortest.
+content: text
+unmatched: manual
+lines:
+  - [0, "Amazonas"]
+  - [0, "Paraná"]
+  - [0, "Madeira"]
+  - [0, "São Francisco"]
+  - [0, "Tocantins"]

@@ -70,6 +70,18 @@ questions:
       - response: 189
         score: 0
 
+  # `1000 +- 0.7%` is `relative: 0.007` (exact decimal division of the
+  # spelling), so 1007 is on the boundary and is accepted.
+  - name: "Relative tolerance written as a percentage"
+    question: { answer: 1000, tolerance: { relative: 0.007 } }
+    examples:
+      - response: 1007
+        score: 1
+      - response: 993
+        score: 1
+      - response: 1008
+        score: 0
+
   # Both tolerances: passing either one is enough.
   - name: "Either tolerance"
     question: { answer: 1000, tolerance: { absolute: 1, relative: 0.1 } }
@@ -138,6 +150,23 @@ questions:
       - response: 0.32
         score: 1
       - response: 0.31
+        score: 0
+
+  # A fraction answer under a declared `decimal` domain: the answer is exact
+  # and `decimalPlaces` rounds it to 0.33. The response rounds to 2 places
+  # too, so 0.333 matches and 0.34 does not.
+  - name: "Fraction with declared decimal places"
+    question: { answer: "1/3", domain: decimal, decimalPlaces: 2 }
+    examples:
+      - response: 0.33
+        score: 1
+      - response: 0.333
+        score: 1
+      - response: 0.3349
+        score: 1
+      - response: 0.34
+        score: 0
+      - response: 0.3
         score: 0
 
   # Negative answer: the relative tolerance uses |answer|.

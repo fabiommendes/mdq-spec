@@ -1,0 +1,14 @@
+# exam.md, "Additional Rules": the base rule `unsplit-tag-list` also applies to
+# the `tags` of the exam. A comma inside a list entry is not split.
+type: exam
+id: biomas
+title: Brazilian biomes
+tags:
+- geografia, biomas
+questions:
+- stem: Which biome covers most of northern Brazil?
+  choices:
+  - text: Amazon
+    score: 1.0
+  - text: Pampa
+  type: multiple-choice

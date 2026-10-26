@@ -1,6 +1,6 @@
 Ordene as linhas para ler três valores e imprimir o maior.
 
-[ordering]
+[ordering]:
 ```python
 a = int(input())
 b = int(input())

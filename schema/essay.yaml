@@ -30,10 +30,10 @@ allOf:
       highlight:
         type: string
         description: >-
-          Programming language used for syntax highlighting. Only applicable
-          when `content` is `code`; it SHOULD be omitted for any other
-          content (the linter warns, and the value is ignored). An empty
-          string is a `schema-error`.
+          Programming language used for syntax highlighting. Only allowed
+          when `content` is `code`; with any other content, or with no
+          `content` (which defaults to `text`), it is a `schema-error`. An
+          empty string is a `schema-error` too.
         minLength: 1
         examples:
           - python
@@ -52,6 +52,18 @@ allOf:
 
     required:
       - type
+
+    # `highlight` is allowed only for code content. `content` defaults to
+    # `text`, so `highlight` with no `content` is also an error.
+    if:
+      required:
+        - highlight
+    then:
+      required:
+        - content
+      properties:
+        content:
+          const: code
 
 # Rejects any key not defined by question-base.yaml or by the object
 # schema above. Plain `additionalProperties: false` can't be used here

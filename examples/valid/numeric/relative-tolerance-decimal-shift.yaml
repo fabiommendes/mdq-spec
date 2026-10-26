@@ -1,0 +1,10 @@
+# `+- 0.7%` is `0.7 / 100` in exact decimal arithmetic, stored as the double
+# nearest to 0.007.
+id: numeric-relative-tolerance-decimal-shift
+type: numeric
+stem: How many kilograms are there in one metric ton of sugarcane?
+answer: 1000
+domain: integer
+tolerance:
+  relative: 0.007
+unit: kg

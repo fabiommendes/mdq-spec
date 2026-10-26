@@ -16,8 +16,8 @@ allOf:
 
       lines:
         description: >-
-          The lines to be ordered, in the correct order -- this is the
-          answer key. Students are always shown them shuffled, together
+          The lines to be ordered, in the main correct order (part of the
+          answer key, with `accept`). Students are always shown them shuffled, together
           with `extra`. The same line may appear more than once; each
           occurrence is a separate copy the student must place.
         "$ref": "#/$defs/Lines"
@@ -45,8 +45,10 @@ allOf:
       reject:
         type: array
         description: >-
-          Orderings known to be wrong, each scoring 0. They exist to
-          attach feedback to a mistake the author expects. An alternative
+          Orderings known to be wrong, each scoring 0. They attach
+          feedback to a mistake the author expects, and under
+          `unmatched: manual` they settle a matching response that would
+          otherwise be pending. An alternative
           must not equal `lines` or an `accept` entry, and one that uses
           lines `lines` and `extra` do not offer can never match. Model
           rules, not expressed in this schema.
@@ -94,20 +96,29 @@ allOf:
         enum:
           - manual
           - incorrect
-        default: manual
+        default: incorrect
         description: >-
           What becomes of a response that matches neither `lines` nor any
-          entry of `accept` or `reject`. `manual` leaves it ungraded, for
-          the instructor to score by hand, the way an essay is; `incorrect`
-          scores it 0. A response that does match is graded automatically
-          either way.
+          entry of `accept` or `reject`. `incorrect` (the default) scores
+          it 0; `manual` leaves it ungraded, for the instructor to score
+          by hand, the way an essay is. A response that does match is
+          graded automatically either way.
+
+      incorrectFeedback:
+        type: string
+        description: >-
+          Feedback for an incorrect response that no `reject` entry gave
+          feedback to: a response that matches nothing under `unmatched:
+          incorrect`, or one that matches a `reject` entry with no
+          feedback. Inline markdown, like the feedback of an entry. Never
+          shown for a pending response.
 
       normalizations:
         type: array
         uniqueItems: true
         description: >-
           Transformations applied to both sides of every comparison --
-          the response and each answer key alike -- before they are
+          the response and each declared answer alike -- before they are
           matched. They never change what the student is shown.
         items:
           "$ref": "#/$defs/Normalization"
@@ -169,8 +180,10 @@ unevaluatedProperties: false
         minimum: 0
       - type: string
         description: >-
-          The text of the line, with its leading indentation and its
-          trailing whitespace removed.
+          The text of the line. It has no leading or trailing space or
+          tab and no line break. The text is empty only for a blank line
+          of a code block.
+        pattern: '^(?:[^ \t\r\n](?:[^\r\n]*[^ \t\r\n])?)?$'
     items: false
     minItems: 2
     maxItems: 2

@@ -6,7 +6,7 @@ title: Média aritmética
 Order the lines of this function that computes the arithmetic mean of a
 list of numbers.
 
-[ordering]
+[ordering]:
 ```python
 def mean(values):
     total = sum(values)

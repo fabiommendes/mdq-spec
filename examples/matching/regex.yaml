@@ -1,0 +1,170 @@
+# Vectors for the regex syntax table (docs/references/patterns.md, "Regex",
+# "Supported constructs"): one case per construct of the table.
+#
+# Document structure
+#
+# Case {
+#   name: string
+#   pattern: string      // a complete regex pattern, the only entry of `accept`
+#   accept: string[]     // responses the pattern accepts
+#   reject: string[]     // responses the pattern does not accept
+# }
+#
+# Control characters are written as YAML escapes.
+cases:
+  - name: literal
+    pattern: "/rio negro/"
+    accept: ["rio negro"]
+    reject: ["rio  negro", "Rio negro"]
+  - name: literal-slash
+    pattern: "/rio/negro/"
+    accept: ["rio/negro"]
+    reject: ["rio negro"]
+  - name: dot
+    pattern: "/rio.negro/"
+    accept: ["rio negro", "rio-negro"]
+    reject: ["rio\nnegro", "rioXXnegro"]
+  - name: escaped-syntax-character
+    pattern: "/\\^\\$\\.\\*\\+\\?\\(\\)\\[\\]\\{\\}\\|\\\\/"
+    accept: ["^$.*+?()[]{}|\\"]
+    reject: ["^$.*+?()[]{}|"]
+  - name: escaped-slash
+    pattern: "/rio\\/negro/"
+    accept: ["rio/negro"]
+    reject: ["rio negro"]
+  - name: control-escapes
+    pattern: "/a\\tb\\nc\\vd\\fe\\rf/"
+    accept: ["a\tb\nc\u000bd\fe\rf"]
+    reject: ["a b c d e f"]
+  - name: hex-escape
+    pattern: "/\\x41\\x62/"
+    accept: ["Ab"]
+    reject: ["ab"]
+  - name: unicode-escape
+    pattern: "/Aá/"
+    accept: ["Aá"]
+    reject: ["Aa"]
+  - name: braced-unicode-escape
+    pattern: "/\\u{1F600}\\u{41}/"
+    accept: ["😀A"]
+    reject: ["A😀"]
+  - name: shorthand-digit
+    pattern: "/\\d+\\D/"
+    accept: ["42a"]
+    reject: ["٤٢a", "42"]
+  - name: shorthand-word
+    pattern: "/\\w+\\W/"
+    accept: ["rio!"]
+    reject: ["José!"]
+  - name: shorthand-space
+    pattern: "/a\\sb\\S/"
+    accept: ["a bc"]
+    reject: ["a﻿bc", "a b "]
+  - name: class
+    pattern: "/[aeiou]gro/"
+    accept: ["egro"]
+    reject: ["ngro"]
+  - name: negated-class
+    pattern: "/[^aeiou]egro/"
+    accept: ["negro"]
+    reject: ["eegro"]
+  - name: class-range
+    pattern: "/[a-c]gro/"
+    accept: ["bgro"]
+    reject: ["dgro"]
+  - name: class-escapes
+    pattern: "/[\\]\\-\\\\\\^]/"
+    accept: ["]", "-", "\\", "^"]
+    reject: ["a"]
+  - name: class-backspace
+    pattern: "/[\\b]/"
+    accept: ["\b"]
+    reject: ["b"]
+  - name: class-open-bracket
+    pattern: "/[[]/"
+    accept: ["["]
+    reject: ["]"]
+  - name: class-dash-edges
+    pattern: "/[a-]+[-b]/"
+    accept: ["a-b", "-b"]
+    reject: ["c"]
+  - name: class-dash-after-range
+    pattern: "/[a-c-9]+/"
+    accept: ["a-9"]
+    reject: ["d"]
+  - name: class-shorthand
+    pattern: "/[\\d_]+[^\\s]/"
+    accept: ["4_2x"]
+    reject: ["4_ 2"]
+  - name: class-shorthand-dash
+    pattern: "/[\\d-]+/"
+    accept: ["4-2"]
+    reject: ["a"]
+  - name: class-escape-codes
+    pattern: "/[\\x41-\\x43\\u{44}]+/"
+    accept: ["ABCD"]
+    reject: ["E"]
+  - name: capturing-group
+    pattern: "/(rio|mar) negro/"
+    accept: ["rio negro", "mar negro"]
+    reject: ["lago negro"]
+  - name: non-capturing-group
+    pattern: "/(?:rio|mar) negro/"
+    accept: ["mar negro"]
+    reject: ["lago negro"]
+  - name: alternation-empty-side
+    pattern: "/rio( negro|)/"
+    accept: ["rio", "rio negro"]
+    reject: ["rio x"]
+  - name: star
+    pattern: "/ne*gro/"
+    accept: ["ngro", "neeegro"]
+    reject: ["nxgro"]
+  - name: plus
+    pattern: "/ne+gro/"
+    accept: ["negro", "neeegro"]
+    reject: ["ngro"]
+  - name: optional
+    pattern: "/ne?gro/"
+    accept: ["ngro", "negro"]
+    reject: ["neegro"]
+  - name: exact-count
+    pattern: "/ne{2}gro/"
+    accept: ["neegro"]
+    reject: ["negro", "neeegro"]
+  - name: minimum-count
+    pattern: "/ne{2,}gro/"
+    accept: ["neegro", "neeeegro"]
+    reject: ["negro"]
+  - name: count-range
+    pattern: "/ne{1,2}gro/"
+    accept: ["negro", "neegro"]
+    reject: ["ngro", "neeegro"]
+  - name: lazy-quantifier
+    pattern: "/ne+?gro/"
+    accept: ["neeegro"]
+    reject: ["ngro"]
+  - name: lazy-count
+    pattern: "/ne{1,2}?gro/"
+    accept: ["negro"]
+    reject: ["ngro"]
+  - name: anchors
+    pattern: "/^negro$/"
+    accept: ["negro"]
+    reject: ["negros"]
+  - name: word-boundary
+    pattern: "/\\bnegro\\b/f"
+    accept: ["rio negro azul", "negro"]
+    reject: ["negroni"]
+  - name: not-word-boundary
+    pattern: "/\\Bgro/f"
+    accept: ["negro"]
+    reject: ["gro"]
+  - name: positive-lookahead
+    pattern: "/neg(?=r)ro/"
+    accept: ["negro"]
+    reject: ["negra"]
+  - name: negative-lookahead
+    pattern: "/neg(?!r)[a-z]+/"
+    accept: ["negxa"]
+    reject: ["negra"]

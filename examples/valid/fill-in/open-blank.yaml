@@ -1,4 +1,4 @@
-# A `[^id/short-answer]:` definition with no pattern is an open blank: it has
+# A `[^id/short-answer]` tag without a colon is an open blank: it has
 # no `accept` list and the instructor grades its responses (fill-in.md,
 # "Short answer blanks").
 id: fill-in-open-blank

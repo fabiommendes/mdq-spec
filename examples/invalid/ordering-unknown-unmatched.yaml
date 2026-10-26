@@ -1,0 +1,9 @@
+# `unmatched` is either `incorrect` or `manual`.
+type: ordering
+stem: Ordene os biomas do maior para o menor em área no Brasil.
+content: text
+unmatched: review
+lines:
+  - [0, "Amazônia"]
+  - [0, "Cerrado"]
+  - [0, "Mata Atlântica"]

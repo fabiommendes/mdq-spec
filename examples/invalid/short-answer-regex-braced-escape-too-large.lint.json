@@ -1,0 +1,10 @@
+[
+  {
+    "code": "invalid-regex",
+    "severity": "error",
+    "path": [
+      "accept",
+      0
+    ]
+  }
+]

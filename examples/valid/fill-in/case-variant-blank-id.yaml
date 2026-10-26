@@ -1,0 +1,15 @@
+# Blank ids are case-sensitive: `rio` and `RIO` are two blanks, and the
+# lint reports `case-variant-blank-id`.
+id: rios-brasileiros
+title: Rios brasileiros
+type: fill-in
+stem: O rio [^rio] deságua no Atlântico, e o rio [^RIO] nasce nos Andes.
+blanks:
+- id: rio
+  type: short-answer
+  accept:
+  - São Francisco
+- id: RIO
+  type: short-answer
+  accept:
+  - Amazonas

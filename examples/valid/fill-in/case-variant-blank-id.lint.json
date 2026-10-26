@@ -1,0 +1,11 @@
+[
+  {
+    "code": "case-variant-blank-id",
+    "severity": "warning",
+    "path": [
+      "blanks",
+      1,
+      "id"
+    ]
+  }
+]

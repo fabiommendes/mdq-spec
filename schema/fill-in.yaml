@@ -45,8 +45,8 @@ allOf:
           - const: inherit
         default: inherit
         description: >-
-          If true, the choices of every choice-based blank are safe to shuffle. If false, they should
-          never be shuffled. `inherit`, the default, takes the exam's
+          If true, the choices of every choice-based blank may be shown in any order. If false, an implementation must
+          not change their order. `inherit`, the default, takes the exam's
           `shuffle` value, and is false outside an exam.
 
       diacritics:
@@ -156,13 +156,19 @@ unevaluatedProperties: false
       preAccept:
         description: >-
           Patterns a submission must match to be considered valid. A
-          pre-submission validator; plays no part in grading.
+          pre-submission validator; plays no part in grading. In Markdown,
+          the `preAccept` map of the frontmatter sets it, keyed by blank id
+          (`preAccept: {<id>: [...]}`).
         "$ref": "./short-answer.yaml#/$defs/patternList"
 
       preReject:
         description: >-
           Patterns a submission must not match to be considered valid.
-          Like `preAccept`, never affects a score.
+          Like `preAccept`, never affects a score. When a response matches
+          both, it is treated as rejected -- the opposite of the
+          `accept`/`reject` precedence used when grading. In Markdown, the
+          `preReject` map of the frontmatter sets it, keyed by blank id
+          (`preReject: {<id>: [...]}`).
         "$ref": "./short-answer.yaml#/$defs/patternList"
 
       incorrectFeedback:
@@ -171,7 +177,9 @@ unevaluatedProperties: false
           Feedback for an incorrect response that no pattern gave feedback
           to, with the same meaning as the `incorrectFeedback` of a
           short-answer question (short-answer.md, "Feedback"). Inline
-          markdown, like the feedback of a pattern.
+          markdown, like the feedback of a pattern. In Markdown, the
+          `incorrectFeedback` map of the frontmatter sets it, keyed by blank
+          id (`incorrectFeedback: {<id>: ...}`).
 
     required:
       - id
@@ -197,8 +205,9 @@ unevaluatedProperties: false
           the same grammar as a numeric body's value, e.g. "1/3", "2.50",
           "390000000000" or "6.022e23" (docs/question-types/numeric.md, "Answer
           representation"). Parsed from Markdown, a fraction, an integer
-          outside the 32-bit signed range and a decimal that a float
-          cannot hold digit by digit stay strings. Written directly,
+          outside the 32-bit signed range and a decimal whose digits as
+          written differ from the shortest form of the nearest double (such
+          as "2.50" or "1.50e3") stay strings. Written directly,
           either form MAY be used. A fraction's denominator MUST NOT be
           zero.
         oneOf:
@@ -222,7 +231,9 @@ unevaluatedProperties: false
           The kind of number the response is. Inferred when absent: the widest of
           the answer and the absolute tolerance, ranked integer < fraction <
           decimal. It decides which responses are valid
-          (docs/question-types/numeric.md, "Number type/domain").
+          (docs/question-types/numeric.md, "Number type/domain"). In
+          Markdown, the `domain` map of the frontmatter sets it, keyed by
+          blank id (`domain: {<id>: ...}`), and wins over the inferred value.
 
       decimalPlaces:
         type: integer
@@ -230,7 +241,9 @@ unevaluatedProperties: false
         description: >-
           The precision of the comparison: the response and the answer are
           rounded to this many decimal places before the tolerance test.
-          Ignored if domain is 'integer' or 'fraction'.
+          Ignored if domain is 'integer' or 'fraction'. In Markdown, the
+          `decimalPlaces` map of the frontmatter sets it, keyed by blank id
+          (`decimalPlaces: {<id>: ...}`), and wins over the inferred value.
 
       tolerance:
         "$ref": "./numeric.yaml#/$defs/Tolerance"
@@ -241,7 +254,9 @@ unevaluatedProperties: false
           Feedback for an incorrect response: a well-formed response outside
           the accepted tolerance, with the same meaning as the
           `incorrectFeedback` of a numeric question (numeric.md, "Feedback").
-          Inline markdown, like the feedback of a pattern.
+          Inline markdown, like the feedback of a pattern. In Markdown, the
+          `incorrectFeedback` map of the frontmatter sets it, keyed by blank
+          id (`incorrectFeedback: {<id>: ...}`).
 
     required:
       - id

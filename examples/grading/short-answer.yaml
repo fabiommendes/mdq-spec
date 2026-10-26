@@ -243,6 +243,53 @@ questions:
       - response: "gov.br"
         score: 0
 
+  # `.` is any code point except LF, CR, U+2028 and U+2029 (patterns.md,
+  # "Code point mode"). U+0085 is not a line terminator there, so it matches.
+  - name: "Dot and the line terminators"
+    question: { accept: ["/rio.negro/"] }
+    examples:
+      - response: "rio negro"
+        score: 1
+      - response: "rio\u0085negro"
+        score: 1
+      - response: "rio\u000bnegro"
+        score: 1
+      - response: "rio\nnegro"
+        score: 0
+      - response: "rio\rnegro"
+        score: 0
+      - response: "rio\u2028negro"
+        score: 0
+      - response: "rio\u2029negro"
+        score: 0
+
+  # A negated class matches every code point outside it, line terminators
+  # included.
+  - name: "Negated class and the line terminators"
+    question: { accept: ["/rio[^a]negro/"] }
+    examples:
+      - response: "rio\nnegro"
+        score: 1
+      - response: "rioanegro"
+        score: 0
+
+  # The `n` flag removes the code points of the `nonspacing` table of the
+  # pinned Unicode version, not the ones of the runtime (patterns.md, "Regex
+  # flags"). U+0301 is in the table, and so is U+10EF0 (ARABIC SMALL LOW UPRIGHT
+  # RECTANGULAR ZERO, assigned after Unicode 15.1), which a runtime on an older
+  # Unicode version does not know.
+  - name: "The n flag removes nonspacing marks"
+    question: { accept: ["/tupi./n"] }
+    examples:
+      - response: "tupi\u0301a"
+        score: 1
+      - response: "tupi\U00010EF0a"
+        score: 1
+      - response: "tupia"
+        score: 1
+      - response: "tupi\u0301ab"
+        score: 0
+
   # The three rules apply in order: `accept` first, then `reject`, then
   # `unmatched`. `reject` only attaches feedback to known wrong answers; it
   # does not change what happens to the other responses.

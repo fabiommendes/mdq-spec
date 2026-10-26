@@ -1,0 +1,12 @@
+# The line ending of a multi-line pattern becomes one U+0020. In an exact
+# literal and in a regex the space is part of the pattern, so the parser
+# reports `multi-line-pattern` for them (a Markdown source only). An inexact
+# literal ignores the amount of whitespace and has no warning.
+id: sa-multi-line-patterns
+title: Capital of Pernambuco
+type: short-answer
+stem: What is the full name of the capital of Pernambuco?
+accept:
+  - "`Recife dos Pernambucanos`"
+  - /recife pe/
+  - Cidade do Recife

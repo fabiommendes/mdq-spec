@@ -6,7 +6,7 @@ title: Conversão de temperaturas
 Sort the lines below to read a temperature in degrees Celsius and print it
 in both Fahrenheit and kelvin.
 
-[ordering]
+[ordering]:
 ```python
 celsius = float(input("temperature in Celsius: "))
 fahrenheit = celsius * 9 / 5 + 32

@@ -6,12 +6,16 @@
 Generate the tables of the inexact comparison of short-answer patterns
 (docs/references/patterns.md, "Inexact literals").
 
-The tables come from three files of fixed versions of Unicode and of the
+The tables come from four files of fixed versions of Unicode and of the
 CLDR, so that every implementation compares text in the same way, whatever
 the Unicode version of its runtime:
 
 * `ignorable`: the C0 and C1 controls that are not whitespace, and the
   `Default_Ignorable_Code_Point` property of `DerivedCoreProperties.txt`.
+* `nonspacing`: the code points of the general category `Mn` in
+  `DerivedGeneralCategory.txt`. The category of an assigned code point can
+  change between versions of Unicode, so the comparison reads this table
+  and not the runtime.
 * `letters`: the Latin letters of the CLDR `Latin-ASCII` transform.
 * `punctuation`: the quotes and dashes of the same transform, and the
   minus sign.
@@ -50,6 +54,7 @@ SOURCES = {
     ),
     "case-folding": f"{UCD_URL}/CaseFolding.txt",
     "derived-core-properties": f"{UCD_URL}/DerivedCoreProperties.txt",
+    "derived-general-category": f"{UCD_URL}/extracted/DerivedGeneralCategory.txt",
 }
 
 #: Where each subtree keeps its copy of the tables, relative to the root.
@@ -88,7 +93,7 @@ class TablesError(Exception):
 
 def build_tables(sources: dict[str, str]) -> dict[str, Any]:
     """
-    Build the tables from the text of the three source files.
+    Build the tables from the text of the source files.
 
     Args:
         sources: the text of each file of `SOURCES`, by the same keys.
@@ -111,6 +116,7 @@ def build_tables(sources: dict[str, str]) -> dict[str, Any]:
         "unicode": UNICODE_VERSION,
         "cldr": CLDR_VERSION,
         "ignorable": ignorable,
+        "nonspacing": nonspacing_ranges(sources["derived-general-category"]),
         "letters": _sorted(letters),
         "punctuation": _sorted(punctuation),
         "caseFolding": _sorted(case_folding(sources["case-folding"])),
@@ -141,6 +147,32 @@ def ignorable_ranges(derived_core_properties: str) -> list[list[int]]:
         else:
             ranges.append([code_point, code_point])
     return ranges
+
+
+def nonspacing_ranges(derived_general_category: str) -> list[list[int]]:
+    """
+    The inclusive ranges of the code points of the general category `Mn`.
+
+    Raises:
+        TablesError: the source has no `Mn` line.
+    """
+    ranges: list[list[int]] = []
+    for line in derived_general_category.splitlines():
+        fields = line.split("#")[0].split(";")
+        if len(fields) != 2 or fields[1].strip() != "Mn":
+            continue
+        first, _, last = fields[0].strip().partition("..")
+        ranges.append([int(first, 16), int(last or first, 16)])
+    if not ranges:
+        raise TablesError("no Mn in DerivedGeneralCategory.txt")
+    ranges.sort()
+    merged: list[list[int]] = []
+    for first, last in ranges:
+        if merged and merged[-1][1] == first - 1:
+            merged[-1][1] = last
+        else:
+            merged.append([first, last])
+    return merged
 
 
 def latin_ascii_sections(latin_ascii: str) -> dict[str, dict[str, str]]:

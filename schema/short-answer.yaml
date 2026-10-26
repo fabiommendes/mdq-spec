@@ -68,8 +68,7 @@ allOf:
       - keep
     default: fold
     description: >-
-      How plain literals, the patterns compared inexactly, treat
-      diacritics. `fold` strips them from both the pattern and the
+      How inexact literals treat diacritics. `fold` strips them from both the pattern and the
       response before comparing; `keep` preserves them. Regexes and
       backtick-enclosed literals are unaffected.
       See the `Diacritics` section of docs/question-types/short-answer.md.
@@ -123,8 +122,7 @@ allOf:
     type: string
     description: >-
       A regular expression when delimited by `/`, an exact literal when
-      enclosed in backticks, and a plain literal compared inexactly
-      otherwise.
+      enclosed in backticks, and an inexact literal otherwise.
     minLength: 1
     # Explicit classes only, no `\s` or `\S` (grammar.md, "Regex dialect"),
     # aligned with EXACT_TEXT and PLAIN_TEXT (short-answer.md, "Body"): no

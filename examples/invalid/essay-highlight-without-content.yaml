@@ -1,0 +1,4 @@
+# `content` defaults to "text", so `highlight` alone is an error too.
+type: essay
+stem: Explique o efeito estufa.
+highlight: python

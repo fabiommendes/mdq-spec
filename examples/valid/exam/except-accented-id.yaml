@@ -1,0 +1,17 @@
+# `EXCEPT` accepts an id that is not a `SLUG`, such as `questão-1`. The
+# question gets `unsafe-id`; the query is not `nonstandard-include-query`.
+id: biomas
+title: Prova de biomas
+type: exam
+questions:
+- id: questão-1
+  title: Maior bioma
+  type: multiple-choice
+  tags:
+  - biomas
+  stem: Qual é o maior bioma do Brasil?
+  choices:
+  - text: Amazônia
+    score: 1
+  - text: Pampa
+- includeAll: biomas EXCEPT questão-1

@@ -1,0 +1,14 @@
+# Turkish D/Y practice: `D` ("doğru") is TRUE and `Y` ("yanlış") is FALSE. The
+# `tr` row accepts both with no warning, and `Y` grades as false.
+id: tf-amazonia-tr
+title: Amazon hakkında gerçekler
+type: true-false
+locale: tr
+stem: Amazon Nehri hakkındaki ifadeleri değerlendirin.
+choices:
+- text: Amazon Nehri Brezilya'dan geçer.
+  correct: true
+  marker: D
+- text: Amazon Nehri Pasifik Okyanusu'na dökülür.
+  correct: false
+  marker: Y

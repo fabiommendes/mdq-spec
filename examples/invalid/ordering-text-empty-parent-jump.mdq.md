@@ -1,5 +1,5 @@
 Ordene o esboço das regiões do Brasil.
 
-[ordering]
+[ordering]:
 * Região Norte
 * * * Manaus
