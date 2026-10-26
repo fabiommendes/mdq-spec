@@ -1,0 +1,4 @@
+# An empty `includeAll` is a schema error, not `blank-text`.
+type: exam
+questions:
+  - includeAll: ""

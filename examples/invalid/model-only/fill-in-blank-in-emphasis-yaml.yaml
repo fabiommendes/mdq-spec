@@ -1,0 +1,8 @@
+# A `[^id]` marker inside an emphasis span is not in a plain text run.
+type: fill-in
+stem: "A capital do Brasil é **[^capital]**."
+blanks:
+  - id: capital
+    type: short-answer
+    accept:
+      - Brasília

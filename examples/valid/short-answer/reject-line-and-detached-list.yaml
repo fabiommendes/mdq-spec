@@ -1,0 +1,11 @@
+type: short-answer
+id: sa-reject-line-detached-list
+title: Reject line followed by a list epilogue
+stem: Which city is the capital of Bahia?
+epilogue: '* Recife is the capital of Pernambuco.
+
+  * Do not accept Aracaju.'
+accept:
+- Salvador
+reject:
+- Recife

@@ -1,0 +1,11 @@
+stem: O Rio São Francisco tem [^n] km e deságua no oceano [^w].
+blanks:
+- id: n
+  type: numeric
+  answer: 2830
+  domain: integer
+- id: w
+  type: short-answer
+  accept:
+  - Atlântico
+type: fill-in

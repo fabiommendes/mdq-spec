@@ -1,0 +1,44 @@
+# `preAccept` and `preReject` follow the lint rules of `accept` and
+# `reject`: implicit anchors are redundant (`redundant-regex-anchor`) and
+# the flags `m`, `g`, `s`, `u`, `v`, `y`, `d` are ignored (`ignored-regex-flag`).
+# Both codes also apply to the `pattern` of an object entry.
+id: sa-pre-validation-lint-matrix
+title: Rio Negro
+type: short-answer
+stem: Qual rio banha Manaus?
+accept:
+  - Negro
+preAccept:
+  - "/\\d{4}/"
+  - "/^Negro/"
+  - "/Negro$/i"
+  - "/^Negro/b"
+  - "/^Rio Negro$/n"
+  - pattern: "/^Tapajós/"
+    feedback: Confira o formato.
+  - "/Tocantins/m"
+  - "/Tocantins/g"
+  - "/Tocantins/s"
+  - "/Tocantins/u"
+  - "/Tocantins/v"
+  - "/Tocantins/y"
+  - "/Tocantins/d"
+  - pattern: "/Tocantins/g"
+    feedback: Confira o formato.
+preReject:
+  - "/\\d{4}/"
+  - "/^Negro/"
+  - "/Negro$/i"
+  - "/^Negro/b"
+  - "/^Rio Negro$/n"
+  - pattern: "/^Tapajós/"
+    feedback: Confira o formato.
+  - "/Tocantins/m"
+  - "/Tocantins/g"
+  - "/Tocantins/s"
+  - "/Tocantins/u"
+  - "/Tocantins/v"
+  - "/Tocantins/y"
+  - "/Tocantins/d"
+  - pattern: "/Tocantins/g"
+    feedback: Confira o formato.

@@ -1,0 +1,5 @@
+# Negative ISO durations are rejected.
+type: exam
+title: Duration negative iso
+duration: '-PT1H'
+questions: []

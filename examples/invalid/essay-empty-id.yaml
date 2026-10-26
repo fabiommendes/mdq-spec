@@ -1,0 +1,4 @@
+# An empty `id` is a schema error, not `blank-text`.
+type: essay
+id: ""
+stem: Explique o efeito Coriolis.

@@ -1,0 +1,6 @@
+# A leading U+FEFF is removed, so the H1 is still the exam title.
+type: exam
+title: Prova
+questions:
+- stem: Descreva o ipê.
+  type: essay

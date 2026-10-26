@@ -1,0 +1,5 @@
+# `oneOf` does not exist in a short answer question: the patterns go in `accept`.
+type: short-answer
+stem: Qual é a capital do Brasil?
+oneOf:
+  - Brasília

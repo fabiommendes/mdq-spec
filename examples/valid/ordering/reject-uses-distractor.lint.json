@@ -1,0 +1,17 @@
+[
+  {
+    "code": "code-content-without-highlight",
+    "severity": "info",
+    "path": [
+      "highlight"
+    ]
+  },
+  {
+    "code": "reject-without-feedback",
+    "severity": "info",
+    "path": [
+      "reject",
+      0
+    ]
+  }
+]

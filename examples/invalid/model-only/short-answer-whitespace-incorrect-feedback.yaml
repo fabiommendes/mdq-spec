@@ -1,0 +1,8 @@
+# An `incorrectFeedback` of only spaces is `blank-text`.
+type: short-answer
+id: q
+title: Capital do Brasil
+stem: Qual é a capital do Brasil?
+incorrectFeedback: "   "
+accept:
+  - pattern: Brasília

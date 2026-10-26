@@ -1,0 +1,4 @@
+# A forbidden block element in `stem` is an error in YAML documents too.
+type: essay
+stem: "# Bioma predominante no Nordeste"
+content: text

@@ -1,0 +1,12 @@
+# A pattern string needs a visible character, also after the spaces and tabs
+# at the ends are removed and inside a code span of any fence length:
+# `blank-text` on each pattern.
+id: sa-blank-pattern-forms
+type: short-answer
+stem: Name the largest Brazilian biome.
+accept:
+  - "   "
+  - "\t"
+  - "  `   `  "
+  - "`​`"
+  - "``   ``"

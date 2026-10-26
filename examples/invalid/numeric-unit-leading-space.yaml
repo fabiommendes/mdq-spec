@@ -1,0 +1,5 @@
+# A unit holds no space, not even at the edges.
+type: numeric
+stem: Qual é a altura do Pico da Neblina?
+answer: 2995
+unit: " m"

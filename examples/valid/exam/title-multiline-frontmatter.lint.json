@@ -1,0 +1,9 @@
+[
+  {
+    "code": "exam-without-questions",
+    "severity": "warning",
+    "path": [
+      "questions"
+    ]
+  }
+]

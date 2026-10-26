@@ -1,0 +1,8 @@
+# An empty blank definition takes the next line as its content.
+type: fill-in
+stem: The capital of Brazil is [^cap].
+blanks:
+  - id: cap
+    type: short-answer
+    accept:
+      - Brasília

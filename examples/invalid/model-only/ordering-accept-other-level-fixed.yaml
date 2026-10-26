@@ -1,0 +1,13 @@
+# Under the default `indentation: fixed` a line is identified by text and
+# level. The `accept` entry holds `condensação` at a level the answer key
+# lacks: `accept-outside-answer-key`.
+type: ordering
+content: code
+stem: Ordene as etapas do ciclo da água na Amazônia.
+lines:
+  - [0, "evaporação"]
+  - [0, "condensação"]
+  - [0, "precipitação"]
+accept:
+  - lines:
+      - [2, "condensação"]

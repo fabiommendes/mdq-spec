@@ -1,0 +1,51 @@
+# base.md, "Frontmatter": the YAML 1.2 Core schema. YAML 1.1 forms are plain
+# strings; `010` is the decimal 10; quoted scalars stay strings.
+id: mc-yaml-core-scalars
+title: YAML 1.2 Core schema scalars
+type: multiple-choice
+weight: 10
+meta:
+  bool-true: true
+  bool-title: true
+  bool-upper: false
+  null-word: null
+  null-tilde: null
+  null-empty: null
+  int: 42
+  int-negative: -7
+  int-leading-zero: 10
+  int-octal: 8
+  int-hex: 31
+  float: 1.5
+  float-trailing-dot: -2.0
+  float-leading-dot: 0.5
+  exp-lower: 1000.0
+  exp-upper-plus: 1000.0
+  inf: .inf
+  inf-negative: -.inf
+  str-yes: "yes"
+  str-no: "no"
+  str-on: "on"
+  str-off: "off"
+  str-yes-title: "Yes"
+  str-no-upper: "NO"
+  str-y: "y"
+  str-n: "n"
+  str-base60: "1:30"
+  str-base60-long: "1:30:00"
+  str-date: "2026-03-10"
+  str-datetime-space: "2026-03-10 09:00:00-03:00"
+  str-datetime-z: "2026-03-10T09:00:00Z"
+  str-binary: "0b101"
+  str-underscore: "1_000"
+  str-underscore-float: "1_000.5"
+  str-equals: "="
+  str-merge: "<<"
+  quoted-true: "true"
+  quoted-int: "42"
+  quoted-null: "~"
+stem: Qual rio nasce na Serra da Canastra?
+choices:
+  - text: São Francisco
+    score: 1
+  - text: Amazonas

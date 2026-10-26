@@ -1,0 +1,24 @@
+[
+  {
+    "code": "multi-line-pattern",
+    "severity": "warning",
+    "path": [
+      "accept",
+      0
+    ]
+  },
+  {
+    "code": "missing-id",
+    "severity": "info",
+    "path": [
+      "id"
+    ]
+  },
+  {
+    "code": "missing-title",
+    "severity": "info",
+    "path": [
+      "title"
+    ]
+  }
+]

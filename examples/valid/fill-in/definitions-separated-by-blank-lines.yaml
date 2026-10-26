@@ -1,0 +1,12 @@
+stem: A capital é [^capital] e a do Acre é [^acre].
+blanks:
+- id: capital
+  type: short-answer
+  accept:
+  - Brasília
+- id: acre
+  type: short-answer
+  accept:
+  - Rio Branco
+type: fill-in
+epilogue: Rio Branco fica às margens do rio Acre.

@@ -1,0 +1,9 @@
+Um bioma brasileiro.
+
+* * *
+
+O Cerrado cobre cerca de um quinto do território.
+
+Descreva o Cerrado.
+
+[essay]

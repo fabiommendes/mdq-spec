@@ -1,0 +1,8 @@
+stem: Quais destes rios correm no Brasil?
+choices:
+- text: Amazonas
+  correct: true
+- text: Nilo
+  correct: false
+type: multiple-selection
+epilogue: '[ANA](https://www.gov.br/ana) publica os dados das bacias.'

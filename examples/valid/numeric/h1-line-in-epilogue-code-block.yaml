@@ -1,0 +1,15 @@
+# A `# ` line inside a code block of the epilogue is literal text: it does
+# not make the document an exam.
+type: numeric
+stem: Quantos estados tem o Brasil?
+epilogue: |-
+  ```python
+  # soma dos estados
+  print(26 + 1)
+  ```
+
+  ~~~
+  # Região Norte
+  ~~~
+answer: 26
+domain: integer

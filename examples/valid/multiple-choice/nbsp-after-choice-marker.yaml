@@ -1,0 +1,7 @@
+# A U+00A0 after the choice marker is text, not a separator.
+stem: Qual árvore é símbolo do Brasil?
+choices:
+- text:  Ipê
+  score: 1
+- text: Jatobá
+type: multiple-choice

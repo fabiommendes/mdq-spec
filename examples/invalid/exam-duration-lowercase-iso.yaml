@@ -1,0 +1,5 @@
+# ISO designators are uppercase.
+type: exam
+title: Duration lowercase iso
+duration: 'pt1h'
+questions: []

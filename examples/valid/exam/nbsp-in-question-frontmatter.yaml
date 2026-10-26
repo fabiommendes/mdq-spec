@@ -1,0 +1,7 @@
+# The lint skips the frontmatter of a question inside an exam.
+type: exam
+title: Prova
+questions:
+- title: Ipê amarelo
+  stem: Descreva o ipê.
+  type: essay

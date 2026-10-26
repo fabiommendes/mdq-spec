@@ -1,0 +1,8 @@
+# The unit in the tag is source text: the backticks are kept as written.
+id: num-unit-code-span
+title: Torque of a turbine
+type: numeric
+stem: What is the torque of a turbine at the Itaipu dam, in newton meters?
+answer: 42
+unit: "`N`"
+domain: integer

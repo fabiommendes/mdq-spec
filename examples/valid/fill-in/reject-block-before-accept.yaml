@@ -1,0 +1,12 @@
+type: fill-in
+id: fill-in-reject-before-accept
+title: Largest biome, reject first
+stem: The largest Brazilian biome is the [^biome].
+blanks:
+- id: biome
+  accept:
+  - Amazônia
+  reject:
+  - pattern: Cerrado
+    feedback: It is the second largest.
+  type: short-answer

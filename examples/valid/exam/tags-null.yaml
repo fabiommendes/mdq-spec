@@ -1,0 +1,6 @@
+type: exam
+id: prova-pampa
+title: Prova do Pampa
+questions:
+- stem: Descreva o bioma Pampa.
+  type: essay

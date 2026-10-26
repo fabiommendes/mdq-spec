@@ -1,0 +1,4 @@
+# A `null` entry in `tags` is a schema error, not `blank-text`.
+type: essay
+stem: Explique o efeito Coriolis.
+tags: [fisica, null]

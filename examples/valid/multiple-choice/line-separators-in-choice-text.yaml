@@ -1,0 +1,7 @@
+# Only CR and LF end a line: NEL, LS, VT and FF are text.
+stem: Qual árvore é símbolo do Brasil?
+choices:
+- text: "Ipê\Namarelo\Ldo\vcerrado\fbrasileiro"
+  score: 1
+- text: Jatobá
+type: multiple-choice

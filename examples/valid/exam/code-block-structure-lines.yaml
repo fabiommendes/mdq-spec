@@ -1,0 +1,26 @@
+# Structure lines inside a code block (`# ` title, `===` separator, `---`
+# frontmatter fence, `[numeric]:` tag) are literal text.
+type: exam
+title: Prova de Programação
+instructions: Leia com atenção.
+questions:
+  - type: numeric
+    stem: Qual é a saída de `print(1 + 1)`?
+    epilogue: |-
+      ```text
+      # não é título
+
+      ===
+
+      ---
+      id: nada
+      ---
+
+      [numeric]: 7
+      ```
+    answer: 2
+    domain: integer
+  - type: numeric
+    stem: Quantos estados tem o Brasil?
+    answer: 26
+    domain: integer

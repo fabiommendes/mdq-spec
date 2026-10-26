@@ -1,0 +1,23 @@
+# The `domain` map alone leaves the places to inference (`bandeira`: 2); the
+# `decimalPlaces` map wins over the inferred places (`neblina`: 3, not 1).
+id: fill-in-numeric-maps-places
+title: Pico da Bandeira and Pico da Neblina
+type: fill-in
+stem: >-
+  The Pico da Bandeira is [^bandeira] meters high, and the Pico da Neblina is
+  [^neblina] meters high.
+blanks:
+  - id: bandeira
+    type: numeric
+    answer: 2892.25
+    unit: m
+    domain: decimal
+    decimalPlaces: 2
+    tolerance: { absolute: 5 }
+  - id: neblina
+    type: numeric
+    answer: 2995.4
+    unit: m
+    domain: decimal
+    decimalPlaces: 3
+    tolerance: { absolute: 5 }

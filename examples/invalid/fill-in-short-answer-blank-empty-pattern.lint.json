@@ -1,0 +1,12 @@
+[
+  {
+    "code": "schema-error",
+    "severity": "error",
+    "path": [
+      "blanks",
+      0,
+      "accept",
+      0
+    ]
+  }
+]

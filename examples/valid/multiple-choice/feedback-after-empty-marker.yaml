@@ -1,0 +1,11 @@
+# A feedback block whose first marker line is empty keeps the text of the
+# following marker lines.
+id: capital-do-brasil
+title: Capital do Brasil
+type: multiple-choice
+stem: Qual é a capital do Brasil?
+choices:
+- text: Brasília
+  score: 1
+  feedback: Planejada por Lucio Costa e Oscar Niemeyer.
+- text: Salvador

@@ -1,0 +1,8 @@
+# `regex` does not exist in a short answer blank: a regex goes in `accept`,
+# written with its slashes.
+type: fill-in
+stem: A capital do Brasil é [^cap].
+blanks:
+  - id: cap
+    type: short-answer
+    regex: /Bras[íi]lia/

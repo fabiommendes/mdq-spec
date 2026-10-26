@@ -1,0 +1,12 @@
+# `blank-text` on the `text` of a choice of a choice blank: defined, but only
+# whitespace.
+id: fill-in-blank-choice-text-blank
+title: Biomas
+type: fill-in
+stem: "O [^a] é um bioma brasileiro."
+blanks:
+  - id: a
+    type: multiple-choice
+    choices:
+      - { id: x, text: Cerrado, score: 1 }
+      - { id: y, text: "  " }

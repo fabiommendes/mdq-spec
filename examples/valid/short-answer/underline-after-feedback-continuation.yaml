@@ -1,0 +1,7 @@
+id: sa-underline-after-feedback-continuation
+title: Rio Negro
+stem: Which river meets the Solimões at Manaus?
+accept:
+- pattern: Rio Negro
+  feedback: Almost ===
+type: short-answer

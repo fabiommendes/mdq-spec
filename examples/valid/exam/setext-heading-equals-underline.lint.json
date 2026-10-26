@@ -1,0 +1,16 @@
+[
+  {
+    "code": "exam-without-questions",
+    "severity": "warning",
+    "path": [
+      "questions"
+    ]
+  },
+  {
+    "code": "setext-heading",
+    "severity": "warning",
+    "path": [
+      "instructions"
+    ]
+  }
+]

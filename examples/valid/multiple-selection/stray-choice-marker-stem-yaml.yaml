@@ -1,0 +1,14 @@
+# The stem is a markdown list whose items start with `[]`, a link, `[?]` and
+# `[a]`. It is not a choice list, so it is valid. `[?]` is not a choice
+# value; `[]` and `[a]` each give a `stray-choice-marker` warning.
+id: ms-stray-choice-marker-stem
+title: Rios do Brasil
+type: multiple-selection
+stem: "Leia:\n\n* [] Negro\n* [ANA](https://www.gov.br/ana)\n* [?] Tapajós\n* [a] Xingu"
+choices:
+- id: amazonas
+  text: Amazonas
+  correct: true
+- id: nilo
+  text: Nilo
+  correct: false

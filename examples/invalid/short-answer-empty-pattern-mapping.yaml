@@ -1,0 +1,7 @@
+# An empty `pattern` written as a mapping is reported at the field, below the
+# list item (a bare string is reported at the item itself).
+id: sa-empty-pattern-mapping
+type: short-answer
+stem: Name the largest Brazilian biome.
+accept:
+  - pattern: ""

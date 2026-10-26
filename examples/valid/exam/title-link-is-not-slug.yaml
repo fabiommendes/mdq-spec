@@ -1,0 +1,7 @@
+type: exam
+title: '[Prova](https://pt.wikipedia.org/wiki/Prova) final'
+questions:
+- stem: Qual é a capital do Brasil?
+  accept:
+  - Brasília
+  type: short-answer

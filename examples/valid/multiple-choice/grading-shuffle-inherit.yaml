@@ -1,0 +1,11 @@
+id: mc-grading-shuffle-inherit
+title: Brazilian savanna
+stem: Which biome is known as the Brazilian savanna?
+choices:
+- text: Cerrado
+  score: 1
+- text: Caatinga
+- text: Pampa
+type: multiple-choice
+shuffle: inherit
+grading: inherit

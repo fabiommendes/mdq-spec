@@ -1,0 +1,4 @@
+# An indented code block whose content is only NBSP is kept in the stem:
+# CommonMark treats only spaces and tabs as blank.
+type: essay
+stem: "Qual é a capital do Brasil?\n\n    \u00a0\u00a0\n\nExplique."

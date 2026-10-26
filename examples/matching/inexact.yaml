@@ -222,6 +222,18 @@ cases:
     fold: false
     keep: false
 
+  # A replacement is not applied again to its own result
+  - name: sharp s replacement is not repeated
+    pattern: "Straße"
+    response: "STRASSSE"
+    fold: false
+    keep: false
+  - name: ae replacement is not repeated
+    pattern: "Cæsar"
+    response: "caaesar"
+    fold: false
+    keep: false
+
   # Different text
   - name: different word
     pattern: "Belém"

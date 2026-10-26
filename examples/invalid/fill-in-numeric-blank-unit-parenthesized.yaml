@@ -1,0 +1,8 @@
+# The `unit` of a numeric blank holds no parentheses (numeric.md, "Unit conversion").
+type: fill-in
+stem: O rio São Francisco tem [^n] de extensão.
+blanks:
+  - id: n
+    type: numeric
+    answer: 2830
+    unit: "(km)"

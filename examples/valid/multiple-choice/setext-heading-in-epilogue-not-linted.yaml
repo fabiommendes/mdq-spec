@@ -1,0 +1,11 @@
+# The `setext-heading` lint applies to exams only: in a standalone question a
+# `---` cannot open a next block, so `Source` followed by `---` is not reported.
+id: mc-epilogue-setext
+title: Largest Brazilian river
+type: multiple-choice
+stem: Which river is the longest inside Brazil?
+choices:
+  - text: Amazon
+    score: 1.0
+  - text: Tocantins
+epilogue: Source

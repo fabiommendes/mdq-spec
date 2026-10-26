@@ -1,0 +1,5 @@
+# `stem` is missing from the entry; the path has no union tag.
+type: exam
+title: Prova
+questions:
+  - type: essay

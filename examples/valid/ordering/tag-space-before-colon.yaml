@@ -1,0 +1,12 @@
+type: ordering
+stem: Ordene as camadas da atmosfera, da mais próxima da superfície até a mais distante.
+lines:
+- - 0
+  - Troposfera
+- - 0
+  - Estratosfera
+- - 0
+  - Mesosfera
+- - 0
+  - Termosfera
+content: text

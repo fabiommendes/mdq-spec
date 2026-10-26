@@ -1,0 +1,41 @@
+[
+  {
+    "code": "non-ascii-whitespace-in-prose",
+    "severity": "info",
+    "path": []
+  },
+  {
+    "code": "missing-id",
+    "severity": "info",
+    "path": [
+      "id"
+    ]
+  },
+  {
+    "code": "missing-id",
+    "severity": "info",
+    "path": [
+      "questions",
+      0,
+      "id"
+    ]
+  },
+  {
+    "code": "missing-title",
+    "severity": "info",
+    "path": [
+      "questions",
+      0,
+      "title"
+    ]
+  },
+  {
+    "code": "missing-answer-key",
+    "severity": "info",
+    "path": [
+      "questions",
+      0,
+      "answerKey"
+    ]
+  }
+]

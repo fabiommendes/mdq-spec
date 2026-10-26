@@ -1,0 +1,5 @@
+# The "T" needs a time.
+type: exam
+title: Start empty time
+start: '2026-03-10T'
+questions: []

@@ -1,0 +1,5 @@
+# A unit holds no parentheses (numeric.md, "Unit conversion").
+type: numeric
+stem: Quanto pesa um saco padrão de café?
+answer: 60
+unit: "(kg)"

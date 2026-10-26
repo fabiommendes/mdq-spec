@@ -1,0 +1,7 @@
+# The key of `grading` is a valid question type but the strategy is not
+# (exam.md, "Grading"): the error path ends with the key, not a type tag.
+type: exam
+title: Prova de Geografia
+grading:
+  multiple-choice: bogus-strategy
+questions: []

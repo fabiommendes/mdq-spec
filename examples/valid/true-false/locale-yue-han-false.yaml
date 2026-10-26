@@ -1,0 +1,13 @@
+# The `yue` row accepts `錯` as false: no marker warning.
+id: locale-yue-han-false
+title: Brazil facts
+type: true-false
+locale: yue
+stem: Rate the statements about Brazil.
+choices:
+- text: Brasília is the capital of Brazil.
+  correct: true
+  marker: T
+- text: Brazil borders Chile.
+  correct: false
+  marker: 錯

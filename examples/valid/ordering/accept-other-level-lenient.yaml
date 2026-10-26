@@ -1,0 +1,18 @@
+# Under `indentation: lenient` the student sets the levels and they are
+# ignored when grading, so an `## [accept]` line at another level than the
+# `[ordering]` block's is still a line of the answer key.
+id: ordering-accept-other-level-lenient
+title: Ciclo da água
+type: ordering
+stem: Ordene as etapas do ciclo da água na Amazônia.
+content: code
+indentation: lenient
+lines:
+  - [0, "evaporação"]
+  - [0, "condensação"]
+  - [0, "precipitação"]
+extra:
+  - [0, "erosão"]
+accept:
+  - lines:
+      - [2, "condensação"]

@@ -1,0 +1,10 @@
+# The `===` before the include block changes nothing in the resolution.
+# No question of the bank has the tag `grassland`, so the block is empty.
+questions:
+- q1
+diagnostics:
+- code: empty-include-all
+  severity: warning
+  path:
+  - questions
+  - 0

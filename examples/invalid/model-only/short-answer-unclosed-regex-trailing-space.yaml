@@ -1,0 +1,6 @@
+# The trailing space is not a flag and not a closing slash: the regex is
+# still unclosed (`invalid-regex`).
+type: short-answer
+stem: Qual é a capital do Brasil?
+accept:
+  - "/Brasília "

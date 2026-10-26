@@ -1,0 +1,9 @@
+# essay.md, "Answer key": a Setext H1 in the answer key is a forbidden
+# block element. Schema-valid (`answerKey` is a string), rejected by the model.
+type: essay
+stem: "Explique o ciclo da água."
+answerKey: |-
+  Evaporação.
+
+  Condensação
+  ===========

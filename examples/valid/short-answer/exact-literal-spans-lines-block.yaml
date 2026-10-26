@@ -1,0 +1,4 @@
+stem: What is the full name of the highest peak of Brazil?
+accept:
+- '`Pico da Neblina`'
+type: short-answer

@@ -1,0 +1,5 @@
+# No space between number and unit.
+type: exam
+title: Duration spaced unit
+duration: '2 h'
+questions: []

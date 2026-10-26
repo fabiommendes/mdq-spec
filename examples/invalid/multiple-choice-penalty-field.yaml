@@ -1,0 +1,8 @@
+# `penalty` is a policy of the exam. A question has no such field.
+type: multiple-choice
+stem: Qual é a capital do Brasil?
+penalty: full
+choices:
+  - text: Brasília
+    score: 1
+  - text: Rio de Janeiro

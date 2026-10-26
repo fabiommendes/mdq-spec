@@ -1,0 +1,9 @@
+# A single visible character is enough for a pattern string: here the
+# exact literal "." and a regex with one space.
+id: sa-pattern-one-visible-character
+title: One visible character
+type: short-answer
+stem: Which punctuation mark ends a sentence in Portuguese?
+accept:
+  - "`.`"
+  - "/ /"

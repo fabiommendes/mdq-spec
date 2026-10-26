@@ -1,0 +1,20 @@
+# The accepted and the rejected alternative differ only by a blank line.
+# `skip-blanks` drops it, so once normalized they hold the same lines:
+# `accept-reject-overlap`.
+type: ordering
+content: code
+stem: Ordene as etapas do ciclo da água na Amazônia.
+normalizations:
+  - skip-blanks
+lines:
+  - [0, "evaporação"]
+  - [0, "condensação"]
+accept:
+  - lines:
+      - [0, "condensação"]
+      - [0, ""]
+      - [0, "evaporação"]
+reject:
+  - lines:
+      - [0, "condensação"]
+      - [0, "evaporação"]

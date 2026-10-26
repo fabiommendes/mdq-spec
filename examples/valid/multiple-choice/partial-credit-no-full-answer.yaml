@@ -1,0 +1,12 @@
+# Every choice with credit carries only partial credit, so no choice is a full
+# answer: `no-correct-choice`, and not `many-correct-choices`.
+id: mc-partial-credit-no-full-answer
+title: Brazilian biomes
+type: multiple-choice
+stem: Which biome covers most of the Brazilian territory?
+choices:
+  - text: Amazon
+    score: 0.5
+  - text: Cerrado
+    score: 0.5
+  - text: Pampa

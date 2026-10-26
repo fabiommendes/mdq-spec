@@ -1,0 +1,11 @@
+# The choice of a choice blank shares the bounds of `score`: [-1, 1].
+type: fill-in
+stem: A capital do Brasil é [^capital].
+blanks:
+  - id: capital
+    type: multiple-choice
+    choices:
+      - text: Brasília
+        score: 1.5
+      - text: Rio de Janeiro
+        score: -1.5

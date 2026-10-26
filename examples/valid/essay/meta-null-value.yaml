@@ -1,0 +1,6 @@
+# `meta` holds arbitrary data: a `null` inside it is not an MDQ field and is kept.
+id: essay-meta-null-value
+type: essay
+stem: Describe the Cerrado biome.
+meta:
+  source: null

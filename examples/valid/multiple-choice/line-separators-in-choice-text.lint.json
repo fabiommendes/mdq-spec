@@ -1,0 +1,44 @@
+[
+  {
+    "code": "non-ascii-whitespace",
+    "severity": "warning",
+    "path": []
+  },
+  {
+    "code": "non-ascii-whitespace",
+    "severity": "warning",
+    "path": []
+  },
+  {
+    "code": "missing-id",
+    "severity": "info",
+    "path": [
+      "id"
+    ]
+  },
+  {
+    "code": "missing-title",
+    "severity": "info",
+    "path": [
+      "title"
+    ]
+  },
+  {
+    "code": "missing-choice-id",
+    "severity": "info",
+    "path": [
+      "choices",
+      0,
+      "id"
+    ]
+  },
+  {
+    "code": "missing-choice-id",
+    "severity": "info",
+    "path": [
+      "choices",
+      1,
+      "id"
+    ]
+  }
+]

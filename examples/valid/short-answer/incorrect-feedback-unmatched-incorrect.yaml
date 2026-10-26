@@ -1,0 +1,9 @@
+# `unmatched` and `incorrectFeedback` are valid keys of a Markdown frontmatter.
+id: sa-incorrect-feedback-frontmatter
+title: Capital do Brasil
+type: short-answer
+stem: Qual é a capital do Brasil?
+unmatched: incorrect
+incorrectFeedback: Essa cidade nunca foi a capital.
+accept:
+  - Brasília

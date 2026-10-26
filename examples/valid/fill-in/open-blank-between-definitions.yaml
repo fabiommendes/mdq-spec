@@ -1,0 +1,15 @@
+type: fill-in
+id: fill-in-open-blank-between
+title: Open blank between two definitions
+stem: O bioma [^a], o rio [^b] e o estado [^c].
+blanks:
+- id: a
+  accept:
+  - Cerrado
+  type: short-answer
+- id: b
+  type: short-answer
+- id: c
+  accept:
+  - Goiás
+  type: short-answer

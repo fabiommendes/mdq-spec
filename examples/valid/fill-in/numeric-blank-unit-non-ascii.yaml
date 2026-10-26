@@ -1,0 +1,15 @@
+# Units of a numeric blank follow the `UNIT` terminal: non-ASCII letters,
+# `µ` and `Ω` are fine.
+id: fill-in-numeric-blank-units
+title: Medidas
+type: fill-in
+stem: "Um fio tem [^r] de resistência e [^d] de diâmetro."
+blanks:
+  - id: r
+    type: numeric
+    answer: 50
+    unit: Ω
+  - id: d
+    type: numeric
+    answer: 120
+    unit: µm

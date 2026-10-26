@@ -1,0 +1,15 @@
+type: short-answer
+id: sa-observation-order
+title: Order of feedback and comment lines
+stem: Which river is the longest in Brazil?
+accept:
+- pattern: Amazonas
+  feedback: Right.
+  comment: The note comes first.
+- pattern: Rio Amazonas
+  feedback: Right, with the word river. A second feedback line.
+  comment: A note. A second note line.
+reject:
+- pattern: São Francisco
+  feedback: It is the longest river entirely inside Brazil.
+  comment: A note first.

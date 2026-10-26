@@ -1,0 +1,8 @@
+# A tab may come before the colon of the `[numeric]` tag.
+type: numeric
+stem: Qual é a extensão aproximada do rio Amazonas?
+answer: 6400
+domain: integer
+unit: km
+tolerance:
+  relative: 0.05

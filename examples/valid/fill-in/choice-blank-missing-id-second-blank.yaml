@@ -1,0 +1,15 @@
+# `missing-choice-id` on a choice blank that is not the first blank: the
+# path is `blanks[1].choices[1].id`.
+id: fill-in-missing-choice-id
+title: Biomas
+type: fill-in
+stem: "O [^a] e o [^b] são biomas brasileiros."
+blanks:
+  - id: a
+    type: short-answer
+    accept: [Cerrado]
+  - id: b
+    type: multiple-choice
+    choices:
+      - { id: caatinga, text: Caatinga, score: 1 }
+      - { text: Tundra }

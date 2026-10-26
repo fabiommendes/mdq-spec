@@ -1,0 +1,45 @@
+# `locale` is well-formed BCP 47 for each of the productions below: variant,
+# numeric region, extension, private use, 4 and 5-8 letter primary subtags,
+# grandfathered tags and extlang. The exam also takes a 5-8 letter primary
+# subtag. Registration of the subtags is not checked.
+type: exam
+id: ciclo-agua
+title: Ciclo da água
+locale: brasil
+questions:
+  - type: essay
+    locale: "zh-Hant-TW"
+    stem: Explique o ciclo da água.
+  - type: essay
+    locale: "sl-rozaj-biske"
+    stem: Explique o ciclo da água.
+  - type: essay
+    locale: "de-CH-1901"
+    stem: Explique o ciclo da água.
+  - type: essay
+    locale: "es-419"
+    stem: Explique o ciclo da água.
+  - type: essay
+    locale: "en-US-u-ca-gregory"
+    stem: Explique o ciclo da água.
+  - type: essay
+    locale: "en-x-private-use"
+    stem: Explique o ciclo da água.
+  - type: essay
+    locale: "abcd"
+    stem: Explique o ciclo da água.
+  - type: essay
+    locale: "brasil"
+    stem: Explique o ciclo da água.
+  - type: essay
+    locale: "klingon"
+    stem: Explique o ciclo da água.
+  - type: essay
+    locale: "en-GB-oed"
+    stem: Explique o ciclo da água.
+  - type: essay
+    locale: "zh-min-nan"
+    stem: Explique o ciclo da água.
+  - type: essay
+    locale: "ar-aao"
+    stem: Explique o ciclo da água.

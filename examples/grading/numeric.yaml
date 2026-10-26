@@ -127,6 +127,39 @@ questions:
       - response: 2.67
         score: 0
 
+  # Half away from zero: -2.675 rounds to -2.68, and 0.125 to 0.13.
+  - name: "Rounding half away from zero for a negative answer"
+    question: { answer: -2.68, decimalPlaces: 2 }
+    examples:
+      - response: -2.675
+        score: 1
+      - response: -2.67
+        score: 0
+  - name: "Rounding half away from zero for a binary tie"
+    question: { answer: 0.13, decimalPlaces: 2 }
+    examples:
+      - response: 0.125
+        score: 1
+
+  # The answer is rounded too: 3.14159 becomes 3.14.
+  - name: "Answer rounded to the decimal places"
+    question: { answer: 3.14159, decimalPlaces: 2 }
+    examples:
+      - response: 3.14
+        score: 1
+      - response: 3.15
+        score: 0
+
+  # 2.5049 rounds to 2.50 before the test; unrounded it would be 0.0049
+  # away, outside the tolerance of 0.004.
+  - name: "Rounding before a tight tolerance"
+    question: { answer: 2.5, tolerance: { absolute: 0.004 }, decimalPlaces: 2 }
+    examples:
+      - response: 2.5049
+        score: 1
+      - response: 2.515
+        score: 0
+
   # Fraction domain: a string response is an exact rational, which no float
   # can represent.
   - name: "Fraction"

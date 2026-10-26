@@ -1,0 +1,8 @@
+# `openEnded` does not exist in a short answer blank: a blank with no
+# pattern is already open.
+type: fill-in
+stem: A capital do Brasil é [^cap].
+blanks:
+  - id: cap
+    type: short-answer
+    openEnded: true

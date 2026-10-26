@@ -1,0 +1,6 @@
+# U+FEFF is not `ws`: inside the parentheses it is part of the unit.
+stem: Quanto mede o Rio Amazonas?
+answer: 6400
+unit: "k\uFEFFm"
+domain: integer
+type: numeric

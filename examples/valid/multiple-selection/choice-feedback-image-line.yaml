@@ -1,0 +1,8 @@
+stem: Qual destes rios é o mais extenso do Brasil?
+choices:
+- text: Amazonas
+  correct: true
+  feedback: 'Veja: ![mapa](bacia.png)'
+- text: Tocantins
+  correct: false
+type: multiple-selection

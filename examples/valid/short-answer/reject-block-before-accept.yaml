@@ -1,0 +1,9 @@
+type: short-answer
+id: sa-reject-before-accept
+title: Capital of Brazil, reject first
+stem: What is the capital of Brazil?
+accept:
+- Brasília
+reject:
+- pattern: Rio de Janeiro
+  feedback: It used to be, but not since 1960.

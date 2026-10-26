@@ -180,3 +180,269 @@ cases:
     pattern: "/[&\\x26]+/"
     accept: ["&&"]
     reject: ["&a"]
+  - name: n-flag-literal-letter
+    pattern: "/água/n"
+    accept: ["agua", "água"]
+    reject: ["aqua"]
+  - name: n-flag-escape-is-exact
+    pattern: "/\\u00e1gua/n"
+    accept: []
+    reject: ["agua", "água"]
+  - name: n-flag-escape-in-class
+    pattern: "/[\\u00e1a]gua/n"
+    accept: ["água"]
+    reject: ["egua"]
+  - name: n-flag-removes-combining-marks-only
+    pattern: "/Orsted/n"
+    accept: ["Orsted"]
+    reject: ["Ørsted"]
+  - name: n-flag-keeps-letters-with-stroke
+    pattern: "/Ørsted/n"
+    accept: ["Ørsted"]
+    reject: ["Orsted"]
+  - name: without-n-flag-marks-are-significant
+    pattern: "/Brasilia/"
+    accept: ["Brasilia"]
+    reject: ["Brasília"]
+  - name: dot-line-terminators
+    pattern: "/a.b/f"
+    accept: []
+    reject: ["a\nb", "a\rb", "a b", "a b"]
+  - name: dot-other-control-characters
+    pattern: "/a.b/"
+    accept: ["a\u0085b", "a\x0bb", "a\x0cb"]
+    reject: []
+  # Matching semantics beyond the syntax table: anchoring and strategy flags,
+  # response preparation, code point mode and the explicit shorthand classes.
+  - name: anchoring-plain-regex-matches-the-whole-response
+    pattern: "/abc/"
+    accept: ["abc"]
+    reject: ["xabc", "abcx", "xabcx", ""]
+  - name: anchoring-f-flag-matches-anywhere
+    pattern: "/abc/f"
+    accept: ["abc", "xabc", "abcx", "xabcx"]
+    reject: []
+  - name: anchoring-explicit-both-anchors
+    pattern: "/^abc$/"
+    accept: ["abc"]
+    reject: ["abcx"]
+  - name: anchoring-explicit-start-anchor
+    pattern: "/^abc/"
+    accept: ["abc"]
+    reject: ["abcx"]
+  - name: anchoring-explicit-end-anchor
+    pattern: "/abc$/"
+    accept: ["abc"]
+    reject: ["abcx"]
+  - name: anchoring-explicit-end-anchor-under-f
+    pattern: "/abc$/f"
+    accept: ["xabc"]
+    reject: ["xabcx"]
+  - name: anchoring-top-level-alternation
+    pattern: "/amazonia|cerrado/"
+    accept: ["cerrado", "amazonia"]
+    reject: ["o cerrado", "cerradoo"]
+  - name: anchoring-f-beats-b
+    pattern: "/mazon/fb"
+    accept: ["Amazonas"]
+    reject: []
+  - name: flag-i-folds-case
+    pattern: "/[Bb]ras[íi]lia/i"
+    accept: ["BRASÍLIA", "brasilia", "Brasília", "BRASILIA"]
+    reject: []
+  - name: flag-i-folds-non-ascii-case
+    pattern: "/ação/i"
+    accept: ["AÇÃO"]
+    reject: []
+  - name: flag-n-strips-response-accent
+    pattern: "/Brasilia/n"
+    accept: ["Brasília"]
+    reject: []
+  - name: flag-n-strips-pattern-accent
+    pattern: "/Brasília/n"
+    accept: ["Brasilia"]
+    reject: []
+  - name: flag-n-is-not-case-folding
+    pattern: "/brasilia/n"
+    accept: []
+    reject: ["BRASÍLIA"]
+  - name: flag-n-applies-after-trimming
+    pattern: "/brasilia/n"
+    accept: ["brasília "]
+    reject: []
+  - name: flags-ignored-all-together
+    pattern: "/abc/gmsuvyd"
+    accept: ["abc"]
+    reject: ["xabc"]
+  - name: flag-u-changes-nothing
+    pattern: "/./u"
+    accept: ["\U0001F600"]
+    reject: []
+  - name: flag-v-changes-nothing
+    pattern: "/\\d/v"
+    accept: []
+    reject: ["\u0663"]
+  - name: nfc-pattern-nfd-response
+    pattern: "/café/"
+    accept: ["cafe\u0301"]
+    reject: []
+  - name: nfc-pattern-nfd-response-with-n
+    pattern: "/café/n"
+    accept: ["cafe\u0301"]
+    reject: []
+  - name: ascii-pattern-nfd-response
+    pattern: "/cafe/"
+    accept: []
+    reject: ["cafe\u0301"]
+  - name: ascii-pattern-nfd-response-with-n
+    pattern: "/cafe/n"
+    accept: ["cafe\u0301"]
+    reject: []
+  - name: trimmed-response
+    pattern: "/Brasília/"
+    accept: ["Brasília ", "Brasília\n", " \tBrasília", " Brasília\u3000"]
+    reject: []
+  - name: interior-spaces-count
+    pattern: "/Rio Negro/"
+    accept: [" Rio Negro\n"]
+    reject: ["Rio  Negro"]
+  - name: kelvin-sign-is-normalized-to-k
+    pattern: "/\\w/"
+    accept: ["\u212A"]
+    reject: []
+  - name: semantics-dot-one-code-point
+    pattern: "/./"
+    accept: ["\U0001F600"]
+    reject: []
+  - name: semantics-dot-not-two-units
+    pattern: "/../"
+    accept: []
+    reject: ["\U0001F600"]
+  - name: semantics-braced-escape
+    pattern: "/\\u{1F600}/"
+    accept: ["\U0001F600"]
+    reject: []
+  - name: semantics-braced-escape-in-class
+    pattern: "/[\\u{1F600}x]/"
+    accept: ["\U0001F600"]
+    reject: []
+  - name: semantics-fold-long-s
+    pattern: "/s/i"
+    accept: ["\u017F"]
+    reject: []
+  - name: semantics-fold-kelvin
+    pattern: "/k/i"
+    accept: ["\u212A"]
+    reject: []
+  - name: semantics-digit-not-arabic-indic
+    pattern: "/\\d/"
+    accept: []
+    reject: ["\u0663"]
+  - name: semantics-digit-ascii
+    pattern: "/\\d+/"
+    accept: ["123"]
+    reject: []
+  - name: semantics-non-digit-arabic-indic
+    pattern: "/\\D/"
+    accept: ["\u0663"]
+    reject: []
+  - name: semantics-word-not-accented
+    pattern: "/\\w+/"
+    accept: []
+    reject: ["José"]
+  - name: semantics-word-with-n-flag
+    pattern: "/\\w+/n"
+    accept: ["José"]
+    reject: []
+  - name: semantics-word-i-long-s
+    pattern: "/\\w/i"
+    accept: ["\u017F"]
+    reject: []
+  - name: semantics-non-word-i-not-long-s
+    pattern: "/\\W/i"
+    accept: []
+    reject: ["\u017F"]
+  - name: semantics-class-word-i-long-s
+    pattern: "/[\\w]/i"
+    accept: ["\u017F"]
+    reject: []
+  - name: semantics-space-nbsp
+    pattern: "/a\\sb/"
+    accept: ["a\u00A0b", "a\u0085b"]
+    reject: ["a\uFEFFb", "a\x1cb"]
+  - name: semantics-non-space-bom
+    pattern: "/a\\Sb/"
+    accept: ["a\uFEFFb"]
+    reject: ["a b"]
+  - name: semantics-class-digit
+    pattern: "/[\\d_]+/"
+    accept: ["1_2"]
+    reject: ["\u0663"]
+  - name: semantics-negated-class-digit-other
+    pattern: "/[^\\d]/"
+    accept: ["a"]
+    reject: ["7"]
+  - name: semantics-negated-class-digit-and-plain
+    pattern: "/[^\\da]/"
+    accept: []
+    reject: ["a"]
+  - name: semantics-negated-class-non-word
+    pattern: "/[^\\W]+/"
+    accept: ["ab_1"]
+    reject: []
+  - name: semantics-class-non-space
+    pattern: "/[\\S]+/"
+    accept: ["a\uFEFFb"]
+    reject: []
+  - name: semantics-class-space-and-caret
+    pattern: "/[\\s^]+/"
+    accept: ["^ "]
+    reject: []
+  - name: semantics-class-digit-and-hyphen
+    pattern: "/[\\d-]+/"
+    accept: ["1-2"]
+    reject: []
+  - name: semantics-boundary
+    pattern: "/\\bab\\b/f"
+    accept: ["x ab y", "éab"]
+    reject: ["xab y"]
+  - name: semantics-not-boundary
+    pattern: "/\\Bb/f"
+    accept: ["ab"]
+    reject: ["a b"]
+  - name: semantics-escaped-backslash-then-d
+    pattern: "/\\\\d/"
+    accept: ["\\d"]
+    reject: ["5"]
+  - name: semantics-class-escaped-backslash-then-d
+    pattern: "/[\\\\d]+/"
+    accept: ["\\d"]
+    reject: ["5"]
+  - name: semantics-escaped-backslash-before-u-brace
+    pattern: "/\\\\u{41}/"
+    accept: []
+    reject: ["\\uA"]
+  - name: brazil-capital-accented
+    pattern: "/[Bb]ras[íi]lia/i"
+    accept: ["Brasília", "brasilia", "BRASILIA"]
+    reject: []
+  - name: brazil-rio-normalized-and-folded
+    pattern: "/rio de janeiro/in"
+    accept: ["Rio de Janeiro"]
+    reject: []
+  - name: brazil-biome-full-name
+    pattern: "/(?:mata )?atl[âa]ntica/i"
+    accept: ["Mata Atlântica", "atlantica"]
+    reject: []
+  - name: brazil-independence-year-exact
+    pattern: "/\\d{4}/"
+    accept: ["1822"]
+    reject: ["18222", "ano 1822"]
+  - name: brazil-absolute-zero-comma-decimal
+    pattern: "/-?\\d+(?:[.,]\\d+)?/"
+    accept: ["-273,15", "-273.15"]
+    reject: []
+  - name: brazil-function-name-exact
+    pattern: "/math\\.isnan/"
+    accept: ["math.isnan"]
+    reject: ["math.isnan()"]

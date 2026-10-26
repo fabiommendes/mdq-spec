@@ -1,0 +1,9 @@
+# A string `answer` of a numeric blank must match the numeric grammar:
+# no leading zeros. The `malformed-numeric-answer` model validator
+# reports it at the path of the blank's answer.
+type: fill-in
+stem: O Rio Amazonas percorre cerca de [^extensao] até o Atlântico.
+blanks:
+  - id: extensao
+    type: numeric
+    answer: "007"

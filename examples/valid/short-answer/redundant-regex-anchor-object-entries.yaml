@@ -1,0 +1,14 @@
+# `redundant-regex-anchor` also checks the `pattern` of an object entry, in
+# `accept` and in `reject`. Only the entries with an implicit anchor are
+# reported: `reject` entry 1 and `accept` entry 2.
+id: sa-anchor-object-entries
+title: Rio de Manaus
+type: short-answer
+stem: Qual rio banha Manaus?
+accept:
+  - pattern: "^Negro"
+  - pattern: "/Negro$/b"
+  - pattern: "/^Solimões/"
+reject:
+  - pattern: Madeira
+  - pattern: "/^Tapajós/"

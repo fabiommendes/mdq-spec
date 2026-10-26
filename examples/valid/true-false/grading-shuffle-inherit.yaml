@@ -1,0 +1,13 @@
+id: tf-grading-shuffle-inherit
+title: Climate claims
+stem: Judge the statements.
+choices:
+- text: Deforestation in the Amazon reduces regional rainfall.
+  correct: true
+  marker: T
+- text: Carbon dioxide does not absorb infrared radiation.
+  correct: false
+  marker: F
+type: true-false
+shuffle: inherit
+grading: inherit

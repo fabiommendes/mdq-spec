@@ -218,6 +218,38 @@ questions:
         scores: { partial: 0, no-mistakes: 0, all-or-nothing: 0, symmetric: 0 }
         feedback: []
 
+  # `incorrectFeedback` of a short answer blank: shown to an incorrect
+  # response with no pattern feedback, and only for its own blank. The
+  # pattern feedback wins over it.
+  - name: "Incorrect feedback of a short answer blank"
+    question:
+      stem: "O rio [^river] nasce no Peru e deságua no estado do [^state]."
+      blanks:
+        - id: river
+          type: short-answer
+          incorrectFeedback: "Esse não é o rio mais volumoso."
+          accept: ["Amazonas"]
+          reject:
+            - { pattern: "Tocantins", feedback: "O Tocantins corre em Goiás." }
+        - id: state
+          type: short-answer
+          accept: ["Pará"]
+    examples:
+      - response: { river: "Madeira", state: "Pará" }
+        scores: { partial: "1/2", no-mistakes: 0, all-or-nothing: 0, symmetric: "1/2" }
+        feedback:
+          - "Esse não é o rio mais volumoso."
+      - response: { river: "Tocantins", state: "Pará" }
+        scores: { partial: "1/2", no-mistakes: 0, all-or-nothing: 0, symmetric: "1/2" }
+        feedback:
+          - "O Tocantins corre em Goiás."
+      - response: { river: "Amazonas", state: "Bahia" }
+        scores: { partial: "1/2", no-mistakes: 0, all-or-nothing: 0, symmetric: "1/2" }
+        feedback: []
+      - response: { river: "Amazonas", state: "Pará" }
+        scores: { partial: 1, no-mistakes: 1, all-or-nothing: 1, symmetric: 1 }
+        feedback: []
+
   # `unmatched: manual` on the question: a response of `river` that no
   # pattern settles goes to the instructor, and so does the whole question.
   # The instructor then scores the pending blank in [0, 1] and the strategy
@@ -282,3 +314,80 @@ questions:
         scores: { partial: 0, no-mistakes: 0, all-or-nothing: 0, symmetric: 0 }
       - response: {}
         scores: { partial: 0, no-mistakes: 0, all-or-nothing: 0, symmetric: 0 }
+
+  # A negative choice score is floored with the mean under "partial" only.
+  - name: "Negative choice score"
+    question:
+      stem: "O bioma da Amazônia é [^biome]."
+      blanks:
+        - id: biome
+          type: multiple-choice
+          choices:
+            - { id: wrong, text: "o deserto", score: -1 }
+            - { id: right, text: "a floresta", score: 1 }
+    examples:
+      - response: { biome: wrong }
+        scores: { partial: 0, no-mistakes: 0, all-or-nothing: 0, symmetric: -1 }
+      - response: { biome: right }
+        scores: { partial: 1, no-mistakes: 1, all-or-nothing: 1, symmetric: 1 }
+
+  # `diacritics` applies to the plain literals of a short answer blank
+  # (fill-in.md, "Frontmatter"). The default is "fold".
+  - name: "Diacritics folded by default"
+    question:
+      stem: "A capital do Maranhão é [^capital]."
+      blanks:
+        - id: capital
+          type: short-answer
+          accept: ["São Luís"]
+    examples:
+      - response: { capital: "sao luis" }
+        score: 1
+      - response: { capital: "São Luís" }
+        score: 1
+  - name: "Diacritics kept"
+    question:
+      stem: "Um estado do Nordeste é [^state]."
+      diacritics: keep
+      blanks:
+        - id: state
+          type: short-answer
+          accept: ["Ceará"]
+    examples:
+      - response: { state: "Ceará" }
+        score: 1
+      - response: { state: " ceará " }
+        score: 1
+      - response: { state: "Ceara" }
+        score: 0
+
+  # A short answer blank with no `accept` follows the `unmatched` of the
+  # question: here "incorrect", so no response is pending.
+  - name: "Question unmatched incorrect on a blank without accept"
+    question:
+      stem: "O bioma [^biome] cobre o Brasil central."
+      unmatched: incorrect
+      blanks:
+        - id: biome
+          type: short-answer
+    examples:
+      - response: { biome: "Cerrado" }
+        scores: { partial: 0, no-mistakes: 0, all-or-nothing: 0, symmetric: 0 }
+
+  # With only `reject`, the blank settles the rejected response and leaves
+  # the others to the instructor.
+  - name: "Reject-only blank"
+    question:
+      stem: "O bioma [^biome] cobre o Brasil central."
+      blanks:
+        - id: biome
+          type: short-answer
+          reject:
+            - { pattern: "Savana", feedback: "Name the Brazilian biome." }
+    examples:
+      - response: { biome: "Savana" }
+        scores: { partial: 0, no-mistakes: 0, all-or-nothing: 0, symmetric: 0 }
+        feedback: ["Name the Brazilian biome."]
+      - response: { biome: "Cerrado" }
+        score: "pending"
+        feedback: []

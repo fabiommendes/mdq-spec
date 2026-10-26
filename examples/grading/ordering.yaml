@@ -338,3 +338,212 @@ questions:
       - response: [[0, ""]]
         score: 0
         feedback: "Write the program."
+
+  # An incorrect response with no matching entry and no `incorrectFeedback`
+  # shows no feedback.
+  - name: "Unmatched incorrect shows no feedback"
+    question:
+      content: text
+      lines:
+        - [0, "Norte"]
+        - [0, "Sul"]
+    examples:
+      - response: [[0, "Sul"], [0, "Norte"]]
+        score: 0
+        feedback: null
+
+  # The answer key is matched before every `accept` entry, so an entry equal
+  # to it never gives its feedback.
+  - name: "Answer key wins over an equal accept entry"
+    question:
+      content: text
+      lines:
+        - [0, "Norte"]
+        - [0, "Sul"]
+      accept:
+        - feedback: "Late."
+          lines:
+            - [0, "Norte"]
+            - [0, "Sul"]
+    examples:
+      - response: [[0, "Norte"], [0, "Sul"]]
+        score: 1
+        feedback: null
+
+  # The pool is the `lines` plus the `extra` lines. Under `fixed` a line is
+  # drawn at its authored level, and a distractor that differs from a key
+  # line only by its level is a wrong answer.
+  - name: "Fixed pool with level-only distractor"
+    question:
+      content: code
+      lines:
+        - [0, "total = 0"]
+        - [0, "for x in chuvas:"]
+        - [1, "total += x"]
+        - [0, "print(total)"]
+      extra:
+        - [1, "print(total)"]
+    examples:
+      - response: [[0, "total = 0"], [0, "for x in chuvas:"], [1, "total += x"], [0, "print(total)"]]
+        score: 1
+      - response: [[0, "total = 0"], [0, "for x in chuvas:"], [1, "total += x"], [1, "print(total)"]]
+        score: 0
+      # Leaving lines out is graded, not malformed.
+      - response: [[0, "total = 0"]]
+        score: 0
+      # The distractor exists only at level 1.
+      - response: [[2, "print(total)"]]
+        score: malformed
+      # A line outside the pool.
+      - response: [[0, "total = 0"], [0, "return total"]]
+        score: malformed
+
+  # `dedent` flattens the levels, so the level-only distractor is equal to
+  # the key line.
+  - name: "Fixed with dedent and level-only distractor"
+    question:
+      content: code
+      normalizations: [dedent]
+      lines:
+        - [0, "for x in chuvas:"]
+        - [1, "total += x"]
+      extra:
+        - [0, "print(total)"]
+        - [1, "print(total)"]
+    examples:
+      - response: [[0, "for x in chuvas:"], [1, "total += x"], [1, "print(total)"]]
+        score: 0
+      - response: [[0, "for x in chuvas:"], [1, "total += x"]]
+        score: 1
+
+  # A response draws each line at most as many times as the pool offers it.
+  - name: "Pool copies"
+    question:
+      content: code
+      lines:
+        - [0, "a = 1"]
+        - [1, "b = 2"]
+        - [1, "b = 2"]
+        - [0, "c = 3"]
+      extra:
+        - [0, "d = 4"]
+    examples:
+      - response: [[1, "b = 2"], [1, "b = 2"], [0, "d = 4"]]
+        score: 0
+      - response: [[0, "a = 1"], [0, "a = 1"]]
+        score: malformed
+      - response: [[1, "b = 2"], [1, "b = 2"], [1, "b = 2"]]
+        score: malformed
+      - response: [[0, "a = 1"], [0, "zzz"]]
+        score: malformed
+
+  # Under `skip-blanks` a blank line is outside the pool check.
+  - name: "Blank line outside the pool under skip-blanks"
+    question:
+      content: code
+      normalizations: [skip-blanks]
+      lines:
+        - [0, "a = 1"]
+        - [0, "b = 2"]
+    examples:
+      - response: [[0, ""], [0, "a = 1"]]
+        score: 0
+
+  # Under `strict` and `lenient` the student sets the levels, so the pool
+  # is compared by text.
+  - name: "Strict pool compared by text"
+    question:
+      content: code
+      indentation: strict
+      lines:
+        - [0, "for x in chuvas:"]
+        - [1, "total += x"]
+      extra:
+        - [0, "print(total)"]
+    examples:
+      - response: [[0, "for x in chuvas:"], [1, "total += x"]]
+        score: 1
+      # A changed level is a non-match under `strict`.
+      - response: [[0, "for x in chuvas:"], [0, "total += x"]]
+        score: 0
+      # A level never authored.
+      - response: [[5, "for x in chuvas:"], [3, "print(total)"]]
+        score: 0
+      - response: [[0, "print(total)"], [0, "print(total)"]]
+        score: malformed
+      - response: [[0, "zzz"]]
+        score: malformed
+
+  - name: "Lenient pool compared by text"
+    question:
+      content: code
+      indentation: lenient
+      lines:
+        - [0, "for x in chuvas:"]
+        - [1, "total += x"]
+      extra:
+        - [0, "print(total)"]
+    examples:
+      - response: [[5, "for x in chuvas:"], [3, "total += x"]]
+        score: 1
+      - response: [[5, "for x in chuvas:"], [3, "print(total)"]]
+        score: 0
+      - response: [[0, "print(total)"], [0, "print(total)"]]
+        score: malformed
+
+  # A distractor alone is not an outline in a text response. Under `fixed`
+  # the student cannot change levels: a wrong answer. Under `lenient` and
+  # `strict` it is malformed.
+  - name: "Fixed text, distractor alone"
+    question:
+      content: text
+      lines:
+        - [0, "Nordeste"]
+        - [1, "Bahia"]
+      extra:
+        - [2, "Sergipe"]
+    examples:
+      - response: [[2, "Sergipe"]]
+        score: 0
+
+  - name: "Lenient text, distractor alone"
+    question:
+      content: text
+      indentation: lenient
+      lines:
+        - [0, "Nordeste"]
+        - [1, "Bahia"]
+      extra:
+        - [2, "Sergipe"]
+    examples:
+      - response: [[2, "Sergipe"]]
+        score: malformed
+
+  - name: "Strict text, distractor alone"
+    question:
+      content: text
+      indentation: strict
+      lines:
+        - [0, "Nordeste"]
+        - [1, "Bahia"]
+      extra:
+        - [2, "Sergipe"]
+    examples:
+      - response: [[2, "Sergipe"]]
+        score: malformed
+
+  # Code content: a response may jump levels. Under `fixed` the code
+  # response keeps the authored levels.
+  - name: "Code response jumps levels"
+    question:
+      content: code
+      indentation: lenient
+      lines:
+        - [0, "a = 1"]
+        - [1, "b = 2"]
+        - [2, "c = 3"]
+    examples:
+      - response: [[0, "a = 1"], [2, "c = 3"]]
+        score: 0
+      - response: [[0, "a = 1"], [3, "b = 2"], [0, "c = 3"]]
+        score: 1

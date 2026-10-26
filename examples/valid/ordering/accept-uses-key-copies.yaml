@@ -1,0 +1,15 @@
+# An `## [accept]` section may use as many copies of a line as the
+# `[ordering]` block has.
+id: ordering-accept-uses-key-copies
+title: Bandeiras
+type: ordering
+stem: Ordene as cores da bandeira do Amazonas.
+content: text
+lines:
+  - [0, "azul"]
+  - [0, "azul"]
+  - [0, "branco"]
+accept:
+  - lines:
+      - [0, "azul"]
+      - [0, "azul"]

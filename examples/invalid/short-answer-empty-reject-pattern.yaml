@@ -1,0 +1,8 @@
+# A pattern line in `reject` cannot be empty.
+id: sa-empty-reject-pattern
+type: short-answer
+stem: Name the largest Brazilian biome.
+accept:
+  - Amazônia
+reject:
+  - ""

@@ -1,0 +1,12 @@
+# A float answer that is not whole is a decimal only (numeric.md, "Answer
+# representation"), so `domain: fraction` contradicts it:
+# `answer-outside-domain`. A whole absolute tolerance is not a decimal, so
+# there is no `domain-mismatch`.
+id: numeric-fraction-answer-float-whole-tolerance
+title: Quarto de real
+type: numeric
+stem: Que fração de um real vale uma moeda de 75 centavos?
+answer: 0.75
+domain: fraction
+tolerance:
+  absolute: 1

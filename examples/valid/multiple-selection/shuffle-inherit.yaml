@@ -1,0 +1,13 @@
+id: ms-shuffle-inherit
+title: Brazilian biomes
+stem: Which of these are Brazilian biomes?
+choices:
+- text: Cerrado
+  correct: true
+- text: Caatinga
+  correct: true
+- text: Tundra
+  correct: false
+type: multiple-selection
+shuffle: inherit
+grading: inherit

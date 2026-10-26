@@ -1,0 +1,14 @@
+# In a choice blank, `[ ]` omits `score` and `[0%]` is an explicit zero.
+id: fill-in-omitted-score-vs-zero
+title: Largest Brazilian biome
+type: fill-in
+stem: The [^biome] is the largest biome in Brazil.
+blanks:
+  - id: biome
+    type: multiple-choice
+    choices:
+      - text: Amazon
+        score: 1.0
+      - text: Cerrado
+      - text: Pampa
+        score: 0.0

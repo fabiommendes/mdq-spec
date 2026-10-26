@@ -1,0 +1,10 @@
+# A float answer and a decimal absolute tolerance infer a `decimal` domain,
+# which `domain: fraction` narrows: `domain-mismatch`.
+id: numeric-fraction-answer-float-decimal-tolerance
+title: Quarto de real
+type: numeric
+stem: Que fração de um real vale uma moeda de 75 centavos?
+answer: 0.75
+domain: fraction
+tolerance:
+  absolute: 0.01

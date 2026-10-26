@@ -1,0 +1,8 @@
+# The smallest positive double is valid, with 324 places.
+id: num-smallest-double
+title: Smallest double
+type: numeric
+stem: What is the smallest positive IEEE 754 double-precision number?
+answer: 5.0e-324
+domain: decimal
+decimalPlaces: 324

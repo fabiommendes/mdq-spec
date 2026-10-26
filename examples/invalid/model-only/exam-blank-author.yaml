@@ -1,0 +1,6 @@
+# `blank-text` on the exam `author`: defined, but only whitespace.
+type: exam
+id: prova
+title: Biomas do Brasil
+author: "   "
+questions: []

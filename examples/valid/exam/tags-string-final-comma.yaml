@@ -1,0 +1,15 @@
+# A comma-separated `tags` string of the exam with a final comma: the empty
+# part after the final comma is dropped, without a lint.
+type: exam
+id: biomas
+title: Biomas do Brasil
+tags:
+- cerrado
+- bioma
+questions:
+- stem: Qual bioma cobre a maior parte do norte do Brasil?
+  choices:
+  - text: Amazônia
+    score: 1.0
+  - text: Pampa
+  type: multiple-choice

@@ -1,0 +1,12 @@
+# A `# ` line inside a code block of the stem is literal text: it does not
+# make the document an exam.
+type: numeric
+stem: |-
+  ```python
+  # soma dos estados
+  print(26 + 1)
+  ```
+
+  Quantos estados tem o Brasil?
+answer: 26
+domain: integer

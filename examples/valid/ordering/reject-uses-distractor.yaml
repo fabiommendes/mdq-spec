@@ -1,0 +1,17 @@
+# A `## [reject]` section may use a line of `## [extra]`: the student sees
+# that line, so the section is reachable.
+id: ordering-reject-uses-distractor
+title: Ciclo da água
+type: ordering
+stem: Ordene as etapas do ciclo da água na Amazônia.
+content: code
+lines:
+  - [0, "evaporação"]
+  - [0, "condensação"]
+  - [0, "precipitação"]
+extra:
+  - [0, "erosão"]
+reject:
+  - lines:
+      - [0, "evaporação"]
+      - [0, "erosão"]

@@ -1,0 +1,3 @@
+# A `null` stem is a schema error, not `blank-text`.
+type: essay
+stem: null

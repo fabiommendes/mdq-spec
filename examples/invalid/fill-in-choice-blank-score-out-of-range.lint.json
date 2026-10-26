@@ -1,0 +1,24 @@
+[
+  {
+    "code": "schema-error",
+    "severity": "error",
+    "path": [
+      "blanks",
+      0,
+      "choices",
+      0,
+      "score"
+    ]
+  },
+  {
+    "code": "schema-error",
+    "severity": "error",
+    "path": [
+      "blanks",
+      0,
+      "choices",
+      1,
+      "score"
+    ]
+  }
+]

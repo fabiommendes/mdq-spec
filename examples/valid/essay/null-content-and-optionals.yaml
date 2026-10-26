@@ -1,0 +1,6 @@
+# base.md, "Frontmatter": `null` in `locale`, `uuid`, `comment`, `meta` and
+# `content` equals an absent field. `content` takes its default, `text`.
+id: essay-null-optionals
+title: Recife
+type: essay
+stem: Describe how the Capibaribe river shaped the city of Recife.

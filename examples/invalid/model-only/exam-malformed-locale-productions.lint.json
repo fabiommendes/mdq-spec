@@ -1,0 +1,101 @@
+[
+  {
+    "code": "malformed-locale",
+    "severity": "error",
+    "path": [
+      "questions",
+      0,
+      "locale"
+    ]
+  },
+  {
+    "code": "malformed-locale",
+    "severity": "error",
+    "path": [
+      "questions",
+      1,
+      "locale"
+    ]
+  },
+  {
+    "code": "malformed-locale",
+    "severity": "error",
+    "path": [
+      "questions",
+      2,
+      "locale"
+    ]
+  },
+  {
+    "code": "malformed-locale",
+    "severity": "error",
+    "path": [
+      "questions",
+      3,
+      "locale"
+    ]
+  },
+  {
+    "code": "malformed-locale",
+    "severity": "error",
+    "path": [
+      "questions",
+      4,
+      "locale"
+    ]
+  },
+  {
+    "code": "malformed-locale",
+    "severity": "error",
+    "path": [
+      "questions",
+      5,
+      "locale"
+    ]
+  },
+  {
+    "code": "malformed-locale",
+    "severity": "error",
+    "path": [
+      "questions",
+      6,
+      "locale"
+    ]
+  },
+  {
+    "code": "malformed-locale",
+    "severity": "error",
+    "path": [
+      "questions",
+      7,
+      "locale"
+    ]
+  },
+  {
+    "code": "malformed-locale",
+    "severity": "error",
+    "path": [
+      "questions",
+      8,
+      "locale"
+    ]
+  },
+  {
+    "code": "malformed-locale",
+    "severity": "error",
+    "path": [
+      "questions",
+      9,
+      "locale"
+    ]
+  },
+  {
+    "code": "malformed-locale",
+    "severity": "error",
+    "path": [
+      "questions",
+      10,
+      "locale"
+    ]
+  }
+]

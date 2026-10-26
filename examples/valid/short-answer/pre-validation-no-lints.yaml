@@ -1,0 +1,41 @@
+# Patterns in `preAccept` and `preReject` that must not be linted: a plain
+# literal that only looks like an anchor, the flags `f` and `b` (which
+# remove an implicit anchor), an escaped `$`, an unanchored regex, the
+# effective flags `i`, `n`, `b`, `f`, and the literal `*` (no wildcard).
+id: sa-pre-validation-no-lints
+title: Rio Negro
+type: short-answer
+stem: Qual rio banha Manaus?
+accept:
+  - Negro
+preAccept:
+  - "^Negro"
+  - "Negro$"
+  - "/^Negro/f"
+  - "/Negro$/f"
+  - "/Negro$/b"
+  - "/Negro\\$/"
+  - "/Negro/"
+  - "/Tocantins/i"
+  - "/Tocantins/n"
+  - "/Tocantins/b"
+  - "/Tocantins/f"
+  - "/Tocantins/in"
+  - "/Tocantins/nb"
+  - "`*`"
+preReject:
+  - "^Negro"
+  - "Negro$"
+  - "/^Negro/f"
+  - "/Negro$/f"
+  - "/Negro$/b"
+  - "/Negro\\$/"
+  - "/Negro/"
+  - "/Tocantins/i"
+  - "/Tocantins/n"
+  - "/Tocantins/b"
+  - "/Tocantins/f"
+  - "/Tocantins/in"
+  - "/Tocantins/nb"
+  - pattern: "`*`"
+    feedback: Inválido.

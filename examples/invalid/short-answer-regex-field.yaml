@@ -1,0 +1,5 @@
+# `regex` does not exist in a short answer question: a regex goes in `accept`,
+# written with its slashes.
+type: short-answer
+stem: Qual é a capital do Brasil?
+regex: /Bras[íi]lia/

@@ -1,0 +1,10 @@
+stem: Julgue as afirmações sobre a Amazônia.
+choices:
+- text: O rio Amazonas é o maior do mundo em volume de água.
+  correct: true
+  marker: T
+  comment: Vale contrastar com o comprimento do Nilo.
+- text: A Amazônia fica toda no Brasil.
+  correct: false
+  marker: F
+type: true-false

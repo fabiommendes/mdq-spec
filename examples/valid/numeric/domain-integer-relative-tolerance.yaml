@@ -1,0 +1,9 @@
+# A relative tolerance never causes `domain-mismatch`.
+id: domain-integer-relative
+title: Relative tolerance under integer
+type: numeric
+stem: How many municipalities does Minas Gerais have, within 5%?
+answer: 853
+domain: integer
+tolerance:
+  relative: 0.05

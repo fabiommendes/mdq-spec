@@ -1,0 +1,18 @@
+type: exam
+title: Provas do Pantanal
+questions:
+- stem: 'O Pantanal é a maior planície alagável do mundo.
+
+
+    ---
+
+
+    Seu ciclo é marcado por cheias e secas.
+
+
+    Qual é o ciclo anual do Pantanal?'
+  accept:
+  - cheia
+  type: short-answer
+- stem: Descreva a fauna do Pantanal.
+  type: essay

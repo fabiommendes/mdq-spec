@@ -1,0 +1,65 @@
+[
+  {
+    "code": "missing-tolerance",
+    "severity": "info",
+    "path": [
+      "blanks",
+      5,
+      "tolerance"
+    ]
+  },
+  {
+    "code": "missing-tolerance",
+    "severity": "info",
+    "path": [
+      "blanks",
+      6,
+      "tolerance"
+    ]
+  },
+  {
+    "code": "missing-tolerance",
+    "severity": "info",
+    "path": [
+      "blanks",
+      7,
+      "tolerance"
+    ]
+  },
+  {
+    "code": "missing-tolerance",
+    "severity": "info",
+    "path": [
+      "blanks",
+      8,
+      "tolerance"
+    ]
+  },
+  {
+    "code": "missing-tolerance",
+    "severity": "info",
+    "path": [
+      "blanks",
+      9,
+      "tolerance"
+    ]
+  },
+  {
+    "code": "missing-tolerance",
+    "severity": "info",
+    "path": [
+      "blanks",
+      10,
+      "tolerance"
+    ]
+  },
+  {
+    "code": "missing-tolerance",
+    "severity": "info",
+    "path": [
+      "blanks",
+      11,
+      "tolerance"
+    ]
+  }
+]

@@ -1,0 +1,5 @@
+# An empty `preReject` list is a schema error; omit the field instead.
+type: short-answer
+stem: Qual rio atravessa a cidade de Manaus?
+accept: [Negro]
+preReject: []

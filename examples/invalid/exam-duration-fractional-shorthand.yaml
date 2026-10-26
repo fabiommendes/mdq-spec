@@ -1,0 +1,5 @@
+# Shorthand components are whole numbers.
+type: exam
+title: Duration fractional shorthand
+duration: '1.5h'
+questions: []

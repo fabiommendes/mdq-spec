@@ -1,0 +1,17 @@
+# Under `indentation: lenient` levels are ignored, so a `## [reject]` line at
+# another level than the pool offers is still reachable.
+id: ordering-reject-other-level-lenient
+title: Ciclo da água
+type: ordering
+stem: Ordene as etapas do ciclo da água na Amazônia.
+content: code
+indentation: lenient
+lines:
+  - [0, "evaporação"]
+  - [0, "condensação"]
+  - [0, "precipitação"]
+extra:
+  - [0, "erosão"]
+reject:
+  - lines:
+      - [3, "erosão"]

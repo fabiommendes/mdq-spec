@@ -1,0 +1,21 @@
+# `redundant-regex-anchor` reports only an anchor that the flags leave
+# implicit, in a delimited pattern. Entries 0 and 1 are reported (`i` and `n`
+# do not remove the implicit anchors). The others are not: a pattern with no
+# delimiters is a literal, `\$` is a literal dollar sign, and `f` or `b`
+# make the anchor meaningful.
+id: sa-anchor-flags-and-literals
+title: Rio de Manaus
+type: short-answer
+stem: Qual rio banha Manaus?
+accept:
+  - "/Negro$/i"
+  - "/^Rio Negro$/n"
+  - "Negro"
+  - "^Negro"
+  - "Negro$"
+  - "/Negro$/b"
+  - "/^Negro/f"
+  - "/Negro$/f"
+  - "/^Negro$/fb"
+  - 'Negro\$'
+  - '/Negro\$/'

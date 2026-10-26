@@ -1,0 +1,12 @@
+# Two choice texts that differ only in the whitespace inside a code span are
+# not `duplicate-choice-text`: they render differently.
+id: mc-code-span-whitespace
+title: Whitespace inside a code span
+type: multiple-choice
+stem: Qual comando lista os arquivos de um diretório com detalhes?
+choices:
+- text: '`ls  -la`'
+  id: two-spaces
+  score: 1
+- text: '`ls -la`'
+  id: one-space

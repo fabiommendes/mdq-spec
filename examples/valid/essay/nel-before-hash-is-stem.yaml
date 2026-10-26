@@ -1,0 +1,3 @@
+# NEL is not a line ending: `# Título` after it is not an exam title.
+stem: "Qual a capital?\x85# Título"
+type: essay

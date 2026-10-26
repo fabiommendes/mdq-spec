@@ -1,0 +1,18 @@
+type: exam
+title: Prova de Biologia
+instructions: Leia com atenção.
+questions:
+- stem: 'Considere o processo abaixo.
+
+
+    ---
+
+
+    Atenção: a resposta deve ser justificada.
+
+
+    Explique a seleção natural.'
+  type: essay
+- id: fotossintese
+  stem: Descreva a fotossíntese.
+  type: essay

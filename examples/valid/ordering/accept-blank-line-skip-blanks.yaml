@@ -1,0 +1,17 @@
+# `skip-blanks` drops blank lines before comparing, so a blank line in an
+# `## [accept]` section is not a line missing from the answer key.
+id: ordering-accept-blank-line-skip-blanks
+title: Ciclo da água
+type: ordering
+stem: Ordene as etapas do ciclo da água na Amazônia.
+content: code
+normalizations:
+  - skip-blanks
+lines:
+  - [0, "evaporação"]
+  - [0, "condensação"]
+  - [0, "precipitação"]
+accept:
+  - lines:
+      - [0, "condensação"]
+      - [0, ""]

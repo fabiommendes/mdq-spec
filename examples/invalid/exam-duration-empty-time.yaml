@@ -1,0 +1,5 @@
+# The "T" needs at least one component.
+type: exam
+title: Duration empty time
+duration: 'PT'
+questions: []

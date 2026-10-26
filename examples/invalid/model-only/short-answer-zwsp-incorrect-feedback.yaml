@@ -1,0 +1,9 @@
+# An `incorrectFeedback` of only invisible characters (here U+200B) is
+# `blank-text`.
+type: short-answer
+id: q
+title: Capital do Brasil
+stem: Qual é a capital do Brasil?
+incorrectFeedback: "​"
+accept:
+  - pattern: Brasília

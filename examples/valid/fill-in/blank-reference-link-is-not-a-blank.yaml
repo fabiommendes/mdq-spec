@@ -1,0 +1,9 @@
+# `[^nota][ibge]` is a (reference) link, not a blank, so `nota` needs no
+# definition (fill-in.md, "Where blanks may appear").
+type: fill-in
+stem: Veja [^nota][ibge] sobre o bioma. O maior bioma do Brasil é a [^bioma].
+blanks:
+- id: bioma
+  type: short-answer
+  accept:
+  - Amazônia

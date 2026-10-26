@@ -1,0 +1,12 @@
+stem: 'Considere os biomas:
+
+
+  * Cerrado
+
+  * Caatinga
+
+
+  Qual deles predomina no Sertão nordestino?'
+accept:
+- Caatinga
+type: short-answer

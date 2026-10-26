@@ -1,0 +1,5 @@
+type: exam
+title: Prova de Geografia
+questions:
+- stem: Descreva o bioma Cerrado.
+  type: essay

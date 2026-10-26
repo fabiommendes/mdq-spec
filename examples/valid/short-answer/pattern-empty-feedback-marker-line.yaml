@@ -1,0 +1,8 @@
+stem: Qual é o maior rio do Brasil?
+accept:
+- pattern: Amazonas
+  feedback: 'Certo.
+
+
+    Em volume.'
+type: short-answer

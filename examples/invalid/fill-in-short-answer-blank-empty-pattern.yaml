@@ -1,0 +1,9 @@
+# An empty bare pattern in a blank is reported at the list item.
+id: fill-in-blank-empty-pattern
+type: fill-in
+stem: The largest Brazilian biome is [^biome].
+blanks:
+  - id: biome
+    type: short-answer
+    accept:
+      - ""

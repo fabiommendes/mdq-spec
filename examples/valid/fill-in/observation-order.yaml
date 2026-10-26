@@ -1,0 +1,18 @@
+type: fill-in
+id: fill-in-observation-order
+title: Order of feedback and comment lines in blanks
+stem: O maior bioma brasileiro é a [^bioma].
+blanks:
+- id: bioma
+  accept:
+  - pattern: Amazônia
+    feedback: Right.
+    comment: The note comes first.
+  - pattern: Amazon
+    feedback: Right, in English. A second feedback line.
+    comment: A note. A second note line.
+  reject:
+  - pattern: Cerrado
+    feedback: It is the second largest.
+    comment: A note first.
+  type: short-answer

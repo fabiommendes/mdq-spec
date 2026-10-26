@@ -1,0 +1,9 @@
+[
+  {
+    "code": "malformed-start",
+    "severity": "error",
+    "path": [
+      "start"
+    ]
+  }
+]

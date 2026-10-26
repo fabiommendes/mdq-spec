@@ -1,0 +1,13 @@
+# These patterns have no unmatchable escape, so none gets the info: `\u00e1`
+# without the `n` flag, an escaped backslash, an escape that `n` leaves alone
+# and a shorthand class.
+id: unmatchable-regex-escape-unchanged
+title: Water in Portuguese, safe escapes
+type: short-answer
+stem: Como se escreve "water" em português?
+accept:
+  - /\u00e1gua/
+  - /\\u00e1/n
+  - /a\.b/n
+  - /\d/n
+  - Água

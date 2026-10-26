@@ -1,0 +1,16 @@
+[
+  {
+    "code": "stray-choice-marker",
+    "severity": "warning",
+    "path": [
+      "stem"
+    ]
+  },
+  {
+    "code": "stray-choice-marker",
+    "severity": "warning",
+    "path": [
+      "stem"
+    ]
+  }
+]

@@ -1,0 +1,10 @@
+# The pattern of a short-answer blank does not compile as an MDQ regex
+# (unbalanced character class). Only the `invalid-regex` model validator
+# rejects it, at the path of the blank's pattern.
+type: fill-in
+stem: A capital do Brasil é [^capital].
+blanks:
+  - id: capital
+    type: short-answer
+    accept:
+      - "/[Br/"

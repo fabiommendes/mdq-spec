@@ -1,0 +1,18 @@
+stem: Ordene os rios do Brasil pelo nome.
+content: text
+lines:
+- - 0
+  - Amazonas
+- - 0
+  - Negro
+reject:
+- lines:
+  - - 0
+    - Negro
+  - - 0
+    - Amazonas
+  feedback: 'Ao contrário.
+
+
+    Releia.'
+type: ordering

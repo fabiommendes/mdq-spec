@@ -1,0 +1,6 @@
+# A `null` choice text is a schema error, not `blank-text`.
+type: multiple-choice
+stem: Qual é a capital do Brasil?
+choices:
+  - { id: brasilia, text: Brasília, score: 1 }
+  - { text: null }

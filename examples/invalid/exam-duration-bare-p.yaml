@@ -1,0 +1,5 @@
+# An ISO duration needs at least one component.
+type: exam
+title: Duration bare p
+duration: 'P'
+questions: []

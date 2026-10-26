@@ -1,0 +1,43 @@
+[
+  {
+    "code": "code-content-without-highlight",
+    "severity": "info",
+    "path": [
+      "highlight"
+    ]
+  },
+  {
+    "code": "unreachable-alternative",
+    "severity": "warning",
+    "path": [
+      "reject",
+      0,
+      "lines"
+    ]
+  },
+  {
+    "code": "unreachable-alternative",
+    "severity": "warning",
+    "path": [
+      "reject",
+      1,
+      "lines"
+    ]
+  },
+  {
+    "code": "reject-without-feedback",
+    "severity": "info",
+    "path": [
+      "reject",
+      0
+    ]
+  },
+  {
+    "code": "reject-without-feedback",
+    "severity": "info",
+    "path": [
+      "reject",
+      1
+    ]
+  }
+]

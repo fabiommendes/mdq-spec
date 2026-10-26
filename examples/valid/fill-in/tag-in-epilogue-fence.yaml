@@ -1,0 +1,16 @@
+stem: A capital do Brasil é [^capital].
+blanks:
+- id: capital
+  type: short-answer
+  accept:
+  - Brasília
+type: fill-in
+epilogue: 'A definição abaixo está num bloco de código do epílogo. Ela é código, não
+  uma definição de lacuna:
+
+
+  ```md
+
+  [^acre/short-answer]: Rio Branco
+
+  ```'

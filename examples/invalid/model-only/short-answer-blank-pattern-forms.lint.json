@@ -1,0 +1,42 @@
+[
+  {
+    "code": "blank-text",
+    "severity": "error",
+    "path": [
+      "accept",
+      0
+    ]
+  },
+  {
+    "code": "blank-text",
+    "severity": "error",
+    "path": [
+      "accept",
+      1
+    ]
+  },
+  {
+    "code": "blank-text",
+    "severity": "error",
+    "path": [
+      "accept",
+      2
+    ]
+  },
+  {
+    "code": "blank-text",
+    "severity": "error",
+    "path": [
+      "accept",
+      3
+    ]
+  },
+  {
+    "code": "blank-text",
+    "severity": "error",
+    "path": [
+      "accept",
+      4
+    ]
+  }
+]

@@ -1,0 +1,18 @@
+[
+  {
+    "code": "redundant-regex-anchor",
+    "severity": "info",
+    "path": [
+      "accept",
+      2
+    ]
+  },
+  {
+    "code": "redundant-regex-anchor",
+    "severity": "info",
+    "path": [
+      "reject",
+      1
+    ]
+  }
+]

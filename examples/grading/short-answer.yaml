@@ -113,6 +113,29 @@ questions:
       - response: "``"
         score: 0
 
+  # Spaces and tabs at both ends of a pattern string are removed before the
+  # pattern is classified (patterns.md, "Pattern string"), so each pattern
+  # below keeps its kind: exact literal, regex or inexact literal.
+  - name: "Spaces and tabs around a pattern string"
+    question: { accept: ["  `Manaus`", "\t`Belém`  ", "  /porto velho/i", "  Brasília ", "`Macapá`  "] }
+    examples:
+      - response: "Manaus"
+        score: 1
+      - response: "manaus"
+        score: 0
+      - response: "Belém"
+        score: 1
+      - response: "belém"
+        score: 0
+      - response: "PORTO VELHO"
+        score: 1
+      - response: "brasilia"
+        score: 1
+      - response: "Macapá"
+        score: 1
+      - response: "macapá"
+        score: 0
+
   # A regex is anchored to the whole response; `i` folds case and `n`
   # strips diacritics (patterns.md, "Regex flags").
   - name: "Regex"
@@ -505,3 +528,191 @@ questions:
         score: "malformed"
       - response: true
         score: "malformed"
+
+  # `null` is not a skip for a short answer question: it is a malformed
+  # response, like any other value that is not a string.
+  - name: "Null response"
+    question: { accept: ["Brasília"] }
+    examples:
+      - response: null
+        score: "malformed"
+
+  # An empty response, or one of only spaces and line breaks, is graded like
+  # any other response.
+  - name: "Blank responses"
+    question: { accept: ["Brasília"] }
+    examples:
+      - response: "   "
+        score: 0
+      - response: "\n"
+        score: 0
+
+  # With `unmatched: manual`, an empty response that matches no pattern is
+  # pending.
+  - name: "Blank responses with manual grading"
+    question: { accept: ["Brasília"], unmatched: manual }
+    examples:
+      - response: ""
+        score: "pending"
+      - response: "   "
+        score: "pending"
+
+  # `unmatched: incorrect` without `accept` still gives the
+  # `incorrectFeedback` to every response.
+  - name: "incorrectFeedback with unmatched incorrect and no accept"
+    question:
+      unmatched: incorrect
+      incorrectFeedback: "That city was never the capital."
+    examples:
+      - response: "Salvador"
+        score: 0
+        feedback: "That city was never the capital."
+
+  # `*` has no special meaning (patterns.md): the exact literal `` `*` ``
+  # matches only an asterisk, in `accept` and in `reject`.
+  - name: "Asterisk exact literal in accept"
+    question: { accept: ["`*`"] }
+    examples:
+      - response: "*"
+        score: 1
+      - response: " * "
+        score: 1
+      - response: "**"
+        score: 0
+      - response: "Brasília"
+        score: 0
+      - response: ""
+        score: 0
+
+  - name: "Asterisk exact literal in reject"
+    question:
+      accept: ["Brasília"]
+      reject:
+        - { pattern: "`*`", feedback: "Name the city." }
+    examples:
+      - response: "*"
+        score: 0
+        feedback: "Name the city."
+      - response: "Salvador"
+        score: 0
+        feedback: null
+
+  # An exact literal in `reject` compares like one in `accept`: NFC, trimmed,
+  # code point for code point. Case and diacritics still differ.
+  - name: "Exact literal in reject compares code point for code point"
+    question:
+      accept: ["Manaus"]
+      reject:
+        - { pattern: "`Brasília`", feedback: "Brasília is in the Cerrado." }
+    examples:
+      - response: "Brasília"
+        score: 0
+        feedback: "Brasília is in the Cerrado."
+      - response: "  Brasília\n"
+        score: 0
+        feedback: "Brasília is in the Cerrado."
+      - response: "Brasília"
+        score: 0
+        feedback: "Brasília is in the Cerrado."
+      - response: "brasília"
+        score: 0
+        feedback: null
+      - response: "Brasilia"
+        score: 0
+        feedback: null
+
+  # Without the delimiters `/.../` a regex-shaped string is an inexact
+  # literal, so the brackets are plain characters.
+  - name: "Regex-shaped literal without delimiters"
+    question: { accept: ["[Bb]rasilia"] }
+    examples:
+      - response: "[Bb]rasilia"
+        score: 1
+      - response: "Brasília"
+        score: 0
+      - response: "brasilia"
+        score: 0
+
+  # A pattern that contains a slash but does not start with one is a literal.
+  - name: "Literal with a slash"
+    question: { accept: ["math/floor"] }
+    examples:
+      - response: "math/floor"
+        score: 1
+      - response: "MATH/FLOOR"
+        score: 1
+
+  # A matching `reject` pattern with no feedback gives none, and the question
+  # has no `incorrectFeedback`.
+  - name: "Reject without feedback and without incorrectFeedback"
+    question: { accept: ["Brasília"], reject: ["/Rio.*/"] }
+    examples:
+      - response: "Rio de Janeiro"
+        score: 0
+        feedback: null
+
+  # `preAccept` and `preReject` only belong to pre-validation: a submission
+  # that matches a `preReject` pattern is still graded by `accept`.
+  - name: "Pre-validation lists do not change the score"
+    question:
+      accept: ["1822"]
+      preAccept: ["/./f"]
+      preReject: ["/1822/"]
+    examples:
+      - response: "1822"
+        score: 1
+      - response: "1823"
+        score: 0
+
+  # `diacritics: keep` also applies to the patterns of `reject`: the
+  # unaccented response is not swallowed by `accept`, and the feedback of the
+  # `reject` pattern shows.
+  - name: "Reject feedback with diacritics kept"
+    question:
+      accept: ["Brasília"]
+      diacritics: keep
+      reject:
+        - { pattern: "Brasilia", feedback: "You forgot the accent on the i." }
+      incorrectFeedback: "Sorry, that is not correct."
+    examples:
+      - response: "Brasilia"
+        score: 0
+        feedback: "You forgot the accent on the i."
+      - response: "Salvador"
+        score: 0
+        feedback: "Sorry, that is not correct."
+
+  # The feedback comes from the first matching pattern that has one, and
+  # whether a pattern matches depends on `diacritics`.
+  - name: "Feedback with diacritics folded"
+    question:
+      accept:
+        - { pattern: "Maceió", feedback: "Exact match." }
+        - { pattern: "/Mac.*/i", feedback: "Fallback." }
+    examples:
+      - response: "Maceio"
+        score: 1
+        feedback: "Exact match."
+  - name: "Feedback with diacritics kept"
+    question:
+      diacritics: keep
+      accept:
+        - { pattern: "Maceió", feedback: "Exact match." }
+        - { pattern: "/Mac.*/i", feedback: "Fallback." }
+    examples:
+      - response: "Maceio"
+        score: 1
+        feedback: "Fallback."
+      - response: "Maceió"
+        score: 1
+        feedback: "Exact match."
+
+  # `keep` skips only the accent stripping, not the Unicode normalization: a
+  # decomposed pattern matches the composed response.
+  - name: "Decomposed pattern with diacritics kept"
+    question: { accept: ["Brasília"], diacritics: keep }
+    examples:
+      - response: "Brasília"
+        score: 1
+      - response: "Brasilia"
+        score: 0

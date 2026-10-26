@@ -1,0 +1,13 @@
+# The Han false letter `错` is not in the accepted letters of the `pt` row: `locale-mismatched-true-false-marker`.
+id: locale-pt-han-false-mismatch
+title: Brazil facts
+type: true-false
+locale: pt-BR
+stem: Rate the statements about Brazil.
+choices:
+- text: Brasília is the capital of Brazil.
+  correct: true
+  marker: T
+- text: Brazil borders Chile.
+  correct: false
+  marker: 错

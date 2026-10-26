@@ -1,0 +1,18 @@
+# Under `indentation: strict` the student sets the levels, so only the text
+# of a line identifies it: an `## [accept]` line at another level than the
+# `[ordering]` block's is still a line of the answer key.
+id: ordering-accept-other-level-strict
+title: Ciclo da água
+type: ordering
+stem: Ordene as etapas do ciclo da água na Amazônia.
+content: code
+indentation: strict
+lines:
+  - [0, "evaporação"]
+  - [0, "condensação"]
+  - [0, "precipitação"]
+extra:
+  - [0, "erosão"]
+accept:
+  - lines:
+      - [2, "condensação"]

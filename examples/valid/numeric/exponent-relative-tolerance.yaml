@@ -1,0 +1,9 @@
+# An exponent in the relative tolerance takes no part in the domain.
+id: num-exponent-relative
+title: Exponent in a relative tolerance
+type: numeric
+stem: How many states are in the Northeast region of Brazil?
+answer: 9
+domain: integer
+tolerance:
+  relative: 1.0e-05

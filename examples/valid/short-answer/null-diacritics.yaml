@@ -1,0 +1,8 @@
+# base.md, "Frontmatter": `diacritics:` with a `null` value takes the
+# default, `fold`.
+id: sa-null-diacritics
+title: Capital of Pará
+type: short-answer
+stem: What is the capital of Pará?
+accept:
+  - Belém

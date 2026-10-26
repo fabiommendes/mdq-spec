@@ -1,0 +1,6 @@
+# A `[short-answer/accept]` block with no pattern is the same as a
+# `[short-answer]` block with no pattern: the question has no `accept` list.
+id: sa-accept-tag-without-pattern
+title: Bioma do Cerrado
+type: short-answer
+stem: Descreva o bioma Cerrado.

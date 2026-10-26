@@ -1,0 +1,8 @@
+# A pattern line in `preReject` cannot be empty.
+id: sa-empty-pre-reject-pattern
+type: short-answer
+stem: Name the largest Brazilian biome.
+accept:
+  - Amazônia
+preReject:
+  - ""

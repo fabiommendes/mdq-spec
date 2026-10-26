@@ -1,0 +1,9 @@
+id: sa-indented-marker-continuation
+title: Peaks of Brazil
+stem: Pico da Neblina is higher than Pico da Bandeira. Write the pair as "Neblina
+  ! Bandeira".
+accept:
+- Neblina ! Bandeira
+reject:
+- Serra > Mar
+type: short-answer

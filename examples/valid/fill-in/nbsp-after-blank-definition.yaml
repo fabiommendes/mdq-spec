@@ -1,0 +1,8 @@
+# A U+00A0 after a blank definition tag is text, like after `[short-answer]:`.
+stem: A capital é [^cap].
+blanks:
+- id: cap
+  type: short-answer
+  accept:
+  -  Brasília
+type: fill-in

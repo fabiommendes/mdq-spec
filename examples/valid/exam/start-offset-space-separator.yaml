@@ -1,0 +1,11 @@
+# An unquoted `start` with a space separator and a UTC offset is read as a
+# string and written with the `T` separator.
+id: prova
+title: Prova
+type: exam
+start: '2026-03-10T09:00:00-03:00'
+questions:
+- stem: Qual é a capital do Brasil?
+  accept:
+  - Brasília
+  type: short-answer

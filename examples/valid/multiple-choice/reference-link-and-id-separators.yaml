@@ -1,0 +1,12 @@
+id: mc-reference-link-and-id-separators
+title: Capitals
+stem: Qual é a capital do Brasil?
+choices:
+- text: Brasília
+  id: bsb
+  score: 1
+- text: Rio de Janeiro
+  id: rio
+- text: '[Salvador][ref]'
+type: multiple-choice
+epilogue: '[ref]: https://pt.wikipedia.org/wiki/Salvador'

@@ -1,0 +1,5 @@
+# A sign inside an ISO component is rejected.
+type: exam
+title: Duration negative day
+duration: 'P-1D'
+questions: []

@@ -1,0 +1,4 @@
+# A boolean is not a number, even where the host language counts it as one.
+type: numeric
+stem: A Amazônia é a maior floresta tropical do mundo?
+answer: true

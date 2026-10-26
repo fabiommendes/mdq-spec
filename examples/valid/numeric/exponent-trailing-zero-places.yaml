@@ -1,0 +1,10 @@
+# The trailing zero of the mantissa is a significant digit: "1.50e1" has 2 - 1 = 1 place.
+id: num-exponent-places
+title: Places of a mantissa with trailing zero
+type: numeric
+stem: What is the area of the Pantanal in hundreds of km2, to three significant digits?
+answer: "1.50e1"
+domain: decimal
+decimalPlaces: 1
+tolerance:
+  absolute: 1.0

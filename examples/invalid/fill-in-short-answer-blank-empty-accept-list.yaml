@@ -1,0 +1,7 @@
+# A short-answer blank with an empty `accept` list is a schema error.
+type: fill-in
+stem: A capital do Brasil é [^capital].
+blanks:
+  - id: capital
+    type: short-answer
+    accept: []

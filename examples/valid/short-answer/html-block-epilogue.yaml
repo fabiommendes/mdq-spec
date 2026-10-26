@@ -1,0 +1,7 @@
+# An HTML block interrupts the paragraph and goes to the epilogue.
+type: short-answer
+stem: What is the largest river island in Brazil?
+accept:
+  - Ilha do Bananal
+epilogue: |-
+  <div>Tocantins and Mato Grosso</div>

@@ -1,0 +1,9 @@
+[
+  {
+    "code": "code-content-without-highlight",
+    "severity": "info",
+    "path": [
+      "highlight"
+    ]
+  }
+]

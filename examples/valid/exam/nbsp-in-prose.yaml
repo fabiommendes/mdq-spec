@@ -1,0 +1,6 @@
+# A U+00A0 in the prose of a question in an exam is `info`.
+type: exam
+title: Prova
+questions:
+- stem: Descreva o ipê amarelo.
+  type: essay

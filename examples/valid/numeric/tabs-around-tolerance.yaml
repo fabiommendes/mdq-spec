@@ -1,0 +1,8 @@
+# Tabs are `ws`: they separate the answer, the sign and the tolerance.
+stem: Quanto mede o Rio Amazonas?
+answer: 6400
+unit: km
+domain: integer
+tolerance:
+  relative: 0.05
+type: numeric

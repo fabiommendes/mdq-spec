@@ -1,0 +1,8 @@
+# A U+00A0 inside a pattern line of a blank is text.
+stem: A capital é [^cap].
+blanks:
+- id: cap
+  type: short-answer
+  accept:
+  - Bras ília
+type: fill-in

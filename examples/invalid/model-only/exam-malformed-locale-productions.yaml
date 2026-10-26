@@ -1,0 +1,39 @@
+# Each question has a `locale` that is not a well-formed BCP 47 tag:
+# `malformed-locale` on each one.
+type: exam
+id: ciclo-agua
+title: Ciclo da água
+questions:
+  - type: essay
+    locale: "p"
+    stem: Explique o ciclo da água.
+  - type: essay
+    locale: "pt--BR"
+    stem: Explique o ciclo da água.
+  - type: essay
+    locale: "-pt"
+    stem: Explique o ciclo da água.
+  - type: essay
+    locale: "pt-"
+    stem: Explique o ciclo da água.
+  - type: essay
+    locale: "abcdefghi"
+    stem: Explique o ciclo da água.
+  - type: essay
+    locale: "123"
+    stem: Explique o ciclo da água.
+  - type: essay
+    locale: "pt-B"
+    stem: Explique o ciclo da água.
+  - type: essay
+    locale: "pt-12"
+    stem: Explique o ciclo da água.
+  - type: essay
+    locale: "en-a"
+    stem: Explique o ciclo da água.
+  - type: essay
+    locale: "x-"
+    stem: Explique o ciclo da água.
+  - type: essay
+    locale: "pt-BR-"
+    stem: Explique o ciclo da água.

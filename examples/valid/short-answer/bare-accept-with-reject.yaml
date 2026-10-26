@@ -1,0 +1,6 @@
+type: short-answer
+id: sa-bare-accept-with-reject
+title: Only a reject block
+stem: Which city is the capital of Minas Gerais?
+reject:
+- São Paulo

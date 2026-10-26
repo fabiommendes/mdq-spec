@@ -1,0 +1,6 @@
+# `openEnded` was removed: a question with no pattern is manual instead.
+type: short-answer
+stem: Qual é a capital do Brasil?
+openEnded: true
+accept:
+  - Brasília

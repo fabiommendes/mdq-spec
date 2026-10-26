@@ -1,0 +1,8 @@
+# `blank-text` on an exam `tags` entry: defined, but only whitespace.
+type: exam
+id: prova
+title: Biomas do Brasil
+tags:
+  - cerrado
+  - "  "
+questions: []

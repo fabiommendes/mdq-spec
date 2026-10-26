@@ -1,0 +1,63 @@
+# Numeric blank answers in several forms: signed integers, a signed fraction,
+# decimals that are exact floats and decimals that stay strings.
+id: fill-in-numeric-blank-representations
+title: Representations of numeric blank answers
+type: fill-in
+stem: 'Valores numéricos do Brasil: [^v0], [^v1], [^v2], [^v3], [^v4], [^v5], [^v6], [^v7], [^v8], [^v9],
+  [^v10], [^v11].'
+blanks:
+- id: v0
+  type: numeric
+  answer: -1
+  domain: integer
+- id: v1
+  type: numeric
+  answer: 0
+  domain: integer
+- id: v2
+  type: numeric
+  answer: '390000000000'
+  domain: integer
+- id: v3
+  type: numeric
+  answer: 3/4
+  domain: fraction
+- id: v4
+  type: numeric
+  answer: 4/2
+  domain: fraction
+- id: v5
+  type: numeric
+  answer: 0.25
+  domain: decimal
+  decimalPlaces: 2
+- id: v6
+  type: numeric
+  answer: 0.1
+  domain: decimal
+  decimalPlaces: 1
+- id: v7
+  type: numeric
+  answer: 3.14
+  domain: decimal
+  decimalPlaces: 2
+- id: v8
+  type: numeric
+  answer: 3000000000.5
+  domain: decimal
+  decimalPlaces: 1
+- id: v9
+  type: numeric
+  answer: '2.0'
+  domain: decimal
+  decimalPlaces: 1
+- id: v10
+  type: numeric
+  answer: '-0.0'
+  domain: decimal
+  decimalPlaces: 1
+- id: v11
+  type: numeric
+  answer: '0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000314159265358979323846'
+  domain: decimal
+  decimalPlaces: 321

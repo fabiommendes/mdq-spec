@@ -1,0 +1,14 @@
+id: fill-in-grading-shuffle-inherit
+title: Iguaçu Falls
+stem: Iguaçu Falls sit on the border of Brazil and [^country].
+shuffle: inherit
+blanks:
+- id: country
+  type: multiple-choice
+  choices:
+  - text: Argentina
+    score: 1
+  - text: Bolivia
+  - text: Uruguay
+type: fill-in
+grading: inherit

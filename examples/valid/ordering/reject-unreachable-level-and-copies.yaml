@@ -1,0 +1,22 @@
+# Under the default `indentation: fixed` a line is identified by text and
+# level, and a section cannot use more copies than the pool offers. Both
+# `## [reject]` sections below are `unreachable-alternative`: the first uses
+# `erosão` at a level the pool lacks, the second uses two copies of a line
+# the pool has once.
+id: ordering-reject-unreachable-level-and-copies
+title: Ciclo da água
+type: ordering
+stem: Ordene as etapas do ciclo da água na Amazônia.
+content: code
+lines:
+  - [0, "evaporação"]
+  - [0, "condensação"]
+  - [0, "precipitação"]
+extra:
+  - [0, "erosão"]
+reject:
+  - lines:
+      - [3, "erosão"]
+  - lines:
+      - [0, "erosão"]
+      - [0, "erosão"]

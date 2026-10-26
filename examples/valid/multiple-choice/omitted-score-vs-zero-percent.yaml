@@ -1,0 +1,13 @@
+# A blank value, `[ ]`, omits `score`; `[0%]` is an explicit zero.
+id: mc-omitted-score-vs-zero
+title: Largest rainforest
+type: multiple-choice
+stem: What is the largest tropical rainforest in the world?
+choices:
+  - text: Amazon
+    score: 1.0
+  - text: Atlantic Forest
+  - text: Cerrado
+    score: 0.0
+  - text: Sahara
+    score: -0.25

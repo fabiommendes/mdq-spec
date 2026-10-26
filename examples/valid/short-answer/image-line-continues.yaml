@@ -1,0 +1,5 @@
+# A line that starts with `![` is not a feedback marker: it continues the content.
+type: short-answer
+stem: What is the capital of Brazil?
+accept:
+  - Brasília ![map](map.png)

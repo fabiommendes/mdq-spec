@@ -1,0 +1,9 @@
+# A whole absolute tolerance written as a float agrees with `integer` and `fraction`.
+id: domain-integer-whole-float
+title: Whole float tolerance under integer
+type: numeric
+stem: How many states are in the Northeast region of Brazil?
+answer: 9
+domain: integer
+tolerance:
+  absolute: 1.0

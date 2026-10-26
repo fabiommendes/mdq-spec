@@ -1,0 +1,9 @@
+[
+  {
+    "code": "answer-outside-domain",
+    "severity": "warning",
+    "path": [
+      "answer"
+    ]
+  }
+]

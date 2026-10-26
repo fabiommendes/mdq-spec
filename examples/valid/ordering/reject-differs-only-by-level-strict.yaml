@@ -1,0 +1,19 @@
+# Under `indentation: strict` the levels take part in grading. A
+# `## [reject]` section that differs from the `[ordering]` block only by the
+# levels is another answer, so it is not an `accept-reject-overlap`.
+id: ordering-reject-differs-only-by-level-strict
+title: Laço for
+type: ordering
+stem: Ordene as linhas para imprimir os números de 0 a 2.
+content: code
+highlight: python
+indentation: strict
+lines:
+  - [0, "for i in range(3):"]
+  - [1, "print(i)"]
+reject:
+  - lines:
+      - [0, "for i in range(3):"]
+      - [0, "print(i)"]
+    feedback: >-
+      The body of the loop must be indented.

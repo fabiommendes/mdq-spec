@@ -1,0 +1,12 @@
+type: fill-in
+id: fill-in-line-detached-list
+title: Blank lines followed by list epilogues
+stem: O bioma [^bioma].
+epilogue: '* Cerrado is the second largest biome.'
+blanks:
+- id: bioma
+  accept:
+  - Amazônia
+  reject:
+  - Cerrado
+  type: short-answer

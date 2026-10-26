@@ -1,0 +1,13 @@
+# The Cyrillic false letter `Н` is not in the accepted letters of the `en` row: `locale-mismatched-true-false-marker`.
+id: locale-en-cyrillic-false-mismatch
+title: Brazil facts
+type: true-false
+locale: en
+stem: Rate the statements about Brazil.
+choices:
+- text: Brasília is the capital of Brazil.
+  correct: true
+  marker: T
+- text: Brazil borders Chile.
+  correct: false
+  marker: Н

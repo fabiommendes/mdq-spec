@@ -1,0 +1,7 @@
+# A unit may hold a currency symbol, a superscript or a letter outside ASCII.
+id: numeric-unit-currency
+title: Preço do pão de queijo
+type: numeric
+stem: Quanto custa um pão de queijo na padaria?
+answer: 4.5
+unit: R$

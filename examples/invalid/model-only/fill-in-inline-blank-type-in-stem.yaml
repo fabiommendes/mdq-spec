@@ -1,0 +1,10 @@
+# A marker is `[^` + SLUG + `]` (fill-in.md, "Stem"). `[^size/numeric]` is not
+# one, so it is plain text and the blank `size` is never referenced.
+type: fill-in
+id: fill-in-inline-blank-type-in-stem
+title: Manaus
+stem: Manaus has about [^size/numeric] inhabitants.
+blanks:
+  - id: size
+    type: numeric
+    answer: 2200000

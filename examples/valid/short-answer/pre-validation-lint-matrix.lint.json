@@ -1,0 +1,210 @@
+[
+  {
+    "code": "redundant-regex-anchor",
+    "severity": "info",
+    "path": [
+      "preAccept",
+      1
+    ]
+  },
+  {
+    "code": "redundant-regex-anchor",
+    "severity": "info",
+    "path": [
+      "preAccept",
+      2
+    ]
+  },
+  {
+    "code": "redundant-regex-anchor",
+    "severity": "info",
+    "path": [
+      "preAccept",
+      3
+    ]
+  },
+  {
+    "code": "redundant-regex-anchor",
+    "severity": "info",
+    "path": [
+      "preAccept",
+      4
+    ]
+  },
+  {
+    "code": "redundant-regex-anchor",
+    "severity": "info",
+    "path": [
+      "preAccept",
+      5
+    ]
+  },
+  {
+    "code": "ignored-regex-flag",
+    "severity": "info",
+    "path": [
+      "preAccept",
+      6
+    ]
+  },
+  {
+    "code": "ignored-regex-flag",
+    "severity": "info",
+    "path": [
+      "preAccept",
+      7
+    ]
+  },
+  {
+    "code": "ignored-regex-flag",
+    "severity": "info",
+    "path": [
+      "preAccept",
+      8
+    ]
+  },
+  {
+    "code": "ignored-regex-flag",
+    "severity": "info",
+    "path": [
+      "preAccept",
+      9
+    ]
+  },
+  {
+    "code": "ignored-regex-flag",
+    "severity": "info",
+    "path": [
+      "preAccept",
+      10
+    ]
+  },
+  {
+    "code": "ignored-regex-flag",
+    "severity": "info",
+    "path": [
+      "preAccept",
+      11
+    ]
+  },
+  {
+    "code": "ignored-regex-flag",
+    "severity": "info",
+    "path": [
+      "preAccept",
+      12
+    ]
+  },
+  {
+    "code": "ignored-regex-flag",
+    "severity": "info",
+    "path": [
+      "preAccept",
+      13
+    ]
+  },
+  {
+    "code": "redundant-regex-anchor",
+    "severity": "info",
+    "path": [
+      "preReject",
+      1
+    ]
+  },
+  {
+    "code": "redundant-regex-anchor",
+    "severity": "info",
+    "path": [
+      "preReject",
+      2
+    ]
+  },
+  {
+    "code": "redundant-regex-anchor",
+    "severity": "info",
+    "path": [
+      "preReject",
+      3
+    ]
+  },
+  {
+    "code": "redundant-regex-anchor",
+    "severity": "info",
+    "path": [
+      "preReject",
+      4
+    ]
+  },
+  {
+    "code": "redundant-regex-anchor",
+    "severity": "info",
+    "path": [
+      "preReject",
+      5
+    ]
+  },
+  {
+    "code": "ignored-regex-flag",
+    "severity": "info",
+    "path": [
+      "preReject",
+      6
+    ]
+  },
+  {
+    "code": "ignored-regex-flag",
+    "severity": "info",
+    "path": [
+      "preReject",
+      7
+    ]
+  },
+  {
+    "code": "ignored-regex-flag",
+    "severity": "info",
+    "path": [
+      "preReject",
+      8
+    ]
+  },
+  {
+    "code": "ignored-regex-flag",
+    "severity": "info",
+    "path": [
+      "preReject",
+      9
+    ]
+  },
+  {
+    "code": "ignored-regex-flag",
+    "severity": "info",
+    "path": [
+      "preReject",
+      10
+    ]
+  },
+  {
+    "code": "ignored-regex-flag",
+    "severity": "info",
+    "path": [
+      "preReject",
+      11
+    ]
+  },
+  {
+    "code": "ignored-regex-flag",
+    "severity": "info",
+    "path": [
+      "preReject",
+      12
+    ]
+  },
+  {
+    "code": "ignored-regex-flag",
+    "severity": "info",
+    "path": [
+      "preReject",
+      13
+    ]
+  }
+]

@@ -1,0 +1,11 @@
+stem: Qual destes rios é o mais extenso do Brasil?
+choices:
+- text: Amazonas
+  correct: true
+  comment: 'Primeira linha.
+
+
+    Segunda.'
+- text: Tocantins
+  correct: false
+type: multiple-selection

@@ -1,0 +1,8 @@
+# The `unit` of a numeric blank holds no space (numeric.md, "Unit conversion").
+type: fill-in
+stem: O rio São Francisco atravessa [^n] estados.
+blanks:
+  - id: n
+    type: numeric
+    answer: 5
+    unit: "m s"

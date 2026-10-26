@@ -1,0 +1,10 @@
+# A FALSE marker on a choice with `correct: true` is a contradiction.
+type: true-false
+stem: Julgue as afirmações sobre o Brasil.
+choices:
+  - text: O Brasil fica na América do Sul.
+    correct: true
+    marker: F
+  - text: Brasília fica no litoral.
+    correct: false
+    marker: F

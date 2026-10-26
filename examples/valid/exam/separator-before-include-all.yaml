@@ -1,0 +1,12 @@
+# An includeAll block preceded by `===` gets `separator-before-include`, as
+# an include block does. The YAML form has no separator.
+id: pampa
+title: Pampa
+type: exam
+questions:
+- includeAll: grassland
+  max: 2
+- stem: Qual é o maior bioma do Brasil?
+  accept:
+  - Amazônia
+  type: short-answer

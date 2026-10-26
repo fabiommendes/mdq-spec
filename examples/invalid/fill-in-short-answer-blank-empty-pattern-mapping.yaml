@@ -1,0 +1,9 @@
+# An empty `pattern` written as a mapping in a blank is reported at the field.
+id: fill-in-blank-empty-pattern-mapping
+type: fill-in
+stem: The largest Brazilian biome is [^biome].
+blanks:
+  - id: biome
+    type: short-answer
+    accept:
+      - pattern: ""

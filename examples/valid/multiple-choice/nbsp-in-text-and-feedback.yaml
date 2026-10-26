@@ -1,0 +1,8 @@
+# A U+00A0 inside choice text and choice feedback stays in the text.
+stem: Qual árvore é símbolo do Brasil?
+choices:
+- text: Ipê amarelo
+  score: 1
+  feedback: Árvore símbolo.
+- text: Jatobá
+type: multiple-choice

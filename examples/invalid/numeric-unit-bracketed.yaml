@@ -1,0 +1,5 @@
+# A unit holds no brackets (numeric.md, "Unit conversion").
+type: numeric
+stem: Qual é a altura do Pico da Neblina?
+answer: 2995
+unit: "[m]"

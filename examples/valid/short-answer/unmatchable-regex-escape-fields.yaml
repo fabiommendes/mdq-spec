@@ -1,0 +1,16 @@
+# `unmatchable-regex-escape` applies to the four pattern lists. A pattern
+# gets one diagnostic, whatever the number of changed escapes in it. The
+# `e\u0301` pattern is a combining accent, which `n` strips from the response.
+id: unmatchable-regex-escape-fields
+title: Water in Portuguese, all lists
+type: short-answer
+stem: Como se escreve "water" em português?
+preAccept:
+  - /\u00e1gua/n
+preReject:
+  - /e\u0301/n
+accept:
+  - /\u00e1\u00e9/n
+  - Água
+reject:
+  - /\u00e1gua/n
