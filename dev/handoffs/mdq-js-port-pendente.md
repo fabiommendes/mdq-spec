@@ -870,3 +870,48 @@ Exam e base:
 - SP17. Separador `===` estrito + warning `malformed-separator` (só Markdown).
   `unsplit-tag-list` nas `tags` do exam. `EXCEPT` usa `ID : TAG`.
 - SP18. Comentário do frontmatter: trim, vazio não é guardado.
+
+## Segunda auditoria completa do spec (2026-10-26)
+
+Ver `CHANGELOG.md` e `mdq-py/CHANGELOG.md` [Unreleased], item "Second spec audit".
+
+Texto e regex:
+- S2-1. D03: `rawText` em `mdq-js/src/parser/question.ts` deve manter as quebras
+  duras (dois ou mais espaços, ou `\`, antes do fim de linha) byte a byte, com a
+  quebra de linha. Só a quebra suave vira um espaço. Vale para stem, epílogo e
+  instruções. Py: `reconstruct_blocks` e `normalize_*`.
+- S2-2. D05: classes abreviadas (`\w`, `\d`, `\s`, `\b`) dobram sob `i`; remover
+  o `(?-i:...)` do tradutor. `\uHHHH` em D800-DFFF é `invalid-regex`. Casos novos
+  em `examples/matching/regex.yaml`.
+- S2-3. D06: as linhas da lista `[short-answer]:` são posição de sintaxe
+  (espaço não ASCII é reportado). Py: `_PATTERN_LIST_TAG_RE` em `_spaces.py`.
+- S2-4. D12: `[^x]` dentro de autolink (`<url>`, URL solta, `www.`) é literal;
+  a definição desse id dá `unreferenced-blank`.
+- S2-5. D08: remover a referência morta a um ADR em `mdq-js/src/responses.ts`.
+
+Lint e parser:
+- S2-6. Código novo `empty-ordering-answer` (D18.3). Item `ul` do ordering que
+  não é um parágrafo é `parse-error` (D19.1). Schema do ordering: texto vazio
+  exige `level: 0` (D19.3).
+- S2-7. `[short-answer]` nu com mais texto no parágrafo, e linha `>` ou `!` logo
+  após tag nua de short-answer, são `parse-error` (D21).
+- S2-8. Exam: campo `comment` no frontmatter; `missing-title` (info) sem título
+  (D07).
+- S2-9. Fill-in Markdown sem lacuna: `blanks: []` e `schema-error` em `blanks`
+  (D11). Caminho do `blank-text` de `incorrectFeedback`: `blanks[i].incorrectFeedback`
+  (D24).
+- S2-10. `relative-tolerance-over-one`: mensagem diz que a tolerância guarda uma
+  fração (D17.3). `4.0` e `2.50` continuam string; `+- 0` é válido.
+- S2-11. Feedback é o do primeiro padrão com feedback entre os que casam na lista
+  que decidiu (D22.1).
+
+True/false:
+- S2-12. Tabela de locale: `V` sai de `ru`, `M` de `bn`, `B` de `mr`, `K` de `sw`
+  (`ru V`, `bn M`, `mr B` = `locale-mismatched-true-false-marker`; `sw K` =
+  `unlisted-true-false-marker`). `H` sai dos false friends de `sw`; `否` entra em
+  `zh`; `fil` vira linha própria. `marker` YAML/JSON com espaço em volta é
+  `malformed-true-false-marker`. Corpus: `examples/valid/true-false/locale-*`.
+
+Pendência do mdq-py (não do port):
+- S2-13. `BLANK_MARKER_REGEX` em `mdq-py/mdq/convert/_moodle_xml.py` ainda trata
+  `[^x]` dentro de autolink como marcador na exportação (follow-up de D12).
