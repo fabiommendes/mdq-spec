@@ -313,19 +313,14 @@ Notas:
 
 ### P7. Fechamento
 
-- [ ] `normalize` (usa a reconstrução de blocos do parser), `withIds`,
-  `automation`.
-- [ ] Enxugamento dos testes unitários TS por cobertura: baseline = suítes
-  de corpus; apagar o que não soma cobertura ou levar o caso ao corpus.
+- [x] `normalize`, `withIds`, `automation` (`bb30469`).
+- [x] Enxugamento dos testes unitários TS por cobertura (`4512b6c`): 9439 →
+  ~4900 linhas de teste; cobertura de linhas 97,58% → 97,45%. As 11
+  instruções perdidas são de 8 casos sem exemplo no corpus, enviados à
+  sessão `mdq` (`/tmp/mdq-p7/corpus-gaps.md`).
 - [ ] `mdq-js/docs/sync/*` revisados; `mdq-js/CHANGELOG.md` [Unreleased].
-- [ ] `tests/not-ported.ts` vazio em todas as camadas.
-- [ ] Só mensagem difere (código e path batem): `[numerİc]` (o `iu` do JS
-  não leva `İ`/`ı` a `i`, `tags.ts`); `split(/\s+/u)` em
-  `short-answer.ts:298` contra `str.split()` (U+0085, U+001C, U+FEFF).
-- [ ] Candidatos ao enxugamento, da revisão da P2: `parser-exam.spec.ts`
-  (repete o corpus), blocos "edge cases the corpus does not cover" de
-  `parser-essay`, `parser-short-answer` e `parser-fill-in` (viram corpus),
-  `whitespace.spec.ts`.
+- [x] `tests/not-ported.ts` vazio em todas as camadas.
+- [x] Diferenças só de mensagem (`[numerİc]`, `str.split()`) (`bb30469`).
 
 ## Lacunas na referência
 
@@ -418,3 +413,5 @@ modelo, lint ou pontuação entram aqui.
   (`fa68490`). Suíte verde: 8612 testes; `spec_audit --check` verde.
 - 2026-10-27: P6 feita (`e7d2cdd`): pontuação de todos os tipos. MS que
   aceita string ou mapa na mdq-py levado à sessão `mdq` como bug.
+- 2026-10-27: P7a e P7b feitas. A mdq-js lê o corpus inteiro sem manifesto.
+  Pacote L da `mdq` portado (`9488681`). Suíte: 8100 testes.
