@@ -20,6 +20,7 @@ Implements part of the unreleased MDQ specification.
 - The exam include block key `include-all` is renamed to `includeAll` (Zod schema, parser, `resolveExam`). `include-all` is now an unknown field (`unknown-include-field`).
 - Empty free-text fields (`comment`, `preamble`, `epilogue`, `answerKey`, `instructions`, feedback) are now schema errors, and an empty frontmatter comment string is not stored.
 - Refreshed the bundled schema (description text only).
+- The short-answer, fill-in, ordering and exam parsers are ported from mdq-py, and the old parser is gone. `ConflictingAnswerKeyError` is removed: `accept` and `reject` in the frontmatter are invalid fields. The exam parser reports `malformed-separator`, and `setext-heading` only outside `stem` and `epilogue`. A `title: null` in the exam frontmatter is dropped.
 
 ### Added
 
@@ -31,8 +32,7 @@ Implements part of the unreleased MDQ specification.
   `sign? value abstol? reltol?` expression grammar
   (`parseNumericExpression`), and a short-answer body's `[short-answer]`,
   `[short-answer/accept]` and `[short-answer/reject]` blocks and
-  frontmatter pattern lists, raising `ConflictingAnswerKeyError` when a
-  list is declared both ways. Ordering questions are parsed too, with
+  frontmatter pattern lists. Ordering questions are parsed too, with
   their `## [extra]`, `## [accept]` and `## [reject]` sections and the
   indentation unit inferred across all blocks. Fill-in blanks are read
   from their `[^id]:` definitions (choice list, numeric, short answer and

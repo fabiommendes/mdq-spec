@@ -47,9 +47,6 @@ Only in TypeScript:
 
 - `src/parser/text.ts` and `src/parser/tree.ts`: helpers that markdown-it-py
   provides and markdown-it JS does not.
-- `src/parser/legacy/`: the question parser from before the P2 phase, still
-  used for the ordering body and by `exam.ts`. `parser/question.ts` calls it
-  for ordering. Phase P2c ports those and deletes the directory.
 - `src/validate.ts`: `validateDocument` and friends. Python validates when
   it builds the Pydantic model.
 

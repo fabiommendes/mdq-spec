@@ -21,11 +21,6 @@
  * children. Exam-level concerns (splitting a document into question blocks,
  * inheritance, the `===` grammar) live in `exam.ts`, which calls back into
  * `parseQuestionDocument` for each block.
- *
- * PORT STATUS (plan phase P2): every body but ordering is ported. Ordering
- * still runs in the legacy parser (`./legacy/question.ts`); see
- * `MDQParser.parseQuestion`, where phase P2c plugs in `parseOrderingBody`
- * like `_question.py` calls it.
  */
 
 import { type Diagnostic, diagnostic } from "../diagnostics.js";
@@ -57,12 +52,12 @@ import {
 	loadFrontmatterYaml,
 	splitFrontmatter,
 } from "./frontmatter.js";
-import { parseLegacyQuestionDocument } from "./legacy/question.js";
 import {
 	type NumericExpression,
 	numericFields,
 	parseNumericExpression,
 } from "./numeric.js";
+import { checkOrderingTag, parseOrderingBody } from "./ordering.js";
 import { parseShortAnswerBody } from "./short-answer.js";
 import {
 	checkBareTagAlone,
@@ -118,16 +113,6 @@ export function parseQuestionDocument(
 ): RawDocument {
 	const parser = new MDQParser(source);
 	const doc = parser.parseQuestion();
-	if (doc === null) {
-		// Ordering: still the legacy parser (P2c).
-		const legacyWarnings: Diagnostic[] = [];
-		const legacyDoc = parseLegacyQuestionDocument(source, legacyWarnings);
-		warnings?.push(
-			...invalidFrontmatterFields(parser.frontmatter, String(legacyDoc.type)),
-			...legacyWarnings.filter((w) => w.code !== "unknown-frontmatter-key"),
-		);
-		return legacyDoc;
-	}
 	warnings?.push(
 		...invalidFrontmatterFields(parser.frontmatter, String(doc.type)),
 		...parser.diagnostics,
@@ -439,13 +424,12 @@ export class MDQParser {
 	/**
 	 * Parse the question document this instance was constructed with.
 	 *
-	 * @returns The document, or `null` when its body is an ordering body: the
-	 *   legacy parser handles it until phase P2c ports it.
+	 * @returns The document.
 	 * @throws {MissingFieldError} If the question has no stem.
 	 * @throws {ParseError} If the body does not match any known question
 	 *   shape.
 	 */
-	parseQuestion(): RawDocument | null {
+	parseQuestion(): RawDocument {
 		Object.assign(
 			this.state,
 			commonFrontmatter(this.frontmatter, this.comment),
@@ -472,6 +456,8 @@ export class MDQParser {
 		this.state.stem = stemText;
 
 		let questionType: unknown = this.frontmatter.type;
+		// An ordering body ends its own epilogue at the first section.
+		let orderingEpilogue: readonly Node[] | null = null;
 		const node = this.cursor.peek();
 
 		if (node === null) {
@@ -506,10 +492,18 @@ export class MDQParser {
 					this.parseNumericBody(tag, bodyNode);
 					break;
 				case "ordering":
-					// P2c: `[fields, epilogueNodes] = parseOrderingBody(this.cursor,
-					// this.frontmatter, bodyNode)`; the type is `questionType ||
-					// "ordering"`.
-					return null;
+					questionType = questionType || "ordering";
+					checkOrderingTag(tag);
+					{
+						const [fields, epilogueNodes] = parseOrderingBody(
+							this.cursor,
+							this.frontmatter,
+							bodyNode,
+						);
+						Object.assign(this.state, fields);
+						orderingEpilogue = epilogueNodes;
+					}
+					break;
 				case "short-answer":
 					questionType = questionType || "short-answer";
 					Object.assign(
@@ -535,12 +529,10 @@ export class MDQParser {
 
 		this.state.type = questionType;
 
-		// P2c: an ordering body returns its own `epilogueNodes` (the epilogue
-		// starts before the first section), used here instead of the rest.
 		const epilogueBlocks: readonly Node[] =
 			questionType === "essay"
 				? this.parseAnswerKey()
-				: this.reader.children.slice(this.cursor.pos);
+				: (orderingEpilogue ?? this.reader.children.slice(this.cursor.pos));
 		this.reportDetachedTags(epilogueBlocks, questionType === "fill-in");
 		if (epilogueBlocks.length > 0) {
 			const epilogueText = this.reader.joinBlocks(epilogueBlocks);

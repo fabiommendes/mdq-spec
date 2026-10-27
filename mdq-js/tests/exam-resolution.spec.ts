@@ -34,7 +34,7 @@ import {
 	SOURCE_SUFFIX,
 	VALID_EXAMS_DIR,
 } from "./corpus.js";
-import { corpusIt, RESOLVE } from "./not-ported.js";
+import { corpusIt, notPorted, RESOLVE } from "./not-ported.js";
 
 interface Resolved {
 	readonly questions: readonly string[];
@@ -168,6 +168,13 @@ describe("resolved exam fixtures", () => {
 });
 
 describe("every exam of the bank directory parses", () => {
+	it("none is rejected unlisted", () => {
+		const unlisted = [...UNPARSED.keys()].filter(
+			(name) => notPorted(RESOLVE, name) === undefined,
+		);
+		expect(unlisted).toEqual([]);
+	});
+
 	for (const [name, error] of [...UNPARSED].sort()) {
 		corpusIt(RESOLVE, name, () => {
 			throw error;

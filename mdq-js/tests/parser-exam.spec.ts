@@ -18,7 +18,7 @@
  * `_split_exam_blocks`, `_looks_like_frontmatter`, `_clean_block`.
  */
 
-import { MissingFieldError, ParseError, YamlSyntaxError } from "@mdq";
+import { MissingFieldError, YamlSyntaxError } from "@mdq";
 import { describe, expect, it } from "vitest";
 import { parseExamDocument } from "../src/parser/index.js";
 
@@ -202,14 +202,6 @@ describe("batch 1: exam frontmatter", () => {
 		).toEqual({
 			type: "exam",
 			title: "Prova",
-			questions: [],
-		});
-	});
-
-	it("a null title is kept: it stands for the placeholder H1", () => {
-		expect(parseExamDocument("---\ntitle:\n---\n\n# Prova\n")).toEqual({
-			type: "exam",
-			title: null,
 			questions: [],
 		});
 	});
@@ -675,32 +667,6 @@ describe("batch 1: exam blocks", () => {
 		});
 	});
 
-	it("an epilogue --- thematic break raises with the 1-based line number", () => {
-		const source = "# Exam\n\n===\n\nExplique.\n\n[essay]\n\n---\n\nRubrica.\n";
-		expect(() => parseExamDocument(source)).toThrow(ParseError);
-		expect(() => parseExamDocument(source)).toThrow(
-			"line 8: a question's epilogue cannot use '---' as a thematic break inside an exam; use '***' or '___'",
-		);
-	});
-
-	it("the line number counts the frontmatter and the title lines", () => {
-		const source =
-			"---\ncourse: X\n---\n\n# Exam\n\n===\n\nExplique.\n\n[essay]\n\n---\n\nRubrica.\n";
-		expect(() => parseExamDocument(source)).toThrow(ParseError);
-		expect(() => parseExamDocument(source)).toThrow(
-			"line 8: a question's epilogue cannot use '---' as a thematic break inside an exam; use '***' or '___'",
-		);
-	});
-
-	it("a bracket item body followed by a --- that opens nothing", () => {
-		const source =
-			"# Exam\n\n===\n\nQual?\n\n* [ ] Sim\n* [*] Não\n\n---\n\nRubrica.\n";
-		expect(() => parseExamDocument(source)).toThrow(ParseError);
-		expect(() => parseExamDocument(source)).toThrow(
-			"line 9: a question's epilogue cannot use '---' as a thematic break inside an exam; use '***' or '___'",
-		);
-	});
-
 	it("a --- pair after the body is a block even when its text is not a mapping", () => {
 		// exam.md, "Questions": a `---` pair in block position opens a block
 		// whatever it encloses. A scalar is not a mapping, so the block has
@@ -727,23 +693,6 @@ describe("batch 1: exam blocks", () => {
 		}
 		expect(error).toBeInstanceOf(YamlSyntaxError);
 		expect((error as YamlSyntaxError).code).toBe("yaml-syntax-error");
-	});
-
-	it("a body then a bare --- at the end of the text", () => {
-		const source = "# Exam\n\n===\n\nExplique.\n\n[essay]\n\n---\n";
-		expect(() => parseExamDocument(source)).toThrow(ParseError);
-		expect(() => parseExamDocument(source)).toThrow(
-			"line 8: a question's epilogue cannot use '---' as a thematic break inside an exam; use '***' or '___'",
-		);
-	});
-
-	it("the epilogue --- after a chained bare fence", () => {
-		const source =
-			"# Exam\n\n---\nid: a\n---\n\nExplique.\n\n[essay]\n\nNota.\n\n---\n\nRubrica.\n";
-		expect(() => parseExamDocument(source)).toThrow(ParseError);
-		expect(() => parseExamDocument(source)).toThrow(
-			"line 12: a question's epilogue cannot use '---' as a thematic break inside an exam; use '***' or '___'",
-		);
 	});
 });
 

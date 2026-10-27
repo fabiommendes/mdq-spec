@@ -8,23 +8,33 @@
  */
 
 import { load } from "js-yaml";
-import { type Diagnostic, diagnostic, prefixPath } from "../diagnostics.js";
+import {
+	type Diagnostic,
+	diagnostic,
+	type PathStep,
+	prefixPath,
+} from "../diagnostics.js";
 import { MissingFieldError, ParseError } from "../errors.js";
-import { md } from "../markdown.js";
+import { includeKeyHint, misspelledIncludeKey } from "../include-keys.js";
+import { md, splitLines } from "../markdown.js";
 import { canonicalDuration, canonicalStart } from "../schedule.js";
 import type { Exam } from "../schema/exam.js";
 import { validateExam } from "../validate.js";
-import { BRACKET_ITEM_RE, SLUG_PREFIX_RE } from "./legacy/choices.js";
+import { SLUG_PREFIX_RE } from "./choices.js";
 import {
+	commonFrontmatter,
+	extractComment,
+	invalidFrontmatterFields,
 	loadFrontmatterYaml,
-	normalizeTags,
 	splitFrontmatter,
-	unknownFrontmatterWarnings,
-} from "./legacy/frontmatter.js";
-import { matchesTag } from "./legacy/question.js";
-import { parseQuestionDocument, type RawDocument } from "./question.js";
+} from "./frontmatter.js";
+import {
+	BRACKET_ITEM_RE,
+	parseQuestionDocument,
+	type RawDocument,
+} from "./question.js";
+import { readBodyTag } from "./tags.js";
 import { rstrip, strip } from "./text.js";
-import { splitLines } from "./tree.js";
 
 /**
  * The line that starts a question block. It needs a blank line (or the start
@@ -39,39 +49,41 @@ export const SEPARATOR = "===";
  */
 export const INHERITED_FIELDS = ["locale", "author"] as const;
 
-/** `# Title` or `# [slug] Title`; `rest` is the text after the marker. */
-const H1_RE = /^#[ \t]+(?<rest>[^\n]*?)[ \t]*$/u;
+/**
+ * A line of only `=`, spaces and tabs with at least three `=` that is not a
+ * separator reads as text. `parseExamDocument` warns about it
+ * (`malformed-separator`).
+ */
+const NEAR_SEPARATOR_RE = /^[ \t]*=[ \t]*=[ \t]*=[ \t=]*$/u;
 
 /**
- * Simple frontmatter fields copied into the exam document as they are. The
- * frontmatter wins over the H1 for `id` and `title`.
+ * A setext underline of CommonMark: `setext-heading` reports it, so it is not
+ * a `malformed-separator` right after a text line.
+ */
+const SETEXT_UNDERLINE_RE = /^ {0,3}=+[ \t]*$/u;
+
+/**
+ * The fields of a question where `Exam.lint` reports `setext-heading`: their
+ * text keeps the setext underline. `parseExamDocument` reports the other
+ * fields.
+ */
+const LINTED_SETEXT_FIELDS: readonly string[] = ["stem", "epilogue"];
+
+/** `# Title` or `# [slug] Title`; `rest` is the text after the marker. */
+const H1_RE = /^#(?:[ \t]+(?<rest>[^\n]*?))?[ \t]*$/u;
+
+/**
+ * Frontmatter fields only an exam has, copied verbatim into the exam
+ * document. The fields a question has too come from `commonFrontmatter`;
+ * `start` and `duration` need their own parsing.
  */
 const EXAM_PASSTHROUGH_KEYS = [
-	"id",
-	"title",
-	"uuid",
 	"course",
 	"description",
-	"author",
-	"locale",
-	"meta",
 	"penalty",
 	"grading",
 	"shuffle",
 ] as const;
-
-/**
- * Every frontmatter key an exam accepts. `type` has no effect of its own --
- * an exam is recognized by its H1 title, not by declaring `type: exam`
- * (docs/exam.md) -- but is accepted, not flagged as a mistake.
- */
-const EXAM_FRONTMATTER_KEYS: ReadonlySet<string> = new Set([
-	...EXAM_PASSTHROUGH_KEYS,
-	"tags",
-	"start",
-	"duration",
-	"type",
-]);
 
 /**
  * Whether the source is an exam rather than a single question.
@@ -117,11 +129,12 @@ export function codeLineIndices(lines: readonly string[]): Set<number> {
  * or `duration` that does not parse is kept as written, for the model to
  * report (`malformed-start`, `invalid-duration`).
  *
- * @param warnings When given, an `unknown-frontmatter-key` diagnostic is
- *   appended for every frontmatter key the parser does not consume -- at
- *   the exam's own top level (`[key]`) and inside each question block
- *   (`["questions", i, key]`) -- with the layout warnings the parser finds
- *   (`setext-heading`, `separator-before-include`, and those of each
+ * @param warnings When given, an `invalid-frontmatter-field` error
+ *   `Diagnostic` is appended for every frontmatter key that is not a field
+ *   of the frontmatter table -- at the exam's own top level (`[key]`) and
+ *   inside each question block (`["questions", i, key]`) -- with the
+ *   warnings about the source layout (`malformed-separator`,
+ *   `setext-heading`, `separator-before-include`, and those of each
  *   question). Parsing never fails because of them.
  * @throws {MissingFieldError} If no line outside a code block is an H1
  *   (`field` is `"title"`).
@@ -133,13 +146,9 @@ export function parseExamDocument(
 	warnings?: Diagnostic[],
 ): RawDocument {
 	const [frontmatterText, body] = splitFrontmatter(source);
-	// A null `title` is kept: the renderer writes it to keep a placeholder
-	// H1 out of the model.
 	const front =
-		frontmatterText === null
-			? {}
-			: loadFrontmatterYaml(frontmatterText, ["title"]);
-	warnings?.push(...unknownFrontmatterWarnings(front, EXAM_FRONTMATTER_KEYS));
+		frontmatterText === null ? {} : loadFrontmatterYaml(frontmatterText);
+	warnings?.push(...invalidFrontmatterFields(front, "exam"));
 
 	const doc: RawDocument = { type: "exam" };
 
@@ -169,15 +178,11 @@ export function parseExamDocument(
 	}
 
 	// The frontmatter wins over the H1 for `id` and `title`.
+	const comment =
+		frontmatterText === null ? null : extractComment(frontmatterText);
+	Object.assign(doc, commonFrontmatter(front, comment));
 	for (const key of EXAM_PASSTHROUGH_KEYS) {
-		// Values keep their YAML type; a null `id` counts as absent.
-		if (Object.hasOwn(front, key) && !(key === "id" && front[key] === null)) {
-			doc[key] = front[key];
-		}
-	}
-	// A null `tags` is absent, as in a question.
-	if (Object.hasOwn(front, "tags") && front.tags !== null) {
-		doc.tags = normalizeTags(front.tags);
+		if (Object.hasOwn(front, key)) doc[key] = front[key];
 	}
 	if (Object.hasOwn(front, "start")) {
 		doc.start = canonicalOrAsWritten(canonicalStart, front.start);
@@ -186,14 +191,32 @@ export function parseExamDocument(
 		doc.duration = canonicalOrAsWritten(canonicalDuration, front.duration);
 	}
 
-	const [instructions, blocks, glued] = splitExamBlocks(
+	const [instructions, blocks, glued, malformed] = splitExamBlocks(
 		lines.slice(titleIndex + 1),
 	);
 	if (instructions !== undefined) {
 		doc.instructions = instructions;
 	}
 	if (warnings !== undefined) {
+		for (const [path, lineNumber] of malformed) {
+			warnings.push(
+				diagnostic(
+					"warning",
+					"malformed-separator",
+					`line ${titleIndex + 1 + lineNumber}: a line of '=' that is ` +
+						"not exactly '===' at column 0 is text, not a separator",
+					path,
+				),
+			);
+		}
 		for (const [blockIndex, field] of glued) {
+			if (
+				LINTED_SETEXT_FIELDS.includes(String(field[0])) &&
+				field.length === 1
+			) {
+				// The text keeps the underline, so `Exam.lint` reports it.
+				continue;
+			}
 			warnings.push(
 				diagnostic(
 					"warning",
@@ -201,7 +224,7 @@ export function parseExamDocument(
 					"a '---' line right after text is a setext heading, not a " +
 						"block boundary; put a blank line before the '---' that " +
 						"opens a block",
-					["questions", blockIndex, field],
+					["questions", blockIndex, ...field],
 				),
 			);
 		}
@@ -248,15 +271,59 @@ export function parseExam(source: string): Exam {
 	return result.data;
 }
 
+/** A `[section]` line of a question: `[extra]`, with or without `##`. */
+const SECTION_LINE_RE =
+	/^ {0,3}(?:##[ \t]+)?\[(?<name>answer-key|extra|accept|reject)\][ \t]*(?:#+[ \t]*)?$/u;
+
 /**
- * Split the text below the title into the instructions, the question
- * blocks and the glued fences. A port of `_split_exam_blocks`.
+ * The path, inside its question, of the field that holds the `---` line at
+ * `lines[index]`, glued to the text line before it.
  *
- * The third item maps a block index to the field (`preamble` or
- * `epilogue`) in which a `---` line sits right after a text line. Such a
+ * When that text line is a type-specific section heading (`[extra]`,
+ * `[accept]`, `[reject]` or `[answer-key]`), the path points at the section;
+ * otherwise it is `stem` before the body tag and `epilogue` after it.
+ */
+function gluedField(
+	lines: readonly string[],
+	index: number,
+	bodySeen: boolean,
+	starts: readonly number[],
+	codeLines: ReadonlySet<number>,
+): PathStep[] {
+	if (!bodySeen) return ["stem"];
+	const name = SECTION_LINE_RE.exec(rstrip(lines[index - 1] ?? "", " \t"))
+		?.groups?.name;
+	if (name === undefined) return ["epilogue"];
+	if (name === "answer-key") return ["answerKey"];
+	if (name === "extra") return ["extra"];
+	const first = starts[starts.length - 1] ?? 0;
+	let position = 0;
+	for (let i = first; i < index - 1; i++) {
+		if (codeLines.has(i)) continue;
+		const earlier = SECTION_LINE_RE.exec(rstrip(lines[i] ?? "", " \t"));
+		if (earlier?.groups?.name === name) position++;
+	}
+	return [name, position];
+}
+
+/**
+ * Split the text below the title into the instructions, the question blocks,
+ * the glued fences and the malformed separators. A port of
+ * `_split_exam_blocks`.
+ *
+ * The fourth item lists the lines that look like a `===` separator and are
+ * not one, as the path of the text they sit in (`["instructions"]` or
+ * `["questions", i]`) and the 1-based line number below the title.
+ * `parseExamDocument` reports them as `malformed-separator` warnings.
+ *
+ * The third item maps a block index to the path (inside the question) of the
+ * field in which a `---` line sits right after a text line: `stem`,
+ * `epilogue`, or the type-specific section the line underlines
+ * (`answerKey`, `extra`, `accept`/`reject` and the section index). Such a
  * line is a setext heading underline in CommonMark, not a fence (exam.md,
- * "Questions"), so the block it meant to open was swallowed;
- * `parseExamDocument` reports it as a `setext-heading` warning.
+ * "Questions"), so the block it meant to open was swallowed.
+ * `parseExamDocument` reports it as a `setext-heading` warning, except in
+ * `stem` and `epilogue`, which `Exam.lint` reports.
  *
  * A block starts at a `===` separator, always, or at a bare `---` fence. A
  * bare `---` opens a new block only when its position allows it:
@@ -275,9 +342,15 @@ export function parseExam(source: string): Exam {
  */
 function splitExamBlocks(
 	lines: readonly string[],
-): [string | undefined, string[][], Map<number, string>] {
+): [
+	string | undefined,
+	string[][],
+	Map<number, PathStep[]>,
+	[PathStep[], number][],
+] {
 	const starts: number[] = [];
-	const glued: [number, string][] = [];
+	const glued: [number, PathStep[]][] = [];
+	const near: number[] = [];
 	const codeLines = codeLineIndices(lines);
 	let index = 0;
 	// Position right after the last accepted block boundary.
@@ -299,9 +372,17 @@ function splitExamBlocks(
 
 		if (
 			!bodySeen &&
-			(matchesTag(stripped) !== undefined || BRACKET_ITEM_RE.test(stripped))
+			(readBodyTag(stripped) !== null || BRACKET_ITEM_RE.test(stripped))
 		) {
 			bodySeen = true;
+		}
+
+		if (
+			line !== SEPARATOR &&
+			NEAR_SEPARATOR_RE.test(line) &&
+			(blankBefore || !SETEXT_UNDERLINE_RE.test(line))
+		) {
+			near.push(index);
 		}
 
 		if (line === SEPARATOR && blankBefore) {
@@ -318,7 +399,10 @@ function splitExamBlocks(
 			!blankBefore &&
 			strip(lines[index - 1] ?? "", " \t") !== ""
 		) {
-			glued.push([index, bodySeen ? "epilogue" : "preamble"]);
+			glued.push([
+				index,
+				gluedField(lines, index, bodySeen, starts, codeLines),
+			]);
 		}
 
 		if (line === "---" && blankBefore) {
@@ -350,7 +434,7 @@ function splitExamBlocks(
 			}
 			if (bodySeen) {
 				throw new ParseError(
-					`line ${index + 1}: a question's epilogue cannot use '---' as a thematic break inside an exam; use '***' or '___'`,
+					`line ${index + 1}: a question's epilogue or section cannot use '---' as a thematic break inside an exam; use '***' or '___'`,
 				);
 			}
 		}
@@ -360,25 +444,41 @@ function splitExamBlocks(
 
 	const first = starts[0];
 	if (first === undefined) {
-		return [cleanBlock(lines.join("\n")), [], new Map()];
+		return [
+			cleanBlock(lines.join("\n")),
+			[],
+			new Map(),
+			near.map((i): [PathStep[], number] => [["instructions"], i + 1]),
+		];
 	}
 	const instructions = cleanBlock(lines.slice(0, first).join("\n"));
 	const bounds = [...starts, lines.length];
+	const blockOf = (lineIndex: number): number | undefined => {
+		for (let b = 0; b < starts.length; b++) {
+			if ((bounds[b] ?? 0) <= lineIndex && lineIndex < (bounds[b + 1] ?? 0)) {
+				return b;
+			}
+		}
+		return undefined;
+	};
 	const blocks = starts.map((start, i) =>
 		lines.slice(start, bounds[i + 1] ?? lines.length),
 	);
-	const gluedByBlock = new Map<number, string>();
+	const gluedByBlock = new Map<number, PathStep[]>();
 	for (const [lineIndex, field] of glued) {
-		for (let blockIndex = 0; blockIndex < starts.length; blockIndex++) {
-			const lower = bounds[blockIndex] ?? 0;
-			const upper = bounds[blockIndex + 1] ?? lines.length;
-			if (lower <= lineIndex && lineIndex < upper) {
-				if (!gluedByBlock.has(blockIndex)) gluedByBlock.set(blockIndex, field);
-				break;
-			}
+		const block = blockOf(lineIndex);
+		if (block !== undefined && !gluedByBlock.has(block)) {
+			gluedByBlock.set(block, field);
 		}
 	}
-	return [instructions, blocks, gluedByBlock];
+	const malformed = near.map((lineIndex): [PathStep[], number] => {
+		const block = blockOf(lineIndex);
+		return [
+			block === undefined ? ["instructions"] : ["questions", block],
+			lineIndex + 1,
+		];
+	});
+	return [instructions, blocks, gluedByBlock, malformed];
 }
 
 /** The stripped text, or `undefined` when it is empty. */
@@ -390,10 +490,9 @@ function cleanBlock(text: string): string | undefined {
 /**
  * Turn one block into an entry of `questions`. A block whose frontmatter has
  * `includeAll` (checked first) or `include` is that mapping with the value
- * as a string. Any other block is a question that takes the exam's
- * `locale` and `author` when it has none. `index` is the block's 0-based
- * position, which prefixes the path of its warnings as `["questions",
- * index, ...]`.
+ * as written. Any other block is a question that takes the exam's `locale`
+ * and `author` when it has none. `index` is the block's 0-based position,
+ * which prefixes the path of its warnings as `["questions", index, ...]`.
  */
 function parseExamBlock(
 	block: readonly string[],
@@ -432,20 +531,45 @@ function parseExamBlock(
 		return { ...front };
 	}
 
+	// A key that only misspells `include`/`includeAll` leaves the block an
+	// inline question; the diagnostic it produces gets the same hint as the
+	// YAML/JSON path.
+	const hint = includeKeyHint(front);
 	const blockWarnings: Diagnostic[] | undefined =
 		warnings === undefined ? undefined : [];
-	const question = parseQuestionDocument(source, blockWarnings);
-	if (warnings !== undefined && blockWarnings !== undefined) {
-		warnings.push(
-			...blockWarnings.map((w) => prefixPath(w, ["questions", index])),
-		);
+	let question: RawDocument;
+	try {
+		question = parseQuestionDocument(source, blockWarnings);
+	} catch (error) {
+		if (error instanceof MissingFieldError && hint) {
+			throw new MissingFieldError(error.field, error.message + hint);
+		}
+		throw error;
 	}
+	if (warnings !== undefined && blockWarnings !== undefined) {
+		const misspelled = misspelledIncludeKey(front);
+		for (const w of blockWarnings) {
+			const hinted =
+				misspelled !== undefined &&
+				w.code === "invalid-frontmatter-field" &&
+				w.path.length === 1 &&
+				w.path[0] === misspelled[0]
+					? { ...w, message: w.message + hint }
+					: w;
+			warnings.push(prefixPath(hinted, ["questions", index]));
+		}
+	}
+	inherit(question, exam);
+	return question;
+}
+
+/** A question takes the exam's locale and author when it names none. */
+export function inherit(question: RawDocument, exam: RawDocument): void {
 	for (const field of INHERITED_FIELDS) {
 		if (!Object.hasOwn(question, field) && Object.hasOwn(exam, field)) {
 			question[field] = exam[field];
 		}
 	}
-	return question;
 }
 
 /** Python's `strip("\n")`: remove only leading and trailing newlines. */

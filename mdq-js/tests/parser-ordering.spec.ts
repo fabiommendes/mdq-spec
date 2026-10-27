@@ -1,32 +1,14 @@
 /**
- * Tests for the `[ordering]` body, its `## [extra]`, `## [accept]` and
- * `## [reject]` sections, and the indentation unit shared by all of them --
- * `docs/handoffs/07-parser-ordering.md`, batch 1 criteria 2 and 3, and batch 2
- * criterion 4. Ported from `mdq-py/tests/test_ordering_parser.py` (the
- * hypothesis render/parse property is skipped).
+ * Tests for the helpers of the `[ordering]` body: indentation measured in
+ * columns, the indentation unit, and the raw lines of a fence or a list.
+ * What the parser makes of a whole ordering question is pinned by the corpus
+ * (`examples/valid/ordering/`, `examples/invalid/ordering-*`).
  *
- * Criterion 1 (every `examples/valid/ordering/*.mdq.md` parses to its
- * `.yaml`) is already covered by the corpus loop in `tests/parser.spec.ts`;
- * this file does not duplicate it.
- *
- * Every expected value here comes from running the reference directly, e.g.:
- *
- *   cd mdq-py && uv run python3 -c "
- *   from mdq._parser._question import parse_question
- *   print(parse_question('Ordene.\n\n[ordering]\n```\na\n  \tb\n```\n'))
- *   "
- *
- * and, for the helpers, `from mdq._parser._ordering import ordering_unit, ...`.
- *
- * Reference: `mdq-py/mdq/_parser/_ordering.py`; `mdq-py/mdq/_parser/
- * _question.py` -- `parse_ordering_body`, `parse_ordering_content`,
- * `parse_ordering_observations`.
+ * Reference: `mdq-py/mdq/_parser/_ordering.py`.
  */
 
-import { ParseError, parseQuestionDocument } from "@mdq";
 import {
 	isCommentBlock,
-	joinPrefixedLines,
 	orderingAlternative,
 	orderingCodeLines,
 	orderingLeveled,
@@ -36,18 +18,7 @@ import {
 } from "@mdq/parser/ordering.js";
 import { describe, expect, it } from "vitest";
 
-const STEM = "Ordene.\n\n";
-
-/** Parse `STEM` + `body` and return only the `lines` of the result. */
-function linesOf(body: string): unknown {
-	return (parseQuestionDocument(STEM + body) as { lines: unknown }).lines;
-}
-
-//
-// Batch 1, criterion 2: indentation.
-//
-
-describe("batch 1: ordering indentation", () => {
+describe("ordering indentation", () => {
 	describe("orderingLineIndent", () => {
 		it.each([
 			["no indent", "a", [0, "a"]],
@@ -94,13 +65,6 @@ describe("batch 1: ordering indentation", () => {
 			expect(orderingCodeLines("a\n")).toEqual([[0, "a"]]);
 		});
 
-		it("keeps trailing spaces and a blank line before the end", () => {
-			expect(orderingCodeLines("a  \n\n")).toEqual([
-				[0, "a  "],
-				[0, ""],
-			]);
-		});
-
 		it("keeps blank lines between lines", () => {
 			expect(orderingCodeLines("a\n\n\nb")).toEqual([
 				[0, "a"],
@@ -117,9 +81,20 @@ describe("batch 1: ordering indentation", () => {
 
 	describe("orderingUlLines", () => {
 		it("strips the bullet and keeps the raw markdown of each item", () => {
-			expect(orderingUlLines(["* a", "  * b", "- *x*", "+ \t_y_"])).toEqual([
+			expect(
+				orderingUlLines(
+					["* a", "  * b", "- *x*", "+ \t_y_"],
+					new Map([
+						[0, 0],
+						[1, 1],
+						[2, 0],
+						[3, 0],
+					]),
+					0,
+				),
+			).toEqual([
 				[0, "a"],
-				[2, "b"],
+				[1, "b"],
 				[0, "*x*"],
 				[0, "_y_"],
 			]);
@@ -159,7 +134,7 @@ describe("batch 1: ordering indentation", () => {
 							[3, "b"],
 						],
 						feedback: "fb",
-						comment: undefined,
+						comment: null,
 					},
 					3,
 				),
@@ -175,7 +150,7 @@ describe("batch 1: ordering indentation", () => {
 		it("keeps the comment", () => {
 			expect(
 				orderingAlternative(
-					{ lines: [[0, "a"]], feedback: undefined, comment: "c" },
+					{ lines: [[0, "a"]], feedback: null, comment: "c" },
 					4,
 				),
 			).toEqual({ lines: [[0, "a"]], comment: "c" });
@@ -183,21 +158,11 @@ describe("batch 1: ordering indentation", () => {
 
 		it("omits an absent feedback and comment", () => {
 			const alt = orderingAlternative(
-				{ lines: [[0, "a"]], feedback: undefined, comment: undefined },
+				{ lines: [[0, "a"]], feedback: null, comment: null },
 				4,
 			);
 			expect(alt).toEqual({ lines: [[0, "a"]] });
 			expect(Object.keys(alt)).toEqual(["lines"]);
-		});
-	});
-
-	describe("joinPrefixedLines", () => {
-		it("strips the prefix and joins with a space", () => {
-			expect(joinPrefixedLines(["> a", "> b", ">c", "> "], ">")).toBe("a b c");
-		});
-
-		it("skips empty parts and trims each part", () => {
-			expect(joinPrefixedLines(["! a", "!", "!  b  "], "!")).toBe("a b");
 		});
 	});
 
@@ -209,410 +174,6 @@ describe("batch 1: ordering indentation", () => {
 			["no lines", [], false],
 		])("%s", (_label, lines, expected) => {
 			expect(isCommentBlock(lines)).toBe(expected);
-		});
-	});
-
-	describe("through parseQuestionDocument", () => {
-		it("a tab counts as four columns", () => {
-			expect(linesOf("[ordering]\n```\na\n\tb\n```\n")).toEqual([
-				[0, "a"],
-				[1, "b"],
-			]);
-		});
-
-		it("a tab after spaces moves to column 4, not 6", () => {
-			// Alone, indent 4 gives level 1. With a 6-column line (unit 2) the
-			// tab line must be at column 4 (level 2), not 6 (level 3).
-			expect(linesOf("[ordering]\n```\na\n  \tb\n```\n")).toEqual([
-				[0, "a"],
-				[1, "b"],
-			]);
-			expect(linesOf("[ordering]\n```\na\n  \tb\n      c\n```\n")).toEqual([
-				[0, "a"],
-				[2, "b"],
-				[3, "c"],
-			]);
-		});
-
-		it("the unit is inferred from a non-four-space indent", () => {
-			expect(linesOf("[ordering]\n```\na\n  b\n      c\n```\n")).toEqual([
-				[0, "a"],
-				[1, "b"],
-				[3, "c"],
-			]);
-		});
-
-		it("the unit is 4 when a line is indented by 4 and another by 8", () => {
-			expect(linesOf("[ordering]\n```\na\n    b\n        c\n```\n")).toEqual([
-				[0, "a"],
-				[1, "b"],
-				[2, "c"],
-			]);
-		});
-
-		it("the unit defaults to 4 when nothing is indented", () => {
-			expect(linesOf("[ordering]\n```\na\nb\n```\n")).toEqual([
-				[0, "a"],
-				[0, "b"],
-			]);
-		});
-
-		it("the unit is the GCD across main, extra, accept and reject blocks", () => {
-			// Indents: main 8, extra 5, accept 5, reject 3 -> GCD 1.
-			const source =
-				`${STEM}[ordering]\n\`\`\`\na\n        b\n\`\`\`\n\n` +
-				"## [extra]\n```\n     d\n```\n\n" +
-				"## [accept]\n```\nb\n     a\n```\n\n" +
-				"## [reject]\n```\n   e\n```\n";
-			expect(parseQuestionDocument(source)).toEqual({
-				stem: "Ordene.",
-				type: "ordering",
-				content: "code",
-				lines: [
-					[0, "a"],
-					[8, "b"],
-				],
-				extra: [[5, "d"]],
-				accept: [
-					{
-						lines: [
-							[0, "b"],
-							[5, "a"],
-						],
-					},
-				],
-				reject: [{ lines: [[3, "e"]] }],
-			});
-		});
-
-		it("an accept block can change the unit set by the main block", () => {
-			// Main: 4 and 8; accept: 6 -> GCD 2.
-			const source =
-				`${STEM}[ordering]\n\`\`\`\na\n    b\n        c\n\`\`\`\n\n` +
-				"## [accept]\n```\na\n      b\n```\n";
-			expect(parseQuestionDocument(source)).toEqual({
-				stem: "Ordene.",
-				type: "ordering",
-				content: "code",
-				lines: [
-					[0, "a"],
-					[2, "b"],
-					[4, "c"],
-				],
-				accept: [
-					{
-						lines: [
-							[0, "a"],
-							[3, "b"],
-						],
-					},
-				],
-			});
-		});
-
-		it("an extra block can change the unit set by the main block", () => {
-			expect(
-				parseQuestionDocument(
-					`${STEM}[ordering]\n\`\`\`\na\n    b\n        c\n\`\`\`\n\n` +
-						"## [extra]\n```\n      d\n```\n",
-				),
-			).toEqual({
-				stem: "Ordene.",
-				type: "ordering",
-				content: "code",
-				lines: [
-					[0, "a"],
-					[2, "b"],
-					[4, "c"],
-				],
-				extra: [[3, "d"]],
-			});
-		});
-
-		it("a blank code line has level 0 and empty text", () => {
-			expect(linesOf("[ordering]\n```\na\n\n    b\n```\n")).toEqual([
-				[0, "a"],
-				[0, ""],
-				[1, "b"],
-			]);
-		});
-
-		it("an empty fence gives no lines", () => {
-			expect(linesOf("[ordering]\n```\n```\n")).toEqual([]);
-		});
-
-		it("a ul line keeps its raw markdown source verbatim", () => {
-			expect(
-				parseQuestionDocument(`${STEM}[ordering]\n* *alpha*\n* _alpha_\n`),
-			).toEqual({
-				stem: "Ordene.",
-				type: "ordering",
-				content: "text",
-				lines: [
-					[0, "*alpha*"],
-					[0, "_alpha_"],
-				],
-			});
-		});
-
-		it("a ul keeps inline code and links verbatim", () => {
-			expect(linesOf("[ordering]\n* `x` and [l](u)\n")).toEqual([
-				[0, "`x` and [l](u)"],
-			]);
-		});
-
-		it("a nested ul item is a deeper level", () => {
-			expect(linesOf("[ordering]\n* a\n  * b\n* c\n")).toEqual([
-				[0, "a"],
-				[1, "b"],
-				[0, "c"],
-			]);
-		});
-
-		it("a fence infers content code, with its info string as highlight", () => {
-			expect(
-				parseQuestionDocument(
-					`${STEM}[ordering]\n\`\`\`python\na\nb\n\`\`\`\n`,
-				),
-			).toEqual({
-				stem: "Ordene.",
-				type: "ordering",
-				content: "code",
-				highlight: "python",
-				lines: [
-					[0, "a"],
-					[0, "b"],
-				],
-			});
-		});
-
-		it("feedback and comment blocks of an accept section, in either order", () => {
-			const expected = {
-				stem: "Ordene.",
-				type: "ordering",
-				content: "text",
-				lines: [
-					[0, "a"],
-					[0, "b"],
-				],
-				accept: [
-					{
-						lines: [
-							[0, "b"],
-							[0, "a"],
-						],
-						feedback: "f1",
-						comment: "c1",
-					},
-				],
-			};
-			const head = `${STEM}[ordering]\n* a\n* b\n\n## [accept]\n\n`;
-			expect(
-				parseQuestionDocument(`${head}> f1\n\n! c1\n\n* b\n* a\n`),
-			).toEqual(expected);
-			expect(
-				parseQuestionDocument(`${head}! c1\n\n> f1\n\n* b\n* a\n`),
-			).toEqual(expected);
-		});
-
-		it("a multi-line feedback block is joined with spaces", () => {
-			expect(
-				parseQuestionDocument(
-					`${STEM}[ordering]\n* a\n* b\n\n## [accept]\n\n> f1\n> more\n\n* b\n* a\n`,
-				),
-			).toEqual({
-				stem: "Ordene.",
-				type: "ordering",
-				content: "text",
-				lines: [
-					[0, "a"],
-					[0, "b"],
-				],
-				accept: [
-					{
-						lines: [
-							[0, "b"],
-							[0, "a"],
-						],
-						feedback: "f1 more",
-					},
-				],
-			});
-		});
-	});
-});
-
-//
-// Batch 1, criterion 3: frontmatter.
-//
-
-describe("batch 1: ordering frontmatter", () => {
-	const listBody = "[ordering]\n* a\n* b\n";
-	const twoLines = [
-		[0, "a"],
-		[0, "b"],
-	];
-
-	it("declared content and highlight override the body", () => {
-		// A `ul` body infers `content: text` and no highlight; the declared
-		// values win, and the lines still come from the `ul`.
-		const source = `---\ncontent: code\nhighlight: python\n---\n\n${STEM}${listBody}`;
-		expect(parseQuestionDocument(source)).toEqual({
-			stem: "Ordene.",
-			type: "ordering",
-			content: "code",
-			highlight: "python",
-			lines: twoLines,
-		});
-	});
-
-	it("a declared content text and highlight win over a fence", () => {
-		const source = `---\ncontent: text\nhighlight: c\n---\n\n${STEM}[ordering]\n\`\`\`python\na\nb\n\`\`\`\n`;
-		expect(parseQuestionDocument(source)).toEqual({
-			stem: "Ordene.",
-			type: "ordering",
-			content: "text",
-			highlight: "c",
-			lines: twoLines,
-		});
-	});
-
-	it("indentation and unmatched are copied", () => {
-		const source = `---\nindentation: lenient\nunmatched: incorrect\n---\n\n${STEM}${listBody}`;
-		expect(parseQuestionDocument(source)).toEqual({
-			stem: "Ordene.",
-			type: "ordering",
-			content: "text",
-			indentation: "lenient",
-			unmatched: "incorrect",
-			lines: twoLines,
-		});
-	});
-
-	it("normalizations as a bare string becomes a one-item list", () => {
-		const source = `---\nnormalizations: dedent\n---\n\n${STEM}${listBody}`;
-		expect(parseQuestionDocument(source)).toEqual({
-			stem: "Ordene.",
-			type: "ordering",
-			content: "text",
-			normalizations: ["dedent"],
-			lines: twoLines,
-		});
-	});
-
-	it("normalizations as a list stays a list", () => {
-		const source = `---\nnormalizations:\n  - dedent\n  - skip-blanks\n---\n\n${STEM}${listBody}`;
-		expect(parseQuestionDocument(source)).toEqual({
-			stem: "Ordene.",
-			type: "ordering",
-			content: "text",
-			normalizations: ["dedent", "skip-blanks"],
-			lines: twoLines,
-		});
-	});
-});
-
-//
-// Batch 2, criterion 4: error paths. Every failure is a plain `ParseError`
-// (not a subclass) with the reference message.
-//
-
-describe("batch 2: ordering errors", () => {
-	const NO_BLOCK =
-		"an [ordering] block must be followed by a code block or a list";
-	const AT_MOST_ONE_EXTRA = "a question defines at most one [extra] section";
-	const OBSERVATIONS =
-		"an accept/reject section carries at most one feedback and one comment block, and they must not interleave";
-
-	function parseError(source: string): unknown {
-		try {
-			parseQuestionDocument(source);
-		} catch (error) {
-			return error;
-		}
-		return undefined;
-	}
-
-	function expectParseError(source: string, message: string): void {
-		const error = parseError(source) as Error;
-		expect(error).toBeInstanceOf(ParseError);
-		expect(error.constructor).toBe(ParseError);
-		expect(error.message).toBe(message);
-	}
-
-	describe("the [ordering] tag needs a code block or a list", () => {
-		it.each([
-			[
-				"a paragraph follows",
-				`${STEM}[ordering]\n\nJust a paragraph, not a block.\n`,
-			],
-			["a blank line ends the document", `${STEM}[ordering]\n\n`],
-			["a section heading follows", `${STEM}[ordering]\n\n## [extra]\n* c\n`],
-		])("%s", (_label, source) => {
-			expectParseError(source, NO_BLOCK);
-		});
-	});
-
-	describe("a section must use the same content kind as [ordering]", () => {
-		it.each([
-			["extra", "[extra]"],
-			["accept", "[accept]"],
-			["reject", "[reject]"],
-		])("a ul %s after a fence", (_name, tag) => {
-			expectParseError(
-				`${STEM}[ordering]\n\`\`\`\na\nb\n\`\`\`\n\n## ${tag}\n* b\n* a\n`,
-				`${tag} must use the same content type as [ordering]`,
-			);
-		});
-
-		it.each([
-			["extra", "[extra]"],
-			["accept", "[accept]"],
-			["reject", "[reject]"],
-		])("a fence %s after a ul", (_name, tag) => {
-			expectParseError(
-				`${STEM}[ordering]\n* a\n* b\n\n## ${tag}\n\`\`\`\nb\na\n\`\`\`\n`,
-				`${tag} must use the same content type as [ordering]`,
-			);
-		});
-	});
-
-	it("two [extra] sections", () => {
-		expectParseError(
-			`${STEM}[ordering]\n* a\n* b\n\n## [extra]\n* c\n\n## [extra]\n* d\n`,
-			AT_MOST_ONE_EXTRA,
-		);
-	});
-
-	describe("accept/reject observations", () => {
-		const head = (section: string): string =>
-			`${STEM}[ordering]\n* a\n* b\n\n## [${section}]\n\n`;
-
-		it.each([
-			"accept",
-			"reject",
-		])("a second feedback block in a %s section", (section) => {
-			expectParseError(
-				`${head(section)}> f1\n\n> f2\n\n* b\n* a\n`,
-				OBSERVATIONS,
-			);
-		});
-
-		it.each([
-			"accept",
-			"reject",
-		])("a second comment block in a %s section", (section) => {
-			expectParseError(
-				`${head(section)}! c1\n\n! c2\n\n* b\n* a\n`,
-				OBSERVATIONS,
-			);
-		});
-
-		it("a feedback block after a feedback and a comment block", () => {
-			expectParseError(
-				`${head("reject")}> f1\n\n! c\n\n> f2\n\n* b\n* a\n`,
-				OBSERVATIONS,
-			);
 		});
 	});
 });

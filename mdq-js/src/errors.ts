@@ -46,15 +46,6 @@ export class MissingFieldError extends ParseError {
 }
 
 /**
- * `accept` or `reject` (or `preAccept`/`preReject`) is declared both in the
- * frontmatter and in a `[short-answer/...]` block. Mirrors
- * `ConflictingAnswerKey` in `mdq-py/mdq/errors.py`.
- */
-export class ConflictingAnswerKeyError extends ParseError {
-	override readonly code = "conflicting-accept";
-}
-
-/**
  * fill-in.md, "Additional Rules": a key of the frontmatter `preAccept` or
  * `preReject` map is not the id of a declared blank. The path is
  * `[key, blankId]`. Mirrors `UndefinedBlank` in `mdq-py/mdq/errors.py`.

@@ -2,8 +2,7 @@
  * Parsing MDQ Markdown into the document shape the schemas validate.
  *
  * A barrel, like `mdq-py/mdq/_parser/__init__.py`: the question parser is in
- * `./question.ts` and the exam parser in `./exam.ts`. `./legacy/` holds the
- * code of the bodies not ported yet (phases P2b and P2c).
+ * `./question.ts` and the exam parser in `./exam.ts`.
  */
 
 export {

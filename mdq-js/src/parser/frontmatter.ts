@@ -158,16 +158,12 @@ function isPlainRecord(value: unknown): value is Record<string, unknown> {
 
 /**
  * Load the frontmatter mapping. A key with a `null` value is the same as an
- * absent key (base.md, "Frontmatter"), so it is dropped, except the keys in
- * `keepNull`. Anything that is not a mapping gives an empty one.
+ * absent key (base.md, "Frontmatter"), so it is dropped. Anything that is not a mapping gives an empty one.
  *
  * @throws {YamlSyntaxError} The frontmatter is not valid YAML, or repeats a
  *   key.
  */
-export function loadFrontmatterYaml(
-	text: string,
-	keepNull: readonly string[] = [],
-): Record<string, unknown> {
+export function loadFrontmatterYaml(text: string): Record<string, unknown> {
 	let data: unknown;
 	try {
 		data = loadYaml(text);
@@ -180,7 +176,7 @@ export function loadFrontmatterYaml(
 	if (!isPlainRecord(data)) return {};
 	const result: Record<string, unknown> = {};
 	for (const [key, value] of Object.entries(data)) {
-		if (value !== null || keepNull.includes(key)) result[key] = value;
+		if (value !== null) result[key] = value;
 	}
 	return result;
 }
@@ -356,4 +352,18 @@ export function normalizeTags(tags: unknown): unknown {
 		return parts;
 	}
 	return Array.isArray(tags) ? [...tags] : tags;
+}
+
+/**
+ * A list, or a single comma-delimited string split into one, with the empty
+ * parts dropped. Any other value is returned as it is.
+ */
+export function normalizeList(value: unknown): unknown {
+	if (typeof value === "string") {
+		return value
+			.split(",")
+			.map((part) => strip(part))
+			.filter((part) => part !== "");
+	}
+	return Array.isArray(value) ? [...value] : value;
 }

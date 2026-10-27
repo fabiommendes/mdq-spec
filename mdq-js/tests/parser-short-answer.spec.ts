@@ -19,8 +19,7 @@
  *
  * Reference: `mdq-py/mdq/_parser/_question.py` -- `parse_short_answer_body`,
  * `parse_answer_block`, `_pattern_entry`, `SHORT_ANSWER_RE`;
- * `mdq-py/mdq/_parser/_frontmatter.py` -- `_copy_pattern_lists`;
- * `mdq-py/mdq/errors.py` -- `ConflictingAnswerKey`.
+ * `mdq-py/mdq/_parser/_frontmatter.py` -- `_copy_pattern_lists`.
  */
 
 import { ParseError, parseQuestionDocument } from "@mdq";
@@ -121,7 +120,7 @@ describe("short-answer: frontmatter pattern lists", () => {
 });
 
 //
-// Every ParseError/ConflictingAnswerKey path of `parse_short_answer_body`
+// Every ParseError path of `parse_short_answer_body`
 // and `parse_answer_block`.
 //
 

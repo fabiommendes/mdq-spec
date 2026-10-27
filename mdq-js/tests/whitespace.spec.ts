@@ -1298,7 +1298,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 	perChar(
 		"inside an ordering item",
 		"question",
-		"Ordene as etapas.\n\n[ordering]\n\n* Semente{c}germina\n* Broto\n* Árvore\n",
+		"Ordene as etapas.\n\n[ordering]:\n* Semente{c}germina\n* Broto\n* Árvore\n",
 		[
 			[
 				"nbsp",
@@ -1381,14 +1381,14 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 	perChar(
 		"after an ordering item marker",
 		"question",
-		"Ordene as etapas.\n\n[ordering]\n\n*{c}Semente\n* Broto\n* Árvore\n",
+		"Ordene as etapas.\n\n[ordering]:\n*{c}Semente\n* Broto\n* Árvore\n",
 		[
 			[
 				"nbsp",
 				{
 					error: "ParseError",
 					message:
-						"an [ordering] block must be followed by a code block or a list",
+						"the line of `[ordering]:` has no text after the colon; the code block or list starts on the next line",
 				},
 			],
 			[
@@ -1396,7 +1396,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				{
 					error: "ParseError",
 					message:
-						"an [ordering] block must be followed by a code block or a list",
+						"the line of `[ordering]:` has no text after the colon; the code block or list starts on the next line",
 				},
 			],
 			[
@@ -1404,7 +1404,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				{
 					error: "ParseError",
 					message:
-						"an [ordering] block must be followed by a code block or a list",
+						"the line of `[ordering]:` has no text after the colon; the code block or list starts on the next line",
 				},
 			],
 			[
@@ -1412,7 +1412,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				{
 					error: "ParseError",
 					message:
-						"an [ordering] block must be followed by a code block or a list",
+						"the line of `[ordering]:` has no text after the colon; the code block or list starts on the next line",
 				},
 			],
 			[
@@ -1420,7 +1420,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				{
 					error: "ParseError",
 					message:
-						"an [ordering] block must be followed by a code block or a list",
+						"the line of `[ordering]:` has no text after the colon; the code block or list starts on the next line",
 				},
 			],
 		],
@@ -2380,7 +2380,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 		],
 		[
 			"a tab-indented ordering",
-			"Ordene.\n\n[ordering]\n\n*\tSemente\n*\tBroto\n*\tÁrvore\n",
+			"Ordene.\n\n[ordering]:\n*\tSemente\n*\tBroto\n*\tÁrvore\n",
 			{
 				ok: {
 					stem: "Ordene.",

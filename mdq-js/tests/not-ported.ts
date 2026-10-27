@@ -19,76 +19,7 @@ import { it } from "vitest";
 type Manifest = Record<string, string>;
 
 /** `.mdq.md` sources that do not parse into their `.yaml` sibling. */
-export const PARSE: Manifest = {
-	"exam.empty-heading.mdq.md": "parser (P2)",
-	"exam.all-question-types.mdq.md": "parser (P2)",
-	"exam.comment.mdq.md": "parser (P2)",
-	"exam.ordering-sections.mdq.md": "parser (P2)",
-	"exam.with-ordering.mdq.md": "parser (P2)",
-	"ordering.accept-alternative.mdq.md": "parser (P2)",
-	"ordering.accept-blank-line-skip-blanks.mdq.md": "parser (P2)",
-	"ordering.accept-omits-line.mdq.md": "parser (P2)",
-	"ordering.accept-repeats-after-dedent.mdq.md": "parser (P2)",
-	"ordering.accept-repeats-after-skip-blanks.mdq.md": "parser (P2)",
-	"ordering.accept-repeats-answer-key.mdq.md": "parser (P2)",
-	"ordering.accept-uses-key-copies.mdq.md": "parser (P2)",
-	"ordering.blank-extra-line.mdq.md": "parser (P2)",
-	"ordering.blank-line-before-section.mdq.md": "parser (P2)",
-	"ordering.blank-ordering-line.mdq.md": "parser (P2)",
-	"ordering.brazil-timeline.mdq.md": "parser (P2)",
-	"ordering.duplicate-accepts-after-dedent.mdq.md": "parser (P2)",
-	"ordering.duplicate-alternative-lines.mdq.md": "parser (P2)",
-	"ordering.duplicate-lines.mdq.md": "parser (P2)",
-	"ordering.empty-parent-item-nested-list.mdq.md": "parser (P2)",
-	"ordering.empty-reject-feedback.mdq.md": "parser (P2)",
-	"ordering.epilogue-no-sections.mdq.md": "parser (P2)",
-	"ordering.epilogue.mdq.md": "parser (P2)",
-	"ordering.extra-distractors.mdq.md": "parser (P2)",
-	"ordering.extra-inherits-highlight.mdq.md": "parser (P2)",
-	"ordering.extra-nested-distractors.mdq.md": "parser (P2)",
-	"ordering.extra-text.mdq.md": "parser (P2)",
-	"ordering.fence-info-string.mdq.md": "parser (P2)",
-	"ordering.fence-without-language.mdq.md": "parser (P2)",
-	"ordering.fibonacci.mdq.md": "parser (P2)",
-	"ordering.full-metadata.mdq.md": "parser (P2)",
-	"ordering.incorrect-feedback.mdq.md": "parser (P2)",
-	"ordering.indentation-gcd.mdq.md": "parser (P2)",
-	"ordering.indentation-unit-across-sections.mdq.md": "parser (P2)",
-	"ordering.indented-fence-tab.mdq.md": "parser (P2)",
-	"ordering.lenient-indentation.mdq.md": "parser (P2)",
-	"ordering.list-markers.mdq.md": "parser (P2)",
-	"ordering.nbsp-end-of-stem.mdq.md": "parser (P2)",
-	"ordering.nested-list-sections.mdq.md": "parser (P2)",
-	"ordering.nested-list-three-levels.mdq.md": "parser (P2)",
-	"ordering.nested-list-two-levels.mdq.md": "parser (P2)",
-	"ordering.normalizations-comma-string.mdq.md": "parser (P2)",
-	"ordering.observations-adjacent.mdq.md": "parser (P2)",
-	"ordering.redundant-strict-indentation.mdq.md": "parser (P2)",
-	"ordering.reject-differs-only-by-level-strict.mdq.md": "parser (P2)",
-	"ordering.reject-feedback.mdq.md": "parser (P2)",
-	"ordering.reject-uses-distractor.mdq.md": "parser (P2)",
-	"ordering.reject-without-feedback.mdq.md": "parser (P2)",
-	"ordering.section-empty-feedback-marker-line.mdq.md": "parser (P2)",
-	"ordering.section-heading-closing-sequence.mdq.md": "parser (P2)",
-	"ordering.section-heading-indented.mdq.md": "parser (P2)",
-	"ordering.section-heading-setext.mdq.md": "parser (P2)",
-	"ordering.section-heading-trailing-spaces.mdq.md": "parser (P2)",
-	"ordering.skip-blanks.mdq.md": "parser (P2)",
-	"ordering.strict-indentation.mdq.md": "parser (P2)",
-	"ordering.strict-reject-other-level.mdq.md": "parser (P2)",
-	"ordering.tab-indentation.mdq.md": "parser (P2)",
-	"ordering.tab-stops-mixed.mdq.md": "parser (P2)",
-	"ordering.tag-indented-trailing-spaces.mdq.md": "parser (P2)",
-	"ordering.tag-space-before-colon.mdq.md": "parser (P2)",
-	"ordering.tilde-fence.mdq.md": "parser (P2)",
-	"ordering.trailing-whitespace.mdq.md": "parser (P2)",
-	"ordering.two-accepts-and-reject.mdq.md": "parser (P2)",
-	"ordering.unknown-highlight-language.mdq.md": "parser (P2)",
-	"ordering.unmatched-manual.mdq.md": "parser (P2)",
-	"ordering.unreachable-reject.mdq.md": "parser (P2)",
-	"ordering.visually-identical-across-blocks.mdq.md": "parser (P2)",
-	"ordering.visually-identical-lines.mdq.md": "parser (P2)",
-};
+export const PARSE: Manifest = {};
 
 /** `valid/` documents that the Zod schemas reject. */
 export const SCHEMA: Manifest = {};
@@ -259,8 +190,6 @@ export const LOAD: Manifest = {
 	"exam-h1-in-instructions.mdq.md": "expects forbidden-block-element (P4)",
 	"exam-malformed-start.mdq.md": "expects malformed-start (P4)",
 	"exam-tags-string-empty-entry.mdq.md": "expects blank-text (P4)",
-	"exam-unknown-frontmatter-key.mdq.md":
-		"expects invalid-frontmatter-field (P2)",
 	"fill-in-autolink-blank-defined.mdq.md": "expects unreferenced-blank (P4)",
 	"fill-in-duplicate-blank-reference.mdq.md":
 		"expects duplicate-blank-reference (P4)",
@@ -300,21 +229,12 @@ export const LOAD: Manifest = {
 	"numeric-fraction-exponent-tolerance.mdq.md":
 		"expects missing-decimal-places (P4)",
 	"numeric-invisible-unit.mdq.md": "expects blank-text (P4)",
-	"ordering-automation-frontmatter.mdq.md":
-		"expects invalid-frontmatter-field (P2)",
-	"ordering-detached-tag.mdq.md": "expects detached-tag (P2)",
-	"ordering-frontmatter-content.mdq.md":
-		"expects invalid-frontmatter-field (P2)",
-	"ordering-frontmatter-highlight.mdq.md":
-		"expects invalid-frontmatter-field (P2)",
 	"ordering-text-accept-jump.mdq.md": "expects invalid-outline-level (P4)",
 	"ordering-text-empty-parent-jump.mdq.md":
 		"expects invalid-outline-level (P4)",
 	"ordering-text-reject-starts-nested.mdq.md":
 		"expects invalid-outline-level (P4)",
 	"ordering-text-starts-nested.mdq.md": "expects invalid-outline-level (P4)",
-	"ordering-without-colon-fence.mdq.md": "expects parse-error (P2)",
-	"ordering-without-colon.mdq.md": "expects parse-error (P2)",
 	"short-answer-block-start-pattern-single-line.mdq.md":
 		"expects block-start-pattern (P4)",
 	"short-answer-regex-alternation-quantifier-without-atom.mdq.md":
@@ -394,10 +314,7 @@ export const LOAD: Manifest = {
 };
 
 /** `.resolved.yaml` fixtures whose exam `resolveExam` does not resolve to the expected ids. */
-export const RESOLVE: Manifest = {
-	"exam.ordering-sections.mdq.md": "parser (P2)",
-	"exam.with-ordering.mdq.md": "parser (P2)",
-};
+export const RESOLVE: Manifest = {};
 
 /** The reason `name` is not ported, or `undefined` if it is. */
 export function notPorted(

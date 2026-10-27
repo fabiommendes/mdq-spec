@@ -116,12 +116,6 @@ describe("loadFrontmatterYaml", () => {
 		});
 	});
 
-	it("keeps a null value for the keys in keepNull", () => {
-		expect(loadFrontmatterYaml("title:\nid:\n", ["title"])).toEqual({
-			title: null,
-		});
-	});
-
 	it("gives an empty mapping for a document that is not a mapping", () => {
 		expect(loadFrontmatterYaml("")).toEqual({});
 		expect(loadFrontmatterYaml("- a\n- b\n")).toEqual({});
