@@ -75,8 +75,11 @@ Não depende do commit de referência.
 - [ ] `tests/lint.spec.ts` (todos os `valid/**/*.lint.json`, multiconjunto;
   o lado `.yaml` ignora `PARSER_ONLY_CODES`).
 - [ ] `tests/matching.spec.ts` (`examples/matching/*.yaml`).
+- [ ] A suíte de resolução confere o `lint` dos `.resolved.yaml` (é ali
+  que está `empty-include-all`).
 - [ ] `tests/ids.spec.ts` (`valid/**/*.ids.yaml`, `withIds`).
-- [ ] `tests/normalize.spec.ts` (`examples/normalize.yaml`).
+- [ ] `tests/normalize.spec.ts` (`examples/normalize.yaml`; com
+  `normalize: true`, compara o resultado de `normalize`, que é da P7).
 - [ ] `tests/matching.spec.ts` também lê `matching/query.yaml`; a suíte de
   resolução lê `fields` e `lint` dos `.resolved.yaml`.
 - [ ] `tests/grading.spec.ts` (`examples/grading/*.yaml`, incluindo
@@ -285,12 +288,9 @@ Notas:
 
 Reportadas à sessão `mdq`:
 
-- `empty-include-all` está em `docs/lint-codes.md`, mas nenhum
-  `.resolved.yaml` o produz.
 - A spec não diz qual de duas grafias com o mesmo slug fica com o slug puro
   e qual ganha `-2` (`brasilia`/`brasilia-2`); só os `.ids.yaml` fixam isso.
-- `domain: decimal` (não mapa) no frontmatter do fill-in dá `parse-error`
-  com path `[]`, não um path do campo.
+  A sessão `mdq` levou a questão ao comitê de spec.
 
 ## Pendências depois da referência
 
