@@ -71,25 +71,25 @@ Não depende do commit de referência.
 
 ### P1. Suítes de corpus novas
 
-- [ ] `tests/loading.spec.ts` (`invalid/syntax/`).
-- [ ] `tests/lint.spec.ts` (todos os `valid/**/*.lint.json`, multiconjunto;
+- [x] `tests/loading.spec.ts` (`invalid/syntax/`).
+- [x] `tests/lint.spec.ts` (todos os `valid/**/*.lint.json`, multiconjunto;
   o lado `.yaml` ignora `PARSER_ONLY_CODES`).
-- [ ] `tests/matching.spec.ts` (`examples/matching/*.yaml`).
-- [ ] A suíte de resolução confere o `lint` dos `.resolved.yaml` (é ali
+- [x] `tests/matching.spec.ts` (`examples/matching/*.yaml`).
+- [x] A suíte de resolução confere o `lint` dos `.resolved.yaml` (é ali
   que está `empty-include-all`).
-- [ ] `tests/ids.spec.ts` (`valid/**/*.ids.yaml`, `withIds`).
-- [ ] `tests/normalize.spec.ts` (`examples/normalize.yaml`; com
+- [x] `tests/ids.spec.ts` (`valid/**/*.ids.yaml`, `withIds`).
+- [x] `tests/normalize.spec.ts` (`examples/normalize.yaml`; com
   `normalize: true`, compara o resultado de `normalize`, que é da P7).
-- [ ] `tests/matching.spec.ts` também lê `matching/query.yaml`; a suíte de
+- [x] `tests/matching.spec.ts` também lê `matching/query.yaml`; a suíte de
   resolução lê `fields` e `lint` dos `.resolved.yaml`.
-- [ ] `tests/grading.spec.ts` (`examples/grading/*.yaml`, incluindo
+- [x] `tests/grading.spec.ts` (`examples/grading/*.yaml`, incluindo
   `short-answer-prevalidation.yaml`; `"malformed"` = `ResponseError`,
   `"pending"` = `NotAutoGradable`; `feedback` só é checado quando a chave
   existe; YAML `.inf`/`.nan`; `exam.yaml`, `automation.yaml`, `essay.yaml`
   e `blank:` na pré-validação).
-- [ ] Teste de consistência: todo código de `docs/lint-codes.md` existe em
+- [x] Teste de consistência: todo código de `docs/lint-codes.md` existe em
   `models/lint-codes.ts` com a mesma severidade.
-- [ ] Cada suíte nova começa com o manifesto cheio.
+- [x] Cada suíte nova começa com o manifesto cheio.
 
 ### M. Migração dos testes da mdq-py para o corpus
 
