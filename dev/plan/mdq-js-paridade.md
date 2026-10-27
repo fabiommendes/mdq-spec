@@ -15,12 +15,19 @@ o texto original).
 
 ## Referência
 
-- Commit da mdq-py: **a definir**. A sessão `mdq` manda o hash quando
-  terminar J3b e J7 (refatoração interna, sem mudança de comportamento; o
-  dump do corpus sai igual byte a byte).
-- J3b divide `mdq-py/mdq/_parser/_question.py` em `_blocks`, `_tags`,
-  `_short_answer`, `_fill_in` e `_ordering`. `parser/question.ts` segue a
-  mesma divisão na fase P2, e `mdq-js/docs/sync/modules.md` é atualizado.
+- Commit da mdq-py: `2c281d9` (fim da refatoração J3b/J7).
+- `_parser/` final: `_blocks`, `_choices`, `_exam`, `_fill_in`,
+  `_frontmatter`, `_numeric`, `_ordering` (com o corpo do ordering),
+  `_question` (MDQParser, corpos de essay e numeric), `_short_answer`,
+  `_spaces`, `_tags`. `parser/question.ts` segue essa divisão na P2.
+- `models/`: `_lint` só tem as regras comuns; as regras de lint de cada
+  família estão no arquivo da família. Códigos: `ModelErrorCode`
+  (`models/_base.py`), `LintCode`/`SEVERITY` (`models/_lint_codes.py`).
+- Mudança de comportamento junto com a referência (`bc33879`):
+  `score_response()` lança `ResponseError` para resposta com formato errado
+  (int para fill-in, ordering, V/F ou MS; lista ou string para V/F ou
+  fill-in). Em V/F e fill-in, ids desconhecidos são checados antes de "não é
+  mapa". Vale para a P6.
 - Partida (2026-10-27): 353 falhas em 4140 testes; `exam-resolution.spec.ts`
   e `schema-agreement.spec.ts` não carregam.
 
@@ -68,36 +75,45 @@ Não depende do commit de referência.
 - [ ] `tests/lint.spec.ts` (todos os `valid/**/*.lint.json`, multiconjunto;
   o lado `.yaml` ignora `PARSER_ONLY_CODES`).
 - [ ] `tests/matching.spec.ts` (`examples/matching/*.yaml`).
+- [ ] `tests/ids.spec.ts` (`valid/**/*.ids.yaml`, `withIds`).
+- [ ] `tests/normalize.spec.ts` (`examples/normalize.yaml`).
+- [ ] `tests/matching.spec.ts` também lê `matching/query.yaml`; a suíte de
+  resolução lê `fields` e `lint` dos `.resolved.yaml`.
 - [ ] `tests/grading.spec.ts` (`examples/grading/*.yaml`, incluindo
   `short-answer-prevalidation.yaml`; `"malformed"` = `ResponseError`,
   `"pending"` = `NotAutoGradable`; `feedback` só é checado quando a chave
-  existe; YAML `.inf`/`.nan`).
+  existe; YAML `.inf`/`.nan`; `exam.yaml`, `automation.yaml`, `essay.yaml`
+  e `blank:` na pré-validação).
 - [ ] Teste de consistência: todo código de `docs/lint-codes.md` existe em
   `models/lint-codes.ts` com a mesma severidade.
 - [ ] Cada suíte nova começa com o manifesto cheio.
 
 ### M. Migração dos testes da mdq-py para o corpus
 
-Depende do hash de J7 e da liberação da sessão `mdq`. Tem de terminar antes
-da rodada de bugs da mdq-py; avisar a sessão `mdq` ao terminar.
+Feita em 2026-10-27, sobre `2c281d9`, com a sessão `mdq` parada.
+Classificação dos testes: `/tmp/mdq-migration/classification.md`
+(temporário).
 
-- [ ] Listar os testes de `mdq-py/tests/` que são fatos do formato e não
-  estão no corpus. Candidatos: `test_ordering_scoring.py`,
-  `test_ordering_models.py`, `test_inherited_grading.py`,
-  `test_exam_score.py`, `test_numeric_representation.py`,
-  `test_numeric_exponent.py`, `test_regex.py`, `test_short_answer*.py`,
-  `test_fill_in_*.py`, `test_unknown_response_ids.py`,
-  `test_text_response.py`, `test_omitted_choice_score.py`,
-  `test_null_fields.py`, `test_missing_type_message.py`,
-  `test_derived_ids.py`, `test_unique_ids.py`.
-- [ ] Criar os tipos de corpus que faltarem. Prováveis: pontuação de exame
-  (`examples/grading/exam.yaml`), `gradingFor`/`resolveQuestion`,
-  `withIds`, `normalize`. Cada tipo novo ganha leitor nos dois lados
-  (`mdq-py/tests/_corpus.py`, `mdq-js/tests/corpus.ts`) e uma linha em
-  `mdq-js/docs/sync/testing.md`.
-- [ ] Levar os casos, apagar os testes Python redundantes. Métricas como em
-  `dev/refactor/mdq-py-test-suite-slim.md`.
-- [ ] Na mdq-js, as falhas novas entram no manifesto da fase certa.
+| Métrica                         | Antes (`2c281d9`) | Depois |
+| ------------------------------- | ----------------- | ------ |
+| `pytest`: passam / pulados      | 11947 / 365       | 11959 / 463 |
+| Arquivos `tests/test_*.py`      | 94                | 83     |
+| Funções `def test_`             | 931               | 778    |
+| LOC `tests/test_*.py`           | 14487             | 12442  |
+| Arquivos em `examples/`         | 2799              | 3194   |
+
+- Tipos novos de corpus: `grading/exam.yaml`, `grading/automation.yaml`,
+  `grading/essay.yaml`, `<nome>.ids.yaml`, `normalize.yaml`,
+  `matching/query.yaml`; `fields`/`lint` no `.resolved.yaml`; `feedback`
+  em MC/MS/TF; `blank:` na pré-validação.
+- Ficaram em Python: mensagens e dicas, API (tipos, exceções, pureza,
+  `render`, `frontmatter`), propriedades Hypothesis, tempo de execução e o
+  número de linha dos diagnósticos (o `.lint.json` não tem `line`).
+- `setext-heading` do epílogo e do stem ficou em Python: o aviso só sai do
+  Markdown e o `.lint.json` é compartilhado com o `.yaml` irmão.
+- `test_lint_codes_consistency.py` aceita os códigos da lista "Load errors"
+  de `docs/lint-codes.md` (`schema-error` de regra de padrão que o JSON
+  Schema não expressa).
 
 ### P2. Parser
 
@@ -267,10 +283,14 @@ Notas:
 
 ## Lacunas na referência
 
-Reportar à sessão `mdq`, não corrigir daqui:
+Reportadas à sessão `mdq`:
 
 - `empty-include-all` está em `docs/lint-codes.md`, mas nenhum
   `.resolved.yaml` o produz.
+- A spec não diz qual de duas grafias com o mesmo slug fica com o slug puro
+  e qual ganha `-2` (`brasilia`/`brasilia-2`); só os `.ids.yaml` fixam isso.
+- `domain: decimal` (não mapa) no frontmatter do fill-in dá `parse-error`
+  com path `[]`, não um path do campo.
 
 ## Pendências depois da referência
 
@@ -285,3 +305,5 @@ modelo, lint ou pontuação entram aqui.
 - 2026-10-27: plano criado. P0 feita (sem commit): Zod igual ao JSON Schema, módulos
   movidos, manifesto explícito (PARSE 154, MODEL_RULES 103, LOAD 174,
   RESOLVE 2). Suíte verde: 4206 testes.
+- 2026-10-27: fase M feita. Manifesto da mdq-js com o corpus novo: PARSE
+  161, MODEL_RULES 113, LOAD 233, RESOLVE 2. Suíte verde: 4512 testes.
