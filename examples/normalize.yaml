@@ -9,8 +9,13 @@
 #   format?: "mapping" | "yaml" | "mdq"   // default "mapping"
 #   kind?: "question" | "exam"            // only for "mdq"
 #   input: any             // a mapping, or the source text for "yaml" and "mdq"
+#   normalize?: boolean    // default false: also run `normalize()` on the document
 #   output: object         // `to_dict()` of the loaded document, JSON-like
 # }
+#
+# With `normalize: true`, `output` is the document after `normalize()`, the
+# canonical form that a render then parse keeps unchanged. `normalize()` is
+# an API of both implementations, not a rule of the spec.
 #
 # Loading `input` reports no error. A `null` of an optional field, also
 # nested in a choice or in a blank, is the same as an absent field; `meta`
