@@ -26,7 +26,7 @@ differs states the reason in its header comment.
 | `mdq/_include_keys.py`              | `src/include-keys.ts`                    |
 | `mdq/_schedule.py`                  | `src/schedule.ts`                        |
 | `mdq/_banks.py`                     | `src/banks.ts`                           |
-| `mdq/_parser/_<name>.py`            | `src/parser/<name>.ts`                   |
+| `mdq/_parser/_<name>.py`            | `src/parser/<name>.ts` (`_blocks`, `_choices`, `_exam`, `_fill_in`, `_frontmatter`, `_numeric`, `_ordering`, `_question`, `_short_answer`, `_spaces`, `_tags`) |
 | `mdq/models/_base.py`               | `src/models/base.ts`                     |
 | `mdq/models/_choice.py`             | `src/models/choice.ts`                   |
 | `mdq/models/_numeric.py`            | `src/models/numeric.ts`                  |
@@ -34,7 +34,7 @@ differs states the reason in its header comment.
 | `mdq/models/_fill_in.py`            | `src/models/fill-in.ts`                  |
 | `mdq/models/_ordering.py`           | `src/models/ordering.ts`                 |
 | `mdq/models/_exam.py`               | `src/models/exam.ts`                     |
-| `mdq/models/_lint.py`               | `src/models/lint.ts`                     |
+| `mdq/models/_lint.py` (common rules) | `src/models/lint.ts`                    |
 | `mdq/models/_lint_codes.py`         | `src/models/lint-codes.ts`               |
 | `mdq/models/_regex.py`              | `src/models/regex.ts`                    |
 | `mdq/models/_query.py`              | `src/models/query.ts`                    |

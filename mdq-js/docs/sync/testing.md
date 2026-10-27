@@ -19,7 +19,9 @@ and neither can quietly fall behind the other.
 | `examples/invalid/`  | Documents that `load` must reject, one violation each    |
 | `examples/invalid/model-only/` | Documents that pass the schema but break a model rule |
 | `examples/invalid/syntax/` | YAML/JSON that is not a document at all (broken, repeated key, not a mapping); outside the schema suites |
-| `examples/grading/`  | Responses and the scores they must produce, one file per question type |
+| `examples/grading/`  | Responses and the scores they must produce: one file per question type, plus `exam.yaml` (exam score, inherited `grading`/`shuffle`), `automation.yaml` and `short-answer-prevalidation.yaml` |
+| `examples/matching/` | Pattern vectors (`exact`, `inexact`, `regex`) and the `includeAll` query language (`query.yaml`) |
+| `examples/normalize.yaml` | Inputs and the document `load` returns for them (nulls, defaults, YAML 1.1 scalars) |
 
 Four file shapes appear under `valid/`:
 
@@ -34,7 +36,12 @@ Four file shapes appear under `valid/`:
   `mdq-py/AGENTS.md`); do not edit them by hand.
 * `exam/<name>.resolved.yaml` -- for an exam with `include`/`includeAll`:
   the ids of its questions after resolution against `examples/valid/exam/`
-  and `with_ids`, and the diagnostics of the resolution. Not a document;
+  and `with_ids`, the diagnostics of the resolution, and optionally
+  `fields` (inherited values per question) and `lint` (the exam's lint
+  before `with_ids`). Not a document; `collectFiles` leaves it out.
+* `<name>.ids.yaml` -- the ids of a valid document after `withIds`: the
+  question's, its choices', the choices of each blank, or the ids of an
+  exam's `questions`. A key that is absent is not checked. Not a document;
   `collectFiles` leaves it out.
 
 The pair is the specification of the parse. A `.mdq.md` with no `.yaml`
@@ -89,8 +96,14 @@ one as it grows the machinery to run it:
 | Loading    | `loading.spec.ts`             | `test_loading.py`                |
 | Linting    | `lint.spec.ts`                | `test_lint_corpus.py`            |
 | Resolution | `exam-resolution.spec.ts`     | `test_exam_resolution_corpus.py` |
-| Matching   | `matching.spec.ts`            | `test_exact_comparison.py`, `test_inexact_comparison.py`, `test_regex_table.py` |
+| Ids        | `ids.spec.ts`                 | `test_ids_corpus.py`             |
+| Normalize  | `normalize.spec.ts`           | `test_normalize_corpus.py`       |
+| Matching   | `matching.spec.ts`            | `test_exact_comparison.py`, `test_inexact_comparison.py`, `test_regex_table.py`, `test_query_corpus.py` |
 | Grading    | `grading.spec.ts`             | `test_grading_examples.py`       |
+
+`docs/references/inexact-tables.json` is shared data too: the Python
+properties of the letter tables in `test_inexact_comparison.py` read it, and
+the TypeScript suite parametrizes over the same file.
 
 A divergence at any layer is resolved in favour of Python, which
 [README.md](README.md) names the reference implementation.

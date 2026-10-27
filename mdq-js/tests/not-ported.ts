@@ -51,6 +51,8 @@ export const PARSE: Manifest = {
 	"exam.thematic-break-then-bare-frontmatter.mdq.md": "parser (P2)",
 	"exam.with-ordering.mdq.md": "parser (P2)",
 	"fill-in.blank-in-code-is-text.mdq.md": "parser (P2)",
+	"fill-in.blank-in-indented-code-is-text.mdq.md": "parser (P2)",
+	"fill-in.blank-in-tilde-fence-is-text.mdq.md": "parser (P2)",
 	"fill-in.blanks-in-two-paragraphs.mdq.md": "parser (P2)",
 	"fill-in.blockquote-stem.mdq.md": "parser (P2)",
 	"fill-in.incorrect-feedback.mdq.md": "parser (P2)",
@@ -61,11 +63,11 @@ export const PARSE: Manifest = {
 	"fill-in.open-blank-between-definitions.mdq.md": "parser (P2)",
 	"fill-in.open-blank.mdq.md": "parser (P2)",
 	"fill-in.stem-starts-with-blank.mdq.md": "parser (P2)",
-	"holds for multiple-choice, multiple-selection and true-false": "parser (P2)",
 	"multiple-choice.comment-empty-lines.mdq.md": "parser (P2)",
 	"multiple-choice.comment-only-spaces.mdq.md": "parser (P2)",
 	"multiple-choice.comment-stripped.mdq.md": "parser (P2)",
 	"multiple-choice.context-paragraphs.mdq.md": "parser (P2)",
+	"multiple-choice.fullwidth-asterisk-marker.mdq.md": "parser (P2)",
 	"multiple-selection.bullet-list-stem.mdq.md": "parser (P2)",
 	"multiple-selection.choice-comment-empty-marker-line.mdq.md": "parser (P2)",
 	"multiple-selection.choice-deep-indent-continues-feedback.mdq.md":
@@ -107,6 +109,7 @@ export const PARSE: Manifest = {
 	"ordering.duplicate-accepts-after-dedent.mdq.md": "parser (P2)",
 	"ordering.duplicate-alternative-lines.mdq.md": "parser (P2)",
 	"ordering.duplicate-lines.mdq.md": "parser (P2)",
+	"ordering.empty-parent-item-nested-list.mdq.md": "parser (P2)",
 	"ordering.empty-reject-feedback.mdq.md": "parser (P2)",
 	"ordering.epilogue-no-sections.mdq.md": "parser (P2)",
 	"ordering.epilogue.mdq.md": "parser (P2)",
@@ -124,6 +127,7 @@ export const PARSE: Manifest = {
 	"ordering.indented-fence-tab.mdq.md": "parser (P2)",
 	"ordering.lenient-indentation.mdq.md": "parser (P2)",
 	"ordering.list-markers.mdq.md": "parser (P2)",
+	"ordering.nbsp-end-of-stem.mdq.md": "parser (P2)",
 	"ordering.nested-list-sections.mdq.md": "parser (P2)",
 	"ordering.nested-list-three-levels.mdq.md": "parser (P2)",
 	"ordering.nested-list-two-levels.mdq.md": "parser (P2)",
@@ -167,6 +171,9 @@ export const PARSE: Manifest = {
 	"short-answer.pattern-empty-feedback-marker-line.mdq.md": "parser (P2)",
 	"short-answer.reject-only.mdq.md": "parser (P2)",
 	"short-answer.stem-with-prose-list.mdq.md": "parser (P2)",
+	"short-answer.tab-indented-bang-continuation.mdq.md": "parser (P2)",
+	"short-answer.tab-indented-quote-continuation.mdq.md": "parser (P2)",
+	"short-answer.tab-indented-underline-continuation.mdq.md": "parser (P2)",
 	"true-false.cjk-markers.mdq.md": "parser (P2)",
 	"true-false.fullwidth-marker.mdq.md": "parser (P2)",
 	"true-false.global-markers.mdq.md": "parser (P2)",
@@ -183,6 +190,7 @@ export const SCHEMA: Manifest = {};
 /** `invalid/model-only/` documents that `validateDocument` accepts. */
 export const MODEL_RULES: Manifest = {
 	"model-only.essay-answer-key-setext-h1.yaml": "model rule (P4)",
+	"model-only.essay-blank-answer-key-json.json": "model rule (P4)",
 	"model-only.essay-blank-answer-key.yaml": "model rule (P4)",
 	"model-only.essay-blank-author.yaml": "model rule (P4)",
 	"model-only.essay-blank-comment.yaml": "model rule (P4)",
@@ -218,10 +226,20 @@ export const MODEL_RULES: Manifest = {
 	"model-only.fill-in-blank-choice-feedback-and-comment.yaml":
 		"model rule (P4)",
 	"model-only.fill-in-blank-choice-text.yaml": "model rule (P4)",
+	"model-only.fill-in-blank-duplicate-choice-id.yaml": "model rule (P4)",
+	"model-only.fill-in-blank-duplicate-choice-text.yaml": "model rule (P4)",
 	"model-only.fill-in-blank-in-emphasis-yaml.yaml": "model rule (P4)",
 	"model-only.fill-in-duplicate-blank-id.yaml": "model rule (P4)",
 	"model-only.fill-in-inline-blank-type-in-stem.yaml": "model rule (P4)",
 	"model-only.fill-in-misplaced-blank.yaml": "model rule (P4)",
+	"model-only.fill-in-numeric-blank-decimal-places-missing-fraction-absolute-float.yaml":
+		"model rule (P4)",
+	"model-only.fill-in-numeric-blank-decimal-places-missing-fraction-absolute-integer.yaml":
+		"model rule (P4)",
+	"model-only.fill-in-numeric-blank-decimal-places-missing-fraction-bare.yaml":
+		"model rule (P4)",
+	"model-only.fill-in-numeric-blank-decimal-places-missing-fraction-relative-tolerance.yaml":
+		"model rule (P4)",
 	"model-only.fill-in-numeric-blank-empty-incorrect-feedback.yaml":
 		"model rule (P4)",
 	"model-only.fill-in-short-answer-blank-invalid-regex.yaml": "model rule (P4)",
@@ -241,6 +259,7 @@ export const MODEL_RULES: Manifest = {
 	"model-only.multiple-selection-duplicate-choice-id.yaml": "model rule (P4)",
 	"model-only.multiple-selection-duplicate-choice-text.yaml": "model rule (P4)",
 	"model-only.multiple-selection-empty-feedback.yaml": "model rule (P4)",
+	"model-only.numeric-answer-negative-out-of-range.yaml": "model rule (P4)",
 	"model-only.numeric-answer-out-of-range.yaml": "model rule (P4)",
 	"model-only.numeric-answer-underflow.yaml": "model rule (P4)",
 	"model-only.numeric-empty-incorrect-feedback.yaml": "model rule (P4)",
@@ -263,6 +282,8 @@ export const MODEL_RULES: Manifest = {
 	"model-only.ordering-text-level-jump.yaml": "model rule (P4)",
 	"model-only.ordering-text-starts-indented.yaml": "model rule (P4)",
 	"model-only.question-empty-comment.yaml": "model rule (P4)",
+	"model-only.short-answer-backtick-closing-run-longer.yaml": "model rule (P4)",
+	"model-only.short-answer-backtick-opening-run-longer.yaml": "model rule (P4)",
 	"model-only.short-answer-blank-incorrect-feedback.yaml": "model rule (P4)",
 	"model-only.short-answer-blank-pattern-feedback.yaml": "model rule (P4)",
 	"model-only.short-answer-blank-pattern-forms.yaml": "model rule (P4)",
@@ -315,15 +336,21 @@ export const LOAD: Manifest = {
 	"essay-two-tags.mdq.md": "expects detached-tag (P2)",
 	"essay-unknown-frontmatter-key.mdq.md":
 		"expects invalid-frontmatter-field (P2)",
+	"exam-block-snake-case-include-all-with-body.mdq.md":
+		"expects invalid-frontmatter-field (P2)",
 	"exam-duplicate-question-id.mdq.md": "expects duplicate-question-id (P4)",
 	"exam-h1-in-instructions.mdq.md": "expects forbidden-block-element (P4)",
 	"exam-malformed-start.mdq.md": "expects malformed-start (P4)",
+	"exam-question-block-unknown-frontmatter-key.mdq.md":
+		"expects invalid-frontmatter-field (P2)",
 	"exam-tags-string-empty-entry.mdq.md": "expects blank-text (P4)",
 	"exam-unknown-frontmatter-key.mdq.md":
 		"expects invalid-frontmatter-field (P2)",
 	"fill-in-autolink-blank-defined.mdq.md": "expects unreferenced-blank (P4)",
 	"fill-in-automation-frontmatter.mdq.md":
 		"expects invalid-frontmatter-field (P2)",
+	"fill-in-choice-blank-two-feedback-blocks.mdq.md": "expects parse-error (P2)",
+	"fill-in-choice-list-marker-change.mdq.md": "expects parse-error (P2)",
 	"fill-in-decimal-places-negative.mdq.md": "expects schema-error (P4)",
 	"fill-in-decimal-places-on-short-answer-blank.mdq.md":
 		"expects schema-error (P4)",
@@ -331,6 +358,7 @@ export const LOAD: Manifest = {
 		"expects undefined-blank (P4)",
 	"fill-in-detached-choice-and-numeric.mdq.md": "expects detached-tag (P2)",
 	"fill-in-detached-tag.mdq.md": "expects detached-tag (P2)",
+	"fill-in-domain-not-a-mapping.mdq.md": "expects parse-error (P2)",
 	"fill-in-domain-on-short-answer-blank.mdq.md": "expects schema-error (P4)",
 	"fill-in-domain-undefined-blank.mdq.md": "expects undefined-blank (P4)",
 	"fill-in-domain-unknown-value.mdq.md": "expects schema-error (P4)",
@@ -338,6 +366,8 @@ export const LOAD: Manifest = {
 		"expects duplicate-blank-reference (P4)",
 	"fill-in-epilogue-footnote-line.mdq.md": "expects detached-tag (P2)",
 	"fill-in-html-block-blank.mdq.md": "expects unreferenced-blank (P4)",
+	"fill-in-incorrect-feedback-map-value-not-string.mdq.md":
+		"expects parse-error (P2)",
 	"fill-in-incorrect-feedback-not-a-map.mdq.md": "expects parse-error (P2)",
 	"fill-in-incorrect-feedback-on-choice-blank.mdq.md":
 		"expects schema-error (P4)",
@@ -347,11 +377,16 @@ export const LOAD: Manifest = {
 		"expects parse-error (P2)",
 	"fill-in-misplaced-blank-blockquote.mdq.md": "expects misplaced-blank (P4)",
 	"fill-in-misplaced-blank-emphasis.mdq.md": "expects misplaced-blank (P4)",
+	"fill-in-misplaced-blank-image-alt.mdq.md": "expects misplaced-blank (P4)",
 	"fill-in-misplaced-blank-link.mdq.md": "expects misplaced-blank (P4)",
 	"fill-in-misplaced-blank-list-item.mdq.md": "expects misplaced-blank (P4)",
 	"fill-in-misplaced-blank-table-cell.mdq.md": "expects misplaced-blank (P4)",
 	"fill-in-no-blanks-markdown.mdq.md": "expects schema-error (P4)",
 	"fill-in-numeric-blank-invisible-unit.mdq.md": "expects blank-text (P4)",
+	"fill-in-quote-line-after-blank-definition-content.mdq.md":
+		"expects parse-error (P2)",
+	"fill-in-short-answer-accept-alias-blank-line-before-list.mdq.md":
+		"expects parse-error (P2)",
 	"fill-in-short-answer-blank-line-before-list.mdq.md":
 		"expects parse-error (P2)",
 	"fill-in-short-answer-comment-after-content.mdq.md":
@@ -359,7 +394,10 @@ export const LOAD: Manifest = {
 	"fill-in-short-answer-empty-colon.mdq.md": "expects parse-error (P2)",
 	"fill-in-short-answer-exact-opens-at-line-end.mdq.md":
 		"expects parse-error (P2)",
+	"fill-in-short-answer-list-marker-change.mdq.md": "expects parse-error (P2)",
 	"fill-in-short-answer-reject-without-colon.mdq.md":
+		"expects parse-error (P2)",
+	"fill-in-short-answer-setext-after-reject-content.mdq.md":
 		"expects parse-error (P2)",
 	"fill-in-strikethrough-blank.mdq.md": "expects misplaced-blank (P4)",
 	"fill-in-undefined-blank.mdq.md": "expects undefined-blank (P4)",
@@ -377,6 +415,8 @@ export const LOAD: Manifest = {
 		"expects blank-text (P4)",
 	"multiple-choice-blank-text-no-text.mdq.md": "expects blank-text (P4)",
 	"multiple-choice-blank-text-only-id.mdq.md": "expects blank-text (P4)",
+	"multiple-choice-choices-frontmatter.mdq.md":
+		"expects invalid-frontmatter-field (P2)",
 	"multiple-choice-code-block.mdq.md": "expects parse-error (P2)",
 	"multiple-choice-forbidden-paragraph-epilogue.mdq.md":
 		"expects forbidden-block-element (P4)",
@@ -403,15 +443,21 @@ export const LOAD: Manifest = {
 		"expects parse-error (P2)",
 	"multiple-selection-first-item-is-an-inline-link.mdq.md":
 		"expects parse-error (P2)",
+	"multiple-selection-item-indented-past-content-column.mdq.md":
+		"expects parse-error (P2)",
 	"multiple-selection-percent-leading-zero.mdq.md":
 		"expects foreign-choice-marker (P2)",
 	"multiple-selection-two-comment-blocks.mdq.md": "expects parse-error (P2)",
 	"multiple-selection-two-feedback-blocks.mdq.md": "expects parse-error (P2)",
 	"numeric-fraction-decimal-places-missing.mdq.md":
 		"expects missing-decimal-places (P4)",
+	"numeric-fraction-denominator-out-of-range.mdq.md":
+		"expects parse-error (P2)",
 	"numeric-fraction-exponent-tolerance.mdq.md":
 		"expects missing-decimal-places (P4)",
+	"numeric-fraction-numerator-out-of-range.mdq.md": "expects parse-error (P2)",
 	"numeric-frontmatter-unit.mdq.md": "expects invalid-frontmatter-field (P2)",
+	"numeric-integer-out-of-range.mdq.md": "expects parse-error (P2)",
 	"numeric-invisible-unit.mdq.md": "expects blank-text (P4)",
 	"numeric-tag-in-epilogue.mdq.md": "expects detached-tag (P2)",
 	"ordering-automation-frontmatter.mdq.md":
@@ -427,10 +473,34 @@ export const LOAD: Manifest = {
 	"ordering-text-reject-starts-nested.mdq.md":
 		"expects invalid-outline-level (P4)",
 	"ordering-text-starts-nested.mdq.md": "expects invalid-outline-level (P4)",
+	"ordering-without-colon-fence.mdq.md": "expects parse-error (P2)",
 	"ordering-without-colon.mdq.md": "expects parse-error (P2)",
+	"short-answer-accept-alias-blank-line-before-list.mdq.md":
+		"expects parse-error (P2)",
+	"short-answer-accept-alias-empty-tag-blank-line-text.mdq.md":
+		"expects parse-error (P2)",
 	"short-answer-automation-frontmatter.mdq.md":
 		"expects invalid-frontmatter-field (P2)",
+	"short-answer-bang-indented-line-after-content.mdq.md":
+		"expects parse-error (P2)",
+	"short-answer-bang-indented-line-after-empty-tag.mdq.md":
+		"expects parse-error (P2)",
+	"short-answer-bang-indented-line-after-reject-content.mdq.md":
+		"expects parse-error (P2)",
+	"short-answer-bang-line-after-content.mdq.md": "expects parse-error (P2)",
+	"short-answer-bang-line-after-continuation.mdq.md":
+		"expects parse-error (P2)",
+	"short-answer-bang-line-after-empty-tag.mdq.md": "expects parse-error (P2)",
 	"short-answer-bang-line-after-reject-content.mdq.md":
+		"expects parse-error (P2)",
+	"short-answer-bang-line-indent-0.mdq.md": "expects parse-error (P2)",
+	"short-answer-bang-line-indent-1.mdq.md": "expects parse-error (P2)",
+	"short-answer-bang-line-indent-3.mdq.md": "expects parse-error (P2)",
+	"short-answer-bang-no-space-line-after-content.mdq.md":
+		"expects parse-error (P2)",
+	"short-answer-bang-no-space-line-after-empty-tag.mdq.md":
+		"expects parse-error (P2)",
+	"short-answer-bang-no-space-line-after-reject-content.mdq.md":
 		"expects parse-error (P2)",
 	"short-answer-bare-tag-text-before-reject.mdq.md": "expects parse-error (P2)",
 	"short-answer-blank-line-before-list.mdq.md": "expects parse-error (P2)",
@@ -446,7 +516,17 @@ export const LOAD: Manifest = {
 	"short-answer-empty-tag-blank-line-text.mdq.md": "expects parse-error (P2)",
 	"short-answer-empty-tag-end-of-body.mdq.md": "expects parse-error (P2)",
 	"short-answer-empty-tag-then-accept-block.mdq.md": "expects parse-error (P2)",
+	"short-answer-exact-closes-at-line-start-item-continuation.mdq.md":
+		"expects parse-error (P2)",
+	"short-answer-exact-closes-at-line-start-item-feedback.mdq.md":
+		"expects parse-error (P2)",
+	"short-answer-exact-closes-at-line-start-short.mdq.md":
+		"expects parse-error (P2)",
 	"short-answer-exact-closes-at-line-start.mdq.md": "expects parse-error (P2)",
+	"short-answer-exact-double-opens-at-line-end.mdq.md":
+		"expects parse-error (P2)",
+	"short-answer-exact-opens-at-line-end-bare-tag.mdq.md":
+		"expects parse-error (P2)",
 	"short-answer-exact-opens-at-line-end-item.mdq.md":
 		"expects parse-error (P2)",
 	"short-answer-exact-opens-at-line-end.mdq.md": "expects parse-error (P2)",
@@ -463,7 +543,11 @@ export const LOAD: Manifest = {
 	"short-answer-item-nested-list.mdq.md": "expects parse-error (P2)",
 	"short-answer-item-ordered-list.mdq.md": "expects parse-error (P2)",
 	"short-answer-item-reject-block-quote.mdq.md": "expects parse-error (P2)",
+	"short-answer-item-setext-dashes.mdq.md": "expects parse-error (P2)",
+	"short-answer-item-setext-equals.mdq.md": "expects parse-error (P2)",
+	"short-answer-item-setext-single-equals.mdq.md": "expects parse-error (P2)",
 	"short-answer-item-two-feedback-blocks.mdq.md": "expects parse-error (P2)",
+	"short-answer-list-marker-change-ordered.mdq.md": "expects parse-error (P2)",
 	"short-answer-list-marker-change.mdq.md": "expects parse-error (P2)",
 	"short-answer-marker-line-after-continuation.mdq.md":
 		"expects parse-error (P2)",
@@ -477,6 +561,14 @@ export const LOAD: Manifest = {
 	"short-answer-quote-after-content.mdq.md": "expects parse-error (P2)",
 	"short-answer-quote-after-empty-tag.mdq.md": "expects parse-error (P2)",
 	"short-answer-quote-line-after-content.mdq.md": "expects parse-error (P2)",
+	"short-answer-quote-line-after-empty-tag.mdq.md": "expects parse-error (P2)",
+	"short-answer-quote-line-after-reject-content.mdq.md":
+		"expects parse-error (P2)",
+	"short-answer-quote-line-indent-0.mdq.md": "expects parse-error (P2)",
+	"short-answer-quote-line-indent-1.mdq.md": "expects parse-error (P2)",
+	"short-answer-quote-line-indent-3.mdq.md": "expects parse-error (P2)",
+	"short-answer-regex-alternation-quantifier-without-atom.mdq.md":
+		"expects invalid-regex (P4)",
 	"short-answer-regex-atomic-group.mdq.md": "expects invalid-regex (P4)",
 	"short-answer-regex-backreference.mdq.md": "expects invalid-regex (P4)",
 	"short-answer-regex-bell-escape.mdq.md": "expects invalid-regex (P4)",
@@ -488,6 +580,7 @@ export const LOAD: Manifest = {
 		"expects invalid-regex (P4)",
 	"short-answer-regex-dash-escape-outside-class.mdq.md":
 		"expects invalid-regex (P4)",
+	"short-answer-regex-empty-braced-escape.mdq.md": "expects invalid-regex (P4)",
 	"short-answer-regex-empty-class.mdq.md": "expects invalid-regex (P4)",
 	"short-answer-regex-empty-negated-class.mdq.md": "expects invalid-regex (P4)",
 	"short-answer-regex-end-of-text-anchor.mdq.md": "expects invalid-regex (P4)",
@@ -495,16 +588,25 @@ export const LOAD: Manifest = {
 	"short-answer-regex-identity-escape.mdq.md": "expects invalid-regex (P4)",
 	"short-answer-regex-incomplete-hex-escape.mdq.md":
 		"expects invalid-regex (P4)",
+	"short-answer-regex-incomplete-unicode-escape.mdq.md":
+		"expects invalid-regex (P4)",
+	"short-answer-regex-inline-flags-group.mdq.md": "expects invalid-regex (P4)",
 	"short-answer-regex-inline-modifier.mdq.md": "expects invalid-regex (P4)",
 	"short-answer-regex-js-named-group.mdq.md": "expects invalid-regex (P4)",
 	"short-answer-regex-lone-close-brace.mdq.md": "expects invalid-regex (P4)",
 	"short-answer-regex-lone-close-bracket.mdq.md": "expects invalid-regex (P4)",
 	"short-answer-regex-lone-open-brace.mdq.md": "expects invalid-regex (P4)",
+	"short-answer-regex-lookbehind-negative.mdq.md": "expects invalid-regex (P4)",
 	"short-answer-regex-named-reference.mdq.md": "expects invalid-regex (P4)",
+	"short-answer-regex-negated-unicode-property.mdq.md":
+		"expects invalid-regex (P4)",
 	"short-answer-regex-nul-escape.mdq.md": "expects invalid-regex (P4)",
+	"short-answer-regex-octal-escape.mdq.md": "expects invalid-regex (P4)",
 	"short-answer-regex-possessive-optional.mdq.md": "expects invalid-regex (P4)",
 	"short-answer-regex-possessive-star.mdq.md": "expects invalid-regex (P4)",
 	"short-answer-regex-possessive.mdq.md": "expects invalid-regex (P4)",
+	"short-answer-regex-python-named-reference.mdq.md":
+		"expects invalid-regex (P4)",
 	"short-answer-regex-quantified-anchor.mdq.md": "expects invalid-regex (P4)",
 	"short-answer-regex-quantified-assertion.mdq.md":
 		"expects invalid-regex (P4)",
@@ -519,6 +621,14 @@ export const LOAD: Manifest = {
 		"expects invalid-regex (P4)",
 	"short-answer-regex-start-of-text-anchor.mdq.md":
 		"expects invalid-regex (P4)",
+	"short-answer-regex-surrogate-braced-escape-in-class.mdq.md":
+		"expects invalid-regex (P4)",
+	"short-answer-regex-surrogate-braced-escape.mdq.md":
+		"expects invalid-regex (P4)",
+	"short-answer-regex-surrogate-escape-in-class.mdq.md":
+		"expects invalid-regex (P4)",
+	"short-answer-regex-surrogate-escape-pair.mdq.md":
+		"expects invalid-regex (P4)",
 	"short-answer-regex-trailing-backslash.mdq.md": "expects invalid-regex (P4)",
 	"short-answer-regex-unclosed-class.mdq.md": "expects invalid-regex (P4)",
 	"short-answer-regex-unclosed-group.mdq.md": "expects invalid-regex (P4)",
@@ -526,10 +636,12 @@ export const LOAD: Manifest = {
 	"short-answer-regex-word-boundary-in-class.mdq.md":
 		"expects invalid-regex (P4)",
 	"short-answer-reject-after-epilogue.mdq.md": "expects detached-tag (P2)",
+	"short-answer-reject-tag-all-caps.mdq.md": "expects parse-error (P2)",
 	"short-answer-reject-without-colon.mdq.md": "expects parse-error (P2)",
 	"short-answer-repeated-ignored-regex-flag.mdq.md":
 		"expects invalid-regex (P4)",
 	"short-answer-repeated-regex-flag.mdq.md": "expects invalid-regex (P4)",
+	"short-answer-setext-after-reject-content.mdq.md": "expects parse-error (P2)",
 	"short-answer-unclosed-regex-content.mdq.md": "expects invalid-regex (P4)",
 	"short-answer-unclosed-regex-item.mdq.md": "expects invalid-regex (P4)",
 	"short-answer-unknown-regex-flag.mdq.md": "expects invalid-regex (P4)",

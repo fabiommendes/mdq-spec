@@ -48,6 +48,12 @@ export const LINT_SUFFIX = ".lint.json";
 export const RESOLVED_SUFFIX = ".resolved.yaml";
 
 /**
+ * The ids a valid document has after `withIds`, next to the document. Not a
+ * document.
+ */
+export const IDS_SUFFIX = ".ids.yaml";
+
+/**
  * Surface-syntax questions. A question and an exam share this extension and
  * are told apart by their content, not by their name.
  */
@@ -72,7 +78,8 @@ export function collectFiles(root: string): string[] {
 		(path) =>
 			DOCUMENT_SUFFIXES.some((suffix) => path.toLowerCase().endsWith(suffix)) &&
 			!path.endsWith(LINT_SUFFIX) &&
-			!path.endsWith(RESOLVED_SUFFIX),
+			!path.endsWith(RESOLVED_SUFFIX) &&
+			!path.endsWith(IDS_SUFFIX),
 	);
 }
 
