@@ -409,3 +409,8 @@ modelo, lint ou pontuação entram aqui.
   sessão `mdq`.
 - 2026-10-27: P1 feita (`6d2b826`): 8431 testes. P3 feita (`9e5d54f`):
   `matching.spec.ts` sem manifesto.
+- 2026-10-27: P4 feita (`4b4f01b`, `d7bea86`). Pacotes I e J da `mdq`
+  portados em `03904f8`: YAML 1.2 Core pelo pacote `yaml` (o js-yaml não
+  rejeita chave composta), chaves escalares viram string, e regras de campo
+  junto com erro de schema. Falta o pacote K (`answer: " 1"` em YAML/JSON é
+  `malformed-numeric-answer`; null num mapa por blank do fill-in = ausente).
