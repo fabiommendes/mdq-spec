@@ -120,6 +120,9 @@ Classificação dos testes: `/tmp/mdq-migration/classification.md`
 
 ### P2. Parser
 
+Feita em 2026-10-27 (`363096f`, `5de27b8`, `25734b4`), conferida contra a
+mdq-py `5db0257`. Falta reconferir contra `727de27` e `82b8497`.
+
 Fechar `parser.spec.ts` e os códigos do parser em `invalid-sources.spec.ts`.
 Dividir `parser/question.ts` como o `_parser/` final da mdq-py.
 
@@ -348,3 +351,7 @@ modelo, lint ou pontuação entram aqui.
   RESOLVE 2). Suíte verde: 4206 testes.
 - 2026-10-27: fase M feita. Manifesto da mdq-js com o corpus novo: PARSE
   161, MODEL_RULES 113, LOAD 233, RESOLVE 2. Suíte verde: 4512 testes.
+- 2026-10-27: P2 feita. `parser/legacy/` apagado. Manifesto: PARSE 0,
+  RESOLVE 0, LOAD 110 (todas P4), MODEL_RULES 115. Suíte verde: 4458 testes.
+  Nove casos sem exemplo no corpus (`/tmp/mdq-p2/corpus-gaps.md`) vão para a
+  sessão `mdq`.
