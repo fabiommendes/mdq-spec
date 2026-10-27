@@ -186,6 +186,9 @@ Notas:
 
 ### P3. Casamento de padrões
 
+Feita em 2026-10-27 (`9e5d54f`). `scoreResponse` já pontua short-answer e
+fill-in só com blanks short-answer; o resto da pontuação é da P6.
+
 `exact.ts`, normalização inexata (`src/inexact-tables.json`) e
 `models/regex.ts`. Fecha `matching.spec.ts`.
 
@@ -378,3 +381,5 @@ modelo, lint ou pontuação entram aqui.
   RESOLVE 0, LOAD 110 (todas P4), MODEL_RULES 115. Suíte verde: 4458 testes.
   Nove casos sem exemplo no corpus (`/tmp/mdq-p2/corpus-gaps.md`) vão para a
   sessão `mdq`.
+- 2026-10-27: P1 feita (`6d2b826`): 8431 testes. P3 feita (`9e5d54f`):
+  `matching.spec.ts` sem manifesto.
