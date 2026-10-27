@@ -1,10 +1,12 @@
 /**
- * The shapes a student's marked response may take.
+ * The shapes a student's marked response may take, as `docs/responses.md`
+ * describes them.
  *
  * A response is never a document: there is no response schema and no Markdown
- * surface for it (see `docs/adr/0003-no-response-document.md`), so these
- * aliases are the whole specification of what grading accepts -- which is why
- * this module holds types only, with no Zod schema beside them.
+ * surface for it, so these aliases are the whole specification of what
+ * grading accepts -- which is why this module holds types only, with no Zod
+ * schema beside them. Every shape is plain JSON (no `Set` or `Map`), so a
+ * response can be stored, sent and loaded from a fixture without conversion.
  *
  * Several aliases collapse to the same runtime type; `string` serves both a
  * chosen choice id and an essay. They are kept apart because which question
@@ -32,28 +34,38 @@ export type QuestionResponse =
 export type MultipleChoiceResponse = string;
 
 /**
- * multiple-selection: the set of choice ids the student marked. A choice
- * absent from the set was not marked.
+ * multiple-selection: the ids of the choices the student ticked, as a list.
+ * A choice absent from the list was not ticked; order and repeats do not
+ * matter.
  */
-export type MultipleSelectionResponse = Set<string>;
+export type MultipleSelectionResponse = readonly string[];
 
 /**
  * true-false: the student's judgement of each statement, keyed by statement
- * id. An explicit skip is `null`.
+ * id. An absent key or a `null` value is an abstention.
  */
-export type TrueFalseResponse = Map<string, boolean | null>;
+export type TrueFalseResponse = Readonly<Record<string, boolean | null>>;
 
 /** short-answer and essay: the text the student wrote, before normalisation. */
 export type TextResponse = string;
 
-/** numeric: the value the student entered. */
-export type NumericResponse = number;
+/**
+ * numeric: the value the student entered. A number is read as its shortest
+ * decimal form; a string as the exact value it spells (`"1/3"`, `"3.1415"`);
+ * the mapping form also carries the unit the student wrote.
+ */
+export type NumericResponse =
+	| number
+	| string
+	| { readonly value: number | string; readonly unit?: string };
 
 /**
  * fill-in: each blank's response, keyed by blank id, taking whatever that
  * blank's own type takes.
  */
-export type FillInResponse = Map<string, QuestionResponse>;
+export interface FillInResponse {
+	readonly [blank: string]: QuestionResponse;
+}
 
 /**
  * ordering: the lines the student submitted, in the order they submitted
@@ -65,4 +77,4 @@ export type OrderingResponse = readonly OrderingLine[];
  * Every response in one exam attempt, keyed by question id. A question absent
  * from the map is skipped; a key naming no question in the exam is an error.
  */
-export type ExamResponses = Map<string, QuestionResponse>;
+export type ExamResponses = Readonly<Record<string, QuestionResponse>>;

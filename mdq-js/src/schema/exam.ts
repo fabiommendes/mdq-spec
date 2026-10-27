@@ -10,9 +10,12 @@
 import * as z from "zod";
 import {
 	DocumentId,
-	GradedQuestionType,
+	FillInGradingType,
 	GradingType,
+	MultipleChoiceGradingType,
+	MultipleSelectionGradingType,
 	PenaltyPolicy,
+	TrueFalseGradingType,
 	Uuid,
 	uniqueArray,
 } from "./common.js";
@@ -49,15 +52,18 @@ export type ExamEntry = z.infer<typeof ExamEntry>;
 /**
  * The grading strategy applied to questions that declare none of their own:
  * either one strategy for every question, or a mapping from question type to
- * strategy. A question that declares its own `grading` ignores this entirely.
+ * a strategy of that type. Short-answer, numeric, essay and ordering have no
+ * `grading`, so the mapping has no key for them. A question that declares its
+ * own `grading` ignores this entirely.
  */
 export const ExamGradingType = z.union([
 	GradingType,
-	z.strictObject(
-		Object.fromEntries(
-			GradedQuestionType.options.map((type) => [type, GradingType.optional()]),
-		) as Record<GradedQuestionType, z.ZodOptional<typeof GradingType>>,
-	),
+	z.strictObject({
+		"multiple-choice": MultipleChoiceGradingType.optional(),
+		"multiple-selection": MultipleSelectionGradingType.optional(),
+		"true-false": TrueFalseGradingType.optional(),
+		"fill-in": FillInGradingType.optional(),
+	}),
 ]);
 export type ExamGradingType = z.infer<typeof ExamGradingType>;
 
@@ -82,12 +88,13 @@ export const Exam = z.strictObject({
 	type: z.literal("exam").optional(),
 	id: DocumentId.optional(),
 	uuid: Uuid.optional(),
-	title: z.string().min(1).optional(),
-	description: z.string().min(1).optional(),
-	course: z.string().min(1).optional(),
-	author: z.string().min(1).optional(),
+	title: z.string().optional(),
+	description: z.string().optional(),
+	course: z.string().optional(),
+	author: z.string().optional(),
 	locale: z.string().optional(),
-	instructions: z.string().min(1).optional(),
+	instructions: z.string().optional(),
+	comment: z.string().optional(),
 	tags: uniqueArray(z.string()).optional(),
 	meta: z.record(z.string(), z.unknown()).optional(),
 	grading: ExamGradingType.optional(),

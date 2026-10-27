@@ -21,12 +21,12 @@
  *   "
  *
  * `reference` is already excluded from `block` above -- `_markdown.py`
- * disables it the same way `src/parser/markdown.ts` does, for the same
+ * disables it the same way `src/markdown.ts` does, for the same
  * reason (MDQ's own tags read as CommonMark link reference definitions
  * otherwise).
  */
 
-import { md } from "@mdq/parser/markdown";
+import { md } from "@mdq/markdown";
 import { describe, expect, it } from "vitest";
 
 /**

@@ -16,7 +16,7 @@ import {
 	singleSlugify,
 	slugify,
 	validateSlug,
-} from "@mdq/slugify.js";
+} from "@mdq/models/slugify.js";
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 

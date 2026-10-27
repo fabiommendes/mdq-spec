@@ -9,6 +9,7 @@
 
 import { type Diagnostic, diagnostic, prefixPath } from "../diagnostics.js";
 import { MissingFieldError, ParseError } from "../errors.js";
+import { md } from "../markdown.js";
 import { canonicalDuration, canonicalStart } from "../schedule.js";
 import type { Exam } from "../schema/exam.js";
 import { validateExam } from "../validate.js";
@@ -19,7 +20,6 @@ import {
 	splitFrontmatter,
 	unknownFrontmatterWarnings,
 } from "./frontmatter.js";
-import { md } from "./markdown.js";
 import {
 	matchesTag,
 	parseQuestionDocument,

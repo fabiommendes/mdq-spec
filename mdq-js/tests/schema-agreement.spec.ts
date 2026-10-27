@@ -39,16 +39,19 @@ import {
 	BooleanChoice,
 	ChoiceBlank,
 	DiacriticsType,
-	EssayInput,
+	EssayContent,
 	EssayQuestion,
 	Exam,
+	FillInGrading,
 	FillInQuestion,
 	GradedQuestionType,
 	GradingType,
 	Include,
 	IncludeAll,
 	Indentation,
+	MultipleChoiceGrading,
 	MultipleChoiceQuestion,
+	MultipleSelectionGrading,
 	MultipleSelectionQuestion,
 	Normalization,
 	NumericBlank,
@@ -59,7 +62,6 @@ import {
 	OrderingQuestion,
 	Pattern,
 	PenaltyPolicy,
-	QuestionGrading,
 	QuestionType,
 	questionBaseShape,
 	ScoredChoice,
@@ -67,6 +69,7 @@ import {
 	ShortAnswerQuestion,
 	Statement,
 	Tolerance,
+	TrueFalseGrading,
 	TrueFalseQuestion,
 	Unmatched,
 } from "@mdq/schema/index.js";
@@ -96,6 +99,13 @@ const BUNDLE_PATH = fileURLToPath(
 );
 const BUNDLE: JsonNode = JSON.parse(readFileSync(BUNDLE_PATH, "utf-8"));
 const DEFS: Record<string, JsonNode> = BUNDLE.$defs;
+
+/**
+ * The `frontmatter-*` entries describe the keys of a Markdown frontmatter,
+ * not the shape of a document: they have no `$id` and no Zod counterpart.
+ */
+const isFrontmatterDef = (key: string) => key.startsWith("frontmatter-");
+const FRONTMATTER_DEFS = Object.keys(DEFS).filter(isFrontmatterDef).length;
 
 /** Look up a top-level `$defs` entry, failing loudly if the bundle no longer has it. */
 function def(key: string): JsonNode {
@@ -233,7 +243,8 @@ function assertLiteralsAgree(
 describe("zod-json-schema agreement", () => {
 	it("the bundle and its $id index are where this file expects them", () => {
 		expect(Object.keys(DEFS).length).toBeGreaterThan(0);
-		expect(ID_INDEX.size).toBe(Object.keys(DEFS).length);
+		// Every `$defs` entry has an `$id`, except the `frontmatter-*` ones.
+		expect(ID_INDEX.size).toBe(Object.keys(DEFS).length - FRONTMATTER_DEFS);
 	});
 
 	describe("question types and the exam compose question-base like the JSON Schema does", () => {
@@ -325,81 +336,84 @@ describe("zod-json-schema agreement", () => {
 	});
 
 	describe("enum and const literals agree", () => {
-		const pairs: Array<[string, readonly unknown[], readonly unknown[]]> = [
+		const pairs: Array<[string, () => readonly unknown[], readonly unknown[]]> =
 			[
-				"multiple-choice.grading (QuestionGrading)",
-				def("multiple-choice").allOf[1].properties.grading.enum,
-				QuestionGrading.options,
-			],
-			[
-				"multiple-selection.grading (QuestionGrading)",
-				def("multiple-selection").allOf[1].properties.grading.enum,
-				QuestionGrading.options,
-			],
-			[
-				"true-false.grading (QuestionGrading)",
-				def("true-false").allOf[1].properties.grading.enum,
-				QuestionGrading.options,
-			],
-			[
-				"fill-in.grading (QuestionGrading)",
-				def("fill-in").allOf[1].properties.grading.enum,
-				QuestionGrading.options,
-			],
-			[
-				"exam#/$defs/GradingStrategy (GradingType)",
-				def("exam").$defs.GradingStrategy.enum,
-				GradingType.options,
-			],
-			[
-				"numeric.domain (NumericDomain)",
-				def("numeric").allOf[1].properties.domain.enum,
-				NumericDomain.options,
-			],
-			[
-				"essay.input (EssayInput)",
-				def("essay").allOf[1].properties.input.enum,
-				EssayInput.options,
-			],
-			[
-				"ordering.content (OrderingContent)",
-				def("ordering").allOf[1].properties.content.enum,
-				OrderingContent.options,
-			],
-			[
-				"ordering.indentation (Indentation)",
-				def("ordering").allOf[1].properties.indentation.enum,
-				Indentation.options,
-			],
-			[
-				"ordering.unmatched (Unmatched)",
-				def("ordering").allOf[1].properties.unmatched.enum,
-				Unmatched.options,
-			],
-			[
-				"ordering#/$defs/Normalization (Normalization)",
-				def("ordering").$defs.Normalization.enum,
-				Normalization.options,
-			],
-			[
-				"exam.penalty (PenaltyPolicy)",
-				def("exam").properties.penalty.enum,
-				PenaltyPolicy.options,
-			],
-			[
-				"short-answer#/$defs/diacritics (DiacriticsType)",
-				def("short-answer").$defs.diacritics.enum,
-				DiacriticsType.options,
-			],
-			[
-				"short-answer#/$defs/unmatched (Unmatched)",
-				def("short-answer").$defs.unmatched.enum,
-				Unmatched.options,
-			],
-		];
+				[
+					"multiple-choice.grading (MultipleChoiceGrading)",
+					() => def("multiple-choice").allOf[1].properties.grading.enum,
+					MultipleChoiceGrading.options,
+				],
+				[
+					"multiple-selection.grading (MultipleSelectionGrading)",
+					() => def("multiple-selection").allOf[1].properties.grading.enum,
+					MultipleSelectionGrading.options,
+				],
+				[
+					"true-false.grading (TrueFalseGrading)",
+					() => def("true-false").allOf[1].properties.grading.enum,
+					TrueFalseGrading.options,
+				],
+				[
+					"fill-in.grading (FillInGrading)",
+					() => def("fill-in").allOf[1].properties.grading.enum,
+					FillInGrading.options,
+				],
+				[
+					"exam#/$defs/GradingStrategy (GradingType)",
+					() => def("exam").$defs.GradingStrategy.enum,
+					GradingType.options,
+				],
+				[
+					"numeric.domain (NumericDomain)",
+					() => def("numeric").allOf[1].properties.domain.enum,
+					NumericDomain.options,
+				],
+				[
+					"essay.content (EssayContent)",
+					() => def("essay").allOf[1].properties.content.enum,
+					EssayContent.options,
+				],
+				[
+					"ordering.content (OrderingContent)",
+					() => def("ordering").allOf[1].properties.content.enum,
+					OrderingContent.options,
+				],
+				[
+					"ordering.indentation (Indentation)",
+					() => def("ordering").allOf[1].properties.indentation.enum,
+					Indentation.options,
+				],
+				[
+					"ordering.unmatched (Unmatched)",
+					() => def("ordering").allOf[1].properties.unmatched.enum,
+					Unmatched.options,
+				],
+				[
+					"ordering#/$defs/Normalization (Normalization)",
+					() => def("ordering").$defs.Normalization.enum,
+					Normalization.options,
+				],
+				[
+					"exam.penalty (PenaltyPolicy)",
+					() => def("exam").properties.penalty.enum,
+					PenaltyPolicy.options,
+				],
+				[
+					"short-answer#/$defs/diacritics (DiacriticsType)",
+					() => def("short-answer").$defs.diacritics.enum,
+					DiacriticsType.options,
+				],
+				[
+					"short-answer#/$defs/unmatched (Unmatched)",
+					() => def("short-answer").$defs.unmatched.enum,
+					Unmatched.options,
+				],
+			];
 
+		// The JSON side is read inside the test, so a `$defs` entry that
+		// changed shape fails its own case instead of the whole suite.
 		it.each(pairs)("%s", (name, jsonValues, zodValues) => {
-			assertLiteralsAgree(name, jsonValues, zodValues);
+			assertLiteralsAgree(name, jsonValues(), zodValues);
 		});
 
 		it("question type discriminator consts agree (QuestionType)", () => {
@@ -463,6 +477,7 @@ describe("zod-json-schema agreement", () => {
 		function allNamedDefs(): NamedDef[] {
 			const acc: NamedDef[] = [];
 			for (const [key, node] of Object.entries(DEFS)) {
+				if (isFrontmatterDef(key)) continue;
 				acc.push({ path: key, node });
 				collectNamedDefs(node, key, acc);
 			}

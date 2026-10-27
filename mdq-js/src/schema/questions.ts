@@ -12,18 +12,22 @@ import * as z from "zod";
 import {
 	BooleanChoice,
 	DiacriticsType,
-	EssayInput,
+	EssayContent,
+	FillInGrading,
 	Indentation,
+	MultipleChoiceGrading,
+	MultipleSelectionGrading,
 	Normalization,
 	numericAnswerShape,
+	ORDERING_LINE_TEXT_PATTERN,
 	OrderingContent,
-	QuestionGrading,
 	QuestionShuffle,
 	questionBaseShape,
 	ScoredChoice,
 	Slug,
 	Statement,
 	shortAnswerKeyShape,
+	TrueFalseGrading,
 	Unmatched,
 	uniqueArray,
 } from "./common.js";
@@ -51,7 +55,7 @@ export const MultipleChoiceQuestion = z.strictObject({
 	...questionBaseShape,
 	type: z.literal("multiple-choice"),
 	choices: z.array(ScoredChoice).min(2),
-	grading: QuestionGrading.optional(),
+	grading: MultipleChoiceGrading.optional(),
 	shuffle: QuestionShuffle.optional(),
 });
 export type MultipleChoiceQuestion = z.infer<typeof MultipleChoiceQuestion>;
@@ -61,7 +65,7 @@ export const MultipleSelectionQuestion = z.strictObject({
 	...questionBaseShape,
 	type: z.literal("multiple-selection"),
 	choices: z.array(BooleanChoice).min(2),
-	grading: QuestionGrading.optional(),
+	grading: MultipleSelectionGrading.optional(),
 	shuffle: QuestionShuffle.optional(),
 });
 export type MultipleSelectionQuestion = z.infer<
@@ -73,7 +77,7 @@ export const TrueFalseQuestion = z.strictObject({
 	...questionBaseShape,
 	type: z.literal("true-false"),
 	choices: z.array(Statement).min(2),
-	grading: QuestionGrading.optional(),
+	grading: TrueFalseGrading.optional(),
 	shuffle: QuestionShuffle.optional(),
 });
 export type TrueFalseQuestion = z.infer<typeof TrueFalseQuestion>;
@@ -83,6 +87,7 @@ export const NumericQuestion = z.strictObject({
 	...questionBaseShape,
 	...numericAnswerShape,
 	type: z.literal("numeric"),
+	incorrectFeedback: z.string().optional(),
 });
 export type NumericQuestion = z.infer<typeof NumericQuestion>;
 
@@ -97,18 +102,31 @@ export const ShortAnswerQuestion = z.strictObject({
 	type: z.literal("short-answer"),
 	diacritics: DiacriticsType.optional(),
 	unmatched: Unmatched.optional(),
-	incorrectFeedback: z.string().min(1).optional(),
+	incorrectFeedback: z.string().optional(),
 });
 export type ShortAnswerQuestion = z.infer<typeof ShortAnswerQuestion>;
 
-/** `schema/essay.yaml` -- a free-form written answer. */
-export const EssayQuestion = z.strictObject({
-	...questionBaseShape,
-	type: z.literal("essay"),
-	input: EssayInput.optional(),
-	highlight: z.string().min(1).optional(),
-	answerKey: z.string().min(1).optional(),
-});
+/**
+ * `schema/essay.yaml` -- a free-form written answer. The `if`/`then` of the
+ * YAML is the refinement: `highlight` needs `content: code` (no `content`
+ * means `text`).
+ */
+export const EssayQuestion = z
+	.strictObject({
+		...questionBaseShape,
+		type: z.literal("essay"),
+		content: EssayContent.optional(),
+		highlight: z.string().min(1).optional(),
+		answerKey: z.string().optional(),
+	})
+	.refine(
+		(question) =>
+			question.highlight === undefined || question.content === "code",
+		{
+			error: "`highlight` is only allowed when `content` is `code`",
+			path: ["highlight"],
+		},
+	);
 export type EssayQuestion = z.infer<typeof EssayQuestion>;
 
 /**
@@ -127,6 +145,7 @@ export const ShortAnswerBlank = z.strictObject({
 	...shortAnswerKeyShape,
 	id: Slug,
 	type: z.literal("short-answer"),
+	incorrectFeedback: z.string().optional(),
 });
 export type ShortAnswerBlank = z.infer<typeof ShortAnswerBlank>;
 
@@ -135,6 +154,7 @@ export const NumericBlank = z.strictObject({
 	...numericAnswerShape,
 	id: Slug,
 	type: z.literal("numeric"),
+	incorrectFeedback: z.string().optional(),
 });
 export type NumericBlank = z.infer<typeof NumericBlank>;
 
@@ -154,7 +174,7 @@ export const FillInQuestion = z.strictObject({
 	...questionBaseShape,
 	type: z.literal("fill-in"),
 	blanks: z.array(Blank).min(1),
-	grading: QuestionGrading.optional(),
+	grading: FillInGrading.optional(),
 	shuffle: QuestionShuffle.optional(),
 	diacritics: DiacriticsType.optional(),
 	unmatched: Unmatched.optional(),
@@ -166,7 +186,16 @@ export type FillInQuestion = z.infer<typeof FillInQuestion>;
  * `schema/ordering.yaml#/$defs/Line`. The level counts indentation units,
  * not spaces; the unit is inferred from the question.
  */
-export const OrderingLine = z.tuple([z.number().int().min(0), z.string()]);
+export const OrderingLine = z
+	.tuple([
+		z.number().int().min(0),
+		z.string().regex(ORDERING_LINE_TEXT_PATTERN),
+	])
+	// `if` the text is empty `then` the level is 0: only a blank line of a
+	// code block is empty, and a blank line has no indentation.
+	.refine(([level, text]) => text !== "" || level === 0, {
+		error: "an empty line must be at level 0",
+	});
 export type OrderingLine = z.infer<typeof OrderingLine>;
 
 /** A sequence of lines in the order they are meant to be read. */
@@ -176,25 +205,39 @@ export type OrderingLines = z.infer<typeof OrderingLines>;
 /** `schema/ordering.yaml#/$defs/Alternative` -- an accepted or rejected ordering. */
 export const OrderingAlternative = z.strictObject({
 	lines: OrderingLines,
-	feedback: z.string().min(1).optional(),
-	comment: z.string().min(1).optional(),
+	feedback: z.string().optional(),
+	comment: z.string().optional(),
 });
 export type OrderingAlternative = z.infer<typeof OrderingAlternative>;
 
-/** `schema/ordering.yaml` -- sort a list of lines into the correct order. */
-export const OrderingQuestion = z.strictObject({
-	...questionBaseShape,
-	type: z.literal("ordering"),
-	lines: z.array(OrderingLine).min(2),
-	extra: OrderingLines.optional(),
-	accept: z.array(OrderingAlternative).min(1).optional(),
-	reject: z.array(OrderingAlternative).min(1).optional(),
-	content: OrderingContent.optional(),
-	highlight: z.string().min(1).optional(),
-	indentation: Indentation.optional(),
-	unmatched: Unmatched.optional(),
-	normalizations: uniqueArray(Normalization).optional(),
-});
+/**
+ * `schema/ordering.yaml` -- sort a list of lines into the correct order. The
+ * `if`/`then` of the YAML is the refinement: `highlight` needs
+ * `content: code`.
+ */
+export const OrderingQuestion = z
+	.strictObject({
+		...questionBaseShape,
+		type: z.literal("ordering"),
+		lines: z.array(OrderingLine).min(2),
+		extra: OrderingLines.optional(),
+		accept: z.array(OrderingAlternative).min(1).optional(),
+		reject: z.array(OrderingAlternative).min(1).optional(),
+		content: OrderingContent,
+		highlight: z.string().min(1).optional(),
+		indentation: Indentation.optional(),
+		unmatched: Unmatched.optional(),
+		incorrectFeedback: z.string().optional(),
+		normalizations: uniqueArray(Normalization).optional(),
+	})
+	.refine(
+		(question) =>
+			question.highlight === undefined || question.content === "code",
+		{
+			error: "`highlight` is only allowed when `content` is `code`",
+			path: ["highlight"],
+		},
+	);
 export type OrderingQuestion = z.infer<typeof OrderingQuestion>;
 
 /** Any question document, discriminated by `type`. */

@@ -6,8 +6,8 @@
  * expected errors are parser codes must make `parseDocument` throw a
  * `ParseError` carrying one of them; a source whose expected error is
  * `schema-error` must parse and then fail `validateDocument`. A source
- * whose errors need the model or lint layer (`LOAD_CODES` in
- * `not-ported.ts`) runs as an expected failure until that layer lands.
+ * that the port does not reject yet is listed in `LOAD` of `not-ported.ts`
+ * and runs as an expected failure.
  */
 
 import { existsSync, readFileSync } from "node:fs";
@@ -19,7 +19,7 @@ import {
 	parsedSibling,
 	relativeId,
 } from "./corpus.js";
-import { corpusIt, LOAD, LOAD_CODES } from "./not-ported.js";
+import { corpusIt, LOAD } from "./not-ported.js";
 
 /**
  * The codes only the parser reports, through `ParseError.code`.
@@ -40,13 +40,8 @@ describe("invalid sources are rejected with the codes their .lint.json pins", ()
 			.filter((d) => d.severity === "error")
 			.map((d) => d.code);
 		const codes = new Set(errors);
-		const notPorted = [...codes].find((code) => code in LOAD_CODES);
-		const manifest =
-			notPorted === undefined
-				? LOAD
-				: { ...LOAD, [name]: `${notPorted}: ${LOAD_CODES[notPorted]}` };
 
-		corpusIt(manifest, name, () => {
+		corpusIt(LOAD, name, () => {
 			expect(codes.size, `${name}: .lint.json pins no error`).toBeGreaterThan(
 				0,
 			);

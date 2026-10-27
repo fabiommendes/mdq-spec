@@ -17,9 +17,9 @@
 
 import { type Diagnostic, diagnostic } from "./diagnostics.js";
 import { IncludeNotFoundError, MdqError } from "./errors.js";
+import { parseQuery, QuerySyntaxError, type TagIndex } from "./models/query.js";
 import { INHERITED_FIELDS, isExam } from "./parser/exam.js";
 import { parseQuestionDocument } from "./parser/question.js";
-import { parseQuery, QuerySyntaxError, type TagIndex } from "./query.js";
 import { Exam } from "./schema/exam.js";
 
 /**

@@ -88,6 +88,11 @@ function hasIncludes(document: unknown): boolean {
 
 /** Exam documents at the top of the corpus directory with an include block, by stem. */
 const EXAMS_WITH_INCLUDES = new Map<string, string>();
+/**
+ * Exam documents the parser rejects, with the error. Each one fails its own
+ * test below, so a parser gap does not stop the whole suite from loading.
+ */
+const UNPARSED = new Map<string, unknown>();
 for (const path of [
 	...collectSources(VALID_EXAMS_DIR),
 	...collectFiles(VALID_EXAMS_DIR),
@@ -97,7 +102,14 @@ for (const path of [
 	}
 	const suffix = path.endsWith(SOURCE_SUFFIX) ? SOURCE_SUFFIX : ".yaml";
 	const stem = stemOf(path, suffix);
-	if (!EXAMS_WITH_INCLUDES.has(stem) && hasIncludes(rawExam(path))) {
+	let document: unknown;
+	try {
+		document = rawExam(path);
+	} catch (error) {
+		UNPARSED.set(relativeId(path), error);
+		continue;
+	}
+	if (!EXAMS_WITH_INCLUDES.has(stem) && hasIncludes(document)) {
 		EXAMS_WITH_INCLUDES.set(stem, path);
 	}
 }
@@ -151,6 +163,14 @@ describe("resolved exam fixtures", () => {
 			expect(
 				existsSync(join(VALID_EXAMS_DIR, `${stem}${RESOLVED_SUFFIX}`)),
 			).toBe(true);
+		});
+	}
+});
+
+describe("every exam of the bank directory parses", () => {
+	for (const [name, error] of [...UNPARSED].sort()) {
+		corpusIt(RESOLVE, name, () => {
+			throw error;
 		});
 	}
 });

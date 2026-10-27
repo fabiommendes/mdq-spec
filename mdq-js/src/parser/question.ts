@@ -25,6 +25,7 @@ import {
 	ParseError,
 	UndefinedBlankError,
 } from "../errors.js";
+import { md } from "../markdown.js";
 import type { Question } from "../schema/questions.js";
 import { validateQuestion } from "../validate.js";
 import {
@@ -47,7 +48,6 @@ import {
 	questionFrontmatterWarnings,
 	splitFrontmatter,
 } from "./frontmatter.js";
-import { md } from "./markdown.js";
 import { parseNumericExpression } from "./numeric.js";
 import {
 	isCommentBlock,

@@ -30,20 +30,30 @@ export const UNIT_PATTERN = new RegExp(`^[^()\\[\\]${UNICODE_SPACE}]+$`, "u");
 /**
  * `schema/numeric.yaml#/properties/answer`'s string form -- the bare `sign?
  * value` grammar (docs/question-types/numeric.md, "Answer representation"),
- * with no leading zeros. Shared by a numeric question's `answer` and a
+ * with no leading zeros and an optional exponent of one to three digits
+ * (a fraction takes none). Shared by a numeric question's `answer` and a
  * numeric fill-in blank's `answer`.
  */
 export const NUMERIC_STRING_ANSWER_PATTERN =
-	/^[+-]?(?:(?:0|[1-9][0-9]*)\/[1-9][0-9]*|(?:0|[1-9][0-9]*)\.[0-9]+|0|[1-9][0-9]*)$/;
+	/^[+-]?(?:(?:0|[1-9][0-9]*)\/[1-9][0-9]*|(?:(?:0|[1-9][0-9]*)\.[0-9]+|0|[1-9][0-9]*)(?:[eE][+-]?[0-9]{1,3})?)$/;
 
 /**
- * `schema/short-answer.yaml#/$defs/patternString`: a backtick literal is one
- * complete span (`\`text\``, trailing blanks allowed), and any other pattern
- * must not open with a backtick once leading whitespace is skipped. A
- * pattern of only whitespace never matches.
+ * `schema/short-answer.yaml#/$defs/patternString`: after optional leading
+ * blanks, either a backtick literal (a non-empty span on one line, trailing
+ * blanks allowed) or a text that does not open with a backtick. No line
+ * break anywhere. Together with `minLength: 1`, a pattern of only blanks is
+ * valid here.
  */
 export const PATTERN_STRING_PATTERN =
-	/^(?:`[^`\n]+`[ \t]*|[^`\s][\s\S]*|\s+[^`\s][\s\S]*)$/u;
+	/^[ \t]*(?:`[^\r\n]+`[ \t]*|[^` \t\r\n][^\r\n]*)?$/;
+
+/**
+ * `schema/ordering.yaml#/$defs/Line` (text item): no leading or trailing
+ * space or tab and no line break; empty is allowed here (a blank line of a
+ * code block, which `OrderingLine` pins to level 0).
+ */
+export const ORDERING_LINE_TEXT_PATTERN =
+	/^(?:[^ \t\r\n](?:[^\r\n]*[^ \t\r\n])?)?$/;
 
 export const Slug = z.string().regex(SLUG_PATTERN);
 
@@ -117,17 +127,66 @@ export function uniqueArray<Item extends z.ZodType>(item: Item) {
  * How a partially correct answer is scored. See the `Grading` section of the
  * matching document in `docs/question-types`. This is the strategy itself,
  * `schema/exam.yaml#/$defs/GradingStrategy`; a question may also write
- * `inherit` (`QuestionGrading`).
+ * `inherit`, and only some strategies apply to each type (the per-type enums
+ * below).
  */
-export const GradingType = z.enum(["partial", "all-or-nothing", "symmetric"]);
+export const GradingType = z.enum([
+	"partial",
+	"no-mistakes",
+	"all-or-nothing",
+	"symmetric",
+]);
 export type GradingType = z.infer<typeof GradingType>;
 
+/** `schema/multiple-choice.yaml#/allOf/1/properties/grading`, minus `inherit`. */
+export const MultipleChoiceGradingType = z.enum(["partial", "symmetric"]);
+export type MultipleChoiceGradingType = z.infer<
+	typeof MultipleChoiceGradingType
+>;
+
+/** `schema/multiple-selection.yaml#/allOf/1/properties/grading`, minus `inherit`. */
+export const MultipleSelectionGradingType = z.enum([
+	"partial",
+	"all-or-nothing",
+	"symmetric",
+]);
+export type MultipleSelectionGradingType = z.infer<
+	typeof MultipleSelectionGradingType
+>;
+
 /**
- * The `grading` of a question: a strategy of its own, or `inherit` (the
- * default) to take the exam's. Mirrors `mdq.types.QuestionGrading`.
+ * `schema/true-false.yaml#/allOf/1/properties/grading` and
+ * `schema/fill-in.yaml#/allOf/1/properties/grading`, minus `inherit`: both
+ * take every strategy.
  */
-export const QuestionGrading = z.enum([...GradingType.options, "inherit"]);
-export type QuestionGrading = z.infer<typeof QuestionGrading>;
+export const TrueFalseGradingType = GradingType;
+export type TrueFalseGradingType = GradingType;
+
+/** The `grading` of a question: one of its strategies, or `inherit` (the default) to take the exam's. */
+export const MultipleChoiceGrading = z.enum([
+	...MultipleChoiceGradingType.options,
+	"inherit",
+]);
+export type MultipleChoiceGrading = z.infer<typeof MultipleChoiceGrading>;
+
+export const MultipleSelectionGrading = z.enum([
+	...MultipleSelectionGradingType.options,
+	"inherit",
+]);
+export type MultipleSelectionGrading = z.infer<typeof MultipleSelectionGrading>;
+
+export const TrueFalseGrading = z.enum([
+	...TrueFalseGradingType.options,
+	"inherit",
+]);
+export type TrueFalseGrading = z.infer<typeof TrueFalseGrading>;
+
+/** `schema/fill-in.yaml#/allOf/1/properties/grading`: the same strategies as true/false. */
+export const FillInGradingType = GradingType;
+export type FillInGradingType = GradingType;
+
+export const FillInGrading = TrueFalseGrading;
+export type FillInGrading = TrueFalseGrading;
 
 /**
  * The `shuffle` of a question: a value of its own, or `inherit` (the
@@ -150,9 +209,9 @@ export type GradedQuestionType = z.infer<typeof GradedQuestionType>;
 export const NumericDomain = z.enum(["integer", "decimal", "fraction"]);
 export type NumericDomain = z.infer<typeof NumericDomain>;
 
-/** `schema/essay.yaml` -- the kind of editor shown to the student. */
-export const EssayInput = z.enum(["code", "text", "plain"]);
-export type EssayInput = z.infer<typeof EssayInput>;
+/** `schema/essay.yaml` -- the kind of response, and so of editor shown to the student. */
+export const EssayContent = z.enum(["code", "text", "plain"]);
+export type EssayContent = z.infer<typeof EssayContent>;
 
 /** `schema/ordering.yaml` -- how the lines are written and presented. */
 export const OrderingContent = z.enum(["code", "text"]);
@@ -204,12 +263,11 @@ export type DiacriticsType = z.infer<typeof DiacriticsType>;
 export const questionBaseShape = {
 	id: DocumentId.optional(),
 	uuid: Uuid.optional(),
-	title: z.string().min(1).optional(),
-	author: z.string().min(1).optional(),
-	stem: z.string().min(1),
-	preamble: z.string().min(1).optional(),
-	epilogue: z.string().min(1).optional(),
-	comment: z.string().min(1).optional(),
+	title: z.string().optional(),
+	author: z.string().optional(),
+	stem: z.string(),
+	epilogue: z.string().optional(),
+	comment: z.string().optional(),
 	locale: z.string().optional(),
 	tags: uniqueArray(z.string()).optional(),
 	weight: z.number().min(0).optional(),
@@ -225,10 +283,10 @@ export const questionBaseShape = {
  */
 export const ScoredChoice = z.strictObject({
 	id: Slug.optional(),
-	text: z.string().min(1),
+	text: z.string(),
 	score: z.number().min(-1).max(1).optional(),
-	feedback: z.string().min(1).optional(),
-	comment: z.string().min(1).optional(),
+	feedback: z.string().optional(),
+	comment: z.string().optional(),
 });
 export type ScoredChoice = z.infer<typeof ScoredChoice>;
 
@@ -239,10 +297,10 @@ export type ScoredChoice = z.infer<typeof ScoredChoice>;
  */
 export const BooleanChoice = z.strictObject({
 	id: Slug.optional(),
-	text: z.string().min(1),
+	text: z.string(),
 	correct: z.boolean(),
-	feedback: z.string().min(1).optional(),
-	comment: z.string().min(1).optional(),
+	feedback: z.string().optional(),
+	comment: z.string().optional(),
 });
 export type BooleanChoice = z.infer<typeof BooleanChoice>;
 
@@ -252,28 +310,33 @@ export type BooleanChoice = z.infer<typeof BooleanChoice>;
  * `marker` keeps the letter written between the brackets verbatim: `correct`
  * carries the meaning, but the letter is what lets the linter warn about
  * unlisted spellings and locale mismatches, and what round-trips the
- * document unchanged. The marker is one code point, which JSON Schema counts
- * as length 1 even outside the BMP, where a UTF-16 `length` would be 2.
+ * document unchanged. The schema only checks that it is not empty; the
+ * single-letter rule is a lint rule (`malformed-true-false-marker`).
  */
 export const Statement = z.strictObject({
 	id: Slug.optional(),
-	text: z.string().min(1),
+	text: z.string(),
 	correct: z.boolean(),
-	marker: z.string().regex(/^.$/su).optional(),
-	feedback: z.string().min(1).optional(),
-	comment: z.string().min(1).optional(),
+	marker: z.string().min(1).optional(),
+	feedback: z.string().optional(),
+	comment: z.string().optional(),
 });
 export type Statement = z.infer<typeof Statement>;
 
 /**
  * Acceptable margin of error around a numeric answer --
- * `schema/numeric.yaml#/$defs/Tolerance`. When both fields are given, a
+ * `schema/numeric.yaml#/$defs/Tolerance`. At least one field is required; when both fields are given, a
  * submitted value is accepted if it satisfies either one.
  */
-export const Tolerance = z.strictObject({
-	absolute: z.number().min(0).optional(),
-	relative: z.number().min(0).optional(),
-});
+export const Tolerance = z
+	.strictObject({
+		absolute: z.number().min(0).optional(),
+		relative: z.number().min(0).optional(),
+	})
+	// `minProperties: 1` -- an empty mapping is not a tolerance.
+	.refine((tolerance) => Object.keys(tolerance).length >= 1, {
+		error: "a tolerance needs at least one of `absolute` or `relative`",
+	});
 export type Tolerance = z.infer<typeof Tolerance>;
 
 /**
@@ -287,8 +350,8 @@ export const PatternString = z.string().min(1).regex(PATTERN_STRING_PATTERN);
 /** The object form of a pattern -- `schema/short-answer.yaml#/$defs/pattern`. */
 export const Pattern = z.strictObject({
 	pattern: PatternString,
-	feedback: z.string().min(1).optional(),
-	comment: z.string().min(1).optional(),
+	feedback: z.string().optional(),
+	comment: z.string().optional(),
 });
 export type Pattern = z.infer<typeof Pattern>;
 

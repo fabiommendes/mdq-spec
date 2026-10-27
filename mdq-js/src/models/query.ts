@@ -15,8 +15,8 @@
  * decision 6).
  */
 
-import { MdqError } from "./errors.js";
-import { UNICODE_SPACE } from "./parser/text.js";
+import { MdqError } from "../errors.js";
+import { UNICODE_SPACE } from "../parser/text.js";
 
 /**
  * An `includeAll` query does not follow the language. The message is
