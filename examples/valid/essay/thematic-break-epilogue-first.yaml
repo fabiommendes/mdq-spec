@@ -1,0 +1,5 @@
+# An epilogue may start with a thematic break. The text between the two
+# breaks is not YAML, because the field has no frontmatter.
+type: essay
+stem: Explique por que o Pantanal alaga todos os anos.
+epilogue: "---\n\nFonte: IBGE: Censo 2022\n\n---\n\nResponda em até 200 palavras."

@@ -1,0 +1,4 @@
+# A stem may start with a thematic break. The field is not a frontmatter,
+# so `fonte: IBGE` stays text and `normalize()` keeps all five blocks.
+type: essay
+stem: "---\n\nfonte: IBGE\n\n---\n\nQual é a população estimada do estado do Pará segundo o último censo?"
