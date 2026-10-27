@@ -1,0 +1,5 @@
+type: exam
+title: Prova
+questions:
+- stem: "---  \n\nid: a\n---\t\n\nQ"
+  type: essay

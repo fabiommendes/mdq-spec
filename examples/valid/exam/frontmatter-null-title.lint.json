@@ -1,0 +1,16 @@
+[
+  {
+    "code": "exam-without-questions",
+    "severity": "warning",
+    "path": [
+      "questions"
+    ]
+  },
+  {
+    "code": "missing-id",
+    "severity": "info",
+    "path": [
+      "id"
+    ]
+  }
+]

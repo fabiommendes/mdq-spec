@@ -1,0 +1,17 @@
+type: exam
+title: Prova
+questions:
+- stem: 'O Rio Amazonas nasce nos Andes.
+
+
+    ---
+
+
+    só um texto solto
+
+
+    ---
+
+
+    Descreva o curso do rio.'
+  type: essay

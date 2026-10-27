@@ -1,0 +1,15 @@
+type: exam
+title: Prova
+questions:
+- stem: 'Texto
+
+    ---
+
+
+    id: x
+
+    ---
+
+
+    Q'
+  type: essay
