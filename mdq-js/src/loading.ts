@@ -10,8 +10,7 @@
  *
  * Differences from Python, by design: a `string` is always the text of the
  * document (there is no `Path` or file object, `docs/sync/modules.md`), and
- * the `ids` option (`withIds`) is not ported yet (phase P7). The lint
- * diagnostics (`lint()`) join the result in phase P5.
+ * the `ids` option (`withIds`) is not ported yet (phase P7).
  */
 
 import YAML from "js-yaml";
@@ -26,7 +25,7 @@ import { InvalidDocumentError, MdqError, ParseError } from "./errors.js";
 import { includeKeyHint } from "./include-keys.js";
 import { baseFieldRules, uuidDiagnostics } from "./models/base.js";
 import { markerDiagnostic } from "./models/choice.js";
-import { scheduleDiagnostic } from "./models/exam.js";
+import { lint, scheduleDiagnostic } from "./models/exam.js";
 import {
 	nonFiniteDiagnostic,
 	numericAnswerDiagnostic,
@@ -396,10 +395,11 @@ function validated(
 
 	const document = result.data as MdqDocument;
 	diagnostics.push(...modelDiagnostics(document));
-	// Phase P5: `diagnostics.push(...lint(document))` goes here.
-	return diagnostics.some((d) => d.severity === "error")
-		? failed(diagnostics)
-		: { document, diagnostics };
+	if (diagnostics.some((d) => d.severity === "error")) {
+		return failed(diagnostics);
+	}
+	diagnostics.push(...lint(document));
+	return { document, diagnostics };
 }
 
 /**

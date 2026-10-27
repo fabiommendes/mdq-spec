@@ -1,7 +1,8 @@
 /**
  * Fill-in questions and their blanks. A port of `models/_fill_in.py`.
  *
- * The validation is here (phase P4b). The rest is NOT PORTED (phase P7 of
+ * The validation (phase P4b) and the lint rules (phase P5) are here. The rest
+ * is NOT PORTED (phase P7 of
  * `dev/plan/mdq-js-paridade.md`): stubs that throw.
  */
 
@@ -16,8 +17,18 @@ import {
 	type FamilyRules,
 	modelError,
 } from "./base.js";
-import { numericKeyFields, numericKeyModels } from "./numeric.js";
-import { patternKeyFields } from "./text.js";
+import {
+	checkChoiceIdsDefined,
+	checkChoicesVisuallyIdentical,
+	checkMultipleChoiceAnswers,
+} from "./choice.js";
+import { lintDiagnostic } from "./lint-codes.js";
+import {
+	numericKeyFields,
+	numericKeyLint,
+	numericKeyModels,
+} from "./numeric.js";
+import { defaultUnmatched, patternKeyFields, patternKeyLint } from "./text.js";
 
 /**
  * The rules of a blank at `path`. The checks of the model of a blank are
@@ -143,7 +154,69 @@ function checkBlankReferencesAreUnique(
 	return undefined;
 }
 
+/**
+ * The lint rules of a blank at `path`. Each blank is graded like the question
+ * type it names, so it inherits that type's rules.
+ */
+function blankLint(
+	blank: Blank,
+	path: readonly PathStep[],
+	unmatched: Unmatched | undefined,
+): Diagnostic[] {
+	switch (blank.type) {
+		case "multiple-choice": {
+			const choices = [...path, "choices"];
+			return [
+				...checkMultipleChoiceAnswers(blank.choices, choices),
+				...checkChoiceIdsDefined(blank.choices, choices),
+				...checkChoicesVisuallyIdentical(blank.choices, choices),
+			];
+		}
+		case "short-answer":
+			return patternKeyLint(
+				blank,
+				path,
+				defaultUnmatched(unmatched, blank.accept),
+				path,
+			);
+		case "numeric":
+			return numericKeyLint(blank, path);
+	}
+}
+
+/**
+ * fill-in.md, "Blank definitions": blank ids are compared exactly, so two ids
+ * that differ only in ASCII case are two blanks, which CommonMark would merge
+ * (`case-variant-blank-id`).
+ */
+function checkCaseVariantBlankIds(blankIds: readonly string[]): Diagnostic[] {
+	const firstByFolded = new Map<string, string>();
+	const found: Diagnostic[] = [];
+	for (const [index, blankId] of blankIds.entries()) {
+		const folded = blankId.toLowerCase();
+		const first = firstByFolded.get(folded);
+		if (first === undefined) {
+			firstByFolded.set(folded, blankId);
+		} else if (first !== blankId) {
+			found.push(
+				lintDiagnostic(
+					"case-variant-blank-id",
+					["blanks", index, "id"],
+					`blank id ${repr(blankId)} differs from ${repr(first)} only in case; blank ids are case-sensitive, but CommonMark labels are not`,
+				),
+			);
+		}
+	}
+	return found;
+}
+
 export const fillInRules: FamilyRules<FillInQuestion> = {
+	lint: (question) => [
+		...checkCaseVariantBlankIds(question.blanks.map((blank) => blank.id)),
+		...question.blanks.flatMap((blank, index) =>
+			blankLint(blank, ["blanks", index], question.unmatched),
+		),
+	],
 	fields: (question, path) =>
 		question.blanks.flatMap((blank, index) =>
 			blankDiagnostics(blank, [...path, "blanks", index]),

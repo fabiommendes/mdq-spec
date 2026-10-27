@@ -15,7 +15,14 @@ import {
 import { describe, expect, it } from "vitest";
 import { INVALID_DIR } from "./corpus.js";
 
-const ESSAY = { type: "essay", stem: "Explique o ciclo da água." } as const;
+/** A question with no lint diagnostic. */
+const ESSAY = {
+	type: "essay",
+	id: "water-cycle",
+	title: "Water cycle",
+	stem: "Explique o ciclo da água.",
+	answerKey: "Evaporação, condensação e precipitação.",
+} as const;
 
 describe("load", () => {
 	it("returns the document and no diagnostic for a valid mapping", () => {
@@ -56,7 +63,8 @@ describe("load", () => {
 	it("tells a repeated key from the same key in two objects", () => {
 		const text =
 			'{"type": "exam", "questions": [{"type": "essay", "stem": "a"}, {"type": "essay", "stem": "b"}]}';
-		expect(load(text, { format: "json" }).diagnostics).toEqual([]);
+		const codes = load(text, { format: "json" }).diagnostics.map((d) => d.code);
+		expect(codes).not.toContain("json-syntax-error");
 	});
 
 	it("gives a parse error the line of its node", () => {

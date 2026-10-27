@@ -1,6 +1,6 @@
 /**
- * Ordering questions. A port of `models/_ordering.py`, the part that
- * validates.
+ * Ordering questions. A port of `models/_ordering.py`, the parts that
+ * validate and lint.
  *
  * Scoring is NOT PORTED (phase P6 of `dev/plan/mdq-js-paridade.md`).
  */
@@ -14,6 +14,8 @@ import {
 	freeTextFields,
 	modelError,
 } from "./base.js";
+import { checkCodeHighlight, renderVisualKey } from "./lint.js";
+import { lintDiagnostic } from "./lint-codes.js";
 
 type Line = readonly [level: number, text: string];
 
@@ -227,6 +229,171 @@ function checkTextOutlineLevels(
 	return undefined;
 }
 
+//
+// Lint
+//
+
+/**
+ * ordering.md#acceptedrejected-answers: a question SHOULD NOT declare two
+ * `accept` sections, or two `reject` sections, whose lines are the same once
+ * fully normalized. An accept and reject pair is a model error.
+ */
+function checkDuplicateAlternatives(question: OrderingQuestion): Diagnostic[] {
+	const found: Diagnostic[] = [];
+	for (const section of ["accept", "reject"] as const) {
+		const seen = new Map<string, number>();
+		for (const [index, entry] of (question[section] ?? []).entries()) {
+			const key = comparisonKeys(question, entry.lines).join("\n");
+			const first = seen.get(key);
+			if (first === undefined) {
+				seen.set(key, index);
+				continue;
+			}
+			found.push(
+				lintDiagnostic(
+					"duplicate-alternative-lines",
+					[section, index, "lines"],
+					`${section}[${index}] holds the same lines as ${section}[${first}], once fully normalized`,
+				),
+			);
+		}
+	}
+	return found;
+}
+
+/** ordering.md#acceptedrejected-answers: `accept` SHOULD NOT repeat `lines`. */
+function checkAcceptRepeatsAnswerKey(question: OrderingQuestion): Diagnostic[] {
+	const answerKey = comparisonKeys(question, question.lines).join("\n");
+	return (question.accept ?? []).flatMap((entry, index) =>
+		comparisonKeys(question, entry.lines).join("\n") === answerKey
+			? [
+					lintDiagnostic(
+						"accept-repeats-answer-key",
+						["accept", index, "lines"],
+						`accept[${index}] repeats the [ordering] block's own lines, once fully normalized`,
+					),
+				]
+			: [],
+	);
+}
+
+/**
+ * ordering.md#acceptedrejected-answers: a `reject` entry that uses a line, or
+ * more copies of a line, than the presented pool (`lines` plus `extra`)
+ * offers can never match a response.
+ */
+function checkUnreachableReject(question: OrderingQuestion): Diagnostic[] {
+	const pool = counts([
+		...identityKeys(question, question.lines),
+		...identityKeys(question, question.extra ?? []),
+	]);
+	return (question.reject ?? []).flatMap((entry, index) => {
+		const exceeds = [...counts(identityKeys(question, entry.lines))].some(
+			([key, count]) => count > (pool.get(key) ?? 0),
+		);
+		return exceeds
+			? [
+					lintDiagnostic(
+						"unreachable-alternative",
+						["reject", index, "lines"],
+						`reject[${index}] uses a line, or more copies of a line, than the lines and extra blocks offer, so no response can match it`,
+					),
+				]
+			: [];
+	});
+}
+
+/**
+ * ordering.md#indentation: `dedent` flattens every line to level 0, so
+ * `indentation: "strict"` has nothing left to compare. Only an explicit
+ * `dedent` can trigger this: `lenient` implies it and never combines with
+ * `strict`.
+ */
+function checkRedundantStrictIndentation(
+	question: OrderingQuestion,
+): Diagnostic[] {
+	if (question.indentation !== "strict") return [];
+	if (!effectiveNormalizations(question).has("dedent")) return [];
+	return [
+		lintDiagnostic(
+			"redundant-strict-indentation",
+			["indentation"],
+			"indentation is 'strict' but 'dedent' is normalized, which flattens every line to level 0, so there is nothing left for 'strict' to compare",
+		),
+	];
+}
+
+/**
+ * ordering.md#additional-rules: a blank `lines` or `extra` entry should only
+ * appear when `skip-blanks` is normalized, otherwise it counts when comparing
+ * a response.
+ */
+function checkBlankLines(question: OrderingQuestion): Diagnostic[] {
+	if (effectiveNormalizations(question).has("skip-blanks")) return [];
+	const found: Diagnostic[] = [];
+	for (const field of ["lines", "extra"] as const) {
+		for (const [index, [, text]] of (question[field] ?? []).entries()) {
+			if (!isBlank(text)) continue;
+			found.push(
+				lintDiagnostic(
+					"blank-ordering-line",
+					[field, index],
+					"line is blank, and 'skip-blanks' is not normalized, so it counts when comparing a response",
+				),
+			);
+		}
+	}
+	return found;
+}
+
+/** ordering.md#feedback: a `reject` section SHOULD declare feedback. */
+function checkRejectWithoutFeedback(question: OrderingQuestion): Diagnostic[] {
+	return (question.reject ?? []).flatMap((entry, index) =>
+		entry.feedback === undefined
+			? [
+					lintDiagnostic(
+						"reject-without-feedback",
+						["reject", index],
+						`reject[${index}] declares no feedback, so it explains nothing to the student`,
+					),
+				]
+			: [],
+	);
+}
+
+/**
+ * ordering.md#body: two `lines` or `extra` entries at the same level should
+ * not render alike while differing in source. Only for `content: text`: a
+ * code block is shown verbatim.
+ */
+function checkVisuallyIdenticalLines(question: OrderingQuestion): Diagnostic[] {
+	if (question.content !== "text") return [];
+	const seen = new Map<
+		string,
+		{ field: string; index: number; text: string }
+	>();
+	const found: Diagnostic[] = [];
+	for (const field of ["lines", "extra"] as const) {
+		for (const [index, [level, text]] of (question[field] ?? []).entries()) {
+			const key = JSON.stringify([level, renderVisualKey(text)]);
+			const first = seen.get(key);
+			if (first === undefined) {
+				seen.set(key, { field, index, text });
+				continue;
+			}
+			if (text === first.text) continue; // An intentional repeat.
+			found.push(
+				lintDiagnostic(
+					"visually-identical-lines",
+					[field, index],
+					`line renders the same as ${first.field}[${first.index}] but is written differently in source; a student ordering the rendered text cannot tell them apart`,
+				),
+			);
+		}
+	}
+	return found;
+}
+
 export const orderingRules: FamilyRules<OrderingQuestion> = {
 	fields: (question, path) => [
 		...freeTextDiagnostics(question.incorrectFeedback, "incorrectFeedback", [
@@ -245,5 +412,15 @@ export const orderingRules: FamilyRules<OrderingQuestion> = {
 		checkAcceptAndRejectDisjoint,
 		checkAcceptWithinAnswerKey,
 		checkTextOutlineLevels,
+	],
+	lint: (question) => [
+		...checkCodeHighlight(question.content, question.highlight),
+		...checkDuplicateAlternatives(question),
+		...checkAcceptRepeatsAnswerKey(question),
+		...checkUnreachableReject(question),
+		...checkRedundantStrictIndentation(question),
+		...checkBlankLines(question),
+		...checkRejectWithoutFeedback(question),
+		...checkVisuallyIdenticalLines(question),
 	],
 };

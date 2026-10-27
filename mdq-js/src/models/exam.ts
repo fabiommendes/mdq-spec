@@ -17,8 +17,10 @@ import { canonicalDuration, canonicalStart } from "../schedule.js";
 import type { Exam } from "../schema/exam.js";
 import type { Question } from "../schema/index.js";
 import type { QuestionType } from "../schema/questions.js";
+import type { MdqDocument } from "../validate.js";
 import {
 	baseFieldRules,
+	baseLint,
 	checkNoForbiddenBlockElements,
 	type FamilyRules,
 	freeTextFields,
@@ -32,8 +34,19 @@ import {
 	trueFalseRules,
 } from "./choice.js";
 import { fillInRules } from "./fill-in.js";
+import {
+	checkIdAndTitleDefined,
+	checkIdIsUrlSafe,
+	checkLocaleLanguageSubtag,
+	checkSetextHeading,
+	checkTags,
+	checkUnsafeThematicBreak,
+	checkUuidVersionAndVariant,
+} from "./lint.js";
+import { lintDiagnostic } from "./lint-codes.js";
 import { numericRules } from "./numeric.js";
 import { orderingRules } from "./ordering.js";
+import { isStandardQuery } from "./query.js";
 import { essayRules, shortAnswerRules } from "./text.js";
 
 /**
@@ -215,6 +228,94 @@ export function validateExamModel(exam: Exam): Diagnostic[] {
 	if (found.length > 0) return found;
 	const duplicate = checkQuestionsHaveUniqueIds(entries);
 	return duplicate === undefined ? [] : [duplicate];
+}
+
+/**
+ * The `warning` and `info` diagnostics of a question that Zod and the model
+ * rules accepted: the rules of every question type, then those of its
+ * family. `path` is where the question sits in the document.
+ */
+export function lintQuestion(
+	question: Question,
+	path: readonly PathStep[] = [],
+): Diagnostic[] {
+	const found = [
+		...baseLint(question),
+		...(FAMILY_RULES[question.type]?.lint?.(question) ?? []),
+	];
+	return found.map((d) => ({ ...d, path: [...path, ...d.path] }));
+}
+
+/**
+ * The lint rules of an exam, then those of each inline question with
+ * `["questions", i]` before its paths.
+ *
+ * exam.md, "Additional Rules", imports every base rule of a field the exam
+ * shares with a question. A `---` or `===` glued to the text of a `stem` or
+ * `epilogue` inside an exam is a setext heading (`setext-heading`).
+ */
+export function lintExam(exam: Exam): Diagnostic[] {
+	const found: Diagnostic[] = [];
+	if (exam.questions.length === 0) {
+		found.push(
+			lintDiagnostic(
+				"exam-without-questions",
+				["questions"],
+				"the exam contains no questions, so it cannot be answered",
+			),
+		);
+	}
+	found.push(
+		...checkIdIsUrlSafe(exam.id),
+		...checkIdAndTitleDefined(exam.id, exam.title),
+		...checkUuidVersionAndVariant(exam.uuid),
+		...checkTags(exam.tags ?? []),
+		...checkLocaleLanguageSubtag(exam.locale),
+		...checkSetextHeading(exam.instructions, ["instructions"]),
+		...checkUnsafeThematicBreak(exam.instructions, ["instructions"]),
+	);
+	let afterIncludeAll = false;
+	for (const [index, entry] of exam.questions.entries()) {
+		const path = ["questions", index];
+		if ("includeAll" in entry) {
+			afterIncludeAll = true;
+			if (!isStandardQuery(entry.includeAll)) {
+				found.push(
+					lintDiagnostic(
+						"nonstandard-include-query",
+						[...path, "includeAll"],
+						`the query ${repr(entry.includeAll)} does not follow the recommended query language`,
+					),
+				);
+			}
+		} else if (!("include" in entry)) {
+			const question = entry as Question;
+			if (afterIncludeAll && question.id === undefined) {
+				found.push(
+					lintDiagnostic(
+						"undeclared-id-after-include-all",
+						[...path, "id"],
+						"the derived id of a question after an 'includeAll' changes with the questions the query adds; declare an 'id'",
+					),
+				);
+			}
+			found.push(...lintQuestion(question, path));
+			for (const field of ["stem", "epilogue"] as const) {
+				found.push(...checkSetextHeading(question[field], [...path, field]));
+			}
+		}
+	}
+	return found;
+}
+
+/**
+ * Every `warning` and `info` diagnostic of a question or an exam that passed
+ * validation (`Question.lint()` and `Exam.lint()`).
+ */
+export function lint(document: MdqDocument): Diagnostic[] {
+	return "questions" in document
+		? lintExam(document)
+		: lintQuestion(document as Question);
 }
 
 /** The `grading` a question has once the exam default is applied. */

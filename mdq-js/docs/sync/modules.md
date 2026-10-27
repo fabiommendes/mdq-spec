@@ -33,9 +33,10 @@ differs states the reason in its header comment.
 | `mdq/models/_text.py`               | `src/models/text.ts`                     |
 | `mdq/models/_fill_in.py`            | `src/models/fill-in.ts`                  |
 | `mdq/models/_ordering.py`           | `src/models/ordering.ts`                 |
-| `mdq/models/_exam.py`               | `src/models/exam.ts` (`validateQuestionModel`, `validateExamModel`, `FAMILY_RULES`) |
-| `mdq/models/_lint.py` (common rules) | `src/models/lint.ts`                    |
-| `mdq/models/_lint_codes.py`         | `src/models/lint-codes.ts`               |
+| `mdq/models/_exam.py`               | `src/models/exam.ts` (`validateQuestionModel`, `validateExamModel`, `FAMILY_RULES`, `lint`, `lintQuestion`, `lintExam`) |
+| `mdq/models/_lint.py` (common rules) | `src/models/lint.ts` (the `lint` of a family is its `FamilyRules.lint`; `baseLint` is in `base.ts`) |
+| `mdq/models/_lint_codes.py`         | `src/models/lint-codes.ts` (`SEVERITY`, `lintDiagnostic`) |
+| Pygments lexer aliases (`unknown-highlight-language`) | `src/pygments-aliases.json` (Pygments 2.21.0) |
 | `mdq/models/_regex.py`              | `src/models/regex.ts`                    |
 | `mdq/models/_query.py`              | `src/models/query.ts`                    |
 | `mdq/models/_slugify.py`            | `src/models/slugify.ts`                  |

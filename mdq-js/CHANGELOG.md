@@ -12,6 +12,10 @@ that it implements.
 
 Implements part of the unreleased MDQ specification.
 
+### Added
+
+- `lint(document)`, `lintQuestion` and `lintExam` report the `warning` and `info` diagnostics of a question or an exam, as `Question.lint()` and `Exam.lint()` of mdq-py. `load` adds them to the diagnostics of a valid document. `SEVERITY` (`models/lint-codes.ts`) holds the severity of each lint code. `unknown-highlight-language` reads the aliases of the Pygments lexers from `src/pygments-aliases.json`.
+
 ### Changed
 
 - The YAML loader reads YAML 1.2 Core with the `yaml` package: scalar keys become strings, a key that is not a scalar or a tag outside the Core schema is a `yaml-syntax-error`, and NEL, LS and PS stay in scalars.

@@ -2,8 +2,8 @@
  * Short answer and essay questions. A port of `models/_text.py`.
  *
  * PARTLY PORTED: the pattern matching (phase P3 of
- * `dev/plan/mdq-js-paridade.md`) and the validation (phase P4b) are here. The
- * rest is a stub that throws (phase P7).
+ * `dev/plan/mdq-js-paridade.md`), the validation (phase P4b) and the lint rules
+ * (phase P5) are here. The rest is a stub that throws (phase P7).
  */
 
 import type { Diagnostic, PathStep } from "../diagnostics.js";
@@ -11,7 +11,7 @@ import { exactLiteral } from "../exact.js";
 import tables from "../inexact-tables.json";
 import { hasVisibleCharacter, startsBlock } from "../markdown.js";
 import { findAnswerKeyForbiddenElements } from "../parser/blocks.js";
-import { strip, UNICODE_SPACE } from "../parser/text.js";
+import { repr, strip, UNICODE_SPACE } from "../parser/text.js";
 import type {
 	DiacriticsType,
 	EssayQuestion,
@@ -25,8 +25,13 @@ import {
 	freeTextFields,
 	modelError,
 } from "./base.js";
+import { checkCodeHighlight, checkUnsafeThematicBreak } from "./lint.js";
+import { lintDiagnostic } from "./lint-codes.js";
 import {
+	escapedCodePoints,
+	IGNORED_FLAGS,
 	InvalidRegexError,
+	parseRegex,
 	RegexPattern,
 	normalizeText as stripMarks,
 } from "./regex.js";
@@ -381,8 +386,154 @@ export function patternKeyFields(
 	];
 }
 
+//
+// Lint
+//
+
+/**
+ * short-answer.md, "Regex flags": a leading `^` is implicit unless the `f`
+ * flag is set, and a trailing `$` is implicit unless `f` or `b` is set. A `$`
+ * after an odd number of backslashes is a literal.
+ */
+function redundantRegexAnchor(
+	body: string,
+	flags: string,
+	path: readonly PathStep[],
+): Diagnostic[] {
+	const leading = body.startsWith("^") && !flags.includes("f");
+	let trailing = false;
+	if (body.endsWith("$") && !flags.includes("f") && !flags.includes("b")) {
+		const backslashes = /\\*$/u.exec(body.slice(0, -1))?.[0].length ?? 0;
+		trailing = backslashes % 2 === 0;
+	}
+	if (!(leading || trailing)) return [];
+	return [
+		lintDiagnostic(
+			"redundant-regex-anchor",
+			path,
+			"matching is already anchored here, so a leading '^' or trailing '$' is redundant",
+		),
+	];
+}
+
+/** short-answer.md:385: `m`, `g`, `s`, `u`, `v`, `y` and `d` have no effect. */
+function ignoredRegexFlags(
+	flags: string,
+	path: readonly PathStep[],
+): Diagnostic[] {
+	const ignored = [...new Set(flags)].filter((flag) => IGNORED_FLAGS.has(flag));
+	if (ignored.length === 0) return [];
+	const listed = ignored
+		.sort()
+		.map((flag) => repr(flag))
+		.join(", ");
+	return [
+		lintDiagnostic(
+			"ignored-regex-flag",
+			path,
+			`flag(s) ${listed} are accepted but have no effect on matching`,
+		),
+	];
+}
+
+/**
+ * patterns.md, "Regex flags": under `n`, an escape for a code point that the
+ * strip changes can never match. One diagnostic per pattern.
+ */
+function unmatchableRegexEscape(
+	body: string,
+	flags: string,
+	path: readonly PathStep[],
+): Diagnostic[] {
+	if (!flags.includes("n")) return [];
+	const stripped = escapedCodePoints(body).some((codePoint) => {
+		const char = String.fromCodePoint(codePoint);
+		return stripMarks(char) !== char;
+	});
+	if (!stripped) return [];
+	return [
+		lintDiagnostic(
+			"unmatchable-regex-escape",
+			path,
+			"the 'n' flag strips diacritics from the response, so an escape for a code point that the strip changes cannot match",
+		),
+	];
+}
+
+/**
+ * short-answer.md, "Additional Rules": the regex lints over the four pattern
+ * lists, at the frontmatter key (`preAccept`, 0).
+ */
+function regexLint(
+	key: Readonly<{
+		[list in (typeof PATTERN_LISTS)[number]]?: readonly PatternEntry[];
+	}>,
+	path: readonly PathStep[],
+): Diagnostic[] {
+	const found: Diagnostic[] = [];
+	for (const list of ["accept", "preAccept", "reject", "preReject"] as const) {
+		for (const [index, entry] of (key[list] ?? []).entries()) {
+			const pattern = patternString(entry);
+			if (patternKind(pattern) !== "regex") continue;
+			let parsed: [string, string];
+			try {
+				parsed = parseRegex(pattern);
+			} catch (error) {
+				if (error instanceof InvalidRegexError) continue;
+				throw error;
+			}
+			const [body, flags] = parsed;
+			const where = [...path, list, index];
+			found.push(
+				...redundantRegexAnchor(body, flags, where),
+				...ignoredRegexFlags(flags, where),
+				...unmatchableRegexEscape(body, flags, where),
+			);
+		}
+	}
+	return found;
+}
+
+/**
+ * The lint rules of a short answer key, which a short answer question and a
+ * blank share: the regex lints, and `no-correct-answer` when `unmatched` (the
+ * effective one, declared at `unmatchedPath`) is `incorrect` without `accept`.
+ *
+ * @param path Where the key sits in the document.
+ */
+export function patternKeyLint(
+	key: Readonly<{
+		accept?: readonly PatternEntry[];
+		reject?: readonly PatternEntry[];
+		preAccept?: readonly PatternEntry[];
+		preReject?: readonly PatternEntry[];
+	}>,
+	path: readonly PathStep[],
+	unmatched: Unmatched,
+	unmatchedPath: readonly PathStep[],
+): Diagnostic[] {
+	const found = regexLint(key, path);
+	if (unmatched === "incorrect" && !key.accept?.length) {
+		found.push(
+			lintDiagnostic(
+				"no-correct-answer",
+				unmatchedPath,
+				"'unmatched' is 'incorrect' but no 'accept' pattern is given: no response can be correct",
+			),
+		);
+	}
+	return found;
+}
+
 export const shortAnswerRules: FamilyRules<ShortAnswerQuestion> = {
 	fields: patternKeyFields,
+	lint: (question) =>
+		patternKeyLint(
+			question,
+			[],
+			defaultUnmatched(question.unmatched, question.accept),
+			["unmatched"],
+		),
 };
 
 /** essay.md, "Answer key": the section holds any block except an H1. */
@@ -407,4 +558,17 @@ export const essayRules: FamilyRules<EssayQuestion> = {
 			"answerKey",
 		]),
 	models: [checkAnswerKeyHasNoH1],
+	lint: (question) => [
+		...checkCodeHighlight(question.content, question.highlight),
+		...(question.answerKey === undefined
+			? [
+					lintDiagnostic(
+						"missing-answer-key",
+						["answerKey"],
+						"'answerKey' is not defined",
+					),
+				]
+			: []),
+		...checkUnsafeThematicBreak(question.answerKey, ["answerKey"]),
+	],
 };

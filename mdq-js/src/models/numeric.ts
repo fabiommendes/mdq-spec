@@ -2,14 +2,15 @@
  * Numeric questions and the key of a numeric fill-in blank. A port of
  * `models/_numeric.py`, the part that validates.
  *
- * Scoring and the helpers of the answer representation are NOT PORTED
- * (phase P6 of `dev/plan/mdq-js-paridade.md`).
+ * The validation (phase P4b) and the lint rules (phase P5) are here. Scoring
+ * and the helpers of the answer representation are NOT PORTED (phase P6 of
+ * `dev/plan/mdq-js-paridade.md`).
  */
 
 import type { Diagnostic, PathStep } from "../diagnostics.js";
 import { ParseError } from "../errors.js";
 import { hasVisibleCharacter } from "../markdown.js";
-import { parseNumericAnswer } from "../parser/numeric.js";
+import { parseNumericAnswer, parseNumericString } from "../parser/numeric.js";
 import { repr, strip } from "../parser/text.js";
 import type {
 	NumericDomain,
@@ -17,6 +18,7 @@ import type {
 	Tolerance,
 } from "../schema/index.js";
 import { type FamilyRules, freeTextDiagnostics, modelError } from "./base.js";
+import { lintDiagnostic } from "./lint-codes.js";
 
 type NumericAnswer = number | string;
 
@@ -182,7 +184,117 @@ export function numericKeyFields(
 export const numericKeyModels: NonNullable<FamilyRules<NumericKey>["models"]> =
 	[checkDecimalPlacesGiven];
 
+/** Whether an answer is a whole number, and whether it is zero; read exactly. */
+function answerShape(answer: NumericAnswer): {
+	whole: boolean;
+	zero: boolean;
+} {
+	if (typeof answer === "number") {
+		return { whole: Number.isInteger(answer), zero: answer === 0 };
+	}
+	// The model rules checked the grammar, so the string parses.
+	const [exact] = parseNumericString(strip(answer, " \t"));
+	return {
+		whole: exact.denominator === 1n,
+		zero: exact.numerator === 0n,
+	};
+}
+
+/** Python's `repr` of an answer, enough for a message. */
+function showAnswer(answer: NumericAnswer): string {
+	return typeof answer === "string" ? repr(answer) : String(answer);
+}
+
+/** Python's `{value:g}` of a percentage, enough for a message. */
+function percent(relative: number): string {
+	return String(Number((relative * 100).toPrecision(6)));
+}
+
+/**
+ * numeric.md, "Additional Rules": a declared domain that contradicts the
+ * answer or the tolerance is a mistake, a decimal answer needs a tolerance,
+ * and a relative tolerance around zero or above 100% never helps. `path`
+ * is where the key sits in the document.
+ */
+export function numericKeyLint(
+	key: NumericKey,
+	path: readonly PathStep[],
+): Diagnostic[] {
+	const { answer, domain, decimalPlaces, tolerance } = key;
+	const found: Diagnostic[] = [];
+	const effectiveDomain = effectiveNumericDomain(answer, domain, tolerance);
+	const { whole, zero } = answerShape(answer);
+	// Under `integer` the answer must be whole; under `fraction`, whole or a
+	// fraction string.
+	const isFractionString = typeof answer === "string" && answer.includes("/");
+	if (
+		(domain === "integer" || (domain === "fraction" && !isFractionString)) &&
+		!whole
+	) {
+		found.push(
+			lintDiagnostic(
+				"answer-outside-domain",
+				[...path, "answer"],
+				`domain is ${repr(domain)} but the answer ${showAnswer(answer)} is not ${domain === "integer" ? "a whole number" : "a whole number or a fraction"}`,
+			),
+		);
+	}
+	if (
+		(domain === "integer" || domain === "fraction") &&
+		tolerance?.absolute !== undefined &&
+		inferNumericDomain(tolerance.absolute) === "decimal"
+	) {
+		found.push(
+			lintDiagnostic(
+				"domain-mismatch",
+				[...path, "domain"],
+				`domain is ${repr(domain)}, but the absolute tolerance ${tolerance.absolute} is a decimal`,
+			),
+		);
+	}
+	if (tolerance === undefined && effectiveDomain === "decimal") {
+		found.push(
+			lintDiagnostic(
+				"missing-tolerance",
+				[...path, "tolerance"],
+				`the answer ${showAnswer(answer)} is in a decimal domain, but no tolerance is given; an exact comparison rarely matches a typed response`,
+			),
+		);
+	}
+	const relative = tolerance?.relative;
+	if (relative !== undefined && relative > 0 && zero) {
+		found.push(
+			lintDiagnostic(
+				"relative-tolerance-around-zero",
+				[...path, "tolerance", "relative"],
+				"a relative tolerance is computed as answer x relative, which is 0 when the answer is 0; only an exact 0 would be accepted",
+			),
+		);
+	}
+	if (relative !== undefined && relative > 1) {
+		found.push(
+			lintDiagnostic(
+				"relative-tolerance-over-one",
+				[...path, "tolerance", "relative"],
+				`a relative tolerance of ${relative} is ${percent(relative)}%: a tolerance above 100% accepts responses of the opposite sign to the answer`,
+			),
+		);
+	}
+	if (decimalPlaces !== undefined && effectiveDomain !== "decimal") {
+		const source = domain === undefined ? " (inferred from the answer)" : "";
+		found.push(
+			lintDiagnostic(
+				"ignored-decimal-places",
+				[...path, "decimalPlaces"],
+				`'decimalPlaces' is ignored when domain is ${repr(effectiveDomain)}${source}`,
+			),
+		);
+	}
+	return found;
+}
+
 export const numericRules: FamilyRules<NumericQuestion> = {
 	fields: numericKeyFields,
 	models: numericKeyModels,
+	lint: (question) => numericKeyLint(question, []),
 };

@@ -15,6 +15,15 @@ import { findForbiddenElements } from "../parser/blocks.js";
 import { repr, SPACE, strip } from "../parser/text.js";
 import type { Question } from "../schema/index.js";
 import type { MdqDocument } from "../validate.js";
+import {
+	checkIdAndTitleDefined,
+	checkIdIsUrlSafe,
+	checkLocaleLanguageSubtag,
+	checkStrayChoiceMarkers,
+	checkTags,
+	checkUnsafeThematicBreak,
+	checkUuidVersionAndVariant,
+} from "./lint.js";
 
 /**
  * A rule of a family: `fields` are the checks of single fields (all of them
@@ -24,6 +33,11 @@ import type { MdqDocument } from "../validate.js";
  * check reports, since a raised error ends the chain.
  */
 export interface FamilyRules<Q> {
+	/**
+	 * The `warning` and `info` rules of the family, beyond `baseLint`, with
+	 * paths relative to the question.
+	 */
+	readonly lint?: (question: Q) => Diagnostic[];
 	readonly fields?: (question: Q, path: readonly PathStep[]) => Diagnostic[];
 	readonly models?: readonly ((
 		question: Q,
@@ -201,6 +215,24 @@ export function checkNoForbiddenBlockElements(
 		}
 	}
 	return undefined;
+}
+
+/** The lint rules common to every question type (`BaseQuestion.lint`). */
+export function baseLint(question: Question): Diagnostic[] {
+	const found = [
+		...checkUuidVersionAndVariant(question.uuid),
+		...checkTags(question.tags ?? []),
+		...checkLocaleLanguageSubtag(question.locale),
+		...checkIdIsUrlSafe(question.id),
+		...checkIdAndTitleDefined(question.id, question.title),
+	];
+	for (const field of ["stem", "epilogue"] as const) {
+		found.push(
+			...checkUnsafeThematicBreak(question[field], [field]),
+			...checkStrayChoiceMarkers(question[field], [field]),
+		);
+	}
+	return found;
 }
 
 /** Runs of backticks around a code span, kept apart when text is compared. */

@@ -15,7 +15,6 @@ export * from "./loading.js";
 export * from "./models/base.js";
 export * from "./models/exam.js";
 export * from "./models/fill-in.js";
-export * from "./models/lint.js";
 export * from "./models/query.js";
 export * from "./models/score.js";
 export * from "./models/slugify.js";
