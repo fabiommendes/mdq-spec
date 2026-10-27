@@ -294,7 +294,17 @@ Reportadas à sessão `mdq`:
 
 ## Pendências depois da referência
 
-Vazio. Próxima rodada anunciada pela sessão `mdq`: bugs de `dev/issues/`
+- `exam-duplicate-tags`: `Exam.tags` repetido é `schema-error`; exemplo
+  `examples/invalid/exam-duplicate-tags`.
+- `exam-question-backref-lost`: `Exam.with_ids()` e `Exam.model_copy()`
+  religam `question.exam` à cópia (sem exemplo no corpus).
+- `foreign-choice-marker`: a mensagem mostra marcador vazio como `[ ]`.
+- Erros de mapa do frontmatter de fill-in (`domain`, `decimalPlaces`,
+  `preAccept`, `preReject`, `incorrectFeedback`): `path` aponta o campo
+  (`["domain"]`; `["incorrectFeedback", "river"]` para uma entrada), não `[]`.
+  Quatro `.lint.json` de `examples/invalid/fill-in-*` mudaram.
+
+Próxima rodada anunciada pela sessão `mdq`: bugs de `dev/issues/`
 (conversores, `show`, CLI, `exam-duplicate-tags`,
 `exam-question-backref-lost`, `banks-index-invalid-questions`) e as questões
 de `dev/issues/spec-questions-from-review.md`. Só as que mudarem parser,
