@@ -146,3 +146,49 @@ cases:
       title: Prova
       questions:
         - {include: 'yes'}
+  - name: a stem that starts with a thematic break is kept by normalize
+    normalize: true
+    input:
+      type: essay
+      stem: |-
+        ---
+
+        fonte: IBGE
+
+        ---
+
+        Qual é a população estimada do Pará?
+    output:
+      type: essay
+      stem: |-
+        ---
+
+        fonte: IBGE
+
+        ---
+
+        Qual é a população estimada do Pará?
+  - name: an epilogue that starts with a thematic break is kept by normalize
+    normalize: true
+    input:
+      type: essay
+      stem: Explique o ciclo da água.
+      epilogue: |-
+        ---
+
+        fonte: IBGE
+
+        ---
+
+        Qual é a população estimada do Pará?
+    output:
+      type: essay
+      stem: Explique o ciclo da água.
+      epilogue: |-
+        ---
+
+        fonte: IBGE
+
+        ---
+
+        Qual é a população estimada do Pará?
