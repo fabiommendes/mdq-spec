@@ -42,22 +42,25 @@ that we can have stronger static type guarantees in some cases.
 # Module structure
 
 Python defines independent `mdq.models` and `mdq.types` for the Pydantic models
-and TypedDicts respectively. Typescript maps both concepts into `mdq/schema`
-where Zod schemas serve as both the type definitions and the runtime validators.
+and TypedDicts respectively. TypeScript maps the shapes of both into
+`src/schema/`, where Zod schemas serve as both the type definitions and the
+runtime validators. The behavior of a Python model (validators, `lint()`,
+`score_response()`, `normalize()`, ...) goes to `src/models/<family>.ts`, as
+functions over the plain objects. See [modules.md](modules.md) for the full
+map.
 
+# Validation
 
-# Methods and functions
+`validateDocument` runs two steps, like the construction of a Pydantic model:
 
-The `mdq.models` classes implement a few important methods for each question type class:
+1. The Zod schema, the mirror of `schema/*.yaml`. A generic Zod issue is
+   `schema-error`.
+2. The model rules of the document's family (`src/models/<family>.ts`):
+   rules that the JSON Schema cannot express, such as unique ids or a regex
+   that compiles. Each returns diagnostics with their own code
+   (`docs/lint-codes.md`, "Load errors").
 
-- `Question.normalize()` - in typescript is implemented as `mdq:normalize()`,
-  which is re-exported from its implementation module at `mdq/normalize`.
-- `Question.score_response()` - in typescript is implemented as `mdq:score_response()`,
-  which is re-exported from its implementation module at `mdq/score_response`.
+The model rules run only when the schema accepts the document. The invalid
+corpus has one violation per example, so this does not change a result.
 
-`normalize()` and `score_response()` are the only public interfaces from their
-respective modules.
-
-The TypeScript implementation does not have neither `Question.frontmatter()` nor
-`Question.render()` methods.
-
+`render()` and `frontmatter()` are not ported.

@@ -52,13 +52,14 @@ which the test suite imports and library code never does.
 
 ## What each layer checks
 
-The corpus is consumed at three levels, and an implementation picks up each
+The corpus is consumed at these levels, and an implementation picks up each
 one as it grows the machinery to run it:
 
 1. **Schema.** Every document under `valid/` validates; every document under
    `invalid/` (outside `syntax/`) is rejected. Python checks `model-only/`
    in the models, while TypeScript checks it with Zod refinements, so there
-   `validateDocument` rejects it too. This needs no parser, so it is the
+   `validateDocument` rejects it too, with the model rules of
+   `src/models/`. This needs no parser, so it is the
    first thing a port can run -- it is what pins the TypeScript Zod schemas to
    the JSON Schemas in `schema/` that Python validates with.
 2. **Parsing.** Each `<name>.mdq.md` under `valid/` parses into exactly its
@@ -67,14 +68,29 @@ one as it grows the machinery to run it:
    character, on the same input. Each `.mdq.md` under `invalid/` is
    rejected with an error code its `.lint.json` pins
    (`tests/invalid-sources.spec.ts`): a parser code must come from
-   `parseDocument`, `schema-error` from `validateDocument`, and a code of a
-   layer not ported yet is listed in `LOAD_CODES` of `not-ported.ts`.
-3. **Linting.** Each document produces exactly the diagnostics in its
-   `.lint.json` (F6).
-4. **Resolution.** Each exam with includes resolves to its
-   `.resolved.yaml` (F4.1).
-5. **Grading.** The response/score pairs in `examples/grading/` produce the
-   expected score under each implementation's own scorer (F7).
+   `parseDocument`, `schema-error` from `validateDocument`, and a source
+   the port does not reject yet is listed in `LOAD` of `not-ported.ts`.
+3. **Loading.** `invalid/syntax/` is YAML or JSON that is not a document;
+   `load` reports the code its `.lint.json` pins.
+4. **Linting.** Each document produces exactly the diagnostics in its
+   `.lint.json`, compared as a multiset (order is free).
+5. **Resolution.** Each exam with includes resolves to its
+   `.resolved.yaml`.
+6. **Matching.** `examples/matching/{exact,inexact,regex}.yaml` list
+   patterns with the responses they accept and reject.
+7. **Grading.** The response/score pairs in `examples/grading/` produce the
+   expected score and feedback under each implementation's own scorer;
+   `short-answer-prevalidation.yaml` does the same for pre-validation.
+
+| Layer      | TypeScript suite              | Python test                      |
+| ---------- | ----------------------------- | -------------------------------- |
+| Schema     | `schema.spec.ts`              | `test_schemas.py`                |
+| Parsing    | `parser.spec.ts`, `invalid-sources.spec.ts` | `test_example_pairs.py`, `test_invalid_sources.py` |
+| Loading    | `loading.spec.ts`             | `test_loading.py`                |
+| Linting    | `lint.spec.ts`                | `test_lint_corpus.py`            |
+| Resolution | `exam-resolution.spec.ts`     | `test_exam_resolution_corpus.py` |
+| Matching   | `matching.spec.ts`            | `test_exact_comparison.py`, `test_inexact_comparison.py`, `test_regex_table.py` |
+| Grading    | `grading.spec.ts`             | `test_grading_examples.py`       |
 
 A divergence at any layer is resolved in favour of Python, which
 [README.md](README.md) names the reference implementation.
@@ -97,10 +113,18 @@ support yet.
 
 ## Language-agnostic tests belong in the corpus
 
-A Python test that states a fact about the format, and not about a Python
-API, moves into `examples/` before the TypeScript port of its area starts.
-Examples are id derivation, parse errors, lint rules and scores. Otherwise
-TypeScript has to port the test by hand and the two copies drift.
+A test that states a fact about the format, and not about an API, is an
+example in `examples/`, on both sides. Examples are id derivation, parse
+errors, lint rules, matching and scores. Otherwise each side ports the test
+by hand and the two copies drift.
+
+* A Python test of this kind moves into `examples/` before the TypeScript
+  port of its area starts.
+* A TypeScript unit test is only for a TypeScript API (signatures, thrown
+  errors), a runtime difference (`RegExp`, Unicode tables, number
+  formatting) or a fast-check property. When a TypeScript unit test breaks
+  because the format changed, its case moves to the corpus or the test is
+  deleted. It is not fixed in place.
 
 ## Properties
 
