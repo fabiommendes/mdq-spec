@@ -16,7 +16,7 @@ differs states the reason in its header comment.
 | Python                              | TypeScript                               |
 | ----------------------------------- | ---------------------------------------- |
 | `mdq/__init__.py`                   | `src/index.ts`                           |
-| `mdq/_loading.py`                   | `src/loading.ts`              |
+| `mdq/_loading.py`                   | `src/loading.ts`                         |
 | `mdq/_diagnostics.py`               | `src/diagnostics.ts`                     |
 | `mdq/errors.py`                     | `src/errors.ts`                          |
 | `mdq/types.py`                      | `src/schema/*`, `src/responses.ts`       |
@@ -40,7 +40,7 @@ differs states the reason in its header comment.
 | `mdq/models/_regex.py`              | `src/models/regex.ts`                    |
 | `mdq/models/_query.py`              | `src/models/query.ts`                    |
 | `mdq/models/_slugify.py`            | `src/models/slugify.ts`                  |
-| `mdq/models/_score.py`              | `src/models/score.ts` (result types, `scoreResponse`, `prevalidate`, `scoreResponses`; each family scores in its own module: `scoreMultipleChoice`, `scoreNumeric`, `scoreShortAnswer`, `scoreFillIn`, `scoreOrdering`, ...) |
+| `mdq/models/_score.py`              | `src/models/score.ts` (result types, `scoreResponse`, `prevalidate`, `scoreResponses`; each family scores in its own module: `scoreMultipleChoice` in `choice.ts`, `scoreNumeric`, `scoreText` and `scoreShortAnswer` in `text.ts`, `scoreFillIn`, `scoreOrdering`) |
 | `tests/_corpus.py`                  | `tests/corpus.ts`                        |
 | `tests/strategies/`                 | `tests/arbitraries.ts`                   |
 
@@ -50,6 +50,15 @@ Only in TypeScript:
   provides and markdown-it JS does not.
 - `src/validate.ts`: `validateDocument` and friends. Python validates when
   it builds the Pydantic model.
+
+Not exported by `src/index.ts`: `models/choice.ts`, `numeric.ts`, `ordering.ts`,
+`regex.ts`, `lint.ts`, `lint-codes.ts`, `exact.ts`, `letters.ts`, `markdown.ts`,
+`include-keys.ts` and `schedule.ts`. They are internal. `parser/index.ts`
+re-exports only `parseDocument`, `parseQuestion`, `parseQuestionDocument`,
+`parseExam`, `parseExamDocument`, `isExam`, `loadYaml`, `parseNumericAnswer`,
+`parseNumericString`, `findUnicodeSpaces`, `reconstructBlocks`, the
+`find*` checks of `blocks.ts`, `SEPARATOR`, `INHERITED_FIELDS`, `SLUG_PREFIX_RE`
+and `RawDocument`.
 
 Not ported: `mdq/models/_render.py`, `mdq/convert/`, `mdq/cli/`,
 `mdq/hypothesis/` (public in Python; test-only in TypeScript).
@@ -82,8 +91,8 @@ A Pydantic model is two things in TypeScript:
 | `Exam.resolve(bank)`                            | `resolveExam(exam, bank)`                     |
 | `Exam.grading_for`, `shuffle_for`, `resolve_question` | `gradingFor`, `shuffleFor`, `resolveQuestion` |
 | `Exam.score_responses(r)`                       | `scoreResponses(exam, responses)`             |
-| `Question.effective_grading`, `effective_shuffle` | `effectiveGrading`, `effectiveShuffle`      |
-| `effective_unmatched` (text, fill-in blank)     | `effectiveUnmatched`, `blankEffectiveUnmatched` |
+| `Question.effective_grading`, `effective_shuffle` | `effectiveGrading`, `effectiveShuffle` (`src/models/base.ts`) |
+| `effective_unmatched` (text, fill-in blank)     | `effectiveUnmatched` (`text.ts`), `blankEffectiveUnmatched` (`fill-in.ts`) |
 | `Blank.automation`, `Blank.with_ids`            | `blankAutomation`, `blankWithIds`             |
 | `QuestionScore`, `ExamScore`                    | types `QuestionScore`, `ExamScore`            |
 | `QuestionBank`, `DictLoader`                    | `QuestionBank`, `DictLoader`                  |

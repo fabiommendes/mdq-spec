@@ -31,7 +31,7 @@ This table summarizes the main tools and libraries used in both the Python and T
 | Testing framework                 | Pytest      | Vitest      |
 | Property based testing            | Hypothesis  | Fast-check  |
 | Linting                           | Ruff        | Biome       |
-| YAML                              | PyYAML      | js-yaml     |
+| YAML (1.2 Core schema)            | PyYAML      | yaml        |
 | Component Libraries               | -           | SolidJS *(planned)* |
 | CLI                               | Typer       | -           |
 

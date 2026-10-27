@@ -7,15 +7,17 @@ relatedTo: [mdq-js/docs/sync/README.md, mdq-js/docs/sync/testing.md, dev/plan/md
 
 # Roadmap of the TypeScript port
 
-The port follows mdq-py, which is the reference. This document lists the
-phases of the port and the decisions that apply to all of them. The detailed
-per-feature status is [`tests/not-ported.ts`](../../tests/not-ported.ts).
+The port follows mdq-py, which is the reference. This document records the
+decisions that apply to the port and the phases that closed it. Parity is
+done: the TypeScript suites run the whole shared corpus with no entry in
+[`tests/not-ported.ts`](../../tests/not-ported.ts).
 
 ## Decisions
 
-1. **One cycle per feature.** Each cycle has a handoff in `docs/handoffs/`
-   with the public API, the acceptance criteria and the Python functions to
-   port. The cycle is test-driven, and the corpus is the main test source.
+1. **One cycle per feature.** Each cycle has the public API, the acceptance
+   criteria and the Python functions to port. The cycle is test-driven, and
+   the corpus is the main test source. The handoffs of the early cycles are
+   in `docs/handoffs/`.
 2. **Corpus first.** Before an area is ported, the Python tests of that area
    that state facts about the format move into `examples/`. This can need new
    corpus kinds, for example sources that must fail to parse, with the
@@ -30,8 +32,9 @@ per-feature status is [`tests/not-ported.ts`](../../tests/not-ported.ts).
      and Unicode in Python, so a port of a Python pattern that relies on
      Unicode uses `\p{L}`, `\p{N}` and similar classes.
    * Python `$` also matches before a final `\n`; JavaScript `$` does not.
-   * Frontmatter YAML follows the Python loader (YAML 1.1 without base-60
-     integers), not the js-yaml default (YAML 1.2).
+   * Frontmatter YAML is read with the YAML 1.2 Core schema, as the spec
+     says (`yes` and `1:30` are strings). The `yaml` package does this;
+     `js-yaml` accepts a non-scalar key, so it does not.
    * markdown-it uses the options of the Python `gfm-like` preset.
    * Text comparisons use the same normalization as Python (NFKC, case
      folding, accent removal). `toLowerCase` is not case folding.
@@ -70,20 +73,25 @@ per-feature status is [`tests/not-ported.ts`](../../tests/not-ported.ts).
 | F3 | Parser: essay, numeric, short-answer, ordering, fill-in bodies | done |
 | F4 | Parser: exams, `include`, `includeAll` | done |
 | F4.1 | `resolveExam`, the question bank and the `includeAll` query language | done |
+| P0-P2 | Zod equal to the JSON Schema, corpus suites, parser aligned with mdq-py | done |
+| P3 | Pattern matching | done |
+| P4 | Model rules and `load` | done |
+| P5 | Lint | done |
+| P6 | Scoring | done |
+| P7 | `normalize`, `withIds`, `automation`, slimmer unit tests, docs | done |
 
-The remaining work (model rules, `load`, lint, matching, scoring,
-`normalize`, `withIds`) is planned in the root repository:
-`dev/rfcs/0001-mdq-js-paridade.md` and `dev/plan/mdq-js-paridade.md`. The
-plan also holds the list of mdq-py changes not ported yet. The SolidJS
-components get their own plan after parity.
+The P phases are the ones of the parity plan in the root repository
+(`dev/plan/mdq-js-paridade.md`, `dev/rfcs/0001-mdq-js-paridade.md`), which
+keeps the details and the history. The SolidJS components get their own plan.
 
 The CLI, format conversions (Moodle XML, GIFT, Aiken), `show`, `scaffold`,
 `render()` and the file-system question bank stay in Python.
 
 ## Coordination with mdq-py
 
-* The port targets a fixed mdq-py commit. Changes after it go to the list
-  of pending changes in the port plan, never into a phase that is running.
+* A change in mdq-py or in the corpus makes a corpus test fail in
+  TypeScript. Port it, or list the example in `tests/not-ported.ts` with the
+  reason until it is ported.
 * The module map is in [modules.md](modules.md). When mdq-py moves code
   between modules, update the map and move the TypeScript code to match.
 * The Python test helpers (`mdq-py/tests/_corpus.py`,

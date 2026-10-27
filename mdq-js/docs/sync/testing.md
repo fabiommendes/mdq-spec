@@ -59,15 +59,13 @@ which the test suite imports and library code never does.
 
 ## What each layer checks
 
-The corpus is consumed at these levels, and an implementation picks up each
-one as it grows the machinery to run it:
+The TypeScript suites consume the corpus at these levels:
 
 1. **Schema.** Every document under `valid/` validates; every document under
    `invalid/` (outside `syntax/`) is rejected. Python checks `model-only/`
    in the models, while TypeScript checks it with Zod refinements, so there
    `validateDocument` rejects it too, with the model rules of
-   `src/models/`. This needs no parser, so it is the
-   first thing a port can run -- it is what pins the TypeScript Zod schemas to
+   `src/models/`. This needs no parser. It pins the TypeScript Zod schemas to
    the JSON Schemas in `schema/` that Python validates with.
 2. **Parsing.** Each `<name>.mdq.md` under `valid/` parses into exactly its
    `<name>.yaml` (`tests/parser.spec.ts`). This is the real parity test:
@@ -90,10 +88,12 @@ one as it grows the machinery to run it:
 7. **Grading.** The response/score pairs in `examples/grading/` produce the
    expected score and feedback under each implementation's own scorer;
    `short-answer-prevalidation.yaml` does the same for pre-validation.
+8. **Ids and normalization.** The `.ids.yaml` files and
+   `examples/normalize.yaml` pin `withIds` and `normalize`.
 
 | Layer      | TypeScript suite              | Python test                      |
 | ---------- | ----------------------------- | -------------------------------- |
-| Schema     | `schema.spec.ts`              | `test_schemas.py`                |
+| Schema     | `schema.spec.ts`, `schema-agreement.spec.ts`, `schema-numeric-answer.spec.ts` | `test_schemas.py` |
 | Parsing    | `parser.spec.ts`, `invalid-sources.spec.ts` | `test_example_pairs.py`, `test_invalid_sources.py` |
 | Loading    | `loading.spec.ts`             | `test_invalid_sources.py`        |
 | Linting    | `lint.spec.ts`, `lint-codes.spec.ts` | `test_lint_corpus.py`, `test_lint_codes_consistency.py` |
@@ -122,7 +122,9 @@ lists those, per layer, with the reason:
 * An example that is not listed must pass. An example that Python adds
   therefore fails at once in TypeScript, which makes drift visible in CI.
 
-Python keeps its own list, `NOT_YET_SUPPORTED` in
+`tests/not-ported.ts` is empty today: the port passes the whole corpus. It
+stays as the mechanism for a future port, when mdq-py or the corpus gets
+ahead of TypeScript. Python keeps its own list, `NOT_YET_SUPPORTED` in
 `mdq-py/tests/test_parser.py`, for features the reference itself does not
 support yet.
 
@@ -145,7 +147,7 @@ The TypeScript unit suites that remain are `banks`, `load-api`, `query`
 (API and error types), `frontmatter`, `letters`, `markdown`, `regex`, `text`,
 `whitespace` (strip and unit pattern), `parser-numeric` (number
 representation and its property) and `slugify` (runtime and properties). Each
-one adds nothing a corpus example could state. To check that a unit test still
+one states something a corpus example cannot. To check that a unit test still
 earns its place, run the corpus suites alone with
 `pnpm vitest run --coverage <corpus specs>` (needs `@vitest/coverage-v8`) and
 compare. Statements are stable between runs; v8 branch counts are not.
