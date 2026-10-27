@@ -2,6 +2,9 @@
   {
     "code": "parse-error",
     "severity": "error",
-    "path": []
+    "path": [
+      "incorrectFeedback",
+      "river"
+    ]
   }
 ]
