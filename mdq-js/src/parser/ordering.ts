@@ -11,7 +11,7 @@
 import { ParseError } from "../errors.js";
 import { md, span, startsAfter } from "../markdown.js";
 import { BLOCK_NAMES, type BlockCursor, type BlockReader } from "./blocks.js";
-import { parseObservations } from "./choices.js";
+import { isCommentLine, parseObservations } from "./choices.js";
 import { normalizeList } from "./frontmatter.js";
 import type { OrderingTag } from "./tags.js";
 import { repr, rstrip, strip } from "./text.js";
@@ -225,12 +225,9 @@ export function orderingAlternative(
 	return entry;
 }
 
-/** Whether every raw line of a paragraph is a `!`-prefixed comment line. */
+/** Whether every raw line of a paragraph is a comment line. */
 export function isCommentBlock(lines: readonly string[]): boolean {
-	return (
-		lines.length > 0 &&
-		lines.every((line) => strip(line, " \t").startsWith("!"))
-	);
+	return lines.length > 0 && lines.every(isCommentLine);
 }
 
 /**

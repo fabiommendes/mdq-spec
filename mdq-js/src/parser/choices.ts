@@ -94,6 +94,16 @@ export interface ParsedMarker {
 }
 
 /**
+ * Whether `line` starts a comment: `!` but not an image, `![`, with up to
+ * three columns of indentation. With four or more, it is continuation text.
+ */
+export function isCommentLine(line: string): boolean {
+	if (indentation(line) >= CODE_INDENT) return false;
+	const stripped = line.replace(/^[ \t]+/u, "");
+	return stripped.startsWith("!") && !stripped.startsWith("![");
+}
+
+/**
  * The columns of whitespace at the start of `line`, with a tab expanded to
  * the next multiple of four columns, as in CommonMark.
  */

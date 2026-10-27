@@ -15,12 +15,7 @@ import {
 	type BlockReader,
 	parsePlainItem,
 } from "./blocks.js";
-import {
-	CODE_INDENT,
-	indentation,
-	type PatternEntry,
-	patternEntry,
-} from "./choices.js";
+import { isCommentLine, type PatternEntry, patternEntry } from "./choices.js";
 import { copyPatternLists } from "./frontmatter.js";
 import {
 	checkNoTagInContent,
@@ -319,14 +314,4 @@ function emptyAnswerTagMessage(tag: string, reject: boolean): string {
 		"list on the line right after the tag, with no blank line in between, " +
 		`or use \`[${tag}]\` for a manual question`
 	);
-}
-
-/**
- * Whether `line` starts a comment: `!` but not an image, `![`, with up to
- * three columns of indentation. With four or more, it is continuation text.
- */
-function isCommentLine(line: string): boolean {
-	if (indentation(line) >= CODE_INDENT) return false;
-	const stripped = line.replace(/^[ \t]+/u, "");
-	return stripped.startsWith("!") && !stripped.startsWith("![");
 }
