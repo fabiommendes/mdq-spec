@@ -89,17 +89,20 @@ one as it grows the machinery to run it:
    expected score and feedback under each implementation's own scorer;
    `short-answer-prevalidation.yaml` does the same for pre-validation.
 
+A suite marked (P1) does not exist yet: phase P1 of
+`dev/plan/mdq-js-paridade.md` adds it.
+
 | Layer      | TypeScript suite              | Python test                      |
 | ---------- | ----------------------------- | -------------------------------- |
 | Schema     | `schema.spec.ts`              | `test_schemas.py`                |
 | Parsing    | `parser.spec.ts`, `invalid-sources.spec.ts` | `test_example_pairs.py`, `test_invalid_sources.py` |
-| Loading    | `loading.spec.ts`             | `test_loading.py`                |
-| Linting    | `lint.spec.ts`                | `test_lint_corpus.py`            |
+| Loading    | `loading.spec.ts` (P1)             | `test_loading.py`                |
+| Linting    | `lint.spec.ts` (P1)                | `test_lint_corpus.py`            |
 | Resolution | `exam-resolution.spec.ts`     | `test_exam_resolution_corpus.py` |
-| Ids        | `ids.spec.ts`                 | `test_ids_corpus.py`             |
-| Normalize  | `normalize.spec.ts`           | `test_normalize_corpus.py`       |
-| Matching   | `matching.spec.ts`            | `test_exact_comparison.py`, `test_inexact_comparison.py`, `test_regex_table.py`, `test_query_corpus.py` |
-| Grading    | `grading.spec.ts`             | `test_grading_examples.py`       |
+| Ids        | `ids.spec.ts` (P1)                 | `test_ids_corpus.py`             |
+| Normalize  | `normalize.spec.ts` (P1)           | `test_normalize_corpus.py`       |
+| Matching   | `matching.spec.ts` (P1)            | `test_exact_comparison.py`, `test_inexact_comparison.py`, `test_regex_table.py`, `test_query_corpus.py` |
+| Grading    | `grading.spec.ts` (P1)             | `test_grading_examples.py`       |
 
 `docs/references/inexact-tables.json` is shared data too: the Python
 properties of the letter tables in `test_inexact_comparison.py` read it, and

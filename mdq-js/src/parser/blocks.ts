@@ -299,7 +299,7 @@ export function parseItemList(reader: BlockReader, node: Node): RawChoice[] {
  *   marker is empty, or the lines after the text are not one feedback block
  *   and one comment block.
  */
-export function parseItem(itemLines: readonly string[]): RawChoice {
+function parseItem(itemLines: readonly string[]): RawChoice {
 	const { marker, id, rest } = parseMarker(itemLines[0] ?? "");
 	const choice = splitItem(rest, itemLines.slice(1));
 	choice.value = marker;

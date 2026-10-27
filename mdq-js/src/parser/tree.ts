@@ -114,5 +114,3 @@ type MutableNode = {
 function stripSuffix(text: string, suffix: string): string {
 	return text.endsWith(suffix) ? text.slice(0, -suffix.length) : text;
 }
-
-export { splitLines } from "../markdown.js";

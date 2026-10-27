@@ -137,7 +137,7 @@ const floatType = new Type("tag:yaml.org,2002:float", {
  * mappings) plus the four scalar types above. js-yaml's own `CORE_SCHEMA`
  * keeps YAML 1.1 forms (`0b1`, `1_000`), so it is not used.
  */
-export const CORE_SCHEMA = FAILSAFE_SCHEMA.extend({
+const CORE_SCHEMA = FAILSAFE_SCHEMA.extend({
 	implicit: [nullType, boolType, intType, floatType],
 });
 
@@ -174,11 +174,10 @@ export function loadFrontmatterYaml(text: string): Record<string, unknown> {
 		throw error;
 	}
 	if (!isPlainRecord(data)) return {};
-	const result: Record<string, unknown> = {};
-	for (const [key, value] of Object.entries(data)) {
-		if (value !== null) result[key] = value;
-	}
-	return result;
+	// `fromEntries` defines own keys, so `__proto__` stays a key.
+	return Object.fromEntries(
+		Object.entries(data).filter(([, value]) => value !== null),
+	);
 }
 
 interface SchemaNode {
@@ -345,7 +344,7 @@ export function commonFrontmatter(
  * report as `blank-text`. Any other value is returned as it is, for the model
  * to report.
  */
-export function normalizeTags(tags: unknown): unknown {
+function normalizeTags(tags: unknown): unknown {
 	if (typeof tags === "string") {
 		const parts = tags.split(",").map((part) => strip(part));
 		if (parts.length > 1 && parts[parts.length - 1] === "") parts.pop();

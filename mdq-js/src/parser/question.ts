@@ -114,7 +114,10 @@ export function parseQuestionDocument(
 	const parser = new MDQParser(source);
 	const doc = parser.parseQuestion();
 	warnings?.push(
-		...invalidFrontmatterFields(parser.frontmatter, String(doc.type)),
+		...invalidFrontmatterFields(
+			parser.frontmatter,
+			typeof doc.type === "string" ? doc.type : "",
+		),
 		...parser.diagnostics,
 	);
 	return doc;
@@ -137,6 +140,19 @@ export function parseQuestion(source: string): Question {
 }
 
 /** The `redundant-id` warning: `id` in the frontmatter and as a slug. */
+/**
+ * Python truthiness of a YAML value: an empty list or mapping is false and
+ * NaN is true, the reverse of JavaScript.
+ */
+function isPythonTruthy(value: unknown): boolean {
+	if (Array.isArray(value)) return value.length > 0;
+	if (typeof value === "number") return value !== 0;
+	if (value !== null && typeof value === "object") {
+		return Object.keys(value).length > 0;
+	}
+	return Boolean(value);
+}
+
 function redundantId(frontId: unknown, slug: string): Diagnostic {
 	const detail =
 		frontId === slug
@@ -455,7 +471,10 @@ export class MDQParser {
 		}
 		this.state.stem = stemText;
 
-		let questionType: unknown = this.frontmatter.type;
+		// A falsy `type` (by Python rules) is inferred from the body.
+		let questionType: unknown = isPythonTruthy(this.frontmatter.type)
+			? this.frontmatter.type
+			: undefined;
 		// An ordering body ends its own epilogue at the first section.
 		let orderingEpilogue: readonly Node[] | null = null;
 		const node = this.cursor.peek();
@@ -474,7 +493,7 @@ export class MDQParser {
 			);
 			const rawChoices = parseItemList(this.reader, bodyNode);
 			questionType =
-				questionType || inferChoiceType(rawChoices.map((c) => c.value));
+				questionType ?? inferChoiceType(rawChoices.map((c) => c.value));
 			this.parseChoiceBody(asChoiceType(questionType), rawChoices);
 		} else {
 			const bodyNode = this.cursor.expect(
@@ -484,15 +503,15 @@ export class MDQParser {
 			const tag = readBodyTag(this.reader.rawText(bodyNode));
 			switch (tag?.kind) {
 				case "essay":
-					questionType = questionType || "essay";
+					questionType = questionType ?? "essay";
 					this.parseEssayBody();
 					break;
 				case "numeric":
-					questionType = questionType || "numeric";
+					questionType = questionType ?? "numeric";
 					this.parseNumericBody(tag, bodyNode);
 					break;
 				case "ordering":
-					questionType = questionType || "ordering";
+					questionType = questionType ?? "ordering";
 					checkOrderingTag(tag);
 					{
 						const [fields, epilogueNodes] = parseOrderingBody(
@@ -505,7 +524,7 @@ export class MDQParser {
 					}
 					break;
 				case "short-answer":
-					questionType = questionType || "short-answer";
+					questionType = questionType ?? "short-answer";
 					Object.assign(
 						this.state,
 						parseShortAnswerBody(this.cursor, this.frontmatter, tag, bodyNode),
@@ -515,7 +534,7 @@ export class MDQParser {
 				case "numeric-blank":
 				case "short-answer-blank":
 				case "unrecognized-blank":
-					questionType = questionType || "fill-in";
+					questionType = questionType ?? "fill-in";
 					Object.assign(
 						this.state,
 						parseFillInBody(this.cursor, this.frontmatter, tag, bodyNode),

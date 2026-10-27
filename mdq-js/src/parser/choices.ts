@@ -446,7 +446,7 @@ function buildChoice(
  * a percentage is its fraction, and a blank omits the score -- the grading
  * strategy decides what it is worth. Any other value is read as a blank too.
  */
-export function scoreFromValue(value: string): number | undefined {
+function scoreFromValue(value: string): number | undefined {
 	const normalized = normalizeValue(value);
 	if (normalized === "*") return 1;
 	if (PERCENT_RE.test(normalized)) return Number(normalized.slice(0, -1)) / 100;

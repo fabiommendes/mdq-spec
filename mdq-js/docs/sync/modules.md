@@ -16,7 +16,7 @@ differs states the reason in its header comment.
 | Python                              | TypeScript                               |
 | ----------------------------------- | ---------------------------------------- |
 | `mdq/__init__.py`                   | `src/index.ts`                           |
-| `mdq/_loading.py`                   | `src/loading.ts`                         |
+| `mdq/_loading.py`                   | `src/loading.ts` (phase P4)              |
 | `mdq/_diagnostics.py`               | `src/diagnostics.ts`                     |
 | `mdq/errors.py`                     | `src/errors.ts`                          |
 | `mdq/types.py`                      | `src/schema/*`, `src/responses.ts`       |

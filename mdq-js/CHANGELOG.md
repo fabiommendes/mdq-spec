@@ -18,7 +18,7 @@ Implements part of the unreleased MDQ specification.
 - A frontmatter key that is not a field of the question type is an `invalid-frontmatter-field` error diagnostic (was the `unknown-frontmatter-key` warning). A `redundant-id` warning reports `id` in the frontmatter and as a slug.
 - The comment of the frontmatter is trimmed.
 - The exam include block key `include-all` is renamed to `includeAll` (Zod schema, parser, `resolveExam`). `include-all` is now an unknown field (`unknown-include-field`).
-- Empty free-text fields (`comment`, `preamble`, `epilogue`, `answerKey`, `instructions`, feedback) are now schema errors, and an empty frontmatter comment string is not stored.
+- Empty free-text fields (`comment`, `epilogue`, `answerKey`, `instructions`, feedback) are now schema errors, and an empty frontmatter comment string is not stored.
 - Refreshed the bundled schema (description text only).
 - The short-answer, fill-in, ordering and exam parsers are ported from mdq-py, and the old parser is gone. `ConflictingAnswerKeyError` is removed: `accept` and `reject` in the frontmatter are invalid fields. The exam parser reports `malformed-separator`, and `setext-heading` only outside `stem` and `epilogue`. A `title: null` in the exam frontmatter is dropped.
 
@@ -29,8 +29,7 @@ Implements part of the unreleased MDQ specification.
   numeric, short-answer, ordering and fill-in questions (`parseQuestion`,
   `parseQuestionDocument`), including an essay's optional
   `## [answer-key]` epilogue section, a numeric body's
-  `sign? value abstol? reltol?` expression grammar
-  (`parseNumericExpression`), and a short-answer body's `[short-answer]`,
+  `sign? value abstol? reltol?` expression grammar, and a short-answer body's `[short-answer]`,
   `[short-answer/accept]` and `[short-answer/reject]` blocks and
   frontmatter pattern lists. Ordering questions are parsed too, with
   their `## [extra]`, `## [accept]` and `## [reject]` sections and the
@@ -42,12 +41,12 @@ Implements part of the unreleased MDQ specification.
 - Parser for exams (`parseExam`, `parseExamDocument`): the H1 title, the
   instructions, `===` and `---` question blocks, `include` and
   `includeAll` entries, `locale`/`author` inheritance, and the canonical
-  `start` and `duration` (`canonicalStart`, `canonicalDuration`).
+  `start` and `duration`.
   `parseDocument` tells an exam from a question (`isExam`) and parses it.
 - `Diagnostic` and the parser warnings: `parseDocument`,
   `parseQuestionDocument` and `parseExamDocument` take a list to append
-  `unknown-frontmatter-key`, `detached-answer-list`, `setext-heading` and
-  `separator-before-include` to.
+  `redundant-id`, `detached-tag`, `setext-heading`, `malformed-separator`
+  and `separator-before-include` to.
 - `ParseError.code` and `ParseError.path`, with `YamlSyntaxError`
   (`yaml-syntax-error`), `ForeignChoiceMarkerError`
   (`foreign-choice-marker`) and `UndefinedBlankError` (`undefined-blank`).

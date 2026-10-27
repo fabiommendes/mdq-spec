@@ -42,8 +42,7 @@ export interface OrderingAlternative {
 }
 
 /** `[extra]`, `[accept]` or `[reject]`, the text of an `h2` section heading. */
-export const ORDERING_SECTION_RE: RegExp =
-	/^\[(?<name>extra|accept|reject)\]$/u;
+const ORDERING_SECTION_RE: RegExp = /^\[(?<name>extra|accept|reject)\]$/u;
 
 /**
  * An ordering `ul` item's line: the indentation to measure, the marker, and
@@ -84,7 +83,7 @@ function gcd(a: number, b: number): number {
  * CommonMark backslash and entity processing. A word ends at the first space
  * or tab. `null` when the info string is empty.
  */
-export function fenceLanguage(info: string): string | null {
+function fenceLanguage(info: string): string | null {
 	const text = strip(md.utils.unescapeAll(info), " \t");
 	return text.split(/[ \t]/u, 1)[0] || null;
 }
@@ -104,7 +103,7 @@ export function orderingCodeLines(content: string): RawLine[] {
  * @param parents When given, filled with the source lines of the items that
  *   hold a nested list.
  */
-export function collectItemDepths(
+function collectItemDepths(
 	node: Node,
 	depth: number,
 	depths: Map<number, number>,
