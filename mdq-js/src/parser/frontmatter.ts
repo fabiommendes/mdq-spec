@@ -12,7 +12,6 @@
  * A port of `mdq-py/mdq/_parser/_frontmatter.py`.
  */
 
-import { YAMLException } from "js-yaml";
 import {
 	type Document,
 	isAlias,
@@ -88,11 +87,16 @@ export function extractComment(frontmatterText: string): string | null {
 	return strip(commentLines.join(" ")) || null;
 }
 
+/** The error of `loadYaml`: the text is not YAML that MDQ accepts. */
+export class YamlLoadError extends Error {
+	override name = "YamlLoadError";
+}
+
 /**
  * A key written twice in one mapping, after every key became a string.
  * `looksLikeFrontmatter` tells it from the other YAML errors.
  */
-export class DuplicateKeyError extends YAMLException {}
+export class DuplicateKeyError extends YamlLoadError {}
 
 /** The tags of the YAML 1.2 Core schema. */
 const CORE_TAGS: ReadonlySet<string> = new Set(
@@ -120,7 +124,7 @@ function constructNode(
 	}
 	if (!isNode(node)) return null;
 	if (node.tag !== undefined && !CORE_TAGS.has(node.tag)) {
-		throw new YAMLException(`unknown tag ${node.tag}, outside the Core schema`);
+		throw new YamlLoadError(`unknown tag ${node.tag}, outside the Core schema`);
 	}
 	if (isScalar(node)) return node.value;
 	if (built.has(node)) return built.get(node);
@@ -136,7 +140,7 @@ function constructNode(
 		for (const pair of node.items) {
 			const keyNode = isAlias(pair.key) ? pair.key.resolve(doc) : pair.key;
 			if (keyNode !== null && keyNode !== undefined && !isScalar(keyNode)) {
-				throw new YAMLException("found a key that is not a scalar");
+				throw new YamlLoadError("found a key that is not a scalar");
 			}
 			const key = String(constructNode(keyNode, doc, built));
 			if (entries.has(key)) {
@@ -160,10 +164,7 @@ function constructNode(
  * outside the Core schema (the merge key `<<` is an ordinary key). NEL, LS
  * and PS are content of a scalar, not line breaks.
  *
- * The `yaml` package replaces `js-yaml` here because `js-yaml` converts a
- * collection used as a key to a string before any hook can see it.
- *
- * @throws {YAMLException} `text` is not valid YAML, repeats a key (a
+ * @throws {YamlLoadError} `text` is not valid YAML, repeats a key (a
  *   `DuplicateKeyError`), has a key that is not a scalar, or has a tag
  *   outside the Core schema.
  */
@@ -176,7 +177,7 @@ export function loadYaml(text: string): unknown {
 		merge: false,
 	});
 	const problem = doc.errors[0] ?? doc.warnings[0];
-	if (problem !== undefined) throw new YAMLException(problem.message);
+	if (problem !== undefined) throw new YamlLoadError(problem.message);
 	return constructNode(doc.contents, doc, new Map());
 }
 
@@ -196,7 +197,7 @@ export function loadFrontmatterYaml(text: string): Record<string, unknown> {
 	try {
 		data = loadYaml(text);
 	} catch (error) {
-		if (error instanceof YAMLException) {
+		if (error instanceof YamlLoadError) {
 			throw new YamlSyntaxError(`invalid YAML frontmatter: ${error.message}`);
 		}
 		throw error;

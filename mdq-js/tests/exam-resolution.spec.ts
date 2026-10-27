@@ -27,8 +27,8 @@ import {
 	resolveExam,
 	type Select,
 } from "@mdq";
-import { load } from "js-yaml";
 import { describe, expect, it } from "vitest";
+import { parse as load } from "yaml";
 import {
 	collectFiles,
 	collectSources,

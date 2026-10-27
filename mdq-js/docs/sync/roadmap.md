@@ -16,8 +16,7 @@ done: the TypeScript suites run the whole shared corpus with no entry in
 
 1. **One cycle per feature.** Each cycle has the public API, the acceptance
    criteria and the Python functions to port. The cycle is test-driven, and
-   the corpus is the main test source. The handoffs of the early cycles are
-   in `docs/handoffs/`.
+   the corpus is the main test source.
 2. **Corpus first.** Before an area is ported, the Python tests of that area
    that state facts about the format move into `examples/`. This can need new
    corpus kinds, for example sources that must fail to parse, with the

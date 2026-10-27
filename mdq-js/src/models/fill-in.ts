@@ -1,8 +1,8 @@
 /**
  * Fill-in questions and their blanks. A port of `models/_fill_in.py`.
  *
- * The validation (phase P4b), the lint rules (phase P5) and the scoring
- * (phase P6) are here, with `blankAutomation` and `blankWithIds`.
+ * It holds the validation, the lint rules and the scoring, with
+ * `blankAutomation` and `blankWithIds`.
  */
 
 import type { Diagnostic, PathStep } from "../diagnostics.js";

@@ -9,11 +9,9 @@
  * resolves them with `resolveExam`.
  *
  * Differences from Python, by design: a `string` is always the text of the
- * document (there is no `Path` or file object, `docs/sync/modules.md`), and
- * the `ids` option (`withIds`) is not ported yet (phase P7).
+ * document (there is no `Path` or file object, `docs/sync/modules.md`).
  */
 
-import YAML from "js-yaml";
 import {
 	type Diagnostic,
 	diagnostic,
@@ -21,11 +19,16 @@ import {
 	RANK,
 	type Severity,
 } from "./diagnostics.js";
-import { InvalidDocumentError, MdqError, ParseError } from "./errors.js";
+import {
+	InvalidDocumentError,
+	MdqError,
+	ParseError,
+	UnresolvedInclude,
+} from "./errors.js";
 import { includeKeyHint } from "./include-keys.js";
 import { baseFieldRules, uuidDiagnostics } from "./models/base.js";
 import { markerDiagnostic } from "./models/choice.js";
-import { lint, scheduleDiagnostic } from "./models/exam.js";
+import { lint, scheduleDiagnostic, withIds } from "./models/exam.js";
 import {
 	nonFiniteDiagnostic,
 	numericAnswerDiagnostic,
@@ -35,6 +38,7 @@ import {
 	loadYaml,
 	parseExamDocument,
 	parseQuestionDocument,
+	YamlLoadError,
 } from "./parser/index.js";
 import { findUnicodeSpaces } from "./parser/spaces.js";
 import { repr } from "./parser/text.js";
@@ -62,6 +66,11 @@ export interface LoadOptions {
 	readonly format?: Format;
 	/** Narrows the document to a question or an exam. */
 	readonly kind?: Kind;
+	/**
+	 * `keep` (the default) returns the document as written; `fill` returns
+	 * `withIds(document)`. Lint always inspects the document as written.
+	 */
+	readonly ids?: "keep" | "fill";
 }
 
 /**
@@ -102,6 +111,25 @@ export function load(
 ): Loaded<Exam>;
 export function load(source: Source, options?: LoadOptions): Loaded;
 export function load(source: Source, options: LoadOptions = {}): Loaded {
+	const loaded = loadSource(source, options);
+	return options.ids === "fill" ? fillIds(loaded) : loaded;
+}
+
+/** `withIds` of the document; an unresolved `includeAll` is an error. */
+function fillIds(loaded: Loaded): Loaded {
+	if (loaded.document === undefined) return loaded;
+	try {
+		return { ...loaded, document: withIds(loaded.document) };
+	} catch (error) {
+		if (!(error instanceof UnresolvedInclude)) throw error;
+		return failed([
+			...loaded.diagnostics,
+			diagnostic("error", "unresolved-include-all", error.message),
+		]);
+	}
+}
+
+function loadSource(source: Source, options: LoadOptions): Loaded {
 	const kind = options.kind;
 	if (typeof source !== "string") return loadData(source, kind);
 	const format = options.format ?? "mdq";
@@ -113,7 +141,7 @@ export function load(source: Source, options: LoadOptions = {}): Loaded {
 			try {
 				data = loadYaml(source);
 			} catch (error) {
-				if (error instanceof YAML.YAMLException) {
+				if (error instanceof YamlLoadError) {
 					return failed([syntaxError("yaml-syntax-error", error.message)]);
 				}
 				throw error;

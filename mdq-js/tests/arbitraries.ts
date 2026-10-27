@@ -3,8 +3,7 @@
  *
  * `bracketListCaseArb` builds MDQ source for a `multiple-choice` /
  * `multiple-selection` / `true-false` question *alongside* the exact
- * document `parseQuestionDocument` must produce from it, the way
- * `docs/handoffs/02-parser-bracket-lists-parity.md` asks for: title,
+ * document `parseQuestionDocument` must produce from it, with title,
  * optional id (frontmatter or inline `[slug]`), an optional `type`
  * (sometimes left out of the frontmatter entirely, so the markers alone
  * must drive `_infer_choice_type`), extra stem paragraphs before the last one, a stem, N choices

@@ -1,6 +1,5 @@
 /**
- * `docs/handoffs/03-parser-essay.md`, batch 2, criterion 4: the
- * `markdown-it` instance the parser builds its block tree from must enable
+ * The `markdown-it` instance the parser builds its block tree from must enable
  * the same core/block/inline rules and the same options as Python's
  * `MarkdownIt("gfm-like")` (`mdq-py/mdq/_markdown.py`). Essay bodies are
  * the first ones to hold constructs CommonMark itself has opinions about

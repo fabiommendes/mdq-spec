@@ -30,6 +30,7 @@ the whole shared corpus (`examples/`), as mdq-py does.
 - `ParseError.code`, `ParseError.path` and `ParseError.line`. New errors: `YamlSyntaxError`, `ForeignChoiceMarkerError`, `UndefinedBlankError`, `InvalidDocumentError`, `MissingIdError` and `UnresolvedInclude`.
 - `findUnicodeSpaces`, `reconstructBlocks`, `findForbiddenElements`, `findAnswerKeyForbiddenElements`, `findStrayChoiceMarkers`, `parseNumericAnswer` and `parseNumericString`.
 - New dependency `yaml` (YAML 1.2 Core).
+- `load` option `ids`: `"fill"` returns `withIds(document)`; an exam with `includeAll` gives an `unresolved-include-all` error.
 
 ### Changed
 
@@ -48,6 +49,7 @@ the whole shared corpus (`examples/`), as mdq-py does.
 
 ### Removed
 
+- The `js-yaml` dependency. `loadYaml` throws `YamlLoadError` (and `DuplicateKeyError`, which extends it) instead of `YAMLException`.
 - `splitFrontmatter`, `extractComment`, `loadFrontmatterYaml`, `normalizeTags`, `buildChoices`, `inferChoiceType`, `parseItem`, `splitListItems` and `BRACKET_ITEM_RE` are no longer exported. `loadYaml` reads YAML text.
 - The `preamble` field of a question.
 

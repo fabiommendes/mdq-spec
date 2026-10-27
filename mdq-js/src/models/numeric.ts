@@ -2,8 +2,7 @@
  * Numeric questions and the key of a numeric fill-in blank. A port of
  * `models/_numeric.py`, the part that validates.
  *
- * The validation (phase P4b), the lint rules (phase P5) and the scoring
- * (phase P6) are here. The arithmetic is exact (`fraction.js`): no value of a
+ * It holds the validation, the lint rules and the scoring. The arithmetic is exact (`fraction.js`): no value of a
  * numeric answer, response or tolerance is ever held as a `number`.
  */
 

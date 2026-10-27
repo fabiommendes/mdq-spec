@@ -1,9 +1,8 @@
 /**
  * Short answer and essay questions. A port of `models/_text.py`.
  *
- * The pattern matching (phase P3 of `dev/plan/mdq-js-paridade.md`), the
- * validation (phase P4b), the lint rules (phase P5) and the scoring (phase P6)
- * are here.
+ * It holds the pattern matching, the validation, the lint rules and the
+ * scoring.
  */
 
 import type { Diagnostic, PathStep } from "../diagnostics.js";

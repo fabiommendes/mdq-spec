@@ -10,8 +10,6 @@ The conventions of this package live in `docs/sync/`:
 - `docs/sync/testing.md`: the shared corpus, `tests/corpus.ts`,
   `tests/not-ported.ts`.
 - `docs/sync/roadmap.md`: decisions and the history of the phases.
-- `docs/handoffs/`: notes of the cycles F0 to F4.1 (history; new work is
-  tracked in the port plan of the root repository, `dev/plan/`).
 
 Commands, from `mdq-js/`: `pnpm test`, `pnpm typecheck`, `pnpm lint`
 (`biome check`; `--write` only on hand-written files, never on

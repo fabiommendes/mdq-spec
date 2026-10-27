@@ -9,15 +9,15 @@
  *
  * Keys are `relativeId` names. A key that ends in `.` is a prefix and covers
  * every example whose name starts with it. The value says why the example
- * fails and the phase of the port plan (`dev/plan/mdq-js-paridade.md`, in
- * the root repository) that fixes it; remove the entry in that phase. See
- * `docs/sync/testing.md`.
+ * fails; remove the entry when the port handles it. The manifests are the
+ * mechanism for future ports: they are empty while the port is at parity with
+ * mdq-py. See `docs/sync/testing.md`.
  *
- * The manifests of the corpus suites of phase P1 (`LOADING`, `LINT`,
- * `LINT_CODES`, `MATCHING`, `IDS`, `NORMALIZE`, `GRADING`) key each test as
+ * The manifests of the corpus suites (`LOADING`, `LINT`, `LINT_CODES`,
+ * `MATCHING`, `IDS`, `NORMALIZE`, `GRADING`) key each test as
  * `<group>.<case>`. While nothing of a group is ported, one prefix entry
- * (`"regex."`) covers it. A phase that ports part of a group replaces its
- * prefix with one entry per case that still fails.
+ * (`"regex."`) covers it. A port of part of a group replaces its prefix with
+ * one entry per case that still fails.
  */
 
 import { it } from "vitest";
@@ -35,8 +35,7 @@ export const MODEL_RULES: Manifest = {};
 
 /**
  * `invalid/**\/*.mdq.md` sources that are not rejected with an error code
- * their `.lint.json` pins. The reason lists the expected codes and the phase
- * of the port plan that ports them.
+ * their `.lint.json` pins. The reason lists the expected codes.
  */
 export const LOAD: Manifest = {};
 

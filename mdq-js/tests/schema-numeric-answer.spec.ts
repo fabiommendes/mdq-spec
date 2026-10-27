@@ -1,6 +1,5 @@
 /**
- * `validateDocument` on a numeric string `answer` -- `docs/handoffs/
- * 06-numeric-grammar.md` criterion 4, on a numeric question and on a
+ * `validateDocument` on a numeric string `answer`, on a numeric question and on a
  * numeric fill-in blank.
  *
  * `schema/numeric.yaml`'s `answer` is `number | string`; the string form is

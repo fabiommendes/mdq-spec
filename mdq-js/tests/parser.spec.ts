@@ -1,10 +1,9 @@
 /**
- * Tests for `parseQuestionDocument` / `parseQuestion` / `isExam` --
- * `docs/handoffs/01-parser-bracket-lists.md`, cycle 1: the question-document
- * skeleton and the three bracket-list body types (`multiple-choice`,
+ * Tests for `parseQuestionDocument` / `parseQuestion` / `isExam` -- the
+ * question-document skeleton and the three bracket-list body types (`multiple-choice`,
  * `multiple-selection`, `true-false`).
  *
- * Three layers, per the handoff's testing strategy:
+ * Three layers:
  *  1. Corpus pairs -- every in-scope `.mdq.md` must parse to exactly its
  *     `.yaml` sibling.
  *  2. Properties -- a generator (`tests/arbitraries.ts`) builds bracket-list

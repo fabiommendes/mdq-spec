@@ -14,8 +14,8 @@
 import { YamlSyntaxError } from "@mdq";
 import { loadFrontmatterYaml, loadYaml } from "@mdq/parser/frontmatter.js";
 import fc from "fast-check";
-import { dump } from "js-yaml";
 import { describe, expect, it } from "vitest";
+import { stringify } from "yaml";
 
 describe("loadYaml -- YAML 1.2 Core scalars", () => {
 	it.each([
@@ -140,10 +140,10 @@ describe("loadFrontmatterYaml", () => {
 });
 
 //
-// Property: a JSON-safe value, dumped with `js-yaml`'s `forceQuotes` (every
+// Property: a JSON-safe value, dumped with `yaml`'s `defaultStringType: "QUOTE_DOUBLE"` (every
 // string scalar quoted, so none of it is at the mercy of either loader's
 // implicit resolvers), round-trips through `loadYaml` unchanged. Numbers
-// and booleans are not strings, so `forceQuotes` leaves their plain
+// and booleans are not strings, so the quoting leaves their plain
 // representation alone -- the property only relies on that representation
 // being one the Core resolvers read back, which the scalar table above pins
 // down.
@@ -170,7 +170,11 @@ describe("loadYaml -- round-trip property", () => {
 	it("recovers any JSON-safe record dumped with forced quoting", () => {
 		fc.assert(
 			fc.property(jsonRecordArb, (record) => {
-				const text = dump(record, { forceQuotes: true });
+				const text = stringify(record, {
+					defaultStringType: "QUOTE_DOUBLE",
+					defaultKeyType: "PLAIN",
+					lineWidth: 0,
+				});
 				expect(loadYaml(text)).toEqual(record);
 			}),
 			{ numRuns: 200 },

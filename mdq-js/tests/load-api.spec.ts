@@ -38,6 +38,24 @@ describe("load", () => {
 		expect(source).toEqual(before);
 	});
 
+	it("fills the ids with ids: fill, and keeps the document with keep", () => {
+		const text = "Capital do Brasil?\n\n- [x] Brasilia\n- [ ] Recife\n";
+		const kept = load(text, { ids: "keep" });
+		const filled = load(text, { ids: "fill" });
+		expect(kept.document).toBeDefined();
+		expect(JSON.stringify(kept.document)).not.toContain('"id"');
+		expect(JSON.stringify(filled.document)).toContain('"id"');
+	});
+
+	it("reports an includeAll block under ids: fill", () => {
+		const exam = { type: "exam", title: "P", questions: [{ includeAll: "x" }] };
+		const loaded = load(exam, { ids: "fill" });
+		expect(loaded.document).toBeUndefined();
+		expect(loaded.diagnostics.map((d) => d.code)).toContain(
+			"unresolved-include-all",
+		);
+	});
+
 	it("rejects an unknown format with a RangeError", () => {
 		expect(() => load("{}", { format: "toml" as "json" })).toThrow(RangeError);
 	});

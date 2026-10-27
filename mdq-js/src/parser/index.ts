@@ -19,7 +19,7 @@ export {
 	parseExamDocument,
 	SEPARATOR,
 } from "./exam.js";
-export { loadYaml } from "./frontmatter.js";
+export { loadYaml, YamlLoadError } from "./frontmatter.js";
 export { parseNumericAnswer, parseNumericString } from "./numeric.js";
 export {
 	parseQuestion,
