@@ -359,15 +359,7 @@ export const LINT_CODES: Manifest = {
  * Pattern and query vectors of `examples/matching/` that the port does not
  * match as expected (`tests/matching.spec.ts`). Keys are `<group>.<case>`.
  */
-export const MATCHING: Manifest = {
-	"exact-fill-in.": "pattern matching (P3)",
-	"exact-short-answer.": "pattern matching (P3)",
-	"inexact-fill-in.": "pattern matching (P3)",
-	"inexact-short-answer.": "pattern matching (P3)",
-	"letters-applies.": "pattern matching (P3)",
-	"letters-once.": "pattern matching (P3)",
-	"regex.": "pattern matching (P3)",
-};
+export const MATCHING: Manifest = {};
 
 /** `.ids.yaml` files whose ids `withIds` does not give (`tests/ids.spec.ts`). */
 export const IDS: Manifest = {

@@ -24,6 +24,7 @@ Implements part of the unreleased MDQ specification.
 
 ### Added
 
+- Pattern matching, ported from mdq-py: `RegexPattern` and the regex allow-list (`models/regex.ts`), the exact and inexact comparison (`matches`, `normalizeText`, `settleResponse`, `scoreText` in `models/text.ts`), and `scoreResponse` for short answer questions and for fill-in questions with short answer blanks.
 - `findUnicodeSpaces` (the `non-ascii-whitespace` lint of the source), `reconstructBlocks`, `findForbiddenElements`, `findAnswerKeyForbiddenElements`, `findStrayChoiceMarkers`, `parseNumericAnswer` and `parseNumericString`.
 - Parser for multiple-choice, multiple-selection, true-false, essay,
   numeric, short-answer, ordering and fill-in questions (`parseQuestion`,
