@@ -10,7 +10,12 @@
 
 import { ParseError } from "../errors.js";
 import { md, span, startsAfter } from "../markdown.js";
-import { BLOCK_NAMES, type BlockCursor, type BlockReader } from "./blocks.js";
+import {
+	BLOCK_NAMES,
+	type BlockCursor,
+	type BlockReader,
+	lineOf,
+} from "./blocks.js";
 import { isCommentLine, parseObservations } from "./choices.js";
 import { normalizeList } from "./frontmatter.js";
 import type { OrderingTag } from "./tags.js";
@@ -429,10 +434,14 @@ function parseOrderingContent(
 		if (options.section !== undefined) {
 			throw new ParseError(
 				`the ## [${options.section}] section has no content block`,
+				[],
+				lineOf(node),
 			);
 		}
 		throw new ParseError(
 			"an [ordering] block must be followed by a code block or a list",
+			[],
+			lineOf(node),
 		);
 	}
 	if (options.tagNode !== undefined && !startsAfter(options.tagNode, node)) {

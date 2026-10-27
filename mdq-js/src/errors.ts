@@ -5,6 +5,8 @@
  * parsing the message: `MissingFieldError` names the field.
  */
 
+import type { Diagnostic } from "./diagnostics.js";
+
 /** Base class for every error this package raises. */
 export class MdqError extends Error {
 	constructor(message: string) {
@@ -23,10 +25,32 @@ export class ParseError extends MdqError {
 	readonly code: string = "parse-error";
 	/** Where the problem is, as a path from the document's root. */
 	readonly path: readonly (string | number)[];
+	/** The 1-based source line of the node the problem is about, if known. */
+	readonly line: number | undefined;
 
-	constructor(message: string, path: readonly (string | number)[] = []) {
+	constructor(
+		message: string,
+		path: readonly (string | number)[] = [],
+		line?: number,
+	) {
 		super(message);
 		this.path = path;
+		this.line = line;
+	}
+}
+
+/**
+ * `Loaded.validate` found no document, or a diagnostic at or above the
+ * severity it enforces. Carries every diagnostic `load` produced. Mirrors
+ * `InvalidDocument` in `mdq-py/mdq/errors.py`.
+ */
+export class InvalidDocumentError extends MdqError {
+	constructor(readonly diagnostics: readonly Diagnostic[]) {
+		super(
+			diagnostics
+				.map((d) => `${d.severity} ${d.code}: ${d.message}`)
+				.join("; ") || "invalid document",
+		);
 	}
 }
 

@@ -17,10 +17,12 @@
 
 import { type Diagnostic, diagnostic } from "./diagnostics.js";
 import { IncludeNotFoundError, MdqError } from "./errors.js";
+import { load } from "./loading.js";
 import { parseQuery, QuerySyntaxError, type TagIndex } from "./models/query.js";
-import { INHERITED_FIELDS, isExam } from "./parser/exam.js";
+import { INHERITED_FIELDS } from "./parser/exam.js";
 import { parseQuestionDocument } from "./parser/question.js";
 import { Exam } from "./schema/exam.js";
+import { modelDiagnostics } from "./validate.js";
 
 /**
  * The source of a question in a bank: MDQ Markdown text, or a document that
@@ -46,9 +48,10 @@ export interface QuestionBank extends TagIndex {
  * for a host that has its questions in memory.
  *
  * `tagged` and `ids` read an index that is built once, on the first call of
- * either. The index skips a source that is an exam (by `isExam` for text, by
- * `type: "exam"` for a document) and a text that does not parse. A `tags`
- * string is split at commas, as in the frontmatter.
+ * either. The index only holds the sources that `load` accepts as a question:
+ * an exam, a document with an error and a mapping that breaks the schema
+ * (`tags` as a string, say) are left out, silently. Warnings do not
+ * disqualify a source.
  */
 export class DictLoader implements QuestionBank {
 	private index:
@@ -101,35 +104,18 @@ export class DictLoader implements QuestionBank {
 	}
 }
 
-/** The tags of a question's source, or `undefined` if it is not a question. */
+/**
+ * The tags of a question's source, or `undefined` if the source is not a
+ * valid question.
+ *
+ * The source is loaded and validated as a question, so an exam, a document
+ * with an error and a mapping that breaks the schema (an unknown `type`,
+ * `tags` that is not a list of strings) are all `undefined`. Warnings do not
+ * disqualify a source.
+ */
 function sourceTags(source: QuestionSource): string[] | undefined {
-	let document: Readonly<Record<string, unknown>>;
-	if (typeof source === "string") {
-		if (isExam(source)) {
-			return undefined;
-		}
-		try {
-			document = parseQuestionDocument(source);
-		} catch (error) {
-			if (error instanceof MdqError) {
-				return undefined;
-			}
-			throw error;
-		}
-	} else {
-		document = source;
-	}
-	if (document.type === "exam") {
-		return undefined;
-	}
-	const tags = document.tags ?? [];
-	if (typeof tags === "string") {
-		return tags
-			.split(",")
-			.map((tag) => tag.trim())
-			.filter((tag) => tag !== "");
-	}
-	return Array.from(tags as Iterable<unknown>, String);
+	const question = load(source, { kind: "question" }).document;
+	return question === undefined ? undefined : [...(question.tags ?? [])];
 }
 
 /**
@@ -197,7 +183,8 @@ export interface ResolveOptions {
  * before the resolution) is appended for every `includeAll` block that adds
  * nothing.
  *
- * Unique question ids are a model rule (F5) and are not checked here.
+ * The resolved exam is validated with the model rules too, so a question
+ * id that two questions share is an error.
  *
  * @throws {IncludeNotFoundError} If `bank` has no question for an id.
  * @throws {ParseError} If a text source is not a valid MDQ question.
@@ -260,6 +247,12 @@ export function resolveExam(
 	if (!result.success) {
 		throw new MdqError(
 			`the resolved exam does not satisfy its schema: ${result.error.message}`,
+		);
+	}
+	const problems = modelDiagnostics(result.data);
+	if (problems.length > 0) {
+		throw new MdqError(
+			`the resolved exam does not satisfy its schema: ${problems.map((d) => d.message).join("; ")}`,
 		);
 	}
 	return result.data;

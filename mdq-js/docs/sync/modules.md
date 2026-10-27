@@ -16,7 +16,7 @@ differs states the reason in its header comment.
 | Python                              | TypeScript                               |
 | ----------------------------------- | ---------------------------------------- |
 | `mdq/__init__.py`                   | `src/index.ts`                           |
-| `mdq/_loading.py`                   | `src/loading.ts` (phase P4)              |
+| `mdq/_loading.py`                   | `src/loading.ts`              |
 | `mdq/_diagnostics.py`               | `src/diagnostics.ts`                     |
 | `mdq/errors.py`                     | `src/errors.ts`                          |
 | `mdq/types.py`                      | `src/schema/*`, `src/responses.ts`       |
@@ -27,13 +27,13 @@ differs states the reason in its header comment.
 | `mdq/_schedule.py`                  | `src/schedule.ts`                        |
 | `mdq/_banks.py`                     | `src/banks.ts`                           |
 | `mdq/_parser/_<name>.py`            | `src/parser/<name>.ts` (`_blocks`, `_choices`, `_exam`, `_fill_in`, `_frontmatter`, `_numeric`, `_ordering`, `_question`, `_short_answer`, `_spaces`, `_tags`) |
-| `mdq/models/_base.py`               | `src/models/base.ts`                     |
+| `mdq/models/_base.py`               | `src/models/base.ts` (`FamilyRules`: the validators a family adds) |
 | `mdq/models/_choice.py`             | `src/models/choice.ts`                   |
 | `mdq/models/_numeric.py`            | `src/models/numeric.ts`                  |
 | `mdq/models/_text.py`               | `src/models/text.ts`                     |
 | `mdq/models/_fill_in.py`            | `src/models/fill-in.ts`                  |
 | `mdq/models/_ordering.py`           | `src/models/ordering.ts`                 |
-| `mdq/models/_exam.py`               | `src/models/exam.ts`                     |
+| `mdq/models/_exam.py`               | `src/models/exam.ts` (`validateQuestionModel`, `validateExamModel`, `FAMILY_RULES`) |
 | `mdq/models/_lint.py` (common rules) | `src/models/lint.ts`                    |
 | `mdq/models/_lint_codes.py`         | `src/models/lint-codes.ts`               |
 | `mdq/models/_regex.py`              | `src/models/regex.ts`                    |

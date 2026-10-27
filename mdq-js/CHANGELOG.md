@@ -14,6 +14,8 @@ Implements part of the unreleased MDQ specification.
 
 ### Changed
 
+- The index of `DictLoader` only holds the sources that `load` accepts as a question: a mapping with `tags` as a string, or with a model rule broken, is left out, and a `tags` string is no longer split at commas. `resolveExam` also applies the model rules (a shared question id is an error).
+
 - The question parser is split like mdq-py (`parser/question.ts`, `blocks.ts`, `tags.ts`, `choices.ts`, `frontmatter.ts`, `numeric.ts`, `spaces.ts`; `letters.ts`, `markdown.ts`, `exact.ts`, `include-keys.ts` at the top). Multiple-choice, multiple-selection, true-false, essay and numeric bodies follow the new format: the stem is every block before the body (no `preamble`), an essay's `input` is `content`, a numeric value takes an exponent, a choice marker is normalized with NFKC, tags are lower case, and a tag in the epilogue is `detached-tag`.
 - A frontmatter key that is not a field of the question type is an `invalid-frontmatter-field` error diagnostic (was the `unknown-frontmatter-key` warning). A `redundant-id` warning reports `id` in the frontmatter and as a slug.
 - The comment of the frontmatter is trimmed.
@@ -24,6 +26,8 @@ Implements part of the unreleased MDQ specification.
 
 ### Added
 
+- `load`, `parse` and `assertValid` (`loading.ts`), ported from mdq-py: YAML, JSON and Markdown text or a mapping in, `{document, diagnostics}` out. A Zod issue is a `schema-error` with a path in the form of mdq-py (no union tag), a model rule keeps its own code, a repeated JSON key is a `json-syntax-error`, a `null` of an optional field is absent, and `start` and `duration` take their canonical form. `ParseError` has the `line` of its node, and `InvalidDocumentError` is new.
+- The model rules of `BaseQuestion` and of the exam (`models/base.ts`, `models/exam.ts`): `blank-text`, `malformed-locale`, `malformed-uuid`, `forbidden-block-element` (also a setext H1 in the stem, the epilogue and the exam instructions), `malformed-start`, `invalid-duration` and `duplicate-question-id`. `validateDocument` runs them after Zod and reports each as a `custom` issue with the rule's code in `params.code`.
 - Pattern matching, ported from mdq-py: `RegexPattern` and the regex allow-list (`models/regex.ts`), the exact and inexact comparison (`matches`, `normalizeText`, `settleResponse`, `scoreText` in `models/text.ts`), and `scoreResponse` for short answer questions and for fill-in questions with short answer blanks.
 - `findUnicodeSpaces` (the `non-ascii-whitespace` lint of the source), `reconstructBlocks`, `findForbiddenElements`, `findAnswerKeyForbiddenElements`, `findStrayChoiceMarkers`, `parseNumericAnswer` and `parseNumericString`.
 - Parser for multiple-choice, multiple-selection, true-false, essay,

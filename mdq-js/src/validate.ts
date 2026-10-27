@@ -7,7 +7,9 @@
  * built -- narrowed, not wrapped.
  */
 
-import type * as z from "zod";
+import * as z from "zod";
+import type { Diagnostic } from "./diagnostics.js";
+import { validateExamModel, validateQuestionModel } from "./models/exam.js";
 import { Exam } from "./schema/exam.js";
 import {
 	QUESTION_SCHEMAS,
@@ -50,7 +52,36 @@ export function validateExam(document: unknown): ValidationResult<Exam> {
 }
 
 /**
- * Validate a document of either kind.
+ * The model rules of a document the schemas accepted: blank text, locale,
+ * forbidden block elements, unique ids and the rest of what Pydantic
+ * validators check in mdq-py (`docs/sync/schemas.md`). At most one
+ * diagnostic per code and path.
+ */
+export function modelDiagnostics(document: MdqDocument): Diagnostic[] {
+	const found =
+		"questions" in document
+			? validateExamModel(document)
+			: validateQuestionModel(document);
+	return uniqueDiagnostics(found);
+}
+
+/** `diagnostics` with a second diagnostic of the same code and path dropped. */
+export function uniqueDiagnostics(
+	diagnostics: readonly Diagnostic[],
+): Diagnostic[] {
+	const seen = new Set<string>();
+	return diagnostics.filter((d) => {
+		const key = JSON.stringify([d.code, d.path]);
+		if (seen.has(key)) return false;
+		seen.add(key);
+		return true;
+	});
+}
+
+/**
+ * Validate a document of either kind: against its schema, then against the
+ * model rules. A model rule that fails is a `custom` issue of the returned
+ * error, with the rule's code in `params.code`.
  *
  * An exam is told apart by its `questions` array: in the surface syntax it is
  * recognized by an H1 title, which a question can never carry, and the parsed
@@ -59,9 +90,24 @@ export function validateExam(document: unknown): ValidationResult<Exam> {
 export function validateDocument(
 	document: unknown,
 ): ValidationResult<MdqDocument> {
-	return isExamShaped(document)
+	const result: ValidationResult<MdqDocument> = isExamShaped(document)
 		? validateExam(document)
 		: validateQuestion(document);
+	if (!result.success) return result;
+	const problems = modelDiagnostics(result.data);
+	if (problems.length === 0) return result;
+	return {
+		success: false,
+		error: new z.ZodError(
+			problems.map((d) => ({
+				code: "custom" as const,
+				path: [...d.path],
+				message: d.message,
+				params: { code: d.code },
+				input: undefined,
+			})),
+		),
+	};
 }
 
 /** Whether a parsed document looks like an exam rather than a question. */

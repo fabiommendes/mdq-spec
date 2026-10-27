@@ -154,22 +154,23 @@ describe("DictLoader index", () => {
 		expect(bank.load("broken")).toBe("Only text.");
 	});
 
-	it("splits a string `tags` at commas and trims", () => {
+	it("leaves out a mapping whose `tags` is not a list of strings", () => {
 		const bank = new DictLoader({
 			a: { type: "essay", stem: "A.", tags: " biome ,savanna,  " },
+			n: { type: "essay", stem: "N.", tags: [2024, "biome"] },
 			b: "---\ntags: biome, forest\n---\n\nB.\n\n[essay]\n",
 		});
-		expect([...bank.tagged("biome")].sort()).toEqual(["a", "b"]);
-		expect([...bank.tagged("savanna")]).toEqual(["a"]);
+		expect([...bank.ids()]).toEqual(["b"]);
+		expect([...bank.tagged("biome")]).toEqual(["b"]);
 		expect([...bank.tagged("forest")]).toEqual(["b"]);
-		expect(bank.tagged(" biome ").size).toBe(0);
 	});
 
-	it("turns the items of a list `tags` into strings", () => {
+	it("leaves out a mapping that breaks the model rules", () => {
 		const bank = new DictLoader({
-			a: { type: "essay", stem: "A.", tags: [2024, "biome"] },
+			blank: { type: "essay", stem: "  " },
+			ok: { type: "essay", stem: "Q." },
 		});
-		expect([...bank.tagged("2024")]).toEqual(["a"]);
+		expect([...bank.ids()]).toEqual(["ok"]);
 	});
 
 	it("builds the index once, on first use", () => {

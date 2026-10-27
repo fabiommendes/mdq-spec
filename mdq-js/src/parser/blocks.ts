@@ -254,7 +254,7 @@ export class BlockCursor {
 	expect(nodeType: string, errorMsg: string): Node {
 		const node = this.peek();
 		if (node === null || node.type !== nodeType) {
-			throw new ParseError(errorMsg);
+			throw new ParseError(errorMsg, [], lineOf(node));
 		}
 		return this.read();
 	}
@@ -284,6 +284,12 @@ export class BlockCursor {
 			);
 		}
 	}
+}
+
+/** The 1-based source line a node starts at, if markdown-it mapped it. */
+export function lineOf(node: Node | null): number | undefined {
+	const start = node?.map?.[0];
+	return start === undefined ? undefined : start + 1;
 }
 
 /** Parse the items of a choice list (choices.md, "Item"). */
