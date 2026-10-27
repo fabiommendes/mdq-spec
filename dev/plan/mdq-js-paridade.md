@@ -121,7 +121,7 @@ Classificação dos testes: `/tmp/mdq-migration/classification.md`
 ### P2. Parser
 
 Feita em 2026-10-27 (`363096f`, `5de27b8`, `25734b4`), conferida contra a
-mdq-py `5db0257`. Falta reconferir contra `727de27` e `82b8497`.
+mdq-py `5db0257`; o pacote G (`7c5c726`) só mudou o comentário de ordering, portado em `40a9672`.
 
 Fechar `parser.spec.ts` e os códigos do parser em `invalid-sources.spec.ts`.
 Dividir `parser/question.ts` como o `_parser/` final da mdq-py.
