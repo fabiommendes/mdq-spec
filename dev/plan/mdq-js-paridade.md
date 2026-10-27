@@ -304,17 +304,36 @@ Reportadas à sessão `mdq`:
   (`["domain"]`; `["incorrectFeedback", "river"]` para uma entrada), não `[]`.
   Quatro `.lint.json` de `examples/invalid/fill-in-*` mudaram.
 
-- Anunciadas pelo comitê, ainda sem commit (2026-10-27):
-  - D01: linha lazy do conteúdo que começa com tag reservada seguida de `:`
-    é `parse-error` (entra na gramática).
-  - D02: setext H1 é H1 em todo lugar; nas instruções do exame e no stem em
-    Markdown é `forbidden-block-element`. O parser deixa de apagar o
-    sublinhado setext. `valid/exam/setext-heading-equals-underline` vira
-    inválido.
-  - D06: o índice do banco só aceita fontes que validam como questão; sem
-    split por vírgula nem `str()` nas tags de mapping (`banks.ts`,
-    `tests/banks.spec.ts`).
-  - D07: só comentários dos `.ids.yaml` (ordem de code point).
+- Rodada de bugs da mdq-py, commitada (HEAD `4fac1db`):
+  - D01 (spec `823cdd2`, mdq-py `11fd3a8`): numa linha lazy, linha com
+    menos de 4 colunas de recuo que casa `^\[(label)\][ \t]*:`, com label
+    que começa com `^` ou é rótulo reservado, é `parse-error` ("the line
+    '…' is a tag, so it cannot continue the content before it; add a blank
+    line before the tag"). Vale para as linhas [1:] de um parágrafo de tag
+    de short-answer, numeric ou definição de lacuna, e para as linhas lazy
+    de item de lista (padrões, choice, ordering). Link def não reservada
+    (`[ibge]: https://…`) segue texto. Corpus: `invalid/*-tag-line-after-*`,
+    `valid/short-answer/link-definition-continuation`. Etapas P2a/P2b/P2c.
+  - D02: setext H1 (`===`) é `forbidden-block-element` nas instruções do
+    exame, no stem e no epílogo (substitui `setext-heading` ali). O parser
+    mantém as linhas de sublinhado setext em stem e epílogo.
+    `Exam.lint()` reporta `setext-heading` em `questions[i].stem`/
+    `.epilogue`; o parser do exame não emite mais o aviso para esses dois
+    campos. A mensagem de `setext-heading` cita a linha real. Corpus:
+    `exam-setext-h1-*`, `question-setext-h1-*`,
+    `model-only/question-setext-h1-in-stem.yaml`,
+    `valid/short-answer/stem-setext-h2`, `valid/exam/question-stem-setext-h2`;
+    `valid/exam/setext-heading-equals-underline` virou
+    `invalid/exam-setext-h1-in-instructions`. Parser na P2c, regra na P4,
+    lint na P5.
+  - Exame sem título: H1 só com `#` vale (`valid/exam/empty-heading`).
+  - D06 (`adaa1e5`): o índice do banco só aceita fontes que validam como
+    questão; sem split por vírgula nem `str()` nas tags de mapping.
+    `tests/banks.spec.ts:157-172` passa a esperar fonte fora do índice
+    (P4, depois de `validateDocument` com regras de modelo).
+  - D07: só comentários dos `.ids.yaml`.
+- Anunciado sem data: refatorações internas da mdq-py com pequenas mudanças
+  de mensagem.
 
 Próxima rodada anunciada pela sessão `mdq`: bugs de `dev/issues/`
 (conversores, `show`, CLI, `exam-duplicate-tags`,
