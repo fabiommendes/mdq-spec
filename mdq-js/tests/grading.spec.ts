@@ -165,14 +165,20 @@ describe("multiple selection", () => {
 		for (const example of testCase.examples as Plain[]) {
 			corpusIt(
 				GRADING,
-				`multiple-selection.${testCase.grading}/${testCase.name}/${reprOf(example.ticks)}`,
+				`multiple-selection.${testCase.grading}/${testCase.name}/${reprOf("ticks" in example ? example.ticks : example.response)}`,
 				() => {
 					const question = choiceQuestion("multiple-selection", testCase);
-					const ticks = [...new Set(example.ticks as string[])];
-					if (expectRejected(() => scoreOf(question, ticks), example.score)) {
+					// `ticks` is the ticked ids; `response` is passed as it is.
+					const response =
+						"ticks" in example
+							? [...new Set(example.ticks as string[])]
+							: example.response;
+					if (
+						expectRejected(() => scoreOf(question, response), example.score)
+					) {
 						return;
 					}
-					const result = scoreOf(question, ticks);
+					const result = scoreOf(question, response);
 					expectApprox(result.score, scoreValue(example.score));
 					if ("feedback" in example) {
 						expect(result.feedback).toEqual(example.feedback);
