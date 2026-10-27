@@ -1,6 +1,6 @@
 ---
 type: plan
-status: active
+status: done
 tags: [mdq-js, port, sync, corpus, testes]
 relatedTo: [dev/rfcs/0001-mdq-js-paridade.md, mdq-js/docs/sync/modules.md, mdq-js/docs/sync/testing.md, mdq-js/docs/sync/roadmap.md]
 ---
@@ -318,7 +318,9 @@ Notas:
   ~4900 linhas de teste; cobertura de linhas 97,58% → 97,45%. As 11
   instruções perdidas são de 8 casos sem exemplo no corpus, enviados à
   sessão `mdq` (`/tmp/mdq-p7/corpus-gaps.md`).
-- [ ] `mdq-js/docs/sync/*` revisados; `mdq-js/CHANGELOG.md` [Unreleased].
+- [x] `mdq-js/docs/sync/*` revisados; `mdq-js/CHANGELOG.md` [Unreleased]
+  (`c65265b`). Limpeza: sem `js-yaml`, opção `ids` do `load`, handoffs
+  antigos apagados (`a22b7db`).
 - [x] `tests/not-ported.ts` vazio em todas as camadas.
 - [x] Diferenças só de mensagem (`[numerİc]`, `str.split()`) (`bb30469`).
 
@@ -415,3 +417,6 @@ modelo, lint ou pontuação entram aqui.
   aceita string ou mapa na mdq-py levado à sessão `mdq` como bug.
 - 2026-10-27: P7a e P7b feitas. A mdq-js lê o corpus inteiro sem manifesto.
   Pacote L da `mdq` portado (`9488681`). Suíte: 8100 testes.
+- 2026-10-27: plano concluído. Pacote M da `mdq` pôs 6 dos 8 casos da P7b
+  no corpus; os outros 2 viraram teste de API (`d6a7b75`). Cobertura de
+  linhas 97,63%; suíte 8133 testes.
