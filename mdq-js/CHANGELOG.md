@@ -14,6 +14,7 @@ Implements part of the unreleased MDQ specification.
 
 ### Added
 
+- `scoreResponse` scores every question type, `prevalidate` checks `preAccept` and `preReject`, `scoreResponses` scores an exam, and `gradingFor`, `shuffleFor`, `resolveQuestion`, `effectiveGrading` and `effectiveShuffle` apply the inheritance of an exam, as the methods of mdq-py. A malformed response is a `ResponseError`. `MissingIdError` and `UnresolvedInclude` join the errors. Numeric answers, responses and tolerances use exact arithmetic (`fraction.js` 5, new dependency); no value is held as a `number`. A multiple-selection response must be an array of ids: a string or a mapping is a `ResponseError` (mdq-py iterates both).
 - `lint(document)`, `lintQuestion` and `lintExam` report the `warning` and `info` diagnostics of a question or an exam, as `Question.lint()` and `Exam.lint()` of mdq-py. `load` adds them to the diagnostics of a valid document. `SEVERITY` (`models/lint-codes.ts`) holds the severity of each lint code. `unknown-highlight-language` reads the aliases of the Pygments lexers from `src/pygments-aliases.json`.
 
 ### Changed

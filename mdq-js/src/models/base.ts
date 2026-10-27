@@ -5,15 +5,14 @@
  * `malformed-uuid`, `forbidden-block-element`) are here, as functions that
  * return `Diagnostic[]`. A family adds its own through `FamilyRules`
  * (`models/exam.ts`). `normalize`, `withIds` and `automation` are phase P7 of
- * `dev/plan/mdq-js-paridade.md` and `effectiveGrading` and `effectiveShuffle`
- * are P6: they are stubs that throw.
+ * `dev/plan/mdq-js-paridade.md`: they are stubs that throw.
  */
 
 import { type Diagnostic, diagnostic, type PathStep } from "../diagnostics.js";
 import { hasVisibleCharacter, UUID_RE } from "../markdown.js";
 import { findForbiddenElements } from "../parser/blocks.js";
 import { repr, SPACE, strip } from "../parser/text.js";
-import type { Question } from "../schema/index.js";
+import type { GradingType, Question } from "../schema/index.js";
 import type { MdqDocument } from "../validate.js";
 import {
 	checkIdAndTitleDefined,
@@ -337,12 +336,50 @@ export function automation(_question: Question): Automation {
 	throw new Error("not ported (P7)");
 }
 
-/** The `grading` of a question outside any exam, with the default applied. */
-export function effectiveGrading(_question: Question): string {
-	throw new Error("not ported (P6)");
+/** The questions that choose a grading strategy and may be shuffled. */
+export type GradedQuestion = Extract<
+	Question,
+	{ type: "multiple-choice" | "multiple-selection" | "true-false" | "fill-in" }
+>;
+
+/** Whether `question` has the `grading` and `shuffle` fields. */
+export function isGradedQuestion(
+	question: Question,
+): question is GradedQuestion {
+	return (
+		question.type === "multiple-choice" ||
+		question.type === "multiple-selection" ||
+		question.type === "true-false" ||
+		question.type === "fill-in"
+	);
 }
 
-/** The `shuffle` of a question outside any exam, with the default applied. */
-export function effectiveShuffle(_question: Question): boolean {
-	throw new Error("not ported (P6)");
+/**
+ * The `grading` of a question outside any exam, with `inherit` read as
+ * `symmetric`.
+ *
+ * @throws {TypeError} The question type has no `grading`.
+ */
+export function effectiveGrading(question: Question): GradingType {
+	if (!isGradedQuestion(question)) {
+		throw new TypeError(`a ${question.type} question has no grading`);
+	}
+	return question.grading === undefined || question.grading === "inherit"
+		? "symmetric"
+		: question.grading;
+}
+
+/**
+ * The `shuffle` of a question outside any exam, with `inherit` read as
+ * `false`.
+ *
+ * @throws {TypeError} The question type has no `shuffle`.
+ */
+export function effectiveShuffle(question: Question): boolean {
+	if (!isGradedQuestion(question)) {
+		throw new TypeError(`a ${question.type} question has no shuffle`);
+	}
+	return question.shuffle === undefined || question.shuffle === "inherit"
+		? false
+		: question.shuffle;
 }

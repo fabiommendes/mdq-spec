@@ -1,6 +1,6 @@
 /**
  * Choice-based questions: multiple-choice, multiple-selection and
- * true-false. A port of `models/_choice.py`, the part that validates.
+ * true-false. A port of `models/_choice.py`: validation, lint and scoring.
  *
  * The rules are `FamilyRules` (`models/base.ts`) that `FAMILY_RULES`
  * (`models/exam.ts`) registers. `checkUniqueChoices` and `choiceFreeTexts`
@@ -8,6 +8,7 @@
  */
 
 import type { Diagnostic, PathStep } from "../diagnostics.js";
+import { ResponseError } from "../errors.js";
 import {
 	FALSE_LETTERS,
 	isLetter,
@@ -16,7 +17,7 @@ import {
 	normalizeValue,
 	TRUE_LETTERS,
 } from "../letters.js";
-import { repr, strip } from "../parser/text.js";
+import { pyRepr, repr, strip, typeName } from "../parser/text.js";
 import type {
 	MultipleChoiceQuestion,
 	MultipleSelectionQuestion,
@@ -30,6 +31,7 @@ import {
 } from "./base.js";
 import { languageSubtag, renderVisualKey } from "./lint.js";
 import { lintDiagnostic } from "./lint-codes.js";
+import type { QuestionScore } from "./score.js";
 
 type Choice = { readonly id?: string; readonly text: string };
 
@@ -369,3 +371,205 @@ export const trueFalseRules: FamilyRules<TrueFalseQuestion> = {
 		...checkTrueFalseMarkerNfkc(question.choices),
 	],
 };
+
+//
+// Scoring
+//
+
+/**
+ * The score of a picked choice that declares none (multiple-choice.md,
+ * "Grading"). It is 0 under `partial`. Under `symmetric` it spreads the
+ * negative of the declared scores evenly over the choices that declare none,
+ * clamped to [-1, 0]. A fill-in choice blank uses it too.
+ */
+export function unspecifiedChoiceScore(
+	choices: readonly { readonly score?: number | undefined }[],
+	symmetric: boolean,
+): number {
+	if (!symmetric) return 0;
+	const declared = choices.flatMap((choice) =>
+		choice.score === undefined ? [] : [choice.score],
+	);
+	const missing = choices.length - declared.length;
+	if (missing === 0) return 0;
+	const total = declared.reduce((sum, value) => sum + value, 0);
+	// `+ 0` turns -0 into 0.
+	return Math.max(-1, Math.min(0, -total / missing)) + 0;
+}
+
+/** The `grading` of a multiple-choice, multiple-selection or true-false question, `inherit` read as `symmetric`. */
+export function choiceGrading(
+	question: Pick<
+		MultipleChoiceQuestion | MultipleSelectionQuestion | TrueFalseQuestion,
+		"grading"
+	>,
+): string {
+	return question.grading === undefined || question.grading === "inherit"
+		? "symmetric"
+		: question.grading;
+}
+
+/**
+ * Score a response to a multiple-choice question by the `score` of the picked
+ * choice, or by `unspecifiedChoiceScore` when it declares none.
+ *
+ * @throws {ResponseError} The response names no choice.
+ */
+export function scoreMultipleChoice(
+	question: MultipleChoiceQuestion,
+	response: unknown,
+): QuestionScore {
+	const choice =
+		typeof response === "string"
+			? question.choices.find((candidate) => candidate.id === response)
+			: undefined;
+	if (choice === undefined) {
+		throw new ResponseError(
+			`Response id ${pyRepr(response)} not found in choices`,
+		);
+	}
+	const score =
+		choice.score ??
+		unspecifiedChoiceScore(
+			question.choices,
+			choiceGrading(question) === "symmetric",
+		);
+	return { score, feedback: choice.feedback ? [choice.feedback] : [] };
+}
+
+/**
+ * Score a response to a multiple-selection question. The response is the
+ * list of ticked ids; a choice not in it asserts false.
+ *
+ * @throws {ResponseError} The response is not a list of ids of the question.
+ */
+export function scoreMultipleSelection(
+	question: MultipleSelectionQuestion,
+	response: unknown,
+): QuestionScore {
+	if (!Array.isArray(response)) {
+		throw new ResponseError(
+			`A multiple-selection response must be a set of ids, found ${typeName(response)}`,
+		);
+	}
+	const known = new Set(question.choices.map((choice) => choice.id));
+	for (const tick of response) {
+		if (typeof tick !== "string") {
+			throw new ResponseError(`Ticked id ${pyRepr(tick)} is not a string`);
+		}
+	}
+	const unknown = (response as string[])
+		.filter((tick) => !known.has(tick))
+		.sort();
+	if (unknown.length > 0) {
+		throw new ResponseError(
+			`Ticked ids ${pyRepr(unknown)} not found in choices`,
+		);
+	}
+	const ticked = new Set(response as string[]);
+	const n = question.choices.length;
+	const marks = question.choices.map(
+		(choice) =>
+			[choice, choice.id !== undefined && ticked.has(choice.id)] as const,
+	);
+	const judged = marks.filter(
+		([choice, mark]) => mark === choice.correct,
+	).length;
+
+	let score: number;
+	switch (choiceGrading(question)) {
+		case "all-or-nothing":
+			score = judged === n ? 1 : 0;
+			break;
+		case "partial":
+			score = judged / n;
+			break;
+		default:
+			score = (2 * judged - n) / n;
+	}
+	const feedback = marks.flatMap(([choice, mark]) =>
+		mark !== choice.correct && choice.feedback ? [choice.feedback] : [],
+	);
+	return { score, feedback };
+}
+
+/**
+ * Check a true/false response: a mapping whose keys are statement ids and
+ * whose values are booleans or `null` (responses.md, "True/false").
+ *
+ * @throws {ResponseError} The response is malformed.
+ */
+function parseTrueFalse(
+	question: TrueFalseQuestion,
+	response: unknown,
+): Readonly<Record<string, unknown>> {
+	const notAMapping = new ResponseError(
+		`A true/false response must be a mapping of statement ids, found ${typeName(response)}`,
+	);
+	if (typeof response !== "object" || response === null) throw notAMapping;
+	const known = new Set(question.choices.map((statement) => statement.id));
+	const keys = Array.isArray(response)
+		? response.map((item) => (typeof item === "string" ? item : pyRepr(item)))
+		: Object.keys(response);
+	const unknown = keys.filter((key) => !known.has(key)).sort();
+	if (unknown.length > 0) {
+		throw new ResponseError(
+			`Statement ids ${pyRepr(unknown)} not found in choices`,
+		);
+	}
+	if (Array.isArray(response)) throw notAMapping;
+	for (const [key, value] of Object.entries(response)) {
+		if (value !== null && value !== undefined && typeof value !== "boolean") {
+			throw new ResponseError(
+				`Response for statement ${repr(key)} must be a boolean or null, got ${pyRepr(value)}`,
+			);
+		}
+	}
+	return response as Record<string, unknown>;
+}
+
+/**
+ * Score judged statements against their `correct` flags. A statement missing
+ * from the response counts as an abstention, like an explicit `null`.
+ *
+ * @throws {ResponseError} The response is malformed.
+ */
+export function scoreTrueFalse(
+	question: TrueFalseQuestion,
+	response: unknown,
+): QuestionScore {
+	const judgements = parseTrueFalse(question, response);
+	const n = question.choices.length;
+	const marks = question.choices.map((statement) => {
+		const mark =
+			statement.id !== undefined && Object.hasOwn(judgements, statement.id)
+				? judgements[statement.id]
+				: null;
+		return [statement, mark ?? null] as const;
+	});
+	const correct = marks.filter(([s, mark]) => mark === s.correct).length;
+	const incorrect = marks.filter(
+		([s, mark]) => mark !== null && mark !== s.correct,
+	).length;
+
+	let score: number;
+	switch (choiceGrading(question)) {
+		case "all-or-nothing":
+			score = correct === n ? 1 : 0;
+			break;
+		case "no-mistakes":
+			score = incorrect > 0 ? 0 : correct / n;
+			break;
+		case "partial":
+			score = correct / n;
+			break;
+		default:
+			score = (correct - incorrect) / n;
+	}
+	const feedback = marks.flatMap(([statement, mark]) =>
+		mark !== statement.correct && statement.feedback
+			? [statement.feedback]
+			: [],
+	);
+	return { score, feedback };
+}

@@ -1,12 +1,11 @@
 /**
- * Ordering questions. A port of `models/_ordering.py`, the parts that
- * validate and lint.
- *
- * Scoring is NOT PORTED (phase P6 of `dev/plan/mdq-js-paridade.md`).
+ * Ordering questions. A port of `models/_ordering.py`: validation, lint and
+ * scoring.
  */
 
 import type { Diagnostic, PathStep } from "../diagnostics.js";
-import { repr, strip } from "../parser/text.js";
+import { NotAutoGradable, ResponseError } from "../errors.js";
+import { pyRepr, repr, strip, typeName } from "../parser/text.js";
 import type { OrderingQuestion } from "../schema/index.js";
 import {
 	type FamilyRules,
@@ -16,6 +15,7 @@ import {
 } from "./base.js";
 import { checkCodeHighlight, renderVisualKey } from "./lint.js";
 import { lintDiagnostic } from "./lint-codes.js";
+import type { QuestionScore } from "./score.js";
 
 type Line = readonly [level: number, text: string];
 
@@ -424,3 +424,124 @@ export const orderingRules: FamilyRules<OrderingQuestion> = {
 		...checkVisuallyIdenticalLines(question),
 	],
 };
+
+//
+// Scoring
+//
+
+/**
+ * Read a JSON-shaped ordering response as `[level, text]` pairs.
+ *
+ * @throws {ResponseError} Some entry is not a `[non-negative int, string]` pair.
+ */
+function coerceLines(lines: readonly unknown[]): Line[] {
+	return lines.map((entry) => {
+		if (!Array.isArray(entry) || entry.length !== 2) {
+			throw new ResponseError(
+				`Line ${pyRepr(entry)} is not a [level, text] pair`,
+			);
+		}
+		const [level, text] = entry as [unknown, unknown];
+		if (typeof level !== "number" || !Number.isInteger(level) || level < 0) {
+			throw new ResponseError(
+				`Line level ${pyRepr(level)} is not a non-negative int`,
+			);
+		}
+		if (typeof text !== "string") {
+			throw new ResponseError(`Line text ${pyRepr(text)} is not a string`);
+		}
+		return [level, text] as const;
+	});
+}
+
+/**
+ * Check that `lines` can come from the presented pool of the question: the
+ * `lines` and `extra` blocks together (ordering.md, "Response"). Under
+ * `lenient` and `strict`, a `content: text` response must also be a valid
+ * outline; under `fixed` an invalid outline is a wrong answer, not an error.
+ *
+ * @throws {ResponseError} A line is not in the pool, a line is used more
+ *   often than the pool offers it, or the outline is not valid.
+ */
+function checkResponseLines(
+	question: OrderingQuestion,
+	lines: readonly Line[],
+): void {
+	if (
+		question.content === "text" &&
+		(question.indentation ?? "fixed") !== "fixed"
+	) {
+		const problem = outlineProblem(lines);
+		if (problem !== undefined) throw new ResponseError(problem);
+	}
+	const pool = counts(
+		identityKeys(question, [...question.lines, ...(question.extra ?? [])]),
+	);
+	for (const key of identityKeys(question, lines)) {
+		const left = pool.get(key) ?? 0;
+		if (left <= 0) {
+			const line = JSON.parse(key) as unknown[];
+			throw new ResponseError(
+				`Line ${pyRepr(line)} is not in the pool, or is used more often than the question offers it`,
+			);
+		}
+		pool.set(key, left - 1);
+	}
+}
+
+/** Whether two lists of comparison keys are the same. */
+function sameKeys(a: readonly string[], b: readonly string[]): boolean {
+	return a.length === b.length && a.every((key, index) => key === b[index]);
+}
+
+/**
+ * Score 1 for the answer key or an accepted ordering, 0 for a rejected one,
+ * and otherwise whatever `unmatched` dictates. When several declared answers
+ * match, the first in document order wins: the `lines` block, then the
+ * `accept` entries, then the `reject` entries.
+ *
+ * @throws {ResponseError} The response is malformed (responses.md, "Ordering").
+ * @throws {NotAutoGradable} Nothing matched and `unmatched` is `"manual"`.
+ */
+export function scoreOrdering(
+	question: OrderingQuestion,
+	response: unknown,
+): QuestionScore {
+	if (!Array.isArray(response)) {
+		throw new ResponseError(
+			`An ordering response must be a sequence of [level, text] pairs, found ${typeName(response)}`,
+		);
+	}
+	const lines = coerceLines(response);
+	checkResponseLines(question, lines);
+
+	const incorrect = question.incorrectFeedback
+		? [question.incorrectFeedback]
+		: [];
+	const key = comparisonKeys(question, lines);
+	if (sameKeys(key, comparisonKeys(question, question.lines))) {
+		return { score: 1, feedback: [] };
+	}
+	for (const alternative of question.accept ?? []) {
+		if (sameKeys(key, comparisonKeys(question, alternative.lines))) {
+			return {
+				score: 1,
+				feedback: alternative.feedback ? [alternative.feedback] : [],
+			};
+		}
+	}
+	for (const alternative of question.reject ?? []) {
+		if (sameKeys(key, comparisonKeys(question, alternative.lines))) {
+			return {
+				score: 0,
+				feedback: alternative.feedback ? [alternative.feedback] : incorrect,
+			};
+		}
+	}
+	if ((question.unmatched ?? "incorrect") === "incorrect") {
+		return { score: 0, feedback: incorrect };
+	}
+	throw new NotAutoGradable(
+		"ordering response matched no answer key and requires manual grading",
+	);
+}

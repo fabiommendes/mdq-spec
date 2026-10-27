@@ -96,3 +96,32 @@ export function repr(text: string): string {
 	}
 	return out + quote;
 }
+
+/** The Python type name of a JSON value, as the messages of mdq-py show it. */
+export function typeName(value: unknown): string {
+	if (value === null || value === undefined) return "NoneType";
+	if (typeof value === "string") return "str";
+	if (typeof value === "boolean") return "bool";
+	if (typeof value === "number")
+		return Number.isInteger(value) ? "int" : "float";
+	return Array.isArray(value) ? "list" : "dict";
+}
+
+/**
+ * Python's `repr` of a JSON value, for error messages: `'a'`, `None`,
+ * `True`, `[1, 'a']`, `{'k': 1}`. A JS number that holds an integer reads as
+ * an `int`, since the runtime cannot tell `1.0` from `1`.
+ */
+export function pyRepr(value: unknown): string {
+	if (value === null || value === undefined) return "None";
+	if (typeof value === "string") return repr(value);
+	if (typeof value === "boolean") return value ? "True" : "False";
+	if (typeof value === "number") {
+		if (Number.isNaN(value)) return "nan";
+		if (!Number.isFinite(value)) return value > 0 ? "inf" : "-inf";
+		return String(value);
+	}
+	if (Array.isArray(value)) return `[${value.map(pyRepr).join(", ")}]`;
+	const entries = Object.entries(value as Record<string, unknown>);
+	return `{${entries.map(([key, item]) => `${repr(key)}: ${pyRepr(item)}`).join(", ")}}`;
+}

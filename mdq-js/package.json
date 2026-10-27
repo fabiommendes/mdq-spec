@@ -24,6 +24,7 @@
 	"license": "MIT",
 	"packageManager": "pnpm@10.15.1",
 	"dependencies": {
+		"fraction.js": "^5.3.4",
 		"js-yaml": "^4.1.1",
 		"markdown-it": "^14.1.1",
 		"unidecode": "^1.1.0",

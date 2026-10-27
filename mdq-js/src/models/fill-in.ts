@@ -1,15 +1,21 @@
 /**
  * Fill-in questions and their blanks. A port of `models/_fill_in.py`.
  *
- * The validation (phase P4b) and the lint rules (phase P5) are here. The rest
- * is NOT PORTED (phase P7 of
- * `dev/plan/mdq-js-paridade.md`): stubs that throw.
+ * The validation (phase P4b), the lint rules (phase P5) and the scoring
+ * (phase P6) are here. `blankAutomation` is NOT PORTED (phase P7 of
+ * `dev/plan/mdq-js-paridade.md`): a stub that throws.
  */
 
 import type { Diagnostic, PathStep } from "../diagnostics.js";
+import { NotAutoGradable, ResponseError } from "../errors.js";
 import { findBlankMarkers } from "../markdown.js";
-import { repr } from "../parser/text.js";
-import type { Blank, FillInQuestion, Unmatched } from "../schema/index.js";
+import { pyRepr, repr, typeName } from "../parser/text.js";
+import type {
+	Blank,
+	DiacriticsType,
+	FillInQuestion,
+	Unmatched,
+} from "../schema/index.js";
 import {
 	type Automation,
 	checkUniqueChoices,
@@ -21,14 +27,23 @@ import {
 	checkChoiceIdsDefined,
 	checkChoicesVisuallyIdentical,
 	checkMultipleChoiceAnswers,
+	unspecifiedChoiceScore,
 } from "./choice.js";
 import { lintDiagnostic } from "./lint-codes.js";
 import {
+	isNumericResponse,
 	numericKeyFields,
 	numericKeyLint,
 	numericKeyModels,
+	scoreNumeric,
 } from "./numeric.js";
-import { defaultUnmatched, patternKeyFields, patternKeyLint } from "./text.js";
+import type { QuestionScore } from "./score.js";
+import {
+	defaultUnmatched,
+	patternKeyFields,
+	patternKeyLint,
+	scoreText,
+} from "./text.js";
 
 /**
  * The rules of a blank at `path`. The checks of the model of a blank are
@@ -234,10 +249,13 @@ export const fillInRules: FamilyRules<FillInQuestion> = {
  * question.
  */
 export function blankEffectiveUnmatched(
-	_blank: Blank,
-	_unmatched: Unmatched | undefined,
+	blank: Blank,
+	unmatched: Unmatched | undefined,
 ): Unmatched {
-	throw new Error("not ported (P7)");
+	return defaultUnmatched(
+		unmatched,
+		blank.type === "short-answer" ? blank.accept : undefined,
+	);
 }
 
 /** The automation of a blank, given the `unmatched` of its question. */
@@ -246,4 +264,162 @@ export function blankAutomation(
 	_unmatched: Unmatched | undefined,
 ): Automation {
 	throw new Error("not ported (P7)");
+}
+
+//
+// Scoring
+//
+
+/**
+ * The response to one blank, scored. `undefined` means pending: the
+ * instructor has to score it.
+ */
+function scoreBlank(
+	blank: Blank,
+	response: unknown,
+	options: {
+		readonly symmetric: boolean;
+		readonly diacritics: DiacriticsType;
+		readonly unmatched: Unmatched | undefined;
+	},
+): QuestionScore | undefined {
+	switch (blank.type) {
+		case "multiple-choice": {
+			const choice =
+				typeof response === "string"
+					? blank.choices.find((candidate) => candidate.id === response)
+					: undefined;
+			if (choice === undefined) {
+				throw new ResponseError(
+					`Response id ${pyRepr(response)} not found in blank ${repr(blank.id)}`,
+				);
+			}
+			return {
+				score:
+					choice.score ??
+					unspecifiedChoiceScore(blank.choices, options.symmetric),
+				feedback: choice.feedback ? [choice.feedback] : [],
+			};
+		}
+		case "short-answer":
+			if (typeof response !== "string") {
+				throw new ResponseError(
+					`Response ${pyRepr(response)} to blank ${repr(blank.id)} is not text`,
+				);
+			}
+			return scoreText(blank, response, {
+				unmatched: blankEffectiveUnmatched(blank, options.unmatched),
+				diacritics: options.diacritics,
+				incorrectFeedback: blank.incorrectFeedback,
+			});
+		case "numeric":
+			if (!isNumericResponse(response)) {
+				throw new ResponseError(
+					`Response ${pyRepr(response)} to blank ${repr(blank.id)} is not numeric`,
+				);
+			}
+			return scoreNumeric(blank, response);
+	}
+}
+
+/**
+ * Check a fill-in response: a mapping whose keys are blank ids.
+ *
+ * @throws {ResponseError} The response is not a mapping, or a key names no blank.
+ */
+function parseFillIn(
+	question: FillInQuestion,
+	response: unknown,
+): Readonly<Record<string, unknown>> {
+	const notAMapping = new ResponseError(
+		`A fill-in response must be a mapping of blank ids, found ${typeName(response)}`,
+	);
+	if (typeof response !== "object" || response === null) throw notAMapping;
+	const known = new Set(question.blanks.map((blank) => blank.id));
+	const keys = Array.isArray(response)
+		? response.map((item) => (typeof item === "string" ? item : pyRepr(item)))
+		: Object.keys(response);
+	const unknown = keys.filter((key) => !known.has(key)).sort();
+	if (unknown.length > 0) {
+		throw new ResponseError(
+			`Blank ids ${pyRepr(unknown)} not found in the question`,
+		);
+	}
+	if (Array.isArray(response)) throw notAMapping;
+	return response as Record<string, unknown>;
+}
+
+/**
+ * Score each blank independently and combine by `grading`. A blank with no
+ * key, or a `null` value, is empty and scores 0 (fill-in.md, "Grading"); `{}`
+ * is a response with every blank empty.
+ *
+ * @throws {ResponseError} The response is malformed, or a blank's response
+ *   does not match its type.
+ * @throws {NotAutoGradable} A short answer blank response is pending.
+ */
+export function scoreFillIn(
+	question: FillInQuestion,
+	response: unknown,
+): QuestionScore {
+	const answers = parseFillIn(question, response);
+	const grading =
+		question.grading === undefined || question.grading === "inherit"
+			? "symmetric"
+			: question.grading;
+	const filled = (id: string): unknown =>
+		Object.hasOwn(answers, id) ? (answers[id] ?? undefined) : undefined;
+
+	const scores: number[] = [];
+	const feedback: string[] = [];
+	const pending: string[] = [];
+	for (const blank of question.blanks) {
+		const answer = filled(blank.id);
+		if (answer === undefined) {
+			scores.push(0);
+			continue;
+		}
+		const result = scoreBlank(blank, answer, {
+			symmetric: grading === "symmetric",
+			diacritics: question.diacritics ?? "fold",
+			unmatched: question.unmatched,
+		});
+		if (result === undefined) {
+			// The instructor scores a pending blank; the question stays
+			// pending, but the other blanks are still checked.
+			pending.push(blank.id);
+			continue;
+		}
+		scores.push(result.score);
+		feedback.push(...result.feedback);
+	}
+	if (pending.length > 0) {
+		throw new NotAutoGradable(
+			`the response to blank ${repr(pending[0] ?? "")} is pending: it matches no pattern and 'unmatched' is 'manual'`,
+		);
+	}
+
+	const mean = scores.reduce((sum, value) => sum + value, 0) / scores.length;
+	let score: number;
+	switch (grading) {
+		case "all-or-nothing":
+			score = scores.every((value) => value === 1) ? 1 : 0;
+			break;
+		case "no-mistakes": {
+			// An empty blank scores 0 but is no mistake: only a filled blank
+			// below 1 zeroes the question.
+			const mistaken = question.blanks.some(
+				(blank, index) =>
+					(scores[index] ?? 0) < 1 && filled(blank.id) !== undefined,
+			);
+			score = mistaken ? 0 : mean;
+			break;
+		}
+		case "partial":
+			score = Math.max(0, mean);
+			break;
+		default:
+			score = mean;
+	}
+	return { score, feedback };
 }

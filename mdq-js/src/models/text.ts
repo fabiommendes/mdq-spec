@@ -1,21 +1,23 @@
 /**
  * Short answer and essay questions. A port of `models/_text.py`.
  *
- * PARTLY PORTED: the pattern matching (phase P3 of
- * `dev/plan/mdq-js-paridade.md`), the validation (phase P4b) and the lint rules
- * (phase P5) are here. The rest is a stub that throws (phase P7).
+ * The pattern matching (phase P3 of `dev/plan/mdq-js-paridade.md`), the
+ * validation (phase P4b), the lint rules (phase P5) and the scoring (phase P6)
+ * are here.
  */
 
 import type { Diagnostic, PathStep } from "../diagnostics.js";
+import { NotAutoGradable, ResponseError } from "../errors.js";
 import { exactLiteral } from "../exact.js";
 import tables from "../inexact-tables.json";
 import { hasVisibleCharacter, startsBlock } from "../markdown.js";
 import { findAnswerKeyForbiddenElements } from "../parser/blocks.js";
-import { repr, strip, UNICODE_SPACE } from "../parser/text.js";
+import { repr, strip, typeName, UNICODE_SPACE } from "../parser/text.js";
 import type {
 	DiacriticsType,
 	EssayQuestion,
 	PatternEntry,
+	ShortAnswerBlank,
 	ShortAnswerQuestion,
 	Unmatched,
 } from "../schema/index.js";
@@ -38,8 +40,8 @@ import {
 import type { QuestionScore } from "./score.js";
 
 /** The `unmatched` of a short answer question once the default is applied. */
-export function effectiveUnmatched(_question: ShortAnswerQuestion): Unmatched {
-	throw new Error("not ported (P7)");
+export function effectiveUnmatched(question: ShortAnswerQuestion): Unmatched {
+	return defaultUnmatched(question.unmatched, question.accept);
 }
 
 //
@@ -272,6 +274,102 @@ export function scoreText(
 		feedback = [incorrectFeedback];
 	}
 	return { score: outcome === "correct" ? 1 : 0, feedback };
+}
+
+/**
+ * Return `response` if it is a string (`docs/responses.md`, "Short answer
+ * and essay"). A number is not converted: `1.0` and `1` would become
+ * different texts.
+ *
+ * @throws {ResponseError} If `response` is not a string.
+ */
+export function parseTextResponse(response: unknown): string {
+	if (typeof response !== "string") {
+		throw new ResponseError(
+			`A text response must be a string, found ${typeName(response)}`,
+		);
+	}
+	return response;
+}
+
+/**
+ * Score a response to a short answer question.
+ *
+ * @throws {ResponseError} The response is not a string.
+ * @throws {NotAutoGradable} The response matches no pattern and `unmatched`
+ *   is `"manual"`.
+ */
+export function scoreShortAnswer(
+	question: ShortAnswerQuestion,
+	response: unknown,
+): QuestionScore {
+	const result = scoreText(question, parseTextResponse(response), {
+		unmatched: effectiveUnmatched(question),
+		diacritics: question.diacritics ?? "fold",
+		incorrectFeedback: question.incorrectFeedback,
+	});
+	if (result === undefined) {
+		throw new NotAutoGradable(
+			"the response matches no pattern and 'unmatched' is 'manual'",
+		);
+	}
+	return result;
+}
+
+/**
+ * An essay is never gradable automatically.
+ *
+ * @throws {ResponseError} The response is not a string.
+ * @throws {NotAutoGradable} Always, for a well-formed response.
+ */
+export function scoreEssay(
+	_question: EssayQuestion,
+	response: unknown,
+): QuestionScore {
+	parseTextResponse(response);
+	throw new NotAutoGradable("essay questions require manual grading");
+}
+
+/** The result of `prevalidate`: whether to accept a submission, and why not. */
+export interface Prevalidation {
+	readonly valid: boolean;
+	/** The pattern feedback shown for an invalid submission, if any. */
+	readonly feedback: string | null;
+}
+
+/**
+ * Apply the pre-validation rules of short-answer.md. A response is invalid
+ * when it matches a `preReject` pattern, or when `preAccept` is declared and
+ * it matches none of its patterns. The feedback of an invalid response is, in
+ * order: the first matching `preReject` pattern with feedback; else, if no
+ * `preAccept` pattern matches, the first `preAccept` pattern with feedback.
+ */
+export function prevalidateText(
+	key: Pick<ShortAnswerQuestion | ShortAnswerBlank, "preAccept" | "preReject">,
+	response: string,
+	diacritics: DiacriticsType = "fold",
+): Prevalidation {
+	const preReject = key.preReject ?? [];
+	if (preReject.some((rule) => matches(rule, response, diacritics))) {
+		return {
+			valid: false,
+			feedback: firstFeedback(preReject, response, diacritics)[0] ?? null,
+		};
+	}
+	const preAccept = key.preAccept ?? [];
+	if (
+		preAccept.length > 0 &&
+		!preAccept.some((rule) => matches(rule, response, diacritics))
+	) {
+		const hint = preAccept.find(
+			(rule) => typeof rule !== "string" && rule.feedback !== undefined,
+		);
+		return {
+			valid: false,
+			feedback: typeof hint === "string" ? null : (hint?.feedback ?? null),
+		};
+	}
+	return { valid: true, feedback: null };
 }
 
 //

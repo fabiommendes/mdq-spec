@@ -6,8 +6,7 @@
  * `validateQuestionModel` and `validateExamModel` are the validators the
  * Pydantic models run, as functions that return diagnostics. They assume
  * Zod accepted the document. `gradingFor`, `shuffleFor` and
- * `resolveQuestion` are NOT PORTED (phase P6 of
- * `dev/plan/mdq-js-paridade.md`): stubs that throw.
+ * `resolveQuestion` apply the inheritance of an exam.
  */
 
 import type { Diagnostic, PathStep } from "../diagnostics.js";
@@ -15,7 +14,7 @@ import { md } from "../markdown.js";
 import { repr } from "../parser/text.js";
 import { canonicalDuration, canonicalStart } from "../schedule.js";
 import type { Exam } from "../schema/exam.js";
-import type { Question } from "../schema/index.js";
+import type { GradingType, Question } from "../schema/index.js";
 import type { QuestionType } from "../schema/questions.js";
 import type { MdqDocument } from "../validate.js";
 import {
@@ -24,6 +23,7 @@ import {
 	checkNoForbiddenBlockElements,
 	type FamilyRules,
 	freeTextFields,
+	isGradedQuestion,
 	localeDiagnostics,
 	modelError,
 	uuidDiagnostics,
@@ -318,17 +318,80 @@ export function lint(document: MdqDocument): Diagnostic[] {
 		: lintQuestion(document as Question);
 }
 
-/** The `grading` a question has once the exam default is applied. */
-export function gradingFor(_exam: Exam, _question: Question): string {
-	throw new Error("not ported (P6)");
+/**
+ * The translation of the exam's scalar `grading` for each question type that
+ * chooses a strategy (`docs/exam.md`, "Grading"). Multiple choice has a single
+ * pick, and multiple selection has no abstention, so `no-mistakes` and
+ * `all-or-nothing` collapse there.
+ */
+const SCALAR_GRADING: Readonly<
+	Record<GradingType, Readonly<Record<string, GradingType>>>
+> = {
+	partial: {
+		"multiple-choice": "partial",
+		"multiple-selection": "partial",
+		"true-false": "partial",
+		"fill-in": "partial",
+	},
+	"no-mistakes": {
+		"multiple-choice": "partial",
+		"multiple-selection": "all-or-nothing",
+		"true-false": "no-mistakes",
+		"fill-in": "no-mistakes",
+	},
+	"all-or-nothing": {
+		"multiple-choice": "partial",
+		"multiple-selection": "all-or-nothing",
+		"true-false": "all-or-nothing",
+		"fill-in": "all-or-nothing",
+	},
+	symmetric: {
+		"multiple-choice": "symmetric",
+		"multiple-selection": "symmetric",
+		"true-false": "symmetric",
+		"fill-in": "symmetric",
+	},
+};
+
+/**
+ * The grading strategy `question` is scored with: its own, unless it is
+ * `inherit` (or it has none); then the exam's scalar `grading` translated for
+ * the question's type, or the entry of the exam's mapping for the question's
+ * type, or `symmetric` (`docs/exam.md`, "Grading").
+ */
+export function gradingFor(exam: Exam, question: Question): GradingType {
+	const examGrading = exam.grading ?? "symmetric";
+	if (!isGradedQuestion(question)) {
+		return typeof examGrading === "string" ? examGrading : "symmetric";
+	}
+	if (question.grading !== undefined && question.grading !== "inherit") {
+		return question.grading;
+	}
+	if (typeof examGrading === "string") {
+		return SCALAR_GRADING[examGrading][question.type] ?? "symmetric";
+	}
+	return examGrading[question.type] ?? "symmetric";
 }
 
-/** The `shuffle` a question has once the exam default is applied. */
-export function shuffleFor(_exam: Exam, _question: Question): boolean {
-	throw new Error("not ported (P6)");
+/**
+ * Whether `question` is shuffled: its own `shuffle`, unless it is `inherit`
+ * (or it has none); then the exam's `shuffle`.
+ */
+export function shuffleFor(exam: Exam, question: Question): boolean {
+	const own = isGradedQuestion(question) ? question.shuffle : undefined;
+	return own === undefined || own === "inherit" ? (exam.shuffle ?? false) : own;
 }
 
-/** A copy of `question` with the `grading` and `shuffle` of the exam applied. */
-export function resolveQuestion(_exam: Exam, _question: Question): Question {
-	throw new Error("not ported (P6)");
+/**
+ * A copy of `question` whose `grading` and `shuffle` are the values it gets in
+ * the exam (`gradingFor`, `shuffleFor`). A question without those fields is
+ * returned unchanged.
+ */
+export function resolveQuestion(exam: Exam, question: Question): Question {
+	if (!isGradedQuestion(question)) return question;
+	return {
+		...question,
+		grading: gradingFor(exam, question),
+		shuffle: shuffleFor(exam, question),
+	} as Question;
 }

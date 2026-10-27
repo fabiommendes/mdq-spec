@@ -40,7 +40,7 @@ differs states the reason in its header comment.
 | `mdq/models/_regex.py`              | `src/models/regex.ts`                    |
 | `mdq/models/_query.py`              | `src/models/query.ts`                    |
 | `mdq/models/_slugify.py`            | `src/models/slugify.ts`                  |
-| `mdq/models/_score.py`              | `src/models/score.ts`                    |
+| `mdq/models/_score.py`              | `src/models/score.ts` (result types, `scoreResponse`, `prevalidate`, `scoreResponses`; each family scores in its own module: `scoreMultipleChoice`, `scoreNumeric`, `scoreShortAnswer`, `scoreFillIn`, `scoreOrdering`, ...) |
 | `tests/_corpus.py`                  | `tests/corpus.ts`                        |
 | `tests/strategies/`                 | `tests/arbitraries.ts`                   |
 

@@ -130,6 +130,18 @@ export class IncludeNotFoundError extends MdqError {
 export class GradingError extends MdqError {}
 
 /**
+ * Grading a document that is not addressable: a question or a choice has no
+ * id. Mirrors `MissingIdError` in `mdq-py/mdq/errors.py`.
+ */
+export class MissingIdError extends GradingError {}
+
+/**
+ * Grading an exam that still holds an `include` entry. Mirrors
+ * `UnresolvedInclude` in `mdq-py/mdq/errors.py`.
+ */
+export class UnresolvedInclude extends GradingError {}
+
+/**
  * A response has the wrong shape for its question, so it is rejected and
  * never scored (`docs/responses.md`, "Errors"). Mirrors `ResponseError` in
  * `mdq-py/mdq/errors.py`.
