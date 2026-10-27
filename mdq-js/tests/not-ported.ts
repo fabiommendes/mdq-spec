@@ -12,6 +12,12 @@
  * fails and the phase of the port plan (`dev/plan/mdq-js-paridade.md`, in
  * the root repository) that fixes it; remove the entry in that phase. See
  * `docs/sync/testing.md`.
+ *
+ * The manifests of the corpus suites of phase P1 (`LOADING`, `LINT`,
+ * `LINT_CODES`, `MATCHING`, `IDS`, `NORMALIZE`, `GRADING`) key each test as
+ * `<group>.<case>`. While nothing of a group is ported, one prefix entry
+ * (`"regex."`) covers it. A phase that ports part of a group replaces its
+ * prefix with one entry per case that still fails.
  */
 
 import { it } from "vitest";
@@ -314,7 +320,103 @@ export const LOAD: Manifest = {
 };
 
 /** `.resolved.yaml` fixtures whose exam `resolveExam` does not resolve to the expected ids. */
-export const RESOLVE: Manifest = {};
+export const RESOLVE: Manifest = {
+	"exam.include-inheritance.resolved.yaml": "lint (P5)",
+};
+
+/**
+ * Documents under `invalid/` that `load` does not report with exactly the
+ * diagnostics their `.lint.json` pins (`tests/loading.spec.ts`). Keys are
+ * `<group>.<relativeId>`: groups `syntax`, `parsed-only`, `source` and
+ * `sibling`.
+ */
+export const LOADING: Manifest = {
+	"parsed-only.": "load (P4)",
+	"sibling.": "load (P4)",
+	"source.": "load (P4)",
+	"syntax.": "load (P4)",
+};
+
+/**
+ * Documents under `valid/` whose lint diagnostics differ from the
+ * `.lint.json` (`tests/lint.spec.ts`). Keys are `<group>.<relativeId>`:
+ * groups `parsed` and `source`.
+ */
+export const LINT: Manifest = {
+	"parsed.": "lint (P5)",
+	"source.": "lint (P5)",
+};
+
+/**
+ * Codes of `docs/lint-codes.md` that `src/models/lint-codes.ts` lacks, or
+ * lists with another severity (`tests/lint-codes.spec.ts`).
+ */
+export const LINT_CODES: Manifest = {
+	"documented.": "lint (P5)",
+};
+
+/**
+ * Pattern and query vectors of `examples/matching/` that the port does not
+ * match as expected (`tests/matching.spec.ts`). Keys are `<group>.<case>`.
+ */
+export const MATCHING: Manifest = {
+	"exact-fill-in.": "pattern matching (P3)",
+	"exact-short-answer.": "pattern matching (P3)",
+	"inexact-fill-in.": "pattern matching (P3)",
+	"inexact-short-answer.": "pattern matching (P3)",
+	"letters-applies.": "pattern matching (P3)",
+	"letters-once.": "pattern matching (P3)",
+	"regex.": "pattern matching (P3)",
+};
+
+/** `.ids.yaml` files whose ids `withIds` does not give (`tests/ids.spec.ts`). */
+export const IDS: Manifest = {
+	"exam.ids-positional.ids.yaml": "withIds (P7)",
+	"fill-in.ids-choice-blank.ids.yaml": "withIds (P7)",
+	"multiple-choice.ids-ascii-spelling.ids.yaml": "withIds (P7)",
+	"multiple-choice.ids-explicit-id-wins.ids.yaml": "withIds (P7)",
+	"multiple-choice.ids-order-backward.ids.yaml": "withIds (P7)",
+	"multiple-choice.ids-order-forward.ids.yaml": "withIds (P7)",
+	"multiple-choice.ids-punctuation-variants.ids.yaml": "withIds (P7)",
+	"multiple-selection.ids-single-digit.ids.yaml": "withIds (P7)",
+	"multiple-selection.ids-single-glyph.ids.yaml": "withIds (P7)",
+};
+
+/** Cases of `examples/normalize.yaml` (`tests/normalize.spec.ts`). */
+export const NORMALIZE: Manifest = {
+	"YAML 1.1 forms are strings or decimal numbers": "load (P4)",
+	"YAML 1:30 is a string duration": "load (P4)",
+	"a stem that starts with a thematic break is kept by normalize":
+		"normalize (P7)",
+	"an epilogue that starts with a thematic break is kept by normalize":
+		"normalize (P7)",
+	"null exam frontmatter fields are absent": "load (P4)",
+	"null in a nested blank is absent": "load (P4)",
+	"null in a nested choice is absent": "load (P4)",
+	"null is kept inside meta": "load (P4)",
+	"start and duration take their canonical form": "load (P4)",
+	"yes is a string include": "load (P4)",
+};
+
+/**
+ * Cases of `examples/grading/` that the port does not score as expected
+ * (`tests/grading.spec.ts`). Keys are `<group>.<case>`.
+ */
+export const GRADING: Manifest = {
+	"automation.": "automation (P7)",
+	"essay.": "scoring (P6)",
+	"exam-effective.": "scoring (P6)",
+	"exam-question-effective.": "scoring (P6)",
+	"exam-score.": "scoring (P6)",
+	"fill-in.": "scoring (P6)",
+	"multiple-choice.": "scoring (P6)",
+	"multiple-selection.": "scoring (P6)",
+	"numeric.": "scoring (P6)",
+	"ordering.": "scoring (P6)",
+	"short-answer-prevalidation.": "scoring (P6)",
+	"short-answer.": "scoring (P6)",
+	"true-false.": "scoring (P6)",
+};
 
 /** The reason `name` is not ported, or `undefined` if it is. */
 export function notPorted(

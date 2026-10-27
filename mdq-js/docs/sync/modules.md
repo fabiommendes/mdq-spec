@@ -74,13 +74,16 @@ A Pydantic model is two things in TypeScript:
 | `Loaded.validate(raise_on=)`                    | `assertValid(loaded, raiseOn?)`               |
 | `Question.lint()`, `Exam.lint()`                | `lint(document)`                              |
 | `Question.score_response(r)`                    | `scoreResponse(question, response)`           |
-| `ShortAnswerQuestion.prevalidate(r)`            | `prevalidate(question, response)`             |
+| `ShortAnswerQuestion.prevalidate(r)`            | `prevalidate(question, response)` -> `{valid, feedback}` |
 | `Question.normalize()`                          | `normalize(question)`                         |
 | `Question.with_ids()`, `Exam.with_ids()`        | `withIds(document)`                           |
 | `Question.automation`                           | `automation(question)`                        |
 | `Exam.resolve(bank)`                            | `resolveExam(exam, bank)`                     |
 | `Exam.grading_for`, `shuffle_for`, `resolve_question` | `gradingFor`, `shuffleFor`, `resolveQuestion` |
 | `Exam.score_responses(r)`                       | `scoreResponses(exam, responses)`             |
+| `Question.effective_grading`, `effective_shuffle` | `effectiveGrading`, `effectiveShuffle`      |
+| `effective_unmatched` (text, fill-in blank)     | `effectiveUnmatched`, `blankEffectiveUnmatched` |
+| `Blank.automation`                              | `blankAutomation`                             |
 | `QuestionScore`, `ExamScore`                    | types `QuestionScore`, `ExamScore`            |
 | `QuestionBank`, `DictLoader`                    | `QuestionBank`, `DictLoader`                  |
 | `MdqError`, `InvalidDocument`, `ParseError`     | `MdqError`, `InvalidDocumentError`, `ParseError` |

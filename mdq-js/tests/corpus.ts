@@ -88,6 +88,11 @@ export function collectSources(root: string): string[] {
 	return walk(root).filter((path) => path.endsWith(SOURCE_SUFFIX));
 }
 
+/** Every `.ids.yaml` under `root`. */
+export function collectIdsFiles(root: string): string[] {
+	return walk(root).filter((path) => path.endsWith(IDS_SUFFIX));
+}
+
 /** A short, stable test name for an example path. */
 export function relativeId(path: string): string {
 	return relative(EXAMPLES_ROOT, path).split(sep).slice(1).join(".");
@@ -115,6 +120,21 @@ export function loadDocument(path: string): unknown {
 	return load(readFileSync(path, "utf-8"));
 }
 
+/**
+ * Codes only the Markdown parser produces, since they need the source layout.
+ * A `.yaml`/`.json` sibling of a source example shares its `.lint.json` but
+ * can never report them. Mirrors `PARSER_ONLY_CODES` of
+ * `mdq-py/tests/_corpus.py`.
+ */
+export const PARSER_ONLY_CODES: ReadonlySet<string> = new Set([
+	"redundant-id",
+	"separator-before-include",
+	"malformed-separator",
+	"non-ascii-whitespace",
+	"non-ascii-whitespace-in-prose",
+	"multi-line-pattern",
+]);
+
 export const VALID_PARSED = collectFiles(VALID_DIR);
 /** Documents the schema itself must reject. */
 export const INVALID_PARSED = collectFiles(INVALID_DIR).filter(
@@ -127,6 +147,10 @@ export const INVALID_SYNTAX = collectFiles(INVALID_SYNTAX_DIR);
 /** Documents the schema accepts but the model rules must reject. */
 export const INVALID_MODEL_ONLY_PARSED = collectFiles(INVALID_MODEL_ONLY_DIR);
 export const VALID_SOURCES = collectSources(VALID_DIR);
+/** Test vectors outside `valid/` and `invalid/`. They are not documents. */
+export const MATCHING_DIR = join(EXAMPLES_ROOT, "matching");
+export const GRADING_DIR = join(EXAMPLES_ROOT, "grading");
+export const NORMALIZE_FILE = join(EXAMPLES_ROOT, "normalize.yaml");
 export const VALID_EXAMS = VALID_PARSED.filter((path) =>
 	path.startsWith(VALID_EXAMS_DIR + sep),
 );
@@ -153,4 +177,15 @@ export function loadLintSibling(document: string): ExpectedDiagnostic[] {
 	return JSON.parse(
 		readFileSync(lintSibling(document), "utf-8"),
 	) as ExpectedDiagnostic[];
+}
+
+/** The format `load` reads a corpus file in, from its suffix. */
+export function formatOf(path: string): "mdq" | "yaml" | "json" {
+	if (path.endsWith(SOURCE_SUFFIX)) return "mdq";
+	return path.toLowerCase().endsWith(".json") ? "json" : "yaml";
+}
+
+/** The text of a corpus file. */
+export function readText(path: string): string {
+	return readFileSync(path, "utf-8");
 }

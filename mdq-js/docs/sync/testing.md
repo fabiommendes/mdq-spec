@@ -77,32 +77,31 @@ one as it grows the machinery to run it:
    (`tests/invalid-sources.spec.ts`): a parser code must come from
    `parseDocument`, `schema-error` from `validateDocument`, and a source
    the port does not reject yet is listed in `LOAD` of `not-ported.ts`.
-3. **Loading.** `invalid/syntax/` is YAML or JSON that is not a document;
-   `load` reports the code its `.lint.json` pins.
+3. **Loading.** `load` reports exactly the diagnostics the `.lint.json` of
+   each document under `invalid/` pins (`tests/loading.spec.ts`).
+   `invalid/syntax/` is YAML or JSON that is not a document.
 4. **Linting.** Each document produces exactly the diagnostics in its
    `.lint.json`, compared as a multiset (order is free).
 5. **Resolution.** Each exam with includes resolves to its
-   `.resolved.yaml`.
+   `.resolved.yaml`: the ids, the diagnostics and, when the file has them,
+   the inherited `fields` and the `lint` of the resolved exam.
 6. **Matching.** `examples/matching/{exact,inexact,regex}.yaml` list
    patterns with the responses they accept and reject.
 7. **Grading.** The response/score pairs in `examples/grading/` produce the
    expected score and feedback under each implementation's own scorer;
    `short-answer-prevalidation.yaml` does the same for pre-validation.
 
-A suite marked (P1) does not exist yet: phase P1 of
-`dev/plan/mdq-js-paridade.md` adds it.
-
 | Layer      | TypeScript suite              | Python test                      |
 | ---------- | ----------------------------- | -------------------------------- |
 | Schema     | `schema.spec.ts`              | `test_schemas.py`                |
 | Parsing    | `parser.spec.ts`, `invalid-sources.spec.ts` | `test_example_pairs.py`, `test_invalid_sources.py` |
-| Loading    | `loading.spec.ts` (P1)             | `test_loading.py`                |
-| Linting    | `lint.spec.ts` (P1)                | `test_lint_corpus.py`            |
+| Loading    | `loading.spec.ts`             | `test_invalid_sources.py`        |
+| Linting    | `lint.spec.ts`, `lint-codes.spec.ts` | `test_lint_corpus.py`, `test_lint_codes_consistency.py` |
 | Resolution | `exam-resolution.spec.ts`     | `test_exam_resolution_corpus.py` |
-| Ids        | `ids.spec.ts` (P1)                 | `test_ids_corpus.py`             |
-| Normalize  | `normalize.spec.ts` (P1)           | `test_normalize_corpus.py`       |
-| Matching   | `matching.spec.ts` (P1)            | `test_exact_comparison.py`, `test_inexact_comparison.py`, `test_regex_table.py`, `test_query_corpus.py` |
-| Grading    | `grading.spec.ts` (P1)             | `test_grading_examples.py`       |
+| Ids        | `ids.spec.ts`                 | `test_ids_corpus.py`             |
+| Normalize  | `normalize.spec.ts`           | `test_normalize_corpus.py`       |
+| Matching   | `matching.spec.ts`            | `test_exact_comparison.py`, `test_inexact_comparison.py`, `test_regex_table.py`, `test_query_corpus.py` |
+| Grading    | `grading.spec.ts`             | `test_grading_examples.py`       |
 
 `docs/references/inexact-tables.json` is shared data too: the Python
 properties of the letter tables in `test_inexact_comparison.py` read it, and

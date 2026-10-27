@@ -5,7 +5,10 @@
  *
  * Each fixture lists the ids of the questions in order and the diagnostics
  * `resolveExam` reports. `max` picks the first candidates, so the expectation
- * is deterministic. A question without an id takes `q<position>`, which is
+ * is deterministic. Two optional keys: `fields`, a field the questions inherit
+ * from the exam (e.g. `locale`) to its value for each question, in order; and
+ * `lint`, every diagnostic of the resolved exam (`lint`, before the ids are
+ * filled in), whose path of a question starts with `questions[i]`. A question without an id takes `q<position>`, which is
  * all of Python's `with_ids` that the corpus needs. Mirrors
  * `mdq-py/tests/test_exam_resolution_corpus.py`; the `DictLoader` here stands
  * in for Python's `FileLoader`.
@@ -18,6 +21,7 @@ import {
 	DictLoader,
 	Exam,
 	isExam,
+	lint,
 	parseExamDocument,
 	type QuestionSource,
 	resolveExam,
@@ -28,6 +32,7 @@ import { describe, expect, it } from "vitest";
 import {
 	collectFiles,
 	collectSources,
+	type ExpectedDiagnostic,
 	loadDocument,
 	RESOLVED_SUFFIX,
 	relativeId,
@@ -35,14 +40,13 @@ import {
 	VALID_EXAMS_DIR,
 } from "./corpus.js";
 import { corpusIt, notPorted, RESOLVE } from "./not-ported.js";
+import { asMultiset, entryOf } from "./vectors.js";
 
 interface Resolved {
 	readonly questions: readonly string[];
-	readonly diagnostics: readonly {
-		code: string;
-		severity: string;
-		path: readonly (string | number)[];
-	}[];
+	readonly diagnostics: readonly ExpectedDiagnostic[];
+	readonly fields?: Readonly<Record<string, readonly unknown[]>>;
+	readonly lint?: readonly ExpectedDiagnostic[];
 }
 
 const first: Select = (candidates, max) =>
@@ -119,30 +123,41 @@ const RESOLVED = readdirSync(VALID_EXAMS_DIR)
 	.sort()
 	.map((name) => join(VALID_EXAMS_DIR, name));
 
-function resolveFixtureExam(path: string): Resolved {
+/**
+ * Resolve the exam of a fixture. `fields` and `lint` are computed only when
+ * the fixture (`expected`) has them.
+ */
+function resolveFixtureExam(path: string, expected: Resolved): Resolved {
 	const exam = Exam.parse(rawExam(path));
 	const warnings: Diagnostic[] = [];
 	const resolved = resolveExam(exam, corpusBank(), {
 		select: first,
 		warnings,
 	});
-	return {
+	const result: Resolved = {
 		questions: resolved.questions.map(
 			(question, index) => (question as { id?: string }).id ?? `q${index + 1}`,
 		),
-		diagnostics: warnings.map(({ code, severity, path }) => ({
-			code,
-			severity,
-			path,
-		})),
+		diagnostics: warnings.map(entryOf),
 	};
-}
-
-/** The diagnostics as a sorted list, so order does not matter but repeats do. */
-function asMultiset(diagnostics: Resolved["diagnostics"]): string[] {
-	return diagnostics
-		.map(({ code, severity, path }) => JSON.stringify({ code, severity, path }))
-		.sort();
+	return {
+		...result,
+		...(expected.fields === undefined
+			? {}
+			: {
+					fields: Object.fromEntries(
+						Object.keys(expected.fields).map((field) => [
+							field,
+							resolved.questions.map(
+								(question) => (question as Record<string, unknown>)[field],
+							),
+						]),
+					),
+				}),
+		...(expected.lint === undefined
+			? {}
+			: { lint: lint(resolved).map(entryOf) }),
+	};
 }
 
 describe("resolved exam fixtures", () => {
@@ -188,11 +203,19 @@ describe("an exam resolves to its fixture", () => {
 			const source = EXAMS_WITH_INCLUDES.get(stemOf(fixture, RESOLVED_SUFFIX));
 			expect(source, `${fixture} has no exam document`).toBeDefined();
 			const expected = load(readFileSync(fixture, "utf-8")) as Resolved;
-			const actual = resolveFixtureExam(source as string);
+			const actual = resolveFixtureExam(source as string, expected);
 			expect(actual.questions).toEqual(expected.questions);
 			expect(asMultiset(actual.diagnostics)).toEqual(
 				asMultiset(expected.diagnostics),
 			);
+			if (expected.fields !== undefined) {
+				expect(actual.fields).toEqual(expected.fields);
+			}
+			if (expected.lint !== undefined) {
+				expect(asMultiset(actual.lint ?? [])).toEqual(
+					asMultiset(expected.lint),
+				);
+			}
 		});
 	}
 });

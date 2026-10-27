@@ -98,3 +98,23 @@ export class IncludeNotFoundError extends MdqError {
 		);
 	}
 }
+
+/**
+ * A problem with grading, not with a document. Mirrors `GradingError` in
+ * `mdq-py/mdq/errors.py`.
+ */
+export class GradingError extends MdqError {}
+
+/**
+ * A response has the wrong shape for its question, so it is rejected and
+ * never scored (`docs/responses.md`, "Errors"). Mirrors `ResponseError` in
+ * `mdq-py/mdq/errors.py`.
+ */
+export class ResponseError extends GradingError {}
+
+/**
+ * A response cannot be graded by the library: it waits for an instructor
+ * (`docs/responses.md`, "Pending"). Mirrors `NotAutoGradable` in
+ * `mdq-py/mdq/errors.py`.
+ */
+export class NotAutoGradable extends GradingError {}
