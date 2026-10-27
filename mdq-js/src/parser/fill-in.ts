@@ -117,7 +117,8 @@ export function parseFillInBody(
 				const declared: Record<string, unknown> = {};
 				for (const key of NUMERIC_MAP_KEYS) {
 					const map = numericMaps[key];
-					if (Object.hasOwn(map, id)) declared[key] = map[id];
+					if (map[id] !== undefined && map[id] !== null)
+						declared[key] = map[id];
 				}
 				Object.assign(blank, numericFields(parsed, declared));
 				if (parsed.tolerance !== undefined) blank.tolerance = parsed.tolerance;
@@ -187,7 +188,7 @@ export function numericBlankMaps(front: Front): NumericMaps {
  * Check the keys of the `domain` and `decimalPlaces` maps against the blanks.
  * A numeric blank took its values when it was built; a key that is the id of
  * another kind of blank puts the value on that blank, where the schema
- * rejects it.
+ * rejects it. A `null` entry means the field is absent for that blank.
  *
  * @throws {UndefinedBlankError} A key is not the id of a blank in `blanks`.
  */
@@ -199,7 +200,7 @@ export function distributeNumericBlankMaps(
 		for (const [blankId, value] of Object.entries(maps[key])) {
 			const blank = blanks.get(blankId);
 			if (blank === undefined) throw new UndefinedBlankError(blankId, key);
-			if (blank.type !== "numeric") blank[key] = value;
+			if (value !== null && blank.type !== "numeric") blank[key] = value;
 		}
 	}
 }
@@ -208,7 +209,8 @@ export function distributeNumericBlankMaps(
  * Move the frontmatter `preAccept`/`preReject`/`incorrectFeedback` maps onto
  * the blanks they key (fill-in.md, "Frontmatter"). Each map goes from a blank
  * id to a pattern list (a string for `incorrectFeedback`); the value becomes
- * the field of the same name of that blank, whatever its kind -- the schema
+ * the field of the same name of that blank, whatever its kind (a `null` entry
+ * means the field is absent for that blank) -- the schema
  * rejects `preAccept` and `preReject` on a choice or numeric blank, and
  * `incorrectFeedback` on a choice blank.
  *
@@ -231,6 +233,11 @@ export function distributeBlankPatternLists(
 			);
 		}
 		for (const [blankId, value] of Object.entries(mapping)) {
+			if (value === null) {
+				// A `null` entry means the field is absent for the blank.
+				if (!blanks.has(blankId)) throw new UndefinedBlankError(blankId, key);
+				continue;
+			}
 			if (isText && typeof value !== "string") {
 				throw new ParseError(
 					`frontmatter ${repr(key)} entry ${repr(blankId)} must be a string`,

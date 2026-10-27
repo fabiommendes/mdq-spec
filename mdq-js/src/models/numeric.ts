@@ -54,7 +54,7 @@ export function nonFiniteDiagnostic(
 /**
  * numeric.md, "Answer representation": a string `answer` is a valid
  * `sign? numeric_value` (`malformed-numeric-answer`), the same grammar a
- * numeric body's value follows. A number is finite.
+ * numeric body's value follows, with no surrounding space. A number is finite.
  */
 export function numericAnswerDiagnostic(
 	value: NumericAnswer,
@@ -64,6 +64,15 @@ export function numericAnswerDiagnostic(
 		return Number.isFinite(value)
 			? undefined
 			: nonFiniteDiagnostic(value, path);
+	}
+	// The parser trims a Markdown body's value; a string `answer` is not
+	// trimmed (the schema pattern is anchored).
+	if (value !== strip(value, " \t")) {
+		return modelError(
+			"malformed-numeric-answer",
+			`${repr(value)} is not a valid numeric answer: surrounding space`,
+			path,
+		);
 	}
 	try {
 		parseNumericAnswer(value);
