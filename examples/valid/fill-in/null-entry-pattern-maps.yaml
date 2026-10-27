@@ -1,0 +1,12 @@
+# A `null` entry in the `preAccept`, `preReject` or `incorrectFeedback` map
+# means the field is absent for that blank.
+id: fill-in-null-pattern-maps
+title: Pantanal state
+type: fill-in
+stem: The Pantanal lies mostly in the state of [^state].
+blanks:
+  - id: state
+    type: short-answer
+    accept:
+      - Mato Grosso do Sul
+      - Mato Grosso

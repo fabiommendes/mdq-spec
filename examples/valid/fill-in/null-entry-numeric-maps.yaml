@@ -1,0 +1,13 @@
+# A `null` entry in the `domain` or `decimalPlaces` map means the field is absent
+# for that blank: the domain is inferred from the body (`integer`).
+id: fill-in-null-numeric-maps
+title: Rio Tocantins
+type: fill-in
+stem: The Tocantins River is [^length] kilometers long.
+blanks:
+  - id: length
+    type: numeric
+    answer: 2500
+    unit: km
+    domain: integer
+    tolerance: { absolute: 50 }

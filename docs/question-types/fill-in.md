@@ -139,6 +139,10 @@ The value of each of the five maps (`preAccept`, `preReject`,
 ids to values. A scalar or a list, such as `incorrectFeedback: Wrong answer.`,
 is a `parse-error`.
 
+An entry whose value is `null` means the field is absent for that blank, in
+all five maps, as `null` does in an optional field of a blank. The blank id
+MUST still be the id of a blank of the question.
+
 The five maps hold values that differ per blank by nature: patterns, feedback
 and number domains. `unmatched` and `diacritics` are grading policy for the
 whole question, and apply to every short answer blank.

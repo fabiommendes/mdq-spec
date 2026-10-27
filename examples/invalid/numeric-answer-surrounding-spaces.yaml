@@ -1,0 +1,7 @@
+# A string `answer` is exactly `sign? numeric_value`: a space or tab around it
+# is not allowed (the Markdown body `[numeric]: 1` is trimmed by the parser).
+id: regioes-do-brasil
+title: Regiões do Brasil
+type: numeric
+stem: Quantas regiões geográficas o IBGE reconhece no Brasil?
+answer: " 5 "

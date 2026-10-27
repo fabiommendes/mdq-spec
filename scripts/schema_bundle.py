@@ -126,32 +126,39 @@ def _tags_shorthand(defs: dict[str, Any], stem: str) -> dict[str, Any]:
     return {"anyOf": [_ref(defs, owner, "tags"), {"type": "string"}]}
 
 
+def _nullable(schema: dict[str, Any]) -> dict[str, Any]:
+    """An entry of a per-blank map may be `null`: the field is absent for the blank."""
+    return {"anyOf": [schema, {"type": "null"}]}
+
+
 def _pre_pattern_map(defs: dict[str, Any], stem: str) -> dict[str, Any]:
     return {
         "type": "object",
-        "additionalProperties": {"$ref": defs["short-answer"]["$id"] + "#/$defs/patternList"},
+        "additionalProperties": _nullable(
+            {"$ref": defs["short-answer"]["$id"] + "#/$defs/patternList"}
+        ),
     }
 
 
 def _blank_text_map(defs: dict[str, Any], stem: str) -> dict[str, Any]:
-    return {"type": "object", "additionalProperties": {"type": "string"}}
+    return {"type": "object", "additionalProperties": _nullable({"type": "string"})}
 
 
 def _blank_domain_map(defs: dict[str, Any], stem: str) -> dict[str, Any]:
     return {
         "type": "object",
-        "additionalProperties": {
-            "$ref": defs["fill-in"]["$id"] + "#/$defs/NumericBlank/properties/domain"
-        },
+        "additionalProperties": _nullable(
+            {"$ref": defs["fill-in"]["$id"] + "#/$defs/NumericBlank/properties/domain"}
+        ),
     }
 
 
 def _blank_decimal_places_map(defs: dict[str, Any], stem: str) -> dict[str, Any]:
     return {
         "type": "object",
-        "additionalProperties": {
-            "$ref": defs["fill-in"]["$id"] + "#/$defs/NumericBlank/properties/decimalPlaces"
-        },
+        "additionalProperties": _nullable(
+            {"$ref": defs["fill-in"]["$id"] + "#/$defs/NumericBlank/properties/decimalPlaces"}
+        ),
     }
 
 

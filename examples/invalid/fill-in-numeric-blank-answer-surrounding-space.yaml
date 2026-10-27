@@ -1,0 +1,10 @@
+# A string `answer` of a numeric blank is exactly `sign? numeric_value`: a space
+# around it is not allowed.
+id: pico-da-bandeira
+title: Pico da Bandeira
+type: fill-in
+stem: O Pico da Bandeira tem [^altura] metros de altitude.
+blanks:
+  - id: altura
+    type: numeric
+    answer: " 2892"
