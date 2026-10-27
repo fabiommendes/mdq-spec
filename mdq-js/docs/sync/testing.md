@@ -141,6 +141,15 @@ by hand and the two copies drift.
   because the format changed, its case moves to the corpus or the test is
   deleted. It is not fixed in place.
 
+The TypeScript unit suites that remain are `banks`, `load-api`, `query`
+(API and error types), `frontmatter`, `letters`, `markdown`, `regex`, `text`,
+`whitespace` (strip and unit pattern), `parser-numeric` (number
+representation and its property) and `slugify` (runtime and properties). Each
+one adds nothing a corpus example could state. To check that a unit test still
+earns its place, run the corpus suites alone with
+`pnpm vitest run --coverage <corpus specs>` (needs `@vitest/coverage-v8`) and
+compare. Statements are stable between runs; v8 branch counts are not.
+
 ## Properties
 
 Where Python uses Hypothesis, TypeScript uses Fast-check, and the properties

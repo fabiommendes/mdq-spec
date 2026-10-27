@@ -15,33 +15,6 @@ import {
 import { describe, expect, it } from "vitest";
 
 describe("Query.matches", () => {
-	it.each<[string, string[], boolean]>([
-		["biome", ["biome"], true],
-		["biome", ["forest"], false],
-		["biome AND forest", ["biome", "forest"], true],
-		["biome AND forest", ["biome"], false],
-		["savanna OR wetland", ["wetland"], true],
-		["NOT draft", [], true],
-		["NOT NOT draft", ["draft"], true],
-		["a OR b AND c", ["a"], true],
-		["(a OR b) AND c", ["a"], false],
-		["biome AND NOT draft", ["biome", "draft"], false],
-		["física", ["física"], true],
-		["and", ["and"], true],
-		["ANDROID", ["ANDROID"], true],
-		["NOTE", ["NOTE"], true],
-		["biome\tAND\nforest", ["biome", "forest"], true],
-	])("query %j on tags %j is %s", (query, tags, expected) => {
-		expect(parseQuery(query).matches(new Set(tags), "q")).toBe(expected);
-	});
-
-	it("EXCEPT removes the listed ids", () => {
-		const query = parseQuery("biome EXCEPT cerrado, pantanal");
-		expect(query.matches(new Set(["biome"]), "amazonia")).toBe(true);
-		expect(query.matches(new Set(["biome"]), "cerrado")).toBe(false);
-		expect(query.matches(new Set(["biome"]), "pantanal")).toBe(false);
-	});
-
 	it("accepts any iterable of tags", () => {
 		expect(parseQuery("a AND b").matches(["a", "b"], "q")).toBe(true);
 	});
@@ -96,10 +69,6 @@ describe("parseQuery errors", () => {
 		],
 	])("%j fails with a precise message", (query, message) => {
 		expect(() => parseQuery(query)).toThrow(message);
-	});
-
-	it("keywords are case sensitive: lowercase `and` is a tag", () => {
-		expect(() => parseQuery("a and b")).toThrow(QuerySyntaxError);
 	});
 });
 

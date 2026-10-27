@@ -216,7 +216,7 @@ export function resolveExam(
 		if ("include" in entry) {
 			questions.push(loadIncluded(exam, bank, entry.include));
 		} else if ("includeAll" in entry) {
-			const query = entry["includeAll"];
+			const query = entry.includeAll;
 			const candidates = [...queryIds(bank, query)]
 				.filter((id) => !taken.has(id))
 				.sort(compareCodePoints);
