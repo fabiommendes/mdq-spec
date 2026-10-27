@@ -215,7 +215,10 @@ Notas:
 ### P4. Regras de modelo e `load`
 
 P4a feita em 2026-10-27 (`4b4f01b`): `load`, regras comuns e do exame, D06.
-Falta a P4b (regras por família; notas em `/tmp/mdq-p4/progress.md`).
+P4b feita (`d7bea86`): regras por família; `MODEL_RULES` e `LOAD` vazios.
+Abertos: chave composta de YAML (agente do YAML 1.2), `blank-text` junto com
+erro de schema (`essay-blank-stem-and-unknown-field`), e `answer: " 1"`, que
+a mdq-py aceita (strip) e o JSON Schema recusa (levado à sessão `mdq`).
 
 `models/<família>.ts` com os validadores, `loading.ts` com `load`/`parse`,
 `assertValid`. Fecha `model-only/`, `LOAD_CODES`, `loading.spec.ts` e o
@@ -258,8 +261,7 @@ Divergências achadas na P4a, sem exemplo no corpus:
 
 - Erro de campo do modelo junto com erro de tipo (`{title: "  ", foo: 1}`):
   o Python reporta os dois no mesmo passe, o TS só o de schema.
-- `null` dentro de mapa que não é modelo (`grading: {multiple-choice:
-  null}`): o Python recusa, o TS descarta o null.
+- `null` dentro de mapa que não é modelo: alinhado na P4b.
 - JSON com `NaN`/`Infinity`: o Python aceita, o JS recusa. Levado à sessão
   `mdq`.
 
