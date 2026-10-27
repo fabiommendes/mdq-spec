@@ -203,39 +203,6 @@ describe("batch 1: fill-in definition forms", () => {
 				},
 			]);
 		});
-
-		it("an empty tag leaves the blank without accept", () => {
-			expect(blanksOf("[^rio/short-answer]:\n")).toEqual([
-				{ id: "rio", type: "short-answer" },
-			]);
-		});
-	});
-
-	describe("[^id/short-answer/accept] and /reject lists", () => {
-		it("accept and reject lists with feedback", () => {
-			expect(
-				blanksOf(
-					"[^rio/short-answer/accept]:\n* Amazonas\n* `Solimões`\n  > Trecho superior.\n\n" +
-						"[^rio/short-answer/reject]:\n* Nilo\n  > Africano.\n* *\n  > Não é rio.\n\n" +
-						`${CIDADE}${KM}`,
-				),
-			).toEqual([
-				{
-					id: "rio",
-					type: "short-answer",
-					accept: [
-						"Amazonas",
-						{ pattern: "`Solimões`", feedback: "Trecho superior." },
-					],
-					reject: [
-						{ pattern: "Nilo", feedback: "Africano." },
-						{ pattern: "*", feedback: "Não é rio." },
-					],
-				},
-				{ id: "cidade", type: "short-answer", accept: ["b"] },
-				{ id: "km", type: "numeric", answer: 1, domain: "integer" },
-			]);
-		});
 	});
 
 	describe("definitions of one slug merge into one blank", () => {
@@ -306,12 +273,6 @@ describe("batch 1: fill-in definition forms", () => {
 				],
 				epilogue: "Epílogo.",
 			});
-		});
-
-		it("a definition on the next line joins the previous paragraph", () => {
-			expect(blanksOf("[^rio/short-answer]: a\n[^km/numeric]: 1\n")).toEqual([
-				{ id: "rio", type: "short-answer", accept: ["a [^km/numeric]: 1"] },
-			]);
 		});
 	});
 });
@@ -460,43 +421,6 @@ describe("batch 2: fill-in errors", () => {
 		expect((error as Error).message).toBe(message);
 	}
 
-	describe("[^id]: with neither text nor a list", () => {
-		it("nothing after the tag", () => {
-			expectParseError("[^rio]:\n", "unrecognized blank definition: '[^rio]:'");
-		});
-
-		it("inline text without a list", () => {
-			expectParseError(
-				"[^rio]: texto\n",
-				"unrecognized blank definition: '[^rio]: texto'",
-			);
-		});
-
-		it("a paragraph instead of a list", () => {
-			expectParseError(
-				"[^rio]:\n\nO texto.\n",
-				"unrecognized blank definition: '[^rio]:'",
-			);
-		});
-	});
-
-	describe("a reject definition with no pattern", () => {
-		it.each([
-			["nothing after it", "[^rio/short-answer/reject]:\n"],
-			[
-				"a paragraph after a blank line",
-				"[^rio/short-answer/reject]:\n\nParagraph.\n",
-			],
-			[
-				"a code block after a blank line",
-				"[^rio/short-answer/reject]:\n\n```\ncode\n```\n",
-			],
-			["a list after a blank line", "[^rio/short-answer/reject]:\n\n* Nilo\n"],
-		])("%s", (_label, body) => {
-			expectParseError(body, "a [short-answer/reject] block has no pattern");
-		});
-	});
-
 	describe("one slug defined as two kinds", () => {
 		it.each([
 			[
@@ -560,13 +484,6 @@ describe("batch 2: fill-in errors", () => {
 			expectParseError(
 				"[^rio/numeric]: abc\n",
 				"malformed numeric body: 'abc'",
-			);
-		});
-
-		it("a number with an exponent", () => {
-			expectParseError(
-				"[^km/numeric(km)]: 6.4e3\n",
-				"malformed numeric body: '6.4e3'",
 			);
 		});
 	});

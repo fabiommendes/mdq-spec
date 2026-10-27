@@ -22,11 +22,10 @@
  * inheritance, the `===` grammar) live in `exam.ts`, which calls back into
  * `parseQuestionDocument` for each block.
  *
- * PORT STATUS (plan phase P2): the essay, numeric and choice-list bodies are
- * ported. The short-answer, ordering and fill-in bodies still run in the
- * legacy parser (`./legacy/question.ts`); see `MDQParser.parseQuestion`, where
- * phases P2b and P2c plug in `parseShortAnswerBody`, `parseFillInBody` and
- * `parseOrderingBody` like `_question.py` calls them.
+ * PORT STATUS (plan phase P2): every body but ordering is ported. Ordering
+ * still runs in the legacy parser (`./legacy/question.ts`); see
+ * `MDQParser.parseQuestion`, where phase P2c plugs in `parseOrderingBody`
+ * like `_question.py` calls it.
  */
 
 import { type Diagnostic, diagnostic } from "../diagnostics.js";
@@ -49,6 +48,7 @@ import {
 	type RawChoice,
 	SLUG_PREFIX_RE,
 } from "./choices.js";
+import { parseFillInBody } from "./fill-in.js";
 import {
 	commonFrontmatter,
 	extractComment,
@@ -63,8 +63,10 @@ import {
 	numericFields,
 	parseNumericExpression,
 } from "./numeric.js";
+import { parseShortAnswerBody } from "./short-answer.js";
 import {
 	checkBareTagAlone,
+	checkNoTagInContent,
 	checkTagLabel,
 	isReservedLabel,
 	type NumericTag,
@@ -117,7 +119,7 @@ export function parseQuestionDocument(
 	const parser = new MDQParser(source);
 	const doc = parser.parseQuestion();
 	if (doc === null) {
-		// Short-answer, ordering and fill-in: still the legacy parser (P2b, P2c).
+		// Ordering: still the legacy parser (P2c).
 		const legacyWarnings: Diagnostic[] = [];
 		const legacyDoc = parseLegacyQuestionDocument(source, legacyWarnings);
 		warnings?.push(
@@ -312,7 +314,8 @@ export class MDQParser {
 		}
 	}
 
-	parseNumericBody(tag: NumericTag): void {
+	parseNumericBody(tag: NumericTag, tagNode: Node): void {
+		checkNoTagInContent(this.reader.rawLines(tagNode).slice(1));
 		const parsed: NumericExpression = parseNumericExpression(tag.rest);
 		const front = this.frontmatter;
 		const doc = this.state;
@@ -436,9 +439,8 @@ export class MDQParser {
 	/**
 	 * Parse the question document this instance was constructed with.
 	 *
-	 * @returns The document, or `null` when its body is a short-answer,
-	 *   ordering or fill-in body: the legacy parser handles those until the
-	 *   phases P2b and P2c port them.
+	 * @returns The document, or `null` when its body is an ordering body: the
+	 *   legacy parser handles it until phase P2c ports it.
 	 * @throws {MissingFieldError} If the question has no stem.
 	 * @throws {ParseError} If the body does not match any known question
 	 *   shape.
@@ -475,9 +477,9 @@ export class MDQParser {
 		if (node === null) {
 			// `findBodyStart` found no body: a fill-in stem with no blank. The
 			// schema reports the empty `blanks` list.
-			return null; // P2c: questionType = "fill-in"; state.blanks = []
-		}
-		if (node.type === "bullet_list") {
+			questionType = "fill-in";
+			this.state.blanks = [];
+		} else if (node.type === "bullet_list") {
 			// Ambiguous between multiple-choice / multiple-selection /
 			// true-false: infer from the bracket values unless declared.
 			const bodyNode = this.cursor.expect(
@@ -501,7 +503,7 @@ export class MDQParser {
 					break;
 				case "numeric":
 					questionType = questionType || "numeric";
-					this.parseNumericBody(tag);
+					this.parseNumericBody(tag, bodyNode);
 					break;
 				case "ordering":
 					// P2c: `[fields, epilogueNodes] = parseOrderingBody(this.cursor,
@@ -509,18 +511,22 @@ export class MDQParser {
 					// "ordering"`.
 					return null;
 				case "short-answer":
-					// P2b: `Object.assign(this.state, parseShortAnswerBody(this.cursor,
-					// this.frontmatter, tag, bodyNode))`; the type is `questionType ||
-					// "short-answer"`.
-					return null;
+					questionType = questionType || "short-answer";
+					Object.assign(
+						this.state,
+						parseShortAnswerBody(this.cursor, this.frontmatter, tag, bodyNode),
+					);
+					break;
 				case "choice-blank":
 				case "numeric-blank":
 				case "short-answer-blank":
 				case "unrecognized-blank":
-					// P2c: `Object.assign(this.state, parseFillInBody(this.cursor,
-					// this.frontmatter, tag, bodyNode))`; the type is `questionType ||
-					// "fill-in"`.
-					return null;
+					questionType = questionType || "fill-in";
+					Object.assign(
+						this.state,
+						parseFillInBody(this.cursor, this.frontmatter, tag, bodyNode),
+					);
+					break;
 				case undefined:
 					// `findBodyStart` already filtered this.
 					throw new ParseError("Question ended before inferring its type");

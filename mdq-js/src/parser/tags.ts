@@ -8,13 +8,14 @@
 
 import { ParseError } from "../errors.js";
 import { SLUG_BODY_RE, UNICODE_SPACE } from "../markdown.js";
+import { repr, strip } from "./text.js";
 
 //
 // Constants
 //
 // Body-start detection.
 const ESSAY_TAG_RE = /^\[essay\]$/u;
-const SHORT_ANSWER_RE =
+export const SHORT_ANSWER_RE =
 	/^\[short-answer(?:\/(?<variant>accept|reject))?\][ \t]*:[ \t]*(?<rest>[^\n]*)$/u;
 /**
  * The start of a line that opens with the bare tag of a short answer and goes
@@ -41,10 +42,12 @@ const NUMERIC_TAG_RE = new RegExp(
 // A blank definition tag. Deliberately permissive in `kind`: an unrecognized
 // suffix must reach BLANK_KIND_RE and raise a real error, not fail to match
 // and get swallowed by the epilogue.
-const BLANK_RE = new RegExp(
+export const BLANK_RE = new RegExp(
 	`^\\[\\^(?<id>${SLUG_BODY_RE})(?:\\/(?<kind>[^\\]]+))?\\][ \\t]*:[ \\t]*(?<rest>[^\\n]*)$`,
 	"u",
 );
+/** The text after the colon of a short-answer tag line. */
+export const TAG_REST_RE = /^[ \t]*\[[^\n]*?\][ \t]*:[ \t]*(?<rest>[^\n]*)$/u;
 /** The tag of a short answer blank with no pattern, written without a colon. */
 const BLANK_BARE_RE = new RegExp(
 	`^\\[\\^(?<id>${SLUG_BODY_RE})\\/short-answer(?:\\/(?<variant>accept|reject))?\\]$`,
@@ -314,6 +317,38 @@ export function checkBareTagAlone(lines: readonly string[]): void {
 /** Whether `label` is reserved: it starts with a type name or is `^id/...`. */
 export function isReservedLabel(label: string): boolean {
 	return RESERVED_LABEL_RE.test(label);
+}
+
+/**
+ * Whether `line` starts with a tag that `LAZY_START` excludes (grammar.md,
+ * "Feedback and comment lines"): a reserved label or a blank label `^id`,
+ * between brackets, and a colon. A line with four or more columns of
+ * indentation is continuation text, so it is no tag line.
+ */
+export function isTagLine(line: string): boolean {
+	const spaces = line.length - line.replace(/^ +/u, "").length;
+	if (spaces >= 4 || line.startsWith("\t")) return false;
+	const m = TAG_COLON_LINE_RE.exec(line);
+	if (m?.groups === undefined) return false;
+	const label = m.groups.label ?? "";
+	return label.startsWith("^") || isReservedLabel(label);
+}
+
+/** The `ParseError` message for a tag `line` right after the content. */
+export function tagAfterContentMessage(line: string): string {
+	return `the line ${repr(strip(line, " \t"))} is a tag, so it cannot continue the content before it; add a blank line before the tag`;
+}
+
+/**
+ * Throw a `ParseError` if one of the content lines that follow the tag line
+ * is a tag line itself (grammar.md, "Feedback and comment lines").
+ *
+ * @param lines The lines of the tag paragraph after its first line.
+ */
+export function checkNoTagInContent(lines: readonly string[]): void {
+	for (const line of lines) {
+		if (isTagLine(line)) throw new ParseError(tagAfterContentMessage(line));
+	}
 }
 
 /**

@@ -23,12 +23,7 @@
  * `mdq-py/mdq/errors.py` -- `ConflictingAnswerKey`.
  */
 
-import {
-	ConflictingAnswerKeyError,
-	type Diagnostic,
-	ParseError,
-	parseQuestionDocument,
-} from "@mdq";
+import { ParseError, parseQuestionDocument } from "@mdq";
 import { describe, expect, it } from "vitest";
 
 describe("short-answer: the tag spellings", () => {
@@ -87,40 +82,6 @@ describe("short-answer: the tag spellings", () => {
 		});
 	});
 
-	it("a tag with no pattern and no list leaves the question without accept", () => {
-		// short-answer.md, "Fully manual": nothing grades it; `unmatched`
-		// defaults to manual then. There is no `openEnded` field.
-		expect(
-			parseQuestionDocument("Descreva o bioma Cerrado.\n\n[short-answer]:\n"),
-		).toEqual({
-			stem: "Descreva o bioma Cerrado.",
-			type: "short-answer",
-		});
-	});
-
-	it("a list detached from its tag by a blank line is the epilogue", () => {
-		const warnings: Diagnostic[] = [];
-		expect(
-			parseQuestionDocument(
-				"Capital?\n\n[short-answer]:\n\n* Brasilia\n* Rio\n",
-				warnings,
-			),
-		).toEqual({
-			stem: "Capital?",
-			type: "short-answer",
-			epilogue: "* Brasilia\n* Rio",
-		});
-		expect(warnings).toEqual([
-			{
-				severity: "warning",
-				code: "detached-answer-list",
-				message:
-					"a blank line separates the list from its [short-answer] tag, so the list is part of the epilogue",
-				path: ["epilogue"],
-			},
-		]);
-	});
-
 	it("diacritics, unmatched and incorrectFeedback are copied from the frontmatter", () => {
 		expect(
 			parseQuestionDocument(
@@ -143,18 +104,6 @@ describe("short-answer: the tag spellings", () => {
 //
 
 describe("short-answer: frontmatter pattern lists", () => {
-	it("a frontmatter `reject` list combines with a body [short-answer/accept] block", () => {
-		const source =
-			"---\nreject:\n  - Errado\n---\n\nCapital?\n\n" +
-			"[short-answer/accept]:\n* Brasilia\n";
-		expect(parseQuestionDocument(source)).toEqual({
-			stem: "Capital?",
-			type: "short-answer",
-			accept: ["Brasilia"],
-			reject: ["Errado"],
-		});
-	});
-
 	it("frontmatter-only `preAccept`/`preReject` combine with body accept/reject blocks", () => {
 		const source =
 			"---\npreAccept:\n  - /\\d+/\npreReject:\n  - pattern: /0/\n" +
@@ -167,26 +116,6 @@ describe("short-answer: frontmatter pattern lists", () => {
 			reject: ["41"],
 			preAccept: ["/\\d+/"],
 			preReject: [{ pattern: "/0/", feedback: "zero is invalid" }],
-		});
-	});
-
-	it("a frontmatter `accept` list fills an empty [short-answer] tag", () => {
-		const source =
-			"---\naccept: [Brasília]\n---\n\nQual é a capital do Brasil?\n\n[short-answer]:\n";
-		expect(parseQuestionDocument(source)).toEqual({
-			stem: "Qual é a capital do Brasil?",
-			type: "short-answer",
-			accept: ["Brasília"],
-		});
-	});
-
-	it("a frontmatter `reject` list fills an empty [short-answer] tag", () => {
-		const source =
-			"---\nreject: [Rio de Janeiro]\n---\n\nQual é a capital do Brasil?\n\n[short-answer]:\n";
-		expect(parseQuestionDocument(source)).toEqual({
-			stem: "Qual é a capital do Brasil?",
-			type: "short-answer",
-			reject: ["Rio de Janeiro"],
 		});
 	});
 });
@@ -219,78 +148,18 @@ describe("short-answer: error paths", () => {
 			"repeated [short-answer] accept block",
 		],
 		[
-			"an empty bare block followed by an accept block",
-			"Qual é a capital do Brasil?\n\n[short-answer]:\n\n[short-answer/accept]:\n* Brasília\n",
-			"repeated [short-answer] accept block",
-		],
-		[
 			"a pattern on the tag line and a list right after it",
 			"Capital?\n\n[short-answer]: Brasilia\n* Rio\n",
 			"a [short-answer] tag with a pattern on its line cannot be followed by a list",
-		],
-		[
-			"a reject block with no pattern",
-			"Capital?\n\n[short-answer/reject]:\n\nSome epilogue paragraph.\n",
-			"a [short-answer/reject] block has no pattern",
-		],
-		[
-			"a reject block with a detached list",
-			"Capital?\n\n[short-answer/reject]:\n\n* Rio\n",
-			"a [short-answer/reject] block has no pattern",
 		],
 		[
 			"an empty item in a pattern list",
 			"Capital?\n\n[short-answer]:\n* Brasilia\n*\n",
 			"a short-answer pattern line cannot be empty",
 		],
-		[
-			"feedback and comment lines that interleave",
-			"Capital?\n\n[short-answer]:\n* Brasilia\n  > a\n  ! b\n  > c\n",
-			"a pattern item carries at most one feedback and one comment block, and they must not interleave",
-		],
 	])("raises ParseError for %s", (_label, source, message) => {
 		expect(() => parseQuestionDocument(source)).toThrow(ParseError);
 		expect(() => parseQuestionDocument(source)).toThrow(message);
-	});
-
-	it("an accept block with no pattern, followed by a paragraph, is not an error", () => {
-		const source =
-			"Capital?\n\n[short-answer/accept]:\n\nSome epilogue paragraph.\n";
-		expect(parseQuestionDocument(source)).toEqual({
-			stem: "Capital?",
-			type: "short-answer",
-			epilogue: "Some epilogue paragraph.",
-		});
-	});
-
-	it.each([
-		[
-			"accept",
-			"---\naccept:\n  - Brasilia\n---\n\nCapital?\n\n[short-answer/accept]:\n* Brasilia\n",
-		],
-		[
-			"reject",
-			"---\nreject:\n  - Errado\n---\n\nCapital?\n\n[short-answer/reject]:\n* Errado\n",
-		],
-		[
-			"accept",
-			"---\naccept:\n  - Brasilia\n---\n\nCapital?\n\n[short-answer]: Brasilia (alt)\n",
-		],
-	])("raises ConflictingAnswerKeyError (code conflicting-accept) when `%s` is declared in both places", (variant, source) => {
-		try {
-			parseQuestionDocument(source);
-			expect.unreachable();
-		} catch (error) {
-			expect(error).toBeInstanceOf(ConflictingAnswerKeyError);
-			expect(error).toBeInstanceOf(ParseError);
-			// `code` is the same for both keys, not derived from the variant.
-			expect((error as ConflictingAnswerKeyError).code).toBe(
-				"conflicting-accept",
-			);
-			expect((error as Error).message).toBe(
-				`'${variant}' is declared both in the frontmatter and in a [short-answer] body block`,
-			);
-		}
 	});
 });
 

@@ -20,30 +20,11 @@ type Manifest = Record<string, string>;
 
 /** `.mdq.md` sources that do not parse into their `.yaml` sibling. */
 export const PARSE: Manifest = {
-	"exam.question-stem-setext-h2.mdq.md": "corpus em mudança (rodada mdq)",
-	"multiple-choice.setext-heading-in-epilogue-not-linted.mdq.md":
-		"corpus em mudança (rodada mdq)",
-	"short-answer.stem-setext-h2.mdq.md": "corpus em mudança (rodada mdq)",
-	"exam.empty-heading.mdq.md": "corpus em mudança (rodada mdq)",
+	"exam.empty-heading.mdq.md": "parser (P2)",
 	"exam.all-question-types.mdq.md": "parser (P2)",
 	"exam.comment.mdq.md": "parser (P2)",
 	"exam.ordering-sections.mdq.md": "parser (P2)",
-	"exam.thematic-break-in-question.mdq.md": "parser (P2)",
-	"exam.thematic-break-then-bare-frontmatter.mdq.md": "parser (P2)",
 	"exam.with-ordering.mdq.md": "parser (P2)",
-	"fill-in.blank-in-code-is-text.mdq.md": "parser (P2)",
-	"fill-in.blank-in-indented-code-is-text.mdq.md": "parser (P2)",
-	"fill-in.blank-in-tilde-fence-is-text.mdq.md": "parser (P2)",
-	"fill-in.blanks-in-two-paragraphs.mdq.md": "parser (P2)",
-	"fill-in.blockquote-stem.mdq.md": "parser (P2)",
-	"fill-in.incorrect-feedback.mdq.md": "parser (P2)",
-	"fill-in.numeric-blank-declared.mdq.md": "parser (P2)",
-	"fill-in.numeric-blank-exponent.mdq.md": "parser (P2)",
-	"fill-in.numeric-blank-incorrect-feedback.mdq.md": "parser (P2)",
-	"fill-in.numeric-blank-maps-places.mdq.md": "parser (P2)",
-	"fill-in.open-blank-between-definitions.mdq.md": "parser (P2)",
-	"fill-in.open-blank.mdq.md": "parser (P2)",
-	"fill-in.stem-starts-with-blank.mdq.md": "parser (P2)",
 	"ordering.accept-alternative.mdq.md": "parser (P2)",
 	"ordering.accept-blank-line-skip-blanks.mdq.md": "parser (P2)",
 	"ordering.accept-omits-line.mdq.md": "parser (P2)",
@@ -107,22 +88,6 @@ export const PARSE: Manifest = {
 	"ordering.unreachable-reject.mdq.md": "parser (P2)",
 	"ordering.visually-identical-across-blocks.mdq.md": "parser (P2)",
 	"ordering.visually-identical-lines.mdq.md": "parser (P2)",
-	"short-answer.accept-tag-without-pattern.mdq.md": "parser (P2)",
-	"short-answer.bare-accept-with-reject.mdq.md": "parser (P2)",
-	"short-answer.bare-tag-detached-list-epilogue.mdq.md": "parser (P2)",
-	"short-answer.exact-literal-spans-lines-block.mdq.md": "parser (P2)",
-	"short-answer.indented-code-stem.mdq.md": "parser (P2)",
-	"short-answer.indented-marker-continuation.mdq.md": "parser (P2)",
-	"short-answer.indented-quote-continuation.mdq.md": "parser (P2)",
-	"short-answer.indented-underline-continuation.mdq.md": "parser (P2)",
-	"short-answer.manual.mdq.md": "parser (P2)",
-	"short-answer.ordered-list-stem.mdq.md": "parser (P2)",
-	"short-answer.pattern-empty-feedback-marker-line.mdq.md": "parser (P2)",
-	"short-answer.reject-only.mdq.md": "parser (P2)",
-	"short-answer.stem-with-prose-list.mdq.md": "parser (P2)",
-	"short-answer.tab-indented-bang-continuation.mdq.md": "parser (P2)",
-	"short-answer.tab-indented-quote-continuation.mdq.md": "parser (P2)",
-	"short-answer.tab-indented-underline-continuation.mdq.md": "parser (P2)",
 };
 
 /** `valid/` documents that the Zod schemas reject. */
@@ -130,10 +95,8 @@ export const SCHEMA: Manifest = {};
 
 /** `invalid/model-only/` documents that `validateDocument` accepts. */
 export const MODEL_RULES: Manifest = {
-	"model-only.exam-setext-h1-in-instructions.yaml":
-		"corpus em mudança (rodada mdq)",
-	"model-only.question-setext-h1-in-stem.yaml":
-		"corpus em mudança (rodada mdq)",
+	"model-only.exam-setext-h1-in-instructions.yaml": "model rule (P4)",
+	"model-only.question-setext-h1-in-stem.yaml": "model rule (P4)",
 	"model-only.essay-answer-key-setext-h1.yaml": "model rule (P4)",
 	"model-only.essay-blank-answer-key-json.json": "model rule (P4)",
 	"model-only.essay-blank-answer-key.yaml": "model rule (P4)",
@@ -267,19 +230,15 @@ export const MODEL_RULES: Manifest = {
  * of the port plan that ports them.
  */
 export const LOAD: Manifest = {
-	"exam-setext-h1-in-instructions.mdq.md": "corpus em mudança (rodada mdq)",
-	"fill-in-short-answer-tag-line-after-content.mdq.md":
-		"corpus em mudança (rodada mdq)",
-	"fill-in-short-answer-tag-line-after-item.mdq.md":
-		"corpus em mudança (rodada mdq)",
-	"question-setext-h1-in-epilogue.mdq.md": "corpus em mudança (rodada mdq)",
-	"short-answer-tag-line-after-content.mdq.md":
-		"corpus em mudança (rodada mdq)",
-	"short-answer-tag-line-after-continuation.mdq.md":
-		"corpus em mudança (rodada mdq)",
-	"short-answer-tag-line-after-empty-tag.mdq.md":
-		"corpus em mudança (rodada mdq)",
-	"short-answer-tag-line-after-item.mdq.md": "corpus em mudança (rodada mdq)",
+	"exam-h1-in-question.mdq.md": "expects forbidden-block-element (P4)",
+	"exam-setext-h1-in-question-stem.mdq.md":
+		"expects forbidden-block-element (P4)",
+	"fill-in-misplaced-blank-heading.mdq.md": "expects misplaced-blank (P4)",
+	"question-setext-h1-in-stem.mdq.md": "expects forbidden-block-element (P4)",
+	"exam-setext-h1-in-instructions.mdq.md":
+		"expects forbidden-block-element (P4)",
+	"question-setext-h1-in-epilogue.mdq.md":
+		"expects forbidden-block-element (P4)",
 	"essay-answer-key-before-body.mdq.md": "expects forbidden-block-element (P4)",
 	"essay-forbidden-heading.mdq.md": "expects forbidden-block-element (P4)",
 	"essay-forbidden-paragraph-after-heading.mdq.md":
@@ -303,56 +262,16 @@ export const LOAD: Manifest = {
 	"exam-unknown-frontmatter-key.mdq.md":
 		"expects invalid-frontmatter-field (P2)",
 	"fill-in-autolink-blank-defined.mdq.md": "expects unreferenced-blank (P4)",
-	"fill-in-choice-blank-two-feedback-blocks.mdq.md": "expects parse-error (P2)",
-	"fill-in-choice-list-marker-change.mdq.md": "expects parse-error (P2)",
-	"fill-in-decimal-places-negative.mdq.md": "expects schema-error (P4)",
-	"fill-in-decimal-places-on-short-answer-blank.mdq.md":
-		"expects schema-error (P4)",
-	"fill-in-decimal-places-undefined-blank.mdq.md":
-		"expects undefined-blank (P4)",
-	"fill-in-detached-choice-and-numeric.mdq.md": "expects detached-tag (P2)",
-	"fill-in-detached-tag.mdq.md": "expects detached-tag (P2)",
-	"fill-in-domain-not-a-mapping.mdq.md": "expects parse-error (P2)",
-	"fill-in-domain-on-short-answer-blank.mdq.md": "expects schema-error (P4)",
-	"fill-in-domain-undefined-blank.mdq.md": "expects undefined-blank (P4)",
-	"fill-in-domain-unknown-value.mdq.md": "expects schema-error (P4)",
 	"fill-in-duplicate-blank-reference.mdq.md":
 		"expects duplicate-blank-reference (P4)",
-	"fill-in-epilogue-footnote-line.mdq.md": "expects detached-tag (P2)",
 	"fill-in-html-block-blank.mdq.md": "expects unreferenced-blank (P4)",
-	"fill-in-incorrect-feedback-map-value-not-string.mdq.md":
-		"expects parse-error (P2)",
-	"fill-in-incorrect-feedback-not-a-map.mdq.md": "expects parse-error (P2)",
-	"fill-in-incorrect-feedback-on-choice-blank.mdq.md":
-		"expects schema-error (P4)",
-	"fill-in-incorrect-feedback-undefined-blank.mdq.md":
-		"expects undefined-blank (P4)",
-	"fill-in-marker-line-after-blank-definition-content.mdq.md":
-		"expects parse-error (P2)",
 	"fill-in-misplaced-blank-blockquote.mdq.md": "expects misplaced-blank (P4)",
 	"fill-in-misplaced-blank-emphasis.mdq.md": "expects misplaced-blank (P4)",
 	"fill-in-misplaced-blank-image-alt.mdq.md": "expects misplaced-blank (P4)",
 	"fill-in-misplaced-blank-link.mdq.md": "expects misplaced-blank (P4)",
 	"fill-in-misplaced-blank-list-item.mdq.md": "expects misplaced-blank (P4)",
 	"fill-in-misplaced-blank-table-cell.mdq.md": "expects misplaced-blank (P4)",
-	"fill-in-no-blanks-markdown.mdq.md": "expects schema-error (P4)",
 	"fill-in-numeric-blank-invisible-unit.mdq.md": "expects blank-text (P4)",
-	"fill-in-quote-line-after-blank-definition-content.mdq.md":
-		"expects parse-error (P2)",
-	"fill-in-short-answer-accept-alias-blank-line-before-list.mdq.md":
-		"expects parse-error (P2)",
-	"fill-in-short-answer-blank-line-before-list.mdq.md":
-		"expects parse-error (P2)",
-	"fill-in-short-answer-comment-after-content.mdq.md":
-		"expects parse-error (P2)",
-	"fill-in-short-answer-empty-colon.mdq.md": "expects parse-error (P2)",
-	"fill-in-short-answer-exact-opens-at-line-end.mdq.md":
-		"expects parse-error (P2)",
-	"fill-in-short-answer-list-marker-change.mdq.md": "expects parse-error (P2)",
-	"fill-in-short-answer-reject-without-colon.mdq.md":
-		"expects parse-error (P2)",
-	"fill-in-short-answer-setext-after-reject-content.mdq.md":
-		"expects parse-error (P2)",
 	"fill-in-strikethrough-blank.mdq.md": "expects misplaced-blank (P4)",
 	"fill-in-undefined-blank.mdq.md": "expects undefined-blank (P4)",
 	"fill-in-unreferenced-blank.mdq.md": "expects unreferenced-blank (P4)",
@@ -396,87 +315,8 @@ export const LOAD: Manifest = {
 	"ordering-text-starts-nested.mdq.md": "expects invalid-outline-level (P4)",
 	"ordering-without-colon-fence.mdq.md": "expects parse-error (P2)",
 	"ordering-without-colon.mdq.md": "expects parse-error (P2)",
-	"short-answer-accept-alias-blank-line-before-list.mdq.md":
-		"expects parse-error (P2)",
-	"short-answer-accept-alias-empty-tag-blank-line-text.mdq.md":
-		"expects parse-error (P2)",
-	"short-answer-bang-indented-line-after-content.mdq.md":
-		"expects parse-error (P2)",
-	"short-answer-bang-indented-line-after-empty-tag.mdq.md":
-		"expects parse-error (P2)",
-	"short-answer-bang-indented-line-after-reject-content.mdq.md":
-		"expects parse-error (P2)",
-	"short-answer-bang-line-after-content.mdq.md": "expects parse-error (P2)",
-	"short-answer-bang-line-after-continuation.mdq.md":
-		"expects parse-error (P2)",
-	"short-answer-bang-line-after-empty-tag.mdq.md": "expects parse-error (P2)",
-	"short-answer-bang-line-after-reject-content.mdq.md":
-		"expects parse-error (P2)",
-	"short-answer-bang-line-indent-0.mdq.md": "expects parse-error (P2)",
-	"short-answer-bang-line-indent-1.mdq.md": "expects parse-error (P2)",
-	"short-answer-bang-line-indent-3.mdq.md": "expects parse-error (P2)",
-	"short-answer-bang-no-space-line-after-content.mdq.md":
-		"expects parse-error (P2)",
-	"short-answer-bang-no-space-line-after-empty-tag.mdq.md":
-		"expects parse-error (P2)",
-	"short-answer-bang-no-space-line-after-reject-content.mdq.md":
-		"expects parse-error (P2)",
-	"short-answer-blank-line-before-list.mdq.md": "expects parse-error (P2)",
 	"short-answer-block-start-pattern-single-line.mdq.md":
 		"expects block-start-pattern (P4)",
-	"short-answer-comment-after-content.mdq.md": "expects parse-error (P2)",
-	"short-answer-conflicting-accept-bare.mdq.md":
-		"expects invalid-frontmatter-field (P2)",
-	"short-answer-conflicting-accept.mdq.md":
-		"expects invalid-frontmatter-field (P2)",
-	"short-answer-conflicting-reject.mdq.md":
-		"expects invalid-frontmatter-field (P2)",
-	"short-answer-empty-tag-blank-line-text.mdq.md": "expects parse-error (P2)",
-	"short-answer-empty-tag-end-of-body.mdq.md": "expects parse-error (P2)",
-	"short-answer-empty-tag-then-accept-block.mdq.md": "expects parse-error (P2)",
-	"short-answer-exact-closes-at-line-start-item-continuation.mdq.md":
-		"expects parse-error (P2)",
-	"short-answer-exact-closes-at-line-start-item-feedback.mdq.md":
-		"expects parse-error (P2)",
-	"short-answer-exact-closes-at-line-start-short.mdq.md":
-		"expects parse-error (P2)",
-	"short-answer-exact-closes-at-line-start.mdq.md": "expects parse-error (P2)",
-	"short-answer-exact-double-opens-at-line-end.mdq.md":
-		"expects parse-error (P2)",
-	"short-answer-exact-opens-at-line-end-bare-tag.mdq.md":
-		"expects parse-error (P2)",
-	"short-answer-exact-opens-at-line-end-item.mdq.md":
-		"expects parse-error (P2)",
-	"short-answer-exact-opens-at-line-end.mdq.md": "expects parse-error (P2)",
-	"short-answer-fence-mismatch.mdq.md": "expects parse-error (P2)",
-	"short-answer-frontmatter-regex.mdq.md":
-		"expects invalid-frontmatter-field (P2)",
-	"short-answer-frontmatter-reject.mdq.md":
-		"expects invalid-frontmatter-field (P2)",
-	"short-answer-item-block-quote.mdq.md": "expects parse-error (P2)",
-	"short-answer-item-heading.mdq.md": "expects parse-error (P2)",
-	"short-answer-item-html-block.mdq.md": "expects parse-error (P2)",
-	"short-answer-item-nested-list.mdq.md": "expects parse-error (P2)",
-	"short-answer-item-ordered-list.mdq.md": "expects parse-error (P2)",
-	"short-answer-item-reject-block-quote.mdq.md": "expects parse-error (P2)",
-	"short-answer-item-setext-dashes.mdq.md": "expects parse-error (P2)",
-	"short-answer-item-setext-equals.mdq.md": "expects parse-error (P2)",
-	"short-answer-item-setext-single-equals.mdq.md": "expects parse-error (P2)",
-	"short-answer-item-two-feedback-blocks.mdq.md": "expects parse-error (P2)",
-	"short-answer-list-marker-change-ordered.mdq.md": "expects parse-error (P2)",
-	"short-answer-list-marker-change.mdq.md": "expects parse-error (P2)",
-	"short-answer-marker-line-after-continuation.mdq.md":
-		"expects parse-error (P2)",
-	"short-answer-partial-backtick.mdq.md": "expects parse-error (P2)",
-	"short-answer-quote-after-content.mdq.md": "expects parse-error (P2)",
-	"short-answer-quote-after-empty-tag.mdq.md": "expects parse-error (P2)",
-	"short-answer-quote-line-after-content.mdq.md": "expects parse-error (P2)",
-	"short-answer-quote-line-after-empty-tag.mdq.md": "expects parse-error (P2)",
-	"short-answer-quote-line-after-reject-content.mdq.md":
-		"expects parse-error (P2)",
-	"short-answer-quote-line-indent-0.mdq.md": "expects parse-error (P2)",
-	"short-answer-quote-line-indent-1.mdq.md": "expects parse-error (P2)",
-	"short-answer-quote-line-indent-3.mdq.md": "expects parse-error (P2)",
 	"short-answer-regex-alternation-quantifier-without-atom.mdq.md":
 		"expects invalid-regex (P4)",
 	"short-answer-regex-atomic-group.mdq.md": "expects invalid-regex (P4)",
@@ -545,12 +385,9 @@ export const LOAD: Manifest = {
 	"short-answer-regex-unopened-group.mdq.md": "expects invalid-regex (P4)",
 	"short-answer-regex-word-boundary-in-class.mdq.md":
 		"expects invalid-regex (P4)",
-	"short-answer-reject-after-epilogue.mdq.md": "expects detached-tag (P2)",
-	"short-answer-reject-without-colon.mdq.md": "expects parse-error (P2)",
 	"short-answer-repeated-ignored-regex-flag.mdq.md":
 		"expects invalid-regex (P4)",
 	"short-answer-repeated-regex-flag.mdq.md": "expects invalid-regex (P4)",
-	"short-answer-setext-after-reject-content.mdq.md": "expects parse-error (P2)",
 	"short-answer-unclosed-regex-content.mdq.md": "expects invalid-regex (P4)",
 	"short-answer-unclosed-regex-item.mdq.md": "expects invalid-regex (P4)",
 	"short-answer-unknown-regex-flag.mdq.md": "expects invalid-regex (P4)",

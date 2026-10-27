@@ -128,13 +128,19 @@ export class BlockReader {
 	/**
 	 * A block's text as it reads in a `stem`, `epilogue` or `answerKey` field:
 	 * `rawText`, plus the `#` markers of an ATX heading, which stay part of
-	 * the field so a heading is still a heading when the field is parsed
+	 * the field and the source lines (underline included) of a setext
+	 * heading, so a heading is still a heading when the field is parsed
 	 * again.
 	 */
 	blockText(node: Node): string {
 		const text = this.rawText(node);
 		if (node.type === "heading" && node.markup.startsWith("#")) {
 			return `${node.markup} ${text}`;
+		}
+		if (node.type === "heading") {
+			// A setext heading: keep the underline, or the heading turns into a
+			// paragraph (an H1 would go unreported).
+			return this.rawLines(node).join("\n");
 		}
 		return text;
 	}

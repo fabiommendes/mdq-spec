@@ -22,7 +22,12 @@ export class ParseError extends MdqError {
 	/** The diagnostic code `load()` reports; `parse-error` when absent. */
 	readonly code: string = "parse-error";
 	/** Where the problem is, as a path from the document's root. */
-	readonly path: readonly (string | number)[] = [];
+	readonly path: readonly (string | number)[];
+
+	constructor(message: string, path: readonly (string | number)[] = []) {
+		super(message);
+		this.path = path;
+	}
 }
 
 /** The frontmatter is not valid YAML, or repeats a key. */

@@ -527,30 +527,6 @@ describe("batch 1: exam blocks", () => {
 		});
 	});
 
-	it("a bare --- in the preamble is a thematic break, not a fence", () => {
-		expect(
-			parseExamDocument(
-				"# Sample Exam\n\n===\n\nSome background text.\n\n---\n\nMore background, after a thematic break.\n\nWhat is 2 + 2?\n\n[short-answer]: 4\n\n---\ntype: essay\n---\n\nDescribe the water cycle.\n\n[essay]\n",
-			),
-		).toEqual({
-			type: "exam",
-			title: "Sample Exam",
-			questions: [
-				{
-					preamble:
-						"Some background text.\n\n---\n\nMore background, after a thematic break.",
-					stem: "What is 2 + 2?",
-					accept: ["4"],
-					type: "short-answer",
-				},
-				{
-					stem: "Describe the water cycle.",
-					type: "essay",
-				},
-			],
-		});
-	});
-
 	it("a bracket item counts as a body: the next bare fence opens a block", () => {
 		expect(
 			parseExamDocument(

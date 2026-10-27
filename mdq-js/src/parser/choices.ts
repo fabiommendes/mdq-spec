@@ -15,6 +15,7 @@ import {
 	stripMarkerSpace,
 } from "../letters.js";
 import { SLUG_BODY_RE } from "../markdown.js";
+import { isTagLine, tagAfterContentMessage } from "./tags.js";
 import { repr, strip } from "./text.js";
 
 /** The question types whose body is a choice list. */
@@ -204,7 +205,9 @@ export function classifyLine(line: string): [LineKind, string] {
 	if (stripped.startsWith("!") && !stripped.startsWith("![")) {
 		return ["!", strip(stripped.slice(1), " \t")];
 	}
-	if (LAZY_START_RE.test(stripped)) return ["lazy", stripped];
+	if (LAZY_START_RE.test(stripped) && !isTagLine(stripped)) {
+		return ["lazy", stripped];
+	}
 	return ["block", stripped];
 }
 
@@ -301,6 +304,7 @@ export function parseObservations(
 		} else if (kind === "lazy" && current !== null) {
 			blocks.get(current)?.push(content);
 		} else {
+			if (isTagLine(line)) throw new ParseError(tagAfterContentMessage(line));
 			throw new ParseError(
 				"only a feedback block and a comment block can follow the text " +
 					`of an element: ${repr(line)}`,
