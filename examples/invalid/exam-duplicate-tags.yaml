@@ -1,0 +1,6 @@
+# `tags` is a set: the schema's `uniqueItems` rejects a repeated entry.
+type: exam
+id: prova-biomas
+title: Biomas do Brasil
+tags: [cerrado, caatinga, cerrado]
+questions: []
