@@ -2,8 +2,7 @@
  * Fill-in questions and their blanks. A port of `models/_fill_in.py`.
  *
  * The validation (phase P4b), the lint rules (phase P5) and the scoring
- * (phase P6) are here. `blankAutomation` is NOT PORTED (phase P7 of
- * `dev/plan/mdq-js-paridade.md`): a stub that throws.
+ * (phase P6) are here, with `blankAutomation` and `blankWithIds`.
  */
 
 import type { Diagnostic, PathStep } from "../diagnostics.js";
@@ -28,6 +27,7 @@ import {
 	checkChoicesVisuallyIdentical,
 	checkMultipleChoiceAnswers,
 	unspecifiedChoiceScore,
+	withChoiceIds,
 } from "./choice.js";
 import { lintDiagnostic } from "./lint-codes.js";
 import {
@@ -43,6 +43,7 @@ import {
 	patternKeyFields,
 	patternKeyLint,
 	scoreText,
+	shortAnswerAutomation,
 } from "./text.js";
 
 /**
@@ -260,10 +261,22 @@ export function blankEffectiveUnmatched(
 
 /** The automation of a blank, given the `unmatched` of its question. */
 export function blankAutomation(
-	_blank: Blank,
-	_unmatched: Unmatched | undefined,
+	blank: Blank,
+	unmatched: Unmatched | undefined,
 ): Automation {
-	throw new Error("not ported (P7)");
+	if (blank.type !== "short-answer") return "automatic";
+	return shortAnswerAutomation(
+		blankEffectiveUnmatched(blank, unmatched),
+		blank.accept,
+		blank.reject,
+	);
+}
+
+/** The blank with the ids it derives; only choice blanks derive any. */
+export function blankWithIds(blank: Blank): Blank {
+	return blank.type === "multiple-choice"
+		? { ...blank, choices: withChoiceIds(blank.choices) }
+		: blank;
 }
 
 //

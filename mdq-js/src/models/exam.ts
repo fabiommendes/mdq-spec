@@ -10,6 +10,7 @@
  */
 
 import type { Diagnostic, PathStep } from "../diagnostics.js";
+import { UnresolvedInclude } from "../errors.js";
 import { md } from "../markdown.js";
 import { repr } from "../parser/text.js";
 import { canonicalDuration, canonicalStart } from "../schedule.js";
@@ -18,6 +19,7 @@ import type { GradingType, Question } from "../schema/index.js";
 import type { QuestionType } from "../schema/questions.js";
 import type { MdqDocument } from "../validate.js";
 import {
+	type Automation,
 	baseFieldRules,
 	baseLint,
 	checkNoForbiddenBlockElements,
@@ -32,8 +34,9 @@ import {
 	multipleChoiceRules,
 	multipleSelectionRules,
 	trueFalseRules,
+	withChoiceIds,
 } from "./choice.js";
-import { fillInRules } from "./fill-in.js";
+import { blankAutomation, blankWithIds, fillInRules } from "./fill-in.js";
 import {
 	checkIdAndTitleDefined,
 	checkIdIsUrlSafe,
@@ -47,7 +50,12 @@ import { lintDiagnostic } from "./lint-codes.js";
 import { numericRules } from "./numeric.js";
 import { orderingRules } from "./ordering.js";
 import { isStandardQuery } from "./query.js";
-import { essayRules, shortAnswerRules } from "./text.js";
+import {
+	defaultUnmatched,
+	essayRules,
+	shortAnswerAutomation,
+	shortAnswerRules,
+} from "./text.js";
 
 /**
  * The rules of each question family, beyond `BaseQuestion`'s. A family module
@@ -394,4 +402,88 @@ export function resolveQuestion(exam: Exam, question: Question): Question {
 		grading: gradingFor(exam, question),
 		shuffle: shuffleFor(exam, question),
 	} as Question;
+}
+
+//
+// Derived properties and ids
+//
+
+/**
+ * How much of the grading the library does without an instructor
+ * (`docs/question-types/base.md`, "Automation"): `automatic` for choice,
+ * true/false and numeric questions, `manual` for an essay, and a rule of
+ * their own for short answer, fill-in and ordering.
+ */
+export function automation(question: Question): Automation {
+	switch (question.type) {
+		case "essay":
+			return "manual";
+		case "short-answer":
+			return shortAnswerAutomation(
+				defaultUnmatched(question.unmatched, question.accept),
+				question.accept,
+				question.reject,
+			);
+		case "ordering":
+			return question.unmatched === "manual" ? "semi-automatic" : "automatic";
+		case "fill-in": {
+			const levels = new Set(
+				question.blanks.map((blank) =>
+					blankAutomation(blank, question.unmatched),
+				),
+			);
+			if (levels.size === 1 && levels.has("automatic")) return "automatic";
+			if (levels.size === 1 && levels.has("manual")) return "manual";
+			return "semi-automatic";
+		}
+		default:
+			return "automatic";
+	}
+}
+
+/** The question with a derived id on every choice that has none. */
+function questionWithIds(question: Question): Question {
+	switch (question.type) {
+		case "multiple-choice":
+		case "multiple-selection":
+		case "true-false":
+			return {
+				...question,
+				choices: withChoiceIds(question.choices),
+			} as Question;
+		case "fill-in":
+			return { ...question, blanks: question.blanks.map(blankWithIds) };
+		default:
+			return { ...question };
+	}
+}
+
+/**
+ * A copy of the document with every derivable id filled in. A question gets a
+ * derived id on every choice that has none; an exam also gives each question
+ * without an id the implicit one of its position, `q<position>`, counting
+ * every block, includes included (exam.md, "Question ids"). An id already
+ * written is never touched, and running it twice gives the same result.
+ *
+ * @throws {UnresolvedInclude} The exam has an `includeAll` block, so the
+ *   positions after it are unknown. Resolve the exam first.
+ */
+export function withIds<T extends MdqDocument>(document: T): T {
+	if (!("questions" in document)) {
+		return questionWithIds(document as Question) as T;
+	}
+	const exam = document as Exam;
+	if (exam.questions.some((entry) => "includeAll" in entry)) {
+		throw new UnresolvedInclude(
+			"the positions after an 'includeAll' block are only known after resolve()",
+		);
+	}
+	const questions = exam.questions.map((entry, index) => {
+		if ("include" in entry) return entry;
+		const withChoices = questionWithIds(entry as Question);
+		return withChoices.id === undefined
+			? { ...withChoices, id: `q${index + 1}` }
+			: withChoices;
+	});
+	return { ...exam, questions } as T;
 }

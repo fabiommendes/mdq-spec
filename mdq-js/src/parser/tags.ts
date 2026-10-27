@@ -78,12 +78,20 @@ const TYPE_NAMES = [
 	"fill-in",
 ];
 /**
+ * `name` with each `i` as `[iİı]`. Python's `re.IGNORECASE` matches U+0130 and
+ * U+0131 with `i`; the `iu` flag of JavaScript does not, since neither has a
+ * simple case folding.
+ */
+function dotlessI(name: string): string {
+	return name.replaceAll("i", "[iİı]");
+}
+/**
  * A reserved tag label: a type name followed by the end of the label, `/` or
  * `(`, or a fill-in label `^id/kind`. Case does not matter here, so that a
  * tag in the wrong case is found.
  */
 const RESERVED_LABEL_RE = new RegExp(
-	`^(?:\\^(?<id>[^/]*)\\/(?<kind>[^\\n]*)|(?:${TYPE_NAMES.join("|")})(?:[/(][^\\n]*)?)$`,
+	`^(?:\\^(?<id>[^/]*)\\/(?<kind>[^\\n]*)|(?:${TYPE_NAMES.map(dotlessI).join("|")})(?:[/(][^\\n]*)?)$`,
 	"iu",
 );
 /** A line in link reference definition form: a bracketed label and a colon. */

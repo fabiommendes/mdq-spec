@@ -71,33 +71,16 @@ export const LINT_CODES: Manifest = {};
 export const MATCHING: Manifest = {};
 
 /** `.ids.yaml` files whose ids `withIds` does not give (`tests/ids.spec.ts`). */
-export const IDS: Manifest = {
-	"exam.ids-positional.ids.yaml": "withIds (P7)",
-	"fill-in.ids-choice-blank.ids.yaml": "withIds (P7)",
-	"multiple-choice.ids-ascii-spelling.ids.yaml": "withIds (P7)",
-	"multiple-choice.ids-explicit-id-wins.ids.yaml": "withIds (P7)",
-	"multiple-choice.ids-order-backward.ids.yaml": "withIds (P7)",
-	"multiple-choice.ids-order-forward.ids.yaml": "withIds (P7)",
-	"multiple-choice.ids-punctuation-variants.ids.yaml": "withIds (P7)",
-	"multiple-selection.ids-single-digit.ids.yaml": "withIds (P7)",
-	"multiple-selection.ids-single-glyph.ids.yaml": "withIds (P7)",
-};
+export const IDS: Manifest = {};
 
 /** Cases of `examples/normalize.yaml` (`tests/normalize.spec.ts`). */
-export const NORMALIZE: Manifest = {
-	"a stem that starts with a thematic break is kept by normalize":
-		"normalize (P7)",
-	"an epilogue that starts with a thematic break is kept by normalize":
-		"normalize (P7)",
-};
+export const NORMALIZE: Manifest = {};
 
 /**
  * Cases of `examples/grading/` that the port does not score as expected
  * (`tests/grading.spec.ts`). Keys are `<group>.<case>`.
  */
-export const GRADING: Manifest = {
-	"automation.": "automation (P7)",
-};
+export const GRADING: Manifest = {};
 
 /** The reason `name` is not ported, or `undefined` if it is. */
 export function notPorted(

@@ -22,6 +22,7 @@ import type {
 	Unmatched,
 } from "../schema/index.js";
 import {
+	type Automation,
 	type FamilyRules,
 	freeTextDiagnostics,
 	freeTextFields,
@@ -233,6 +234,22 @@ export function defaultUnmatched(
 ): Unmatched {
 	if (unmatched !== undefined) return unmatched;
 	return accept !== undefined && accept.length > 0 ? "incorrect" : "manual";
+}
+
+/**
+ * The automation of a short answer (short-answer.md, "Automation").
+ * `unmatched` is the effective value; `preAccept` and `preReject` do not
+ * count.
+ */
+export function shortAnswerAutomation(
+	unmatched: Unmatched,
+	accept: readonly PatternEntry[] | undefined,
+	reject: readonly PatternEntry[] | undefined,
+): Automation {
+	if (unmatched === "incorrect") return "automatic";
+	return (accept?.length ?? 0) > 0 || (reject?.length ?? 0) > 0
+		? "semi-automatic"
+		: "manual";
 }
 
 /**

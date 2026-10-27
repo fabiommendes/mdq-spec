@@ -16,9 +16,12 @@ Implements part of the unreleased MDQ specification.
 
 - `scoreResponse` scores every question type, `prevalidate` checks `preAccept` and `preReject`, `scoreResponses` scores an exam, and `gradingFor`, `shuffleFor`, `resolveQuestion`, `effectiveGrading` and `effectiveShuffle` apply the inheritance of an exam, as the methods of mdq-py. A malformed response is a `ResponseError`. `MissingIdError` and `UnresolvedInclude` join the errors. Numeric answers, responses and tolerances use exact arithmetic (`fraction.js` 5, new dependency); no value is held as a `number`. A multiple-selection response must be an array of ids: a string or a mapping is a `ResponseError` (mdq-py iterates both).
 - `lint(document)`, `lintQuestion` and `lintExam` report the `warning` and `info` diagnostics of a question or an exam, as `Question.lint()` and `Exam.lint()` of mdq-py. `load` adds them to the diagnostics of a valid document. `SEVERITY` (`models/lint-codes.ts`) holds the severity of each lint code. `unknown-highlight-language` reads the aliases of the Pygments lexers from `src/pygments-aliases.json`.
+- `normalize(question)` gives the canonical form of a question (a stem and an epilogue rebuilt block by block by the parser, trimmed `tags` and `author`, no empty `epilogue`, `comment` or `tags`). `withIds(document)` fills in the derived ids of choices and, in an exam, the positional `q<n>` ids; an `includeAll` block is an `UnresolvedInclude`. `automation(question)` and `blankAutomation(blank, unmatched)` give `automatic`, `semi-automatic` or `manual`.
 
 ### Changed
 
+- A lone digit or symbol as a choice text gets a fixed id (`1` is `one`, `-` is `hyphen`), as in mdq-py.
+- A tag label with `İ` or `ı` in place of an `i` in a type name (`[numerİc]:`) is reserved, and the message of an exact literal that spans lines splits on the spaces of `str.split()`, as in mdq-py.
 - The YAML loader reads YAML 1.2 Core with the `yaml` package: scalar keys become strings, a key that is not a scalar or a tag outside the Core schema is a `yaml-syntax-error`, and NEL, LS and PS stay in scalars.
 - The index of `DictLoader` only holds the sources that `load` accepts as a question: a mapping with `tags` as a string, or with a model rule broken, is left out, and a `tags` string is no longer split at commas. `resolveExam` also applies the model rules (a shared question id is an error).
 

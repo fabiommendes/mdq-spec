@@ -76,15 +76,15 @@ A Pydantic model is two things in TypeScript:
 | `Question.lint()`, `Exam.lint()`                | `lint(document)`                              |
 | `Question.score_response(r)`                    | `scoreResponse(question, response)`           |
 | `ShortAnswerQuestion.prevalidate(r)`            | `prevalidate(question, response)` -> `{valid, feedback}` |
-| `Question.normalize()`                          | `normalize(question)`                         |
-| `Question.with_ids()`, `Exam.with_ids()`        | `withIds(document)`                           |
-| `Question.automation`                           | `automation(question)`                        |
+| `Question.normalize()`                          | `normalize(question)` (`src/models/base.ts`; throws `TypeError` for an exam, which has no `normalize` in mdq-py) |
+| `Question.with_ids()`, `Exam.with_ids()`        | `withIds(document)` (`src/models/exam.ts`; choice ids by `withChoiceIds` in `choice.ts`) |
+| `Question.automation`                           | `automation(question)` (`src/models/exam.ts`) |
 | `Exam.resolve(bank)`                            | `resolveExam(exam, bank)`                     |
 | `Exam.grading_for`, `shuffle_for`, `resolve_question` | `gradingFor`, `shuffleFor`, `resolveQuestion` |
 | `Exam.score_responses(r)`                       | `scoreResponses(exam, responses)`             |
 | `Question.effective_grading`, `effective_shuffle` | `effectiveGrading`, `effectiveShuffle`      |
 | `effective_unmatched` (text, fill-in blank)     | `effectiveUnmatched`, `blankEffectiveUnmatched` |
-| `Blank.automation`                              | `blankAutomation`                             |
+| `Blank.automation`, `Blank.with_ids`            | `blankAutomation`, `blankWithIds`             |
 | `QuestionScore`, `ExamScore`                    | types `QuestionScore`, `ExamScore`            |
 | `QuestionBank`, `DictLoader`                    | `QuestionBank`, `DictLoader`                  |
 | `MdqError`, `InvalidDocument`, `ParseError`     | `MdqError`, `InvalidDocumentError`, `ParseError` |

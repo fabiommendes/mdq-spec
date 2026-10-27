@@ -24,7 +24,7 @@ import {
 	type ShortAnswerTag,
 	TAG_REST_RE,
 } from "./tags.js";
-import { repr, strip } from "./text.js";
+import { repr, SPACE, strip } from "./text.js";
 import type { Node } from "./tree.js";
 
 const OBSERVATION_AFTER_CONTENT =
@@ -290,7 +290,7 @@ export function checkExactPattern(pattern: string): void {
 	if (pattern.includes("\n")) {
 		throw new ParseError(
 			"an exact literal cannot open at the end of a line, nor close at " +
-				`the start of a line: ${repr(pattern.split(/\s+/u).filter(Boolean).join(" "))}`,
+				`the start of a line: ${repr(pattern.split(SPACE_RUN_RE).filter(Boolean).join(" "))}`,
 		);
 	}
 	if (exactLiteral(pattern) === undefined) {
@@ -300,6 +300,9 @@ export function checkExactPattern(pattern: string): void {
 		);
 	}
 }
+
+/** A run of `str.isspace` characters, where `str.split()` splits. */
+const SPACE_RUN_RE = new RegExp(`[${SPACE}]+`, "u");
 
 /** The error for a short-answer tag with a colon and no content. */
 function emptyAnswerTagMessage(tag: string, reject: boolean): string {

@@ -7,6 +7,7 @@
  */
 
 import unidecode from "unidecode";
+import { strip } from "../parser/text.js";
 
 /**
  * Slugify one string on its own, with no regard for uniqueness.
@@ -127,11 +128,63 @@ export function validateSlug(value: string, coerce = false): string {
 const SHORT_SLUG_MAX_LENGTH = 24;
 const EMPTY_SLUG_PLACEHOLDER = "item";
 
+const DIGIT_NAMES: Readonly<Record<string, string>> = {
+	"0": "zero",
+	"1": "one",
+	"2": "two",
+	"3": "three",
+	"4": "four",
+	"5": "five",
+	"6": "six",
+	"7": "seven",
+	"8": "eight",
+	"9": "nine",
+};
+
+const SYMBOL_NAMES: Readonly<Record<string, string>> = {
+	"-": "hyphen",
+	"*": "asterisk",
+	"+": "plus",
+	"!": "bang",
+	"?": "question",
+	"/": "slash",
+	".": "dot",
+	",": "comma",
+	":": "colon",
+	";": "semicolon",
+	"@": "at",
+	"#": "hash",
+	$: "dollar",
+	"%": "percent",
+	"&": "ampersand",
+	"=": "equals",
+	_: "underscore",
+};
+
+/**
+ * The fixed name of `item` if it is a single glyph, bare or in a Markdown
+ * code span (`` `-` ``); `undefined` otherwise. A lone symbol or digit
+ * slugifies to nothing useful, so it gets a name (`! -> bang`).
+ */
+function namedGlyph(item: string): string | undefined {
+	let core = strip(item);
+	if (
+		core.length >= 2 &&
+		core.startsWith("`") &&
+		core.endsWith("`") &&
+		core.split("`").length === 3
+	) {
+		core = core.slice(1, -1);
+	}
+	if ([...core].length !== 1) return undefined;
+	return SYMBOL_NAMES[core] ?? DIGIT_NAMES[core];
+}
+
 /**
  * Return `item`'s slug candidates, shortest/easiest first, deduplicated and
  * never empty.
  *
- * The short candidate (the item's first few words, cut at a word boundary)
+ * A single-glyph text has a fixed name, which comes first. The short candidate (the item's first few words, cut at a word boundary)
  * comes first since it usually reads better and is often unique on its own.
  * The full candidate comes next, since two items sharing their first words
  * can still differ later on. Text with nothing sluggable in it at all
@@ -139,9 +192,16 @@ const EMPTY_SLUG_PLACEHOLDER = "item";
  * a numeric suffix always has something to attach to.
  */
 function slugCandidates(item: string): string[] {
+	const named = namedGlyph(item);
 	const short = singleSlugify(item, SHORT_SLUG_MAX_LENGTH);
 	const full = singleSlugify(item);
-	const candidates = [...new Set([short, full].filter(Boolean))];
+	const candidates = [
+		...new Set(
+			[named, short, full].filter(
+				(c): c is string => c !== undefined && c !== "",
+			),
+		),
+	];
 	return candidates.length > 0 ? candidates : [EMPTY_SLUG_PLACEHOLDER];
 }
 

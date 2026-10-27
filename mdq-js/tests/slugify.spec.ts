@@ -314,7 +314,8 @@ describe("loose -- properties", () => {
 							maxLength: 3,
 						})
 						.map((parts) => parts.join("-"))
-						.filter((slug) => slug.length <= 24),
+						// A lone digit has a fixed name ("1" -> "one").
+						.filter((slug) => slug.length <= 24 && !/^[0-9]$/.test(slug)),
 					{ minLength: 1, maxLength: 8 },
 				),
 				(items) => {

@@ -4,14 +4,14 @@
  * The validators of `BaseQuestion` (`blank-text`, `malformed-locale`,
  * `malformed-uuid`, `forbidden-block-element`) are here, as functions that
  * return `Diagnostic[]`. A family adds its own through `FamilyRules`
- * (`models/exam.ts`). `normalize`, `withIds` and `automation` are phase P7 of
- * `dev/plan/mdq-js-paridade.md`: they are stubs that throw.
+ * (`models/exam.ts`). `normalize` is here; `withIds` and `automation` dispatch
+ * on the question type, so they are in `models/exam.ts`.
  */
 
 import { type Diagnostic, diagnostic, type PathStep } from "../diagnostics.js";
 import { hasVisibleCharacter, UUID_RE } from "../markdown.js";
-import { findForbiddenElements } from "../parser/blocks.js";
-import { repr, SPACE, strip } from "../parser/text.js";
+import { findForbiddenElements, reconstructBlocks } from "../parser/blocks.js";
+import { repr, rstrip, SPACE, strip } from "../parser/text.js";
 import type { GradingType, Question } from "../schema/index.js";
 import type { MdqDocument } from "../validate.js";
 import {
@@ -318,22 +318,76 @@ export function choiceFreeTexts(
 /** How much of the grading the library does without an instructor. */
 export type Automation = "automatic" | "semi-automatic" | "manual";
 
+/** Trailing whitespace of each line, as `remove_trailing_ws` removes it. */
+function removeTrailingWhitespace(text: string): string {
+	return text
+		.split("\n")
+		.map((line) => rstrip(line))
+		.join("\n");
+}
+
+/** The whitespace that CommonMark trims around a block. */
+const ASCII_WS = " \t\r\n";
+
 /**
- * The canonical form of a document: the one a render, then a parse, keeps
- * unchanged.
+ * Normalize a Markdown paragraph or series of blocks (an `epilogue`) with the
+ * parser's own reconstruction of each block, so the result is a fixed point of
+ * render-then-parse. A port of `normalize_paragraphs`.
  */
-export function normalize<T extends MdqDocument>(_document: T): T {
-	throw new Error("not ported (P7)");
+export function normalizeParagraphs(src: string): string {
+	return reconstructBlocks(src)
+		.map(([, text]) => text)
+		.join("\n\n");
 }
 
-/** A copy of the document with every derivable id filled in. */
-export function withIds<T extends MdqDocument>(_document: T): T {
-	throw new Error("not ported (P7)");
+/**
+ * Normalize a `stem`. Like {@link normalizeParagraphs}, but trims only ASCII
+ * whitespace: a Unicode space is text. A stem with no block is returned
+ * trimmed. A port of `normalize_stem`.
+ */
+export function normalizeStem(stem: string): string {
+	const blocks = reconstructBlocks(strip(stem, ASCII_WS));
+	if (blocks.length === 0) return strip(stem, ASCII_WS);
+	return blocks.map(([, text]) => text).join("\n\n");
 }
 
-/** The automation of a question (`docs/question-types/base.md`). */
-export function automation(_question: Question): Automation {
-	throw new Error("not ported (P7)");
+/**
+ * The canonical form of a question: the one a render, then a parse, keeps
+ * unchanged. Returns a copy; an empty `tags`, `epilogue` or `comment` becomes
+ * absent.
+ *
+ * @throws {TypeError} The document is an exam: mdq-py has no `Exam.normalize`.
+ */
+export function normalize<T extends MdqDocument>(document: T): T {
+	if ("questions" in document) {
+		throw new TypeError("an exam has no normal form; normalize its questions");
+	}
+	const question: Question = document;
+	const copy: Record<string, unknown> = { ...question };
+	copy.stem = normalizeStem(question.stem);
+	const setOrDrop = (key: string, value: string | undefined): void => {
+		if (value === undefined || value === "") delete copy[key];
+		else copy[key] = value;
+	};
+	setOrDrop(
+		"epilogue",
+		question.epilogue === undefined
+			? undefined
+			: normalizeParagraphs(question.epilogue),
+	);
+	setOrDrop(
+		"comment",
+		question.comment === undefined
+			? undefined
+			: removeTrailingWhitespace(question.comment),
+	);
+	if (question.tags !== undefined) {
+		const tags = question.tags.map((tag) => strip(tag)).filter((tag) => tag);
+		if (tags.length > 0) copy.tags = tags;
+		else delete copy.tags;
+	}
+	if (question.author !== undefined) copy.author = strip(question.author);
+	return copy as T;
 }
 
 /** The questions that choose a grading strategy and may be shuffled. */

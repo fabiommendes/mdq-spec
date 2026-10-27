@@ -32,6 +32,7 @@ import {
 import { languageSubtag, renderVisualKey } from "./lint.js";
 import { lintDiagnostic } from "./lint-codes.js";
 import type { QuestionScore } from "./score.js";
+import { loose } from "./slugify.js";
 
 type Choice = { readonly id?: string; readonly text: string };
 
@@ -572,4 +573,34 @@ export function scoreTrueFalse(
 			: [],
 	);
 	return { score, feedback };
+}
+
+/** A choice of any choice question, as `withChoiceIds` sees it. */
+interface IdentifiableChoice {
+	readonly id?: string;
+	readonly text: string;
+}
+
+/**
+ * `choices` with a derived id wherever one is missing. A choice that has an
+ * id keeps it. Every derived id avoids every id in use, explicit or derived.
+ * Returns a new list. A port of `_with_choice_ids`.
+ */
+export function withChoiceIds<C extends IdentifiableChoice>(
+	choices: readonly C[],
+): C[] {
+	const missing = choices.filter((choice) => choice.id === undefined);
+	if (missing.length === 0) return [...choices];
+	const forbid = choices.flatMap((choice) =>
+		choice.id === undefined ? [] : [choice.id],
+	);
+	const derived = loose(
+		missing.map((choice) => choice.text),
+		{ forbid },
+	);
+	return choices.map((choice) =>
+		choice.id === undefined
+			? { ...choice, id: derived.get(choice.text) as string }
+			: choice,
+	);
 }
