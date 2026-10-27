@@ -364,6 +364,18 @@ Reportadas à sessão `mdq`:
 - Anunciado sem data: refatorações internas da mdq-py com pequenas mudanças
   de mensagem.
 
+- Pacote G da `mdq` (refatoração interna, HEAD `7c5c726`): só estrutura,
+  salvo a mensagem do ordering para parágrafo de imagem logo após
+  `## [accept]` ("the ## [accept] section has no content block",
+  `197fc54`). Reconferir a P2 contra `7c5c726`.
+- Pacote H (em andamento): exemplos G1-G9 da P2 e `$` trocado por
+  `fullmatch` nos validadores (`*-trailing-newline.yaml`). A P4 reconfere.
+- Pacote I (anunciado): YAML 1.2 na mdq-py. Chave escalar vira string,
+  `1: a` + `"1": b` e chave composta são `yaml-syntax-error`, U+0085/U+2028
+  aceitos, `!!timestamp`/`!!binary` são `yaml-syntax-error`. Fecha as
+  divergências de YAML da revisão da P2 sem mudar a mdq-js (conferir a
+  chave composta, que o js-yaml aceita).
+
 Próxima rodada anunciada pela sessão `mdq`: bugs de `dev/issues/`
 (conversores, `show`, CLI, `exam-duplicate-tags`,
 `exam-question-backref-lost`, `banks-index-invalid-questions`) e as questões
