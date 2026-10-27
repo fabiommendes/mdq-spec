@@ -214,6 +214,9 @@ Notas:
 
 ### P4. Regras de modelo e `load`
 
+P4a feita em 2026-10-27 (`4b4f01b`): `load`, regras comuns e do exame, D06.
+Falta a P4b (regras por família; notas em `/tmp/mdq-p4/progress.md`).
+
 `models/<família>.ts` com os validadores, `loading.ts` com `load`/`parse`,
 `assertValid`. Fecha `model-only/`, `LOAD_CODES`, `loading.spec.ts` e o
 resto de `invalid-sources.spec.ts`.
@@ -250,6 +253,15 @@ Notas:
 - `CORE_SCHEMA` recusa `!!timestamp`/`!!binary` com `yaml-syntax-error`; o
   Python carrega e o modelo rejeita. U+0085/U+2028 num escalar: o PyYAML
   rejeita, o js-yaml aceita. Mesmo encaminhamento.
+
+Divergências achadas na P4a, sem exemplo no corpus:
+
+- Erro de campo do modelo junto com erro de tipo (`{title: "  ", foo: 1}`):
+  o Python reporta os dois no mesmo passe, o TS só o de schema.
+- `null` dentro de mapa que não é modelo (`grading: {multiple-choice:
+  null}`): o Python recusa, o TS descarta o null.
+- JSON com `NaN`/`Infinity`: o Python aceita, o JS recusa. Levado à sessão
+  `mdq`.
 
 ### P5. Lint
 
