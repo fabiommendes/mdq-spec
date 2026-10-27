@@ -1,0 +1,12 @@
+# `unmatchable-regex-escape` under `n` for each spelling of a code point:
+# `\xe1`, `\u{e1}`, and `\u{300}`, a combining accent that `n` strips from
+# the response (with `i`, the flags do not change this).
+id: unmatchable-regex-escape-forms
+title: Water in Portuguese, escape forms
+type: short-answer
+stem: Como se escreve "water" em português?
+accept:
+  - /\xe1gua/n
+  - /\u{e1}gua/n
+  - /a\u{300}/in
+  - Água

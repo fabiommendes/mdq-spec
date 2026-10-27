@@ -1,0 +1,10 @@
+# A tab after the list marker is `ws`: the items are choices.
+id: ms-tab-marker
+title: Tab after the list marker
+type: multiple-selection
+stem: Quais destes rios correm no Brasil?
+choices:
+- text: Amazonas
+  correct: true
+- text: Nilo
+  correct: false

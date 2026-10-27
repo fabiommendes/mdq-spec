@@ -1,0 +1,10 @@
+# `Brasília` and `Brasilia` fold to the same slug. The ASCII spelling keeps it and
+# the accented one gets a numeric suffix.
+type: multiple-choice
+id: grafia-brasilia
+stem: Qual grafia consta no censo demográfico?
+choices:
+  - text: Brasília
+  - text: Brasilia
+    score: 1.0
+  - text: Nenhuma das anteriores

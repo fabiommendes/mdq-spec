@@ -1,0 +1,7 @@
+# A quoted number is a string: `id: "2024"` and `include: "2024"` are
+# valid, while the bare `2024` is not (see `invalid/exam-ids-not-strings`).
+type: exam
+id: '2024'
+title: Prova de Geografia
+questions:
+  - include: '2024'

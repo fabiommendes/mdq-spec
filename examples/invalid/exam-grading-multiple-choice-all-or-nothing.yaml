@@ -1,0 +1,8 @@
+# A `grading` mapping takes only the strategies of its type as values
+# (exam.md, "Grading"): a multiple choice question has no `all-or-nothing`.
+type: exam
+id: biomes
+title: Biomes
+grading:
+  multiple-choice: all-or-nothing
+questions: []

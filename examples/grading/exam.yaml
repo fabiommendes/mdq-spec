@@ -1,0 +1,415 @@
+# Document structure
+#
+# File {
+#   // YAML anchors for the choices and blanks the cases share. Not data.
+#   definitions: { [key of string]: any }
+#   cases: Case[]
+# }
+#
+# Case {
+#   name: string
+#
+#   // An exam in its YAML form, without `type` and `title`. Every question
+#   // has an `id`. `source` replaces it with the path (from `examples/`) of
+#   // an exam document of the corpus.
+#   exam?: { questions: Question[], grading?, shuffle?, penalty? }
+#   source?: string
+#
+#   // Alternative to `exam`: one question outside any exam. `override` is
+#   // merged over it, field by field.
+#   question?: Question
+#   override?: { grading?: string, shuffle?: boolean | "inherit" }
+#
+#   // The values of `grading` and `shuffle` after inheritance
+#   // (exam.md, "Inheritance" and "Grading"). For a lone question, the
+#   // entry itself; for an exam, one entry for each question id. A key
+#   // that is absent is not checked.
+#   effective?: { grading: string, shuffle: boolean }
+#            | { [qid of string]: { grading?: string, shuffle?: boolean } }
+#
+#   // Responses to the whole exam and the score they get (exam.md,
+#   // "Exam score", and responses.md, "Responses to an exam").
+#   examples?: {
+#     // Response of each question by id. A missing id or a `null` is a
+#     // skipped question.
+#     responses: { [qid of string]: any },
+#
+#     // The exam score, or "pending" when an essay waits for the
+#     // instructor, or "malformed" when the responses are rejected (an id
+#     // that names no question, or a response the question rejects).
+#     score: number | "pending" | "malformed",
+#
+#     // Optional. Each key is checked only when present.
+#     provisional?: number,           // score of the graded part while pending
+#     total_weight?: number,
+#     penalty?: "none" | "capped" | "full",
+#     skipped?: string[],
+#     pending?: string[],
+#     questions?: { [qid of string]: number | null }  // null: pending
+#   }[]
+# }
+#
+# Scores are weighted means: compare floats with a tolerance.
+definitions:
+  # Scores 1, -0.5 and 0 for a, b and c.
+  mc-scored-choices: &mc-scored-choices
+    - { id: a, text: "Brasília", score: 1 }
+    - { id: b, text: "Salvador", score: -0.5 }
+    - { id: c, text: "Nenhuma", score: 0 }
+  # The choice `b` has no score: "symmetric" gives it -1, "partial" gives 0.
+  mc-choices: &mc-choices
+    - { id: a, text: "certa", score: 1 }
+    - { id: b, text: "errada" }
+  ms-choices: &ms-choices
+    - { id: a, text: "certa", correct: true }
+    - { id: b, text: "errada", correct: false }
+  tf-choices: &tf-choices
+    - { id: a, text: "verdade", correct: true }
+    - { id: b, text: "mentira", correct: false }
+  fill-in-blanks: &fill-in-blanks
+    - { id: x, type: short-answer, accept: ["Brasília"] }
+    - { id: y, type: short-answer, accept: ["Amazonas"] }
+
+cases:
+  #
+  # Exam score
+  #
+  - name: "All correct"
+    exam:
+      questions:
+        - { id: q1, type: multiple-choice, stem: "Pergunta 1", weight: 1, choices: *mc-scored-choices }
+        - { id: q2, type: multiple-choice, stem: "Pergunta 2", weight: 1, choices: *mc-scored-choices }
+    examples:
+      - responses: { q1: a, q2: a }
+        score: 1
+        provisional: 1
+        pending: []
+        skipped: []
+        total_weight: 2
+        penalty: none
+
+  - name: "Weighted mean"
+    exam:
+      questions:
+        - { id: q1, type: multiple-choice, stem: "Pergunta 1", weight: 3, choices: *mc-scored-choices }
+        - { id: q2, type: multiple-choice, stem: "Pergunta 2", weight: 1, choices: *mc-scored-choices }
+    examples:
+      - responses: { q1: a, q2: c }
+        score: 0.75
+        total_weight: 4
+
+  - name: "Scores of the questions by id"
+    exam:
+      questions:
+        - { id: q1, type: multiple-choice, stem: "Pergunta 1", weight: 1, choices: *mc-scored-choices }
+        - { id: q2, type: multiple-choice, stem: "Pergunta 2", weight: 1, choices: *mc-scored-choices }
+    examples:
+      - responses: { q1: a, q2: b }
+        score: 0.5
+        questions: { q1: 1, q2: -0.5 }
+
+  # The penalty (exam.md, "Penalty"): `none` floors each question at 0,
+  # `capped` floors the total at 0, `full` lets the total go below 0.
+  - name: "Penalty none"
+    exam:
+      penalty: none
+      questions:
+        - { id: q1, type: multiple-choice, stem: "Pergunta 1", weight: 1, choices: *mc-scored-choices }
+        - { id: q2, type: multiple-choice, stem: "Pergunta 2", weight: 1, choices: *mc-scored-choices }
+    examples:
+      - responses: { q1: a, q2: b }
+        score: 0.5
+        penalty: none
+      - responses: { q1: b, q2: b }
+        score: 0
+  - name: "Penalty capped"
+    exam:
+      penalty: capped
+      questions:
+        - { id: q1, type: multiple-choice, stem: "Pergunta 1", weight: 1, choices: *mc-scored-choices }
+        - { id: q2, type: multiple-choice, stem: "Pergunta 2", weight: 1, choices: *mc-scored-choices }
+    examples:
+      - responses: { q1: a, q2: b }
+        score: 0.25
+        penalty: capped
+      - responses: { q1: b, q2: b }
+        score: 0
+  - name: "Penalty full"
+    exam:
+      penalty: full
+      questions:
+        - { id: q1, type: multiple-choice, stem: "Pergunta 1", weight: 1, choices: *mc-scored-choices }
+        - { id: q2, type: multiple-choice, stem: "Pergunta 2", weight: 1, choices: *mc-scored-choices }
+    examples:
+      - responses: { q1: a, q2: b }
+        score: 0.25
+        penalty: full
+      - responses: { q1: b, q2: b }
+        score: -0.5
+
+  # A skipped question scores 0 and keeps its weight.
+  - name: "Skipped questions"
+    exam:
+      questions:
+        - { id: q1, type: multiple-choice, stem: "Pergunta 1", weight: 1, choices: *mc-scored-choices }
+        - { id: q2, type: multiple-choice, stem: "Pergunta 2", weight: 1, choices: *mc-scored-choices }
+        - { id: q3, type: multiple-choice, stem: "Pergunta 3", weight: 1, choices: *mc-scored-choices }
+    examples:
+      - responses: { q1: a, q2: null }
+        score: 0.3333333333333333
+        skipped: [q2, q3]
+        questions: { q1: 1, q2: 0, q3: 0 }
+
+  - name: "Zero total weight"
+    exam:
+      questions:
+        - { id: q1, type: multiple-choice, stem: "Pergunta 1", weight: 0, choices: *mc-scored-choices }
+        - { id: q2, type: multiple-choice, stem: "Pergunta 2", weight: 0, choices: *mc-scored-choices }
+    examples:
+      - responses: { q1: a, q2: a }
+        score: 0
+        total_weight: 0
+
+  - name: "Empty exam"
+    exam:
+      questions: []
+    examples:
+      - responses: {}
+        score: 0
+        questions: {}
+
+  # An essay waits for the instructor: the exam is pending, with the score
+  # of the rest as the provisional one. A skipped essay is skipped, not
+  # pending.
+  - name: "Pending essay"
+    exam:
+      questions:
+        - { id: q1, type: multiple-choice, stem: "Pergunta 1", weight: 1, choices: *mc-scored-choices }
+        - { id: e, type: essay, stem: "Disserte sobre o Cerrado.", weight: 1 }
+        - { id: q2, type: multiple-choice, stem: "Pergunta 2", weight: 1, choices: *mc-scored-choices }
+    examples:
+      - responses: { q1: a, e: "O Cerrado é a savana brasileira.", q2: c }
+        score: pending
+        pending: [e]
+        provisional: 0.5
+        total_weight: 3
+        questions: { q1: 1, e: null, q2: 0 }
+      - responses: { q1: a, q2: c }
+        score: 0.3333333333333333
+        pending: []
+        skipped: [e]
+  - name: "Only a pending essay"
+    exam:
+      questions:
+        - { id: e, type: essay, stem: "Disserte sobre o Cerrado.", weight: 1 }
+    examples:
+      - responses: { e: "O Cerrado é a savana brasileira." }
+        score: pending
+        provisional: 0
+  - name: "Skipped essay"
+    exam:
+      questions:
+        - { id: q1, type: multiple-choice, stem: "Pergunta 1", weight: 1, choices: *mc-scored-choices }
+        - { id: e, type: essay, stem: "Disserte sobre o Cerrado.", weight: 1 }
+    examples:
+      - responses: { q1: a }
+        score: 0.5
+        pending: []
+        skipped: [e]
+
+  # A response to the exam that names no question, or that a question
+  # rejects, is malformed.
+  - name: "Malformed responses to an exam"
+    exam:
+      questions:
+        - { id: q1, type: multiple-choice, stem: "Pergunta 1", weight: 1, choices: *mc-scored-choices }
+    examples:
+      - responses: { q1: a, zz: a }
+        score: malformed
+      - responses: { q1: zz }
+        score: malformed
+
+  #
+  # Inheritance of `grading` and `shuffle` (exam.md, "Inheritance" and
+  # "Grading")
+  #
+
+  # Outside an exam, `inherit` is `symmetric` and `false`. An own value
+  # resolves to itself.
+  - name: "Multiple choice outside an exam"
+    question: { type: multiple-choice, stem: "Qual?", choices: *mc-choices }
+    effective: { grading: symmetric, shuffle: false }
+  - name: "Multiple selection outside an exam"
+    question: { type: multiple-selection, stem: "Quais?", choices: *ms-choices }
+    effective: { grading: symmetric, shuffle: false }
+  - name: "True-false outside an exam"
+    question: { type: true-false, stem: "Julgue.", choices: *tf-choices }
+    effective: { grading: symmetric, shuffle: false }
+  - name: "Fill-in outside an exam"
+    question: { type: fill-in, stem: "A capital é [^x] e o rio é [^y].", blanks: *fill-in-blanks }
+    effective: { grading: symmetric, shuffle: false }
+  - name: "Multiple choice with own values"
+    question: { type: multiple-choice, stem: "Qual?", choices: *mc-choices }
+    override: { grading: partial, shuffle: true }
+    effective: { grading: partial, shuffle: true }
+  - name: "Multiple selection with own values"
+    question: { type: multiple-selection, stem: "Quais?", choices: *ms-choices }
+    override: { grading: partial, shuffle: true }
+    effective: { grading: partial, shuffle: true }
+  - name: "True-false with own values"
+    question: { type: true-false, stem: "Julgue.", choices: *tf-choices }
+    override: { grading: partial, shuffle: true }
+    effective: { grading: partial, shuffle: true }
+  - name: "Fill-in with own values"
+    question: { type: fill-in, stem: "A capital é [^x] e o rio é [^y].", blanks: *fill-in-blanks }
+    override: { grading: partial, shuffle: true }
+    effective: { grading: partial, shuffle: true }
+
+  # An exam with no `grading` and no `shuffle` gives `symmetric` and `false`.
+  - name: "Exam defaults"
+    exam:
+      questions:
+        - { id: q1, type: multiple-choice, stem: "Qual?", choices: *mc-choices }
+    effective:
+      q1: { grading: symmetric, shuffle: false }
+
+  - name: "Exam values apply to inherit"
+    exam:
+      grading: partial
+      shuffle: true
+      questions:
+        - { id: q1, type: multiple-choice, stem: "Qual?", choices: *mc-choices }
+    effective:
+      q1: { grading: partial, shuffle: true }
+
+  - name: "Own values beat the exam"
+    exam:
+      grading: partial
+      shuffle: true
+      questions:
+        - { id: q1, type: multiple-choice, stem: "Qual?", grading: symmetric, shuffle: false, choices: *mc-choices }
+    effective:
+      q1: { grading: symmetric, shuffle: false }
+
+  # A mapping by question type. A type absent from the mapping gets
+  # `symmetric`.
+  - name: "Exam grading by type"
+    exam:
+      grading: { multiple-choice: partial, true-false: all-or-nothing }
+      questions:
+        - { id: mc, type: multiple-choice, stem: "Qual?", choices: *mc-choices }
+        - { id: ms, type: multiple-selection, stem: "Quais?", choices: *ms-choices }
+        - { id: tf, type: true-false, stem: "Julgue.", choices: *tf-choices }
+        - { id: fill, type: fill-in, stem: "A capital é [^x] e o rio é [^y].", blanks: *fill-in-blanks }
+    effective:
+      mc: { grading: partial }
+      ms: { grading: symmetric }
+      tf: { grading: all-or-nothing }
+      fill: { grading: symmetric }
+
+  # The values of a mapping are not translated.
+  - name: "Exam grading by type is not translated"
+    exam:
+      grading: { multiple-selection: all-or-nothing, true-false: no-mistakes }
+      questions:
+        - { id: ms, type: multiple-selection, stem: "Quais?", choices: *ms-choices }
+        - { id: tf, type: true-false, stem: "Julgue.", choices: *tf-choices }
+    effective:
+      ms: { grading: all-or-nothing }
+      tf: { grading: no-mistakes }
+
+  # A scalar exam `grading` is translated for each type: the table of
+  # exam.md, "Grading".
+  - name: "Scalar exam grading partial"
+    exam:
+      grading: partial
+      questions: &four-questions
+        - { id: mc, type: multiple-choice, stem: "Qual?", choices: *mc-choices }
+        - { id: ms, type: multiple-selection, stem: "Quais?", choices: *ms-choices }
+        - { id: tf, type: true-false, stem: "Julgue.", choices: *tf-choices }
+        - { id: fill, type: fill-in, stem: "A capital é [^x] e o rio é [^y].", blanks: *fill-in-blanks }
+    effective:
+      mc: { grading: partial }
+      ms: { grading: partial }
+      tf: { grading: partial }
+      fill: { grading: partial }
+  - name: "Scalar exam grading no-mistakes"
+    exam:
+      grading: no-mistakes
+      questions: *four-questions
+    effective:
+      mc: { grading: partial }
+      ms: { grading: all-or-nothing }
+      tf: { grading: no-mistakes }
+      fill: { grading: no-mistakes }
+  - name: "Scalar exam grading all-or-nothing"
+    exam:
+      grading: all-or-nothing
+      questions: *four-questions
+    effective:
+      mc: { grading: partial }
+      ms: { grading: all-or-nothing }
+      tf: { grading: all-or-nothing }
+      fill: { grading: all-or-nothing }
+  - name: "Scalar exam grading symmetric"
+    exam:
+      grading: symmetric
+      questions: *four-questions
+    effective:
+      mc: { grading: symmetric }
+      ms: { grading: symmetric }
+      tf: { grading: symmetric }
+      fill: { grading: symmetric }
+
+  #
+  # Scoring with an inherited strategy
+  #
+  - name: "Symmetric exam, wrong pick"
+    exam:
+      questions:
+        - { id: q1, type: multiple-choice, stem: "Qual?", choices: *mc-choices }
+    examples:
+      - responses: { q1: b }
+        score: 0
+        questions: { q1: -1 }
+  - name: "Partial exam, wrong pick"
+    exam:
+      grading: partial
+      questions:
+        - { id: q1, type: multiple-choice, stem: "Qual?", choices: *mc-choices }
+    examples:
+      - responses: { q1: b }
+        score: 0
+        questions: { q1: 0 }
+  - name: "Inherited mapping applies by type"
+    exam:
+      grading: { multiple-choice: partial }
+      questions:
+        - { id: q1, type: multiple-choice, stem: "Qual?", choices: *mc-choices }
+        - { id: q2, type: multiple-selection, stem: "Quais?", choices: *ms-choices }
+    examples:
+      # The multiple selection keeps `symmetric`: one right, one wrong.
+      - responses: { q1: b, q2: [a, b] }
+        score: 0
+        questions: { q1: 0, q2: 0 }
+  - name: "Own grading wins over the exam"
+    exam:
+      grading: partial
+      questions:
+        - { id: q1, type: multiple-choice, stem: "Qual?", grading: symmetric, choices: *mc-choices }
+    examples:
+      - responses: { q1: b }
+        score: 0
+        questions: { q1: -1 }
+
+  # The exam document `valid/exam/inherited-grading.mdq.md`: its mapping
+  # gives `partial` to multiple choice, and `pantanal` has own values.
+  - name: "Inherited grading example"
+    source: valid/exam/inherited-grading.mdq.md
+    effective:
+      cerrado: { grading: partial, shuffle: true }
+      pantanal: { grading: symmetric, shuffle: false }
+    examples:
+      - responses: { cerrado: caatinga, pantanal: amazon }
+        score: 0
+        questions: { cerrado: 0, pantanal: -0.5 }

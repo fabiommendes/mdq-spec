@@ -1,0 +1,18 @@
+# A `[^id]` is literal text in a tilde fenced code block of the stem, so it
+# is not a blank reference.
+id: fi-blank-tilde-fence
+title: Blank marker in a tilde fence
+type: fill-in
+stem: 'Complete a capital do Brasil: [^capital].
+
+
+  ~~~md
+
+  A capital é [^capital].
+
+  ~~~'
+blanks:
+- id: capital
+  type: short-answer
+  accept:
+  - Brasília

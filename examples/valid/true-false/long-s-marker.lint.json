@@ -1,0 +1,20 @@
+[
+  {
+    "code": "unlisted-true-false-marker",
+    "severity": "warning",
+    "path": [
+      "choices",
+      0,
+      "marker"
+    ]
+  },
+  {
+    "code": "non-nfkc-true-false-marker",
+    "severity": "info",
+    "path": [
+      "choices",
+      0,
+      "marker"
+    ]
+  }
+]

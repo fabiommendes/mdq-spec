@@ -1,0 +1,12 @@
+# A choice blank with no choice ids: each choice gets an id derived from its text.
+type: fill-in
+id: capital-lacuna
+stem: A capital do Brasil é [^capital].
+blanks:
+  - id: capital
+    choices:
+      - text: Brasília
+        score: 1.0
+      - text: Rio de Janeiro
+      - text: Salvador
+    type: multiple-choice

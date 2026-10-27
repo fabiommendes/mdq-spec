@@ -1,0 +1,33 @@
+# Document structure
+#
+# Question {
+#   name: string
+#
+#   // The question's own fields, as in its YAML form, without `type` and
+#   // `stem`. An essay has none that matters for scoring.
+#   question: {}
+#
+#   // Responses and what they score (responses.md, "Short answer and
+#   // essay"). An essay is never graded by the library: a string response is
+#   // "pending", whatever its content, even empty. A response that is not a
+#   // string is "malformed", and it is rejected, never scored.
+#   examples: { response: any, score: "pending" | "malformed" }[]
+# }
+questions:
+  - name: "Essay"
+    question: {}
+    examples:
+      - response: "O efeito estufa retém o calor na atmosfera."
+        score: pending
+      - response: ""
+        score: pending
+      - response: 1960
+        score: malformed
+      - response: 1960.0
+        score: malformed
+      - response: true
+        score: malformed
+      - response: ["Brasília"]
+        score: malformed
+      - response: { capital: "Brasília" }
+        score: malformed

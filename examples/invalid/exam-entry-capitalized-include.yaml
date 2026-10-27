@@ -1,0 +1,7 @@
+# exam.md, "Question and include blocks": keys are case sensitive.
+# `Include` is neither a question nor an include block.
+type: exam
+id: biomas-quiz
+title: Biomas quiz
+questions:
+  - Include: biome

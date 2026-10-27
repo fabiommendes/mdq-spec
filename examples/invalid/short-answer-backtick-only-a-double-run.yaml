@@ -1,0 +1,6 @@
+# A run of backticks with no text between the runs is not a literal.
+# (patterns.md, "Pattern string"): `schema-error`.
+type: short-answer
+stem: Name the largest Brazilian biome.
+accept:
+  - "``"

@@ -1,0 +1,9 @@
+# Each choice text derives the same id whatever its position (see `ids-order-forward`).
+type: multiple-choice
+id: capital-ordem-inversa
+stem: Qual é a capital do Brasil?
+choices:
+  - text: São Paulo
+  - text: Brasília
+    score: 1.0
+  - text: Rio de Janeiro

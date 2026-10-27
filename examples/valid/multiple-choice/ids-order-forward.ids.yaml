@@ -1,0 +1,6 @@
+# Each choice text derives the same id whatever its position (see `ids-order-backward`).
+id: capital-ordem-direta
+choices:
+  - rio-de-janeiro
+  - brasilia
+  - sao-paulo

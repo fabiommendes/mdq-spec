@@ -1,0 +1,8 @@
+# An `includeAll` also leaves out a question that a LATER `include` adds: the
+# `include` keeps its own position, after the questions of the `includeAll`.
+type: exam
+id: biomas-em-ordem
+title: Biomas em ordem
+questions:
+- includeAll: biome AND NOT draft
+- include: cerrado-01

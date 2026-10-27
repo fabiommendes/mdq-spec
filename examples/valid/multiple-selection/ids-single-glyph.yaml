@@ -1,0 +1,11 @@
+# A choice with a single glyph has nothing to slugify; the id comes from a fixed table.
+type: multiple-selection
+id: marcadores-de-lista
+stem: Quais destes são marcadores válidos de lista em Markdown?
+choices:
+  - text: '-'
+    correct: true
+  - text: '*'
+    correct: true
+  - text: +
+    correct: true

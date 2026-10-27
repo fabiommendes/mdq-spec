@@ -1,0 +1,143 @@
+# Vectors for the normalization of a loaded document: inputs that the
+# schema rejects or that are written in a non-canonical form, and that the
+# models accept and normalize (base.md, "Frontmatter"; exam.md).
+#
+# Document structure
+#
+# Case {
+#   name: string
+#   format?: "mapping" | "yaml" | "mdq"   // default "mapping"
+#   kind?: "question" | "exam"            // only for "mdq"
+#   input: any             // a mapping, or the source text for "yaml" and "mdq"
+#   output: object         // `to_dict()` of the loaded document, JSON-like
+# }
+#
+# Loading `input` reports no error. A `null` of an optional field, also
+# nested in a choice or in a blank, is the same as an absent field; `meta`
+# keeps its nulls. Defaults (`grading`, `penalty`, `shuffle`) are not part
+# of `output`.
+cases:
+  - name: null in a nested choice is absent
+    input:
+      type: multiple-choice
+      stem: Qual?
+      choices:
+        - {text: a, score: 1, feedback: null, id: null}
+        - {text: b, score: null, comment: null}
+    output:
+      type: multiple-choice
+      stem: Qual?
+      choices:
+        - {text: a, score: 1.0}
+        - {text: b}
+  - name: null in a nested blank is absent
+    input:
+      type: fill-in
+      stem: Quanto [^x]?
+      blanks:
+        - {id: x, type: numeric, answer: 42, tolerance: null}
+    output:
+      type: fill-in
+      stem: Quanto [^x]?
+      blanks:
+        - {id: x, answer: 42, type: numeric}
+  - name: null exam frontmatter fields are absent
+    format: mdq
+    kind: exam
+    input: |
+      ---
+      duration:
+      start: ~
+      grading: null
+      penalty:
+      shuffle: null
+      author:
+      course: ~
+      ---
+
+      # Prova
+
+      ===
+
+      Qual?
+
+      * [*] [a] Bahia
+      * [ ] [b] Maranhão
+    output:
+      type: exam
+      title: Prova
+      questions:
+        - stem: Qual?
+          choices:
+            - {id: a, text: Bahia, score: 1.0}
+            - {id: b, text: Maranhão}
+          type: multiple-choice
+  - name: null is kept inside meta
+    input:
+      type: essay
+      stem: Explique.
+      meta:
+        fonte: null
+        n: {a: null}
+    output:
+      type: essay
+      stem: Explique.
+      meta:
+        fonte: null
+        n: {a: null}
+  - name: YAML 1.1 forms are strings or decimal numbers
+    format: yaml
+    input: |
+      type: essay
+      stem: Explique.
+      meta:
+        flag: yes
+        switch: on
+        ratio: 1:30
+        octal: 010
+        grouped: 1_000
+        day: 2026-03-10
+    output:
+      type: essay
+      stem: Explique.
+      meta: {flag: 'yes', switch: 'on', ratio: '1:30', octal: 10, grouped: '1_000', day: '2026-03-10'}
+  - name: YAML 1:30 is a string duration
+    format: yaml
+    input: |
+      type: exam
+      title: Prova
+      duration: 1:30
+      questions: []
+    output:
+      type: exam
+      title: Prova
+      duration: PT1H30M
+      questions: []
+  - name: start and duration take their canonical form
+    format: yaml
+    input: |
+      type: exam
+      title: Prova
+      start: 2026-03-10 14:00
+      duration: PT90M
+      questions: []
+    output:
+      type: exam
+      title: Prova
+      start: '2026-03-10T14:00:00'
+      duration: PT1H30M
+      questions: []
+  - name: yes is a string include
+    format: mdq
+    kind: exam
+    input: |
+      # Prova
+
+      ---
+      include: yes
+      ---
+    output:
+      type: exam
+      title: Prova
+      questions:
+        - {include: 'yes'}

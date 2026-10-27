@@ -1,0 +1,7 @@
+# exam.md, "Duration and Start Time": a bare number has no unit, so it
+# is not a duration.
+type: exam
+id: prova-geografia
+title: Prova de Geografia
+duration: 90
+questions: []

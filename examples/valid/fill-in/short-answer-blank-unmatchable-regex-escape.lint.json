@@ -1,0 +1,12 @@
+[
+  {
+    "code": "unmatchable-regex-escape",
+    "severity": "info",
+    "path": [
+      "blanks",
+      0,
+      "accept",
+      0
+    ]
+  }
+]

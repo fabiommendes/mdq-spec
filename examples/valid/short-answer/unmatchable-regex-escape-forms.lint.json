@@ -1,0 +1,26 @@
+[
+  {
+    "code": "unmatchable-regex-escape",
+    "severity": "info",
+    "path": [
+      "accept",
+      0
+    ]
+  },
+  {
+    "code": "unmatchable-regex-escape",
+    "severity": "info",
+    "path": [
+      "accept",
+      1
+    ]
+  },
+  {
+    "code": "unmatchable-regex-escape",
+    "severity": "info",
+    "path": [
+      "accept",
+      2
+    ]
+  }
+]

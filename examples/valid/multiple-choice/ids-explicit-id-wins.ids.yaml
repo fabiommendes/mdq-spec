@@ -1,0 +1,7 @@
+# A derived id never takes an explicit id of the same question: the first choice
+# would derive `brasilia`, which the second one declares, so it gets a numeric suffix.
+id: capital-do-brasil
+choices:
+  - brasilia-2
+  - brasilia
+  - sao-paulo

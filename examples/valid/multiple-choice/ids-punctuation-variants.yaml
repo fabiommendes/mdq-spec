@@ -1,0 +1,10 @@
+# `São Paulo!` and `São Paulo?` slugify to the same id once punctuation is stripped;
+# the second one gets a numeric suffix.
+type: multiple-choice
+id: pontuacao-sao-paulo
+stem: Qual pontuação está correta?
+choices:
+  - text: São Paulo!
+  - text: São Paulo?
+    score: 1.0
+  - text: Rio de Janeiro

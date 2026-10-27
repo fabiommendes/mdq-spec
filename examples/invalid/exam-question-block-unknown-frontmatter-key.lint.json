@@ -1,0 +1,11 @@
+[
+  {
+    "code": "invalid-frontmatter-field",
+    "severity": "error",
+    "path": [
+      "questions",
+      1,
+      "dificuldade"
+    ]
+  }
+]

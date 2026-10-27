@@ -1,0 +1,4 @@
+# The quoted `include` resolves to the bank question with that id.
+questions:
+- '2024'
+diagnostics: []

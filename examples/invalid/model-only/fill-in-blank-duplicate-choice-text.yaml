@@ -1,0 +1,13 @@
+# Two choices of one choice blank share a text. The path has no blank type tag.
+type: fill-in
+stem: A capital do Brasil é [^capital].
+blanks:
+  - id: capital
+    type: multiple-choice
+    choices:
+      - id: a
+        text: Brasília
+        score: 1
+      - id: b
+        text: Brasília
+        score: 0

@@ -1,0 +1,16 @@
+# The questions with no id get `q<position>`; an explicit id is kept.
+type: exam
+id: geografia
+title: Prova de Geografia do Brasil
+questions:
+  - stem: Qual é a capital do Brasil?
+    type: essay
+  - id: amazonia
+    stem: Onde fica a Floresta Amazônica?
+    choices:
+      - text: Ásia
+      - text: América do Sul
+        score: 1.0
+    type: multiple-choice
+  - stem: Quais são os biomas do Brasil?
+    type: essay

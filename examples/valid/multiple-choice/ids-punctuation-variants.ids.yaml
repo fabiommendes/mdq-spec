@@ -1,0 +1,7 @@
+# `São Paulo!` and `São Paulo?` slugify to the same id once punctuation is stripped;
+# the second one gets a numeric suffix.
+id: pontuacao-sao-paulo
+choices:
+  - sao-paulo
+  - sao-paulo-2
+  - rio-de-janeiro

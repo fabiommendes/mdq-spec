@@ -1,0 +1,14 @@
+# U+FF0A (FULLWIDTH ASTERISK) is NFKC-normalized to `*` before it is read,
+# so it marks the correct choice.
+id: mc-fullwidth-asterisk
+title: Capital do Brasil
+type: multiple-choice
+stem: Qual é a capital do Brasil?
+choices:
+- text: Brasília
+  id: brasilia
+  score: 1
+- text: Lisboa
+  id: lisboa
+- text: Buenos Aires
+  id: buenos-aires

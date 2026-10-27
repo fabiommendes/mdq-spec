@@ -1,0 +1,8 @@
+# `a` is the ASCII letter `a`, which `n` leaves alone: no info.
+id: unmatchable-regex-escape-unchanged-ascii
+title: Water in Portuguese, ASCII escape
+type: short-answer
+stem: Como se escreve "water" em português?
+accept:
+  - /agua/n
+  - Água

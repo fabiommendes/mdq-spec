@@ -1,0 +1,8 @@
+# Only spaces and tabs are removed from the ends of a pattern, so the line
+# feed stays, and a pattern cannot hold a line feed: `schema-error`. The JSON
+# Schema does not catch it; the model does.
+id: sa-blank-pattern-tab-newline
+type: short-answer
+stem: Name the largest Brazilian biome.
+accept:
+  - "\t\n"

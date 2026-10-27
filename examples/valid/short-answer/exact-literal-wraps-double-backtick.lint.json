@@ -1,0 +1,10 @@
+[
+  {
+    "code": "multi-line-pattern",
+    "severity": "warning",
+    "path": [
+      "accept",
+      0
+    ]
+  }
+]

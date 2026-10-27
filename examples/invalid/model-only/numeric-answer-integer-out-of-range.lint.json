@@ -1,0 +1,9 @@
+[
+  {
+    "code": "malformed-numeric-answer",
+    "severity": "error",
+    "path": [
+      "answer"
+    ]
+  }
+]

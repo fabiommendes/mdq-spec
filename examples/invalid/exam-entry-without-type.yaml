@@ -1,0 +1,7 @@
+# exam.md, "Question and include blocks": an entry of `questions` needs a
+# `type`, or an `include` or `includeAll` key.
+type: exam
+id: biomas-quiz
+title: Biomas quiz
+questions:
+  - stem: Qual é o maior bioma do Brasil?

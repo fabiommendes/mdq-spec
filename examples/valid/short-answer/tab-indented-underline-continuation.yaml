@@ -1,0 +1,7 @@
+# A tab-indented `---` is continuation text, not a setext underline.
+id: sa-tab-underline
+title: Tab-indented underline
+type: short-answer
+stem: Qual rio forma a planície do Pantanal?
+accept:
+- Rio ---

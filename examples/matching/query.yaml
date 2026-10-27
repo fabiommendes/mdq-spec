@@ -1,0 +1,143 @@
+# Vectors for the `includeAll` query language (docs/exam.md, "Include all").
+#
+# Document structure
+#
+# File {
+#   index: Index
+#   cases: Case[]
+# }
+#
+# Index {
+#   tags: { <tag>: string[] }   // the ids of the questions of the bank, per tag
+#   ids: string[]               // every id of the bank
+# }
+#
+# Case {
+#   name: string
+#   query: string
+#   standard: boolean     // the query follows the recommended language;
+#                         // false: it is not parsed and adds no question
+#   matches?: {           // standard queries only
+#     tags: string[]      // the tags of one question
+#     id?: string         // the id of that question (default "q")
+#     match: boolean      // the query selects it
+#   }[]
+#   select?: string[]     // the ids the query selects from `index`
+# }
+index:
+  tags:
+    a: ['1', '2']
+    b: ['2', '3']
+    d: ['3']
+  ids: ['1', '2', '3', '4']
+cases:
+  - name: single tag
+    query: biome
+    standard: true
+    matches:
+      - tags: [biome]
+        match: true
+      - tags: [forest]
+        match: false
+  - name: AND needs both tags
+    query: biome AND forest
+    standard: true
+    matches:
+      - tags: [biome, forest]
+        match: true
+      - tags: [biome]
+        match: false
+  - name: OR needs one tag
+    query: savanna OR wetland
+    standard: true
+    matches:
+      - tags: [wetland]
+        match: true
+  - name: NOT matches the absence of a tag
+    query: NOT draft
+    standard: true
+    matches:
+      - tags: []
+        match: true
+  - name: NOT can be repeated
+    query: NOT NOT draft
+    standard: true
+    matches:
+      - tags: [draft]
+        match: true
+  - name: AND binds tighter than OR
+    query: a OR b AND c
+    standard: true
+    matches:
+      - tags: [a]
+        match: true
+  - name: parentheses group
+    query: (a OR b) AND c
+    standard: true
+    matches:
+      - tags: [a]
+        match: false
+  - name: AND NOT
+    query: biome AND NOT draft
+    standard: true
+    matches:
+      - tags: [biome, draft]
+        match: false
+  - name: a tag can be non-ASCII
+    query: física
+    standard: true
+    matches:
+      - tags: [física]
+        match: true
+  - name: lowercase keywords are tags
+    query: and
+    standard: true
+    matches:
+      - tags: [and]
+        match: true
+  - name: a tag can start with a keyword
+    query: ANDROID
+    standard: true
+    matches:
+      - tags: [ANDROID]
+        match: true
+  - name: EXCEPT removes the listed ids
+    query: biome EXCEPT cerrado, pantanal
+    standard: true
+    matches:
+      - tags: [biome]
+        id: amazonia
+        match: true
+      - tags: [biome]
+        id: cerrado
+        match: false
+      - tags: [biome]
+        id: pantanal
+        match: false
+  - name: NOT with a positive tag
+    query: NOT b AND a
+    standard: true
+    select: ['1']
+  - name: complement of a tag
+    query: NOT a
+    standard: true
+    select: ['3', '4']
+  - name: complement of two tags
+    query: NOT a AND NOT b
+    standard: true
+    select: ['4']
+  - name: OR with a complement
+    query: a OR NOT b
+    standard: true
+    select: ['1', '2', '4']
+  - name: EXCEPT after a complement
+    query: NOT d EXCEPT 4
+    standard: true
+    select: ['1', '2']
+  - {name: 'not standard: empty query', query: '', standard: false}
+  - {name: 'not standard: ''AND''', query: AND, standard: false}
+  - {name: 'not standard: ''biome AND''', query: biome AND, standard: false}
+  - {name: 'not standard: ''(biome''', query: (biome, standard: false}
+  - {name: 'not standard: ''biome EXCEPT''', query: biome EXCEPT, standard: false}
+  - {name: 'not standard: ''#biome OR''', query: '#biome OR', standard: false}
+  - {name: 'not standard: ''tags ~ savanna''', query: tags ~ savanna, standard: false}

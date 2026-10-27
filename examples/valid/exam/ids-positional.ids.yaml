@@ -1,0 +1,5 @@
+# The questions with no id get `q<position>`; an explicit id is kept.
+questions:
+  - q1
+  - amazonia
+  - q3

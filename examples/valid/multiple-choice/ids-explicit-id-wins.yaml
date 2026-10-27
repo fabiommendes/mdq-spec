@@ -1,0 +1,11 @@
+# A derived id never takes an explicit id of the same question: the first choice
+# would derive `brasilia`, which the second one declares, so it gets a numeric suffix.
+type: multiple-choice
+id: capital-do-brasil
+stem: Qual é a capital do Brasil?
+choices:
+  - text: Brasília
+  - id: brasilia
+    text: Distrito Federal, sede do governo
+    score: 1.0
+  - text: São Paulo

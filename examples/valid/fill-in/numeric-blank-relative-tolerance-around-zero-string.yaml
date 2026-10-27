@@ -1,0 +1,12 @@
+# `relative-tolerance-around-zero` on a numeric blank whose answer is the
+# string `"0"`: the lint reads the value, as it does for a question.
+id: rio-sao-francisco-estados
+title: Rios
+type: fill-in
+stem: O rio São Francisco atravessa [^n] estados.
+blanks:
+  - id: n
+    type: numeric
+    answer: "0"
+    tolerance:
+      relative: 0.1

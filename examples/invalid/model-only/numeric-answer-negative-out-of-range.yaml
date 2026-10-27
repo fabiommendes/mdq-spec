@@ -1,0 +1,5 @@
+# A string `answer` must fit the range of a double, also when negative (numeric.md, "Answer
+# representation"): "-1e400" is below the smallest finite double.
+type: numeric
+stem: How many coulombs has the Sun lost?
+answer: "-1e400"

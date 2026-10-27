@@ -1,0 +1,7 @@
+# A tag with a comma inside is a single tag: `unsplit-tag-list`.
+type: essay
+id: tags-unsplit-01
+title: Biomas em uma tag só
+stem: Por que o Cerrado é chamado de berço das águas do Brasil?
+tags:
+- cerrado,bioma

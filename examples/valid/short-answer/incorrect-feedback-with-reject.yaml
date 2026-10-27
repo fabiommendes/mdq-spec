@@ -1,0 +1,12 @@
+# `incorrectFeedback` is the feedback of an incorrect response that no `reject` entry
+# covers; the feedback of a `reject` entry wins over it.
+id: capital-com-rejeicao
+title: Capital do Brasil
+stem: Qual é a capital do Brasil?
+incorrectFeedback: Essa cidade nunca foi a capital.
+accept:
+- Brasília
+reject:
+- pattern: Rio de Janeiro
+  feedback: Foi a capital até 1960.
+type: short-answer

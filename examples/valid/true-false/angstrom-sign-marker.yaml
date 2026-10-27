@@ -1,0 +1,15 @@
+# `Å` is a letter of the WARNING category: it means true and `marker` keeps
+# the written letter.
+id: tf-angstrom-marker
+title: Fatos sobre o Brasil
+type: true-false
+stem: Julgue as afirmações sobre o Brasil.
+choices:
+- text: A Floresta Amazônica fica no Brasil.
+  id: amazonia
+  correct: true
+  marker: Å
+- text: A capital do Brasil é Buenos Aires.
+  id: capital
+  correct: false
+  marker: F

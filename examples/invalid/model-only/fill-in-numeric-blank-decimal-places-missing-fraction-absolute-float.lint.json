@@ -1,0 +1,10 @@
+[
+  {
+    "code": "missing-decimal-places",
+    "severity": "error",
+    "path": [
+      "blanks",
+      0
+    ]
+  }
+]

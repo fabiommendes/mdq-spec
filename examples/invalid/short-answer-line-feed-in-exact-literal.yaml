@@ -1,0 +1,6 @@
+# A pattern string never contains a line ending.
+# (patterns.md, "Pattern string"): `schema-error`.
+type: short-answer
+stem: Name the largest Brazilian biome.
+accept:
+  - "`a\nb`"

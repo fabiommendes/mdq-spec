@@ -7,8 +7,19 @@
 #   // Mapping of scores
 #   choices: { [key of string]: boolean }
 #
-#   // Mapping of examples to their scores
-#   examples: { marks: { [key of string]: boolean | null | string | number }, score: number | Fraction | "malformed" }[]
+#   // Optional. The feedback of a statement by id (true-false.md,
+#   // "Feedback"). A statement with no entry has none.
+#   feedback?: { [key of string]: string }
+#
+#   // Mapping of examples to their scores. `feedback`, when present, is the
+#   // whole list of strings the response shows: the feedback of the
+#   // statements it judged wrong or left unjudged, in the order of the
+#   // statements. When absent, the feedback is not checked.
+#   examples: {
+#     marks: { [key of string]: boolean | null | string | number },
+#     score: number | Fraction | "malformed",
+#     feedback?: string[]
+#   }[]
 # }
 #
 # Some scores are represented as fractions because the floating point
@@ -155,3 +166,20 @@ questions:
     examples:
       - marks: { a: true, b: false, c: true, d: false, e: true }
         score: "malformed"
+
+  # The feedback covers the statements judged wrong (`s3`) and the ones left
+  # unjudged (`s2` has none to show, `s4` and `s5` are absent).
+  - name: "Feedback of wrong and unjudged statements"
+    choices: { s1: true, s2: true, s3: false, s4: false, s5: false }
+    feedback:
+      s3: "The opposite -- it is one of the wettest."
+      s4: "Indigenous peoples have lived there for millennia."
+      s5: "Some light penetrates -- that's why understory plants survive."
+    grading: "symmetric"
+    examples:
+      - marks: { s1: true, s2: null, s3: true }
+        score: 0
+        feedback:
+          - "The opposite -- it is one of the wettest."
+          - "Indigenous peoples have lived there for millennia."
+          - "Some light penetrates -- that's why understory plants survive."

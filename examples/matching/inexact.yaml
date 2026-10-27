@@ -245,3 +245,40 @@ cases:
     response: "Belém do Pará"
     fold: false
     keep: false
+
+  # Symmetry: swapping pattern and response gives the same result
+  - name: reversed sharp s
+    pattern: "STRASSE"
+    response: "Straße"
+    fold: true
+    keep: true
+  - name: reversed typographic apostrophe
+    pattern: "caixa d’água"
+    response: "caixa d'água"
+    fold: true
+    keep: true
+  - name: reversed zero width space
+    pattern: "Mana\u200Bus"
+    response: "Manaus"
+    fold: true
+    keep: true
+  - name: reversed spaces and case
+    pattern: "  rio \u00A0 negro "
+    response: "Rio Negro"
+    fold: true
+    keep: true
+  - name: reversed stroke letter
+    pattern: "orsted"
+    response: "Ørsted"
+    fold: true
+    keep: false
+  - name: reversed missing accent
+    pattern: "Brasilia"
+    response: "Brasília"
+    fold: true
+    keep: false
+  - name: reversed different word
+    pattern: "Manaus"
+    response: "Belém"
+    fold: false
+    keep: false

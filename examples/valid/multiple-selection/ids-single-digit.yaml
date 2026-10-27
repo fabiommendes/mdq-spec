@@ -1,0 +1,11 @@
+# A choice with a single digit has nothing to slugify; the id is the digit spelled out.
+type: multiple-selection
+id: numeros-primos
+stem: Quais destes números são primos?
+choices:
+  - text: '1'
+    correct: false
+  - text: '4'
+    correct: false
+  - text: '9'
+    correct: false

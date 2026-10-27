@@ -1,0 +1,17 @@
+[
+  {
+    "code": "unsplit-tag-list",
+    "severity": "warning",
+    "path": [
+      "tags",
+      0
+    ]
+  },
+  {
+    "code": "missing-answer-key",
+    "severity": "info",
+    "path": [
+      "answerKey"
+    ]
+  }
+]

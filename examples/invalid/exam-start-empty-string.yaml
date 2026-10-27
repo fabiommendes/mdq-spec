@@ -1,0 +1,7 @@
+# exam.md, "Duration and Start Time": `start` is a date or a date and
+# time. An empty string is neither.
+type: exam
+id: prova-geografia
+title: Prova de Geografia
+start: ""
+questions: []

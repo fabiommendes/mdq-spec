@@ -1,0 +1,5 @@
+# A key repeated in the same YAML mapping is an error, not last-value-wins
+# (`yaml-syntax-error`, as in the Markdown frontmatter and in JSON).
+type: essay
+stem: Descreva o Cerrado.
+stem: Descreva a Caatinga.

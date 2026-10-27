@@ -1,0 +1,18 @@
+[
+  {
+    "code": "schema-error",
+    "severity": "error",
+    "path": [
+      "choices",
+      0
+    ]
+  },
+  {
+    "code": "schema-error",
+    "severity": "error",
+    "path": [
+      "choices",
+      1
+    ]
+  }
+]

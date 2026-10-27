@@ -1,0 +1,12 @@
+# An empty parent item with its nested list on the next line is not a line:
+# the lines are `Salvador` at level 0 and `Rio de Janeiro` at level 1.
+id: ord-empty-parent
+title: Empty parent item
+type: ordering
+stem: Ordene as capitais por ordem de fundação.
+content: text
+lines:
+- - 0
+  - Salvador
+- - 1
+  - Rio de Janeiro

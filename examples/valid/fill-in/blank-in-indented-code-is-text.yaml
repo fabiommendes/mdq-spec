@@ -1,0 +1,11 @@
+# A `[^id]` is literal text in an indented code block of the stem, so it
+# is not a blank reference.
+id: fi-blank-indented-code
+title: Blank marker in indented code
+type: fill-in
+stem: "Complete a capital do Brasil: [^capital].\n\n    A capital é [^capital]."
+blanks:
+- id: capital
+  type: short-answer
+  accept:
+  - Brasília

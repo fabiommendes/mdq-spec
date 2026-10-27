@@ -7,8 +7,19 @@
 #   // Mapping of scores
 #   choices: { [key of string]: boolean }
 #
-#   // Mapping of examples to their scores
-#   examples: { ticks: (string | number)[], score: number | Fraction | "malformed" }[]
+#   // Optional. The feedback of a choice by id (multiple-selection.md,
+#   // "Feedback"). A choice with no entry has none.
+#   feedback?: { [key of string]: string }
+#
+#   // Mapping of examples to their scores. `feedback`, when present, is the
+#   // whole list of strings the response shows: the feedback of the
+#   // choices it judged wrong, in the order of the choices. When absent,
+#   // the feedback is not checked.
+#   examples: {
+#     ticks: (string | number)[],
+#     score: number | Fraction | "malformed",
+#     feedback?: string[]
+#   }[]
 # }
 #
 # Some scores are represented as fractions because the floating point
@@ -186,3 +197,17 @@ questions:
         score: "malformed"
       - ticks: ["a", 1]
         score: "malformed"
+
+  # The feedback lists only the choices the response judged wrong: the
+  # ticked `s3` here. The unticked `s4` and `s5` are judged right.
+  - name: "Feedback of wrongly judged choices"
+    choices: { s1: true, s2: true, s3: false, s4: false, s5: false }
+    feedback:
+      s3: "Taiga does not occur in Brazil."
+      s4: "Tundra does not occur in Brazil."
+      s5: "The Sahara is in Africa."
+    grading: "symmetric"
+    examples:
+      - ticks: ["s1", "s2", "s3"]
+        score: 0.6
+        feedback: ["Taiga does not occur in Brazil."]

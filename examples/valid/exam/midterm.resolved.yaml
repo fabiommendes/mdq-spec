@@ -5,3 +5,8 @@ questions:
 - factorial
 - q3
 diagnostics: []
+fields:
+  locale:
+  - pt-BR
+  - pt-BR
+  - pt-BR

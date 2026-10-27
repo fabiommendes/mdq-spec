@@ -1,0 +1,10 @@
+# `unmatchable-regex-escape` on the `accept` of a short-answer blank.
+id: bioma-central
+title: Biomas
+type: fill-in
+stem: O bioma [^x] cobre o Brasil central.
+blanks:
+  - id: x
+    type: short-answer
+    accept:
+      - /\xe1/n

@@ -1,0 +1,12 @@
+# A second list after a blank line is the epilogue, not part of the blank.
+# Without the blank line it is a parse-error (a change of bullet character).
+id: fi-list-epilogue
+title: Second list as epilogue
+type: fill-in
+stem: A capital do Brasil é [^cap].
+blanks:
+- id: cap
+  type: short-answer
+  accept:
+  - Brasília
+epilogue: '- Brasilia'

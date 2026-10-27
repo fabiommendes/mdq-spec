@@ -1,0 +1,10 @@
+# A bare string choice stands for a mapping with a `text`. The expanded
+# choice still lacks `score` and `correct`, and the error points at the
+# string as written.
+type: multiple-choice
+id: capital
+title: Capital
+stem: Qual é a capital do Brasil?
+choices:
+  - Brasília
+  - Recife

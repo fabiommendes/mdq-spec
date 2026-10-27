@@ -1,0 +1,7 @@
+[
+  {
+    "code": "non-ascii-whitespace",
+    "severity": "warning",
+    "path": []
+  }
+]

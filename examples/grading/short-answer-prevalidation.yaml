@@ -3,6 +3,11 @@
 # Question {
 #   name: string
 #
+#   // Optional. A blank id: the question is then a fill-in question (`stem`
+#   // and `blanks` in `question`), and the examples are the pre-validation
+#   // of that short answer blank (fill-in.md, "Short answer blanks").
+#   blank?: string
+#
 #   // The question's own fields, as in its YAML form: any of `preAccept`,
 #   // `preReject`, `diacritics`.
 #   question: { preAccept: Pattern[], preReject: Pattern[], ... }
@@ -123,3 +128,28 @@ questions:
       - response: "ALLOWED"
         valid: false
         feedback: "Use lowercase letters only."
+
+  # The pre-validation of a short answer blank follows the same rules.
+  - name: "Blank of a fill-in question"
+    blank: river
+    question:
+      stem: "The [^river] crosses the state of [^state]."
+      blanks:
+        - id: river
+          type: short-answer
+          accept: ["Amazonas"]
+          preAccept:
+            - { pattern: "/[A-Za-z]+/", feedback: "Letters only." }
+          preReject:
+            - { pattern: "Nilo", feedback: "That river is in Africa." }
+        - { id: state, type: short-answer, accept: ["Pará"] }
+    examples:
+      - response: "Amazonas"
+        valid: true
+        feedback: null
+      - response: "Nilo"
+        valid: false
+        feedback: "That river is in Africa."
+      - response: "Rio 2"
+        valid: false
+        feedback: "Letters only."

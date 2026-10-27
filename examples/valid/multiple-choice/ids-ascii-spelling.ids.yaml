@@ -1,0 +1,7 @@
+# `Brasília` and `Brasilia` fold to the same slug. The ASCII spelling keeps it and
+# the accented one gets a numeric suffix.
+id: grafia-brasilia
+choices:
+  - brasilia-2
+  - brasilia
+  - nenhuma-das-anteriores

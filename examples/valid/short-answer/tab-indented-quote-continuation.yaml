@@ -1,0 +1,7 @@
+# A tab-indented `>` line continues the content: it is not feedback or a comment.
+id: sa-tab-quote
+title: Tab-indented marker line
+type: short-answer
+stem: Qual é o ponto mais alto do Brasil?
+accept:
+- Neblina > Bandeira

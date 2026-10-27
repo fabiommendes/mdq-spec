@@ -7,8 +7,19 @@
 #   // Mapping of scores
 #   choices: { [key of string]: number | null | Fraction }
 #
-#   // Mapping of examples to their scores
-#   examples: { [key of string]: number | Fraction }
+#   // Optional. The feedback of a choice by id (multiple-choice.md,
+#   // "Feedback"). A choice with no entry has none.
+#   feedback?: { [key of string]: string }
+#
+#   // Mapping of examples to their scores. The response is a choice id. A
+#   // plain score does not check the feedback. The mapping form does:
+#   // `feedback` is the list of feedback strings the response shows, empty
+#   // for none. "malformed" is a response that names no choice: it is
+#   // rejected, never scored (responses.md, "Errors").
+#   examples: {
+#     [key of string]: number | Fraction | "malformed"
+#                    | { score: number | Fraction, feedback: string[] }
+#   }
 # }
 #
 # Some scores are represented as fractions because the floating point
@@ -122,3 +133,29 @@ questions:
       "b": -0.5
       "c": 0.0
       "d": 0.0
+
+  # The picked choice shows its own feedback. A choice with no score takes
+  # the symmetric one: -(1.0 - 0.5) / 1.
+  - name: "Feedback of the picked choice"
+    choices: { brasilia: 1.0, rio: null, salvador: -0.5 }
+    feedback:
+      brasilia: "Correct -- Brasília became the capital in 1960."
+      salvador: "Salvador was Brazil's colonial capital, not today's."
+    grading: "symmetric"
+    examples:
+      "brasilia":
+        score: 1.0
+        feedback: ["Correct -- Brasília became the capital in 1960."]
+      "salvador":
+        score: -0.5
+        feedback: ["Salvador was Brazil's colonial capital, not today's."]
+      "rio":
+        score: -0.5
+        feedback: []
+
+  # A response that names no choice is malformed.
+  - name: "Unknown choice id"
+    choices: { a: 1.0, b: null }
+    grading: "symmetric"
+    examples:
+      "z": "malformed"

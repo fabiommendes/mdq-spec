@@ -1,0 +1,6 @@
+# A lone backtick opens a span that never closes.
+# (patterns.md, "Pattern string"): `schema-error`.
+type: short-answer
+stem: Name the largest Brazilian biome.
+accept:
+  - "`"

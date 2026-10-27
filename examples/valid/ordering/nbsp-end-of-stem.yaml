@@ -1,0 +1,12 @@
+# U+00A0 is text, not `ws`: the stem keeps it at the end of the last line.
+id: ord-nbsp-end-of-stem
+title: NBSP at the end of the stem
+type: ordering
+stem: "Ordene as capitais por ordem de fundação.\u00a0"
+content: code
+highlight: python
+lines:
+- - 0
+  - Salvador
+- - 0
+  - Rio de Janeiro

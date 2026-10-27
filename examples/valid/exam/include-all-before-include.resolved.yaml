@@ -1,0 +1,8 @@
+# The `includeAll` skips `cerrado-01`, which a later `include` adds. The
+# `include` keeps its own position: last.
+questions:
+- amazonia-01
+- pantanal-01
+- pantanal-02
+- cerrado-01
+diagnostics: []

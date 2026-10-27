@@ -1,0 +1,6 @@
+# An exact literal that opens with a backtick run must close.
+# (patterns.md, "Pattern string"): `schema-error`.
+type: short-answer
+stem: Name the largest Brazilian biome.
+accept:
+  - "`` x"

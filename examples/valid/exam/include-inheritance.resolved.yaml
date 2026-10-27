@@ -1,0 +1,15 @@
+# The included questions take `locale` from the exam. The `include` of block 0
+# brings a question with an unsplit tag: the resolved exam reports it under
+# `questions[0]`, along with the missing answer keys.
+questions:
+- tags-unsplit-01
+- cerrado-01
+diagnostics: []
+fields:
+  locale:
+  - pt-BR
+  - pt-BR
+lint:
+- {code: unsplit-tag-list, severity: warning, path: [questions, 0, tags, 0]}
+- {code: missing-answer-key, severity: info, path: [questions, 0, answerKey]}
+- {code: missing-answer-key, severity: info, path: [questions, 1, answerKey]}

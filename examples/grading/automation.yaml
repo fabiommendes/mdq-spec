@@ -1,0 +1,299 @@
+# Document structure
+#
+# Case {
+#   name: string
+#
+#   // The question in its YAML form, with `type`.
+#   question: { type: string, ... }
+#
+#   // The `automation` of the question (short-answer.md, "Automation";
+#   // base.md, fill-in.md and ordering.md, "Automation"): how much of the
+#   // grading the library does without an instructor.
+#   automation: "automatic" | "semi-automatic" | "manual"
+#
+#   // Short answer only: the `unmatched` the question takes once the
+#   // default is applied. It is `incorrect` when the question has an
+#   // `accept` entry, and `manual` otherwise.
+#   unmatched?: "incorrect" | "manual"
+#
+#   // Fill-in only: the `unmatched` and the `automation` of each short
+#   // answer blank by id, after the `unmatched` of the question is applied.
+#   blanks?: { [id of string]: { unmatched: string, automation: string } }
+# }
+questions:
+  #
+  # Short answer
+  #
+  - name: "Accept"
+    question: { type: short-answer, stem: "Qual é a capital do Brasil?", accept: ["Brasília"] }
+    unmatched: incorrect
+    automation: automatic
+  - name: "Accept, unmatched manual"
+    question: { type: short-answer, stem: "Qual é a capital do Brasil?", accept: ["Brasília"], unmatched: manual }
+    unmatched: manual
+    automation: semi-automatic
+  - name: "Reject, unmatched manual"
+    question: { type: short-answer, stem: "Qual é a capital do Brasil?", reject: ["Rio"], unmatched: manual }
+    unmatched: manual
+    automation: semi-automatic
+  - name: "Reject only"
+    question: { type: short-answer, stem: "Qual é a capital do Brasil?", reject: ["Rio"] }
+    unmatched: manual
+    automation: semi-automatic
+  - name: "Accept and reject, unmatched manual"
+    question: { type: short-answer, stem: "Qual é a capital do Brasil?", accept: ["A"], reject: ["B"], unmatched: manual }
+    unmatched: manual
+    automation: semi-automatic
+  - name: "No pattern, unmatched incorrect"
+    question: { type: short-answer, stem: "Qual é a capital do Brasil?", unmatched: incorrect }
+    unmatched: incorrect
+    automation: automatic
+  - name: "Reject, unmatched incorrect"
+    question: { type: short-answer, stem: "Qual é a capital do Brasil?", reject: ["Rio"], unmatched: incorrect }
+    unmatched: incorrect
+    automation: automatic
+  - name: "Empty"
+    question: { type: short-answer, stem: "Qual é a capital do Brasil?" }
+    unmatched: manual
+    automation: manual
+  - name: "Empty, unmatched manual"
+    question: { type: short-answer, stem: "Qual é a capital do Brasil?", unmatched: manual }
+    unmatched: manual
+    automation: manual
+  - name: "Pre-validation is not a pattern"
+    question: { type: short-answer, stem: "Qual é a capital do Brasil?", preAccept: ["/\\d+/"] }
+    unmatched: manual
+    automation: manual
+  #
+  # Short answer blank: the blank takes the `unmatched` of the question
+  #
+  - name: "Blank with accept"
+    question:
+      type: fill-in
+      stem: "Complete: [^x]."
+      blanks:
+        - { id: x, type: short-answer, accept: ["A"] }
+    automation: automatic
+    blanks:
+      x: { unmatched: incorrect, automation: automatic }
+  - name: "Blank with accept, question manual"
+    question:
+      type: fill-in
+      stem: "Complete: [^x]."
+      unmatched: manual
+      blanks:
+        - { id: x, type: short-answer, accept: ["A"] }
+    automation: semi-automatic
+    blanks:
+      x: { unmatched: manual, automation: semi-automatic }
+  - name: "Blank with reject"
+    question:
+      type: fill-in
+      stem: "Complete: [^x]."
+      blanks:
+        - { id: x, type: short-answer, reject: ["A"] }
+    automation: semi-automatic
+    blanks:
+      x: { unmatched: manual, automation: semi-automatic }
+  - name: "Blank with reject, question incorrect"
+    question:
+      type: fill-in
+      stem: "Complete: [^x]."
+      unmatched: incorrect
+      blanks:
+        - { id: x, type: short-answer, reject: ["A"] }
+    automation: automatic
+    blanks:
+      x: { unmatched: incorrect, automation: automatic }
+  - name: "Empty blank"
+    question:
+      type: fill-in
+      stem: "Complete: [^x]."
+      blanks:
+        - { id: x, type: short-answer }
+    automation: manual
+    blanks:
+      x: { unmatched: manual, automation: manual }
+  - name: "Empty blank, question manual"
+    question:
+      type: fill-in
+      stem: "Complete: [^x]."
+      unmatched: manual
+      blanks:
+        - { id: x, type: short-answer }
+    automation: manual
+    blanks:
+      x: { unmatched: manual, automation: manual }
+  - name: "Empty blank, question incorrect"
+    question:
+      type: fill-in
+      stem: "Complete: [^x]."
+      unmatched: incorrect
+      blanks:
+        - { id: x, type: short-answer }
+    automation: automatic
+    blanks:
+      x: { unmatched: incorrect, automation: automatic }
+
+  #
+  # Fill-in: the question is as automatic as its least automatic blank. A
+  # choice blank and a numeric blank are automatic. A short answer blank is
+  # automatic with an `accept` entry (or `unmatched: incorrect`), and manual
+  # with no pattern. One manual blank among automatic ones makes the
+  # question semi-automatic; only if every blank is manual is the question
+  # manual.
+  #
+  - name: "Fill-in, choice and numeric blanks"
+    question:
+      type: fill-in
+      stem: "Complete: [^c] e [^n]."
+      blanks:
+        - id: c
+          type: multiple-choice
+          choices:
+            - { id: a, text: "Brasília", score: 1 }
+            - { id: b, text: "Rio", score: 0 }
+        - { id: n, type: numeric, answer: 3.14, tolerance: { absolute: 0.01 } }
+    automation: automatic
+  - name: "Fill-in, automatic short answer and choice blanks"
+    question:
+      type: fill-in
+      stem: "Complete: [^s1] e [^c]."
+      blanks:
+        - { id: s1, type: short-answer, accept: ["Cerrado"] }
+        - id: c
+          type: multiple-choice
+          choices:
+            - { id: a, text: "Brasília", score: 1 }
+            - { id: b, text: "Rio", score: 0 }
+    automation: automatic
+  - name: "Fill-in, one manual blank"
+    question:
+      type: fill-in
+      stem: "Complete: [^s2]."
+      blanks:
+        - { id: s2, type: short-answer }
+    automation: manual
+  - name: "Fill-in, all blanks manual"
+    question:
+      type: fill-in
+      stem: "Complete: [^s2] e [^s4]."
+      blanks:
+        - { id: s2, type: short-answer }
+        - { id: s4, type: short-answer }
+    automation: manual
+  - name: "Fill-in, automatic and manual blanks"
+    question:
+      type: fill-in
+      stem: "Complete: [^s1] e [^s2]."
+      blanks:
+        - { id: s1, type: short-answer, accept: ["Cerrado"] }
+        - { id: s2, type: short-answer }
+    automation: semi-automatic
+  - name: "Fill-in, one reject-only blank"
+    question:
+      type: fill-in
+      stem: "Complete: [^s3]."
+      blanks:
+        - { id: s3, type: short-answer, reject: ["Savana"] }
+    automation: semi-automatic
+  - name: "Fill-in, choice and manual blanks"
+    question:
+      type: fill-in
+      stem: "Complete: [^c] e [^s2]."
+      blanks:
+        - id: c
+          type: multiple-choice
+          choices:
+            - { id: a, text: "Brasília", score: 1 }
+            - { id: b, text: "Rio", score: 0 }
+        - { id: s2, type: short-answer }
+    automation: semi-automatic
+  - name: "Fill-in, reject-only and manual blanks"
+    question:
+      type: fill-in
+      stem: "Complete: [^s3] e [^s2]."
+      blanks:
+        - { id: s3, type: short-answer, reject: ["Savana"] }
+        - { id: s2, type: short-answer }
+    automation: semi-automatic
+
+  # The `unmatched` of the question changes the blanks that have no
+  # `unmatched` of their own.
+  - name: "Fill-in, unmatched incorrect"
+    question:
+      type: fill-in
+      stem: "Complete: [^s1] e [^s2]."
+      unmatched: incorrect
+      blanks:
+        - { id: s1, type: short-answer, accept: ["Cerrado"] }
+        - { id: s2, type: short-answer }
+    automation: automatic
+  - name: "Fill-in, unmatched manual"
+    question:
+      type: fill-in
+      stem: "Complete: [^s1] e [^s2]."
+      unmatched: manual
+      blanks:
+        - { id: s1, type: short-answer, accept: ["Cerrado"] }
+        - { id: s2, type: short-answer }
+    automation: semi-automatic
+  - name: "Fill-in, unmatched manual, one manual blank"
+    question:
+      type: fill-in
+      stem: "Complete: [^s2]."
+      unmatched: manual
+      blanks:
+        - { id: s2, type: short-answer }
+    automation: manual
+
+  #
+  # Ordering follows its `unmatched`; essay is manual; the choice and
+  # numeric types are automatic.
+  #
+  - name: "Ordering, unmatched incorrect"
+    question:
+      type: ordering
+      content: text
+      stem: "Ordene."
+      lines: [[0, "x, y = 1, 1"], [0, "print(x)"]]
+      unmatched: incorrect
+    automation: automatic
+  - name: "Ordering, unmatched manual"
+    question:
+      type: ordering
+      content: text
+      stem: "Ordene."
+      lines: [[0, "x, y = 1, 1"], [0, "print(x)"]]
+      unmatched: manual
+    automation: semi-automatic
+  - name: "Essay"
+    question: { type: essay, stem: "Explique o efeito estufa." }
+    automation: manual
+  - name: "Multiple choice"
+    question:
+      type: multiple-choice
+      stem: "Qual é a capital do Brasil?"
+      choices:
+        - { id: a, text: "Brasília", score: 1 }
+        - { id: b, text: "Rio", score: 0 }
+    automation: automatic
+  - name: "Multiple selection"
+    question:
+      type: multiple-selection
+      stem: "Biomas do Brasil?"
+      choices:
+        - { id: a, text: "Cerrado", correct: true }
+        - { id: b, text: "Tundra", correct: false }
+    automation: automatic
+  - name: "True-false"
+    question:
+      type: true-false
+      stem: "Julgue."
+      choices:
+        - { id: a, text: "A Amazônia é úmida.", correct: true }
+        - { id: b, text: "O Pantanal é um deserto.", correct: false }
+    automation: automatic
+  - name: "Numeric"
+    question: { type: numeric, stem: "Quanto é pi?", answer: 3.14 }
+    automation: automatic

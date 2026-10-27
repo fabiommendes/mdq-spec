@@ -1,0 +1,8 @@
+# A `grading` mapping takes only the strategies of its type as values
+# (exam.md, "Grading"): a multiple selection question has no `no-mistakes`.
+type: exam
+id: biomes
+title: Biomes
+grading:
+  multiple-selection: no-mistakes
+questions: []

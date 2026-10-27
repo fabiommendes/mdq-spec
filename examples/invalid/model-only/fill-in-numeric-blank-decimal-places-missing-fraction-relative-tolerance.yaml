@@ -1,0 +1,13 @@
+# numeric.md, "Decimal places": a fraction blank under `decimal` takes its
+# places from `decimalPlaces` or from an absolute tolerance with a decimal
+# point. Here it has neither.
+id: amazonia
+title: Amazônia
+type: fill-in
+stem: A Amazônia Legal ocupa [^v] do território.
+blanks:
+  - id: v
+    type: numeric
+    answer: "1/3"
+    domain: decimal
+    tolerance: { relative: 0.1 }

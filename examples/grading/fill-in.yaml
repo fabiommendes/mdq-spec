@@ -391,3 +391,52 @@ questions:
       - response: { biome: "Cerrado" }
         score: "pending"
         feedback: []
+
+  # The decimal places of a numeric blank are its own (numeric.md, "Decimal
+  # places"): `2.50` has two, so 2.505 rounds to 2.51 and matches, and 2.515
+  # rounds to 2.52, which is off by more than the tolerance.
+  - name: "Numeric blank rounds with its own places"
+    question:
+      stem: "Quanto custa [^price]?"
+      blanks:
+        - id: price
+          type: numeric
+          answer: "2.50"
+          tolerance: { absolute: 0.01 }
+          unit: "R$"
+    examples:
+      - response: { price: 2.505 }
+        score: 1
+      - response: { price: 2.515 }
+        score: 0
+
+  # A response that is not a number is rejected, also when the blank has an
+  # `incorrectFeedback`.
+  - name: "Malformed response of a numeric blank with feedback"
+    question:
+      stem: "O Pico da Neblina tem [^neblina] metros e o da Bandeira [^bandeira]."
+      blanks:
+        - id: neblina
+          type: numeric
+          answer: 2995
+          tolerance: { absolute: 5 }
+          unit: m
+          incorrectFeedback: "O Pico da Neblina fica na Serra do Imeri."
+        - { id: bandeira, type: numeric, answer: 2892, tolerance: { absolute: 5 }, unit: m }
+    examples:
+      - response: { neblina: "abc", bandeira: 2892 }
+        score: malformed
+
+  # The unit of a response to a numeric blank is the declared one or absent.
+  - name: "Unit of a numeric blank"
+    question:
+      stem: "A Amazônia tem [^length] de extensão."
+      blanks:
+        - { id: length, type: numeric, answer: 6400, unit: km }
+    examples:
+      - response: { length: { value: 6400, unit: km } }
+        score: 1
+      - response: { length: { value: 6400, unit: m } }
+        score: malformed
+      - response: { length: "1/3x" }
+        score: malformed

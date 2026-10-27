@@ -1,0 +1,9 @@
+# A list after a blank line is an epilogue, whatever its marker: an ordered list
+# after the content list does not join it.
+id: sa-ordered-epilogue
+title: Ordered list after a blank line
+type: short-answer
+stem: Qual é a capital do Brasil?
+accept:
+- Brasília
+epilogue: 1. Capital federal

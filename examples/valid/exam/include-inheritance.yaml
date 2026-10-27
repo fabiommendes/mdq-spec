@@ -1,0 +1,9 @@
+# The included questions take `locale` from the exam. Block 0 comes from a
+# question with an unsplit tag: the resolved exam reports it under `questions[0]`.
+type: exam
+id: heranca
+title: Herança em questões incluídas
+locale: pt-BR
+questions:
+- include: tags-unsplit-01
+- includeAll: savanna

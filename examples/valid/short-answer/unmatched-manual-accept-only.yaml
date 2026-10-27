@@ -1,0 +1,10 @@
+# `unmatched: manual` with only `accept`: a response that matches no pattern goes to the
+# instructor. The question is `semi-automatic`.
+id: bioma-centro-accept
+title: Biome of central Brazil
+stem: Name a biome of central Brazil.
+unmatched: manual
+accept:
+- Cerrado
+- Pantanal
+type: short-answer

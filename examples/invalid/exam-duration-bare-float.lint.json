@@ -1,0 +1,9 @@
+[
+  {
+    "code": "invalid-duration",
+    "severity": "error",
+    "path": [
+      "duration"
+    ]
+  }
+]

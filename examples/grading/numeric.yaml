@@ -700,3 +700,93 @@ questions:
         score: 0
       - response: "0e-999"
         score: 0
+
+  # A response beyond the range of a double is malformed, however large its
+  # exponent or its digits are, and the check is fast: the response is not
+  # evaluated. The integer response has 401 digits.
+  - name: "Range of a double, huge responses"
+    question: { answer: 1 }
+    examples:
+      - response: "1e999999999"
+        score: "malformed"
+      - response: "1e-999999999"
+        score: "malformed"
+      - response: 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+        score: "malformed"
+
+  # An integer beyond 2^53 and a decimal with more digits than a double
+  # holds are compared exactly, as their digits.
+  - name: "Large integer answer is exact"
+    question: { answer: "3000000000000000000001" }
+    examples:
+      - response: "3000000000000000000001"
+        score: 1
+      - response: "3000000000000000000000"
+        score: 0
+  - name: "Long decimal answer is exact"
+    question: { answer: "3.14159265358979323846" }
+    examples:
+      - response: "3.14159265358979323846"
+        score: 1
+      - response: 3.141592653589793
+        score: 0
+
+  # Another shape than a number, a string or a `{ value, unit }` mapping is
+  # malformed, whatever the domain.
+  - name: "Malformed response shapes, integer"
+    question: { answer: 1, domain: integer }
+    examples:
+      - response: { value: { value: 1 } }
+        score: "malformed"
+      - response: [1]
+        score: "malformed"
+  - name: "Malformed response shapes, fraction"
+    question: { answer: 1, domain: fraction }
+    examples:
+      - response: { value: { value: 1 } }
+        score: "malformed"
+      - response: [1]
+        score: "malformed"
+  - name: "Malformed response shapes, decimal"
+    question: { answer: 1, domain: decimal }
+    examples:
+      - response: { value: { value: 1 } }
+        score: "malformed"
+      - response: [1]
+        score: "malformed"
+
+  # The mapping of a response has `value` and an optional `unit`, a string
+  # or null. A `null` unit is absent; any other key or a unit that is not a
+  # string is malformed.
+  - name: "Shapes of the unit mapping"
+    question: { answer: 1, unit: g }
+    examples:
+      - response: { value: 1, unit: null }
+        score: 1
+      - response: { value: 1, units: g }
+        score: "malformed"
+      - response: { value: 1, unit: 3 }
+        score: "malformed"
+
+  # The decimal places of the comparison follow the exponent of the
+  # tolerance (numeric.md, "Decimal places"): 9 places for 1e-09 and 8 for
+  # 1.5e-07. The response 5.91e-7 would match the answer rounded to 8
+  # places, so it separates the two.
+  - name: "Places follow the exponent of a tolerance, 1e-09"
+    question: { answer: "5.89e-7", tolerance: { absolute: 1.0e-09 } }
+    examples:
+      - response: "5.89e-7"
+        score: 1
+      - response: "5.88e-7"
+        score: 1
+      - response: "5.91e-7"
+        score: 0
+  - name: "Places follow the exponent of a tolerance, 1.5e-07"
+    question: { answer: "5", tolerance: { absolute: 1.5e-07 } }
+    examples:
+      - response: "5.00000012"
+        score: 1
+      - response: "5.00000015"
+        score: 1
+      - response: "5.00000016"
+        score: 0

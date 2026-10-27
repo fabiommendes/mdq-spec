@@ -1,0 +1,7 @@
+# A choice blank with no choice ids: each choice gets an id derived from its text.
+id: capital-lacuna
+blanks:
+  capital:
+    - brasilia
+    - rio-de-janeiro
+    - salvador

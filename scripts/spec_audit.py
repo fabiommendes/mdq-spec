@@ -1685,8 +1685,12 @@ def step_frontmatter_schemas(audit: Audit) -> str:
             expected: set[str] = set()
             lint = Path(stem + LINT_SUFFIX)
             if lint.is_file():
+                # A diagnostic under `questions` belongs to the frontmatter of
+                # a question block inside an exam, not to the top one.
                 expected = {
-                    entry["code"] for entry in load_lint_file(lint, [])
+                    entry["code"]
+                    for entry in load_lint_file(lint, [])
+                    if entry["path"][:1] != ["questions"]
                 }
             source = path.read_text(encoding="utf-8")
             text = split_source_frontmatter(source)

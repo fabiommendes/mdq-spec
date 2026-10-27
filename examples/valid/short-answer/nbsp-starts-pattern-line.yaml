@@ -1,0 +1,8 @@
+# U+00A0 (NO-BREAK SPACE) is text, not `ws`: a pattern line that starts with it is an exact
+# string, not a regex. The `non-ascii-whitespace` warning applies.
+id: sa-nbsp-pattern-line
+title: Unicode space starts a pattern line
+type: short-answer
+stem: Qual é a capital do Brasil?
+accept:
+-  /bras[íi]lia/i

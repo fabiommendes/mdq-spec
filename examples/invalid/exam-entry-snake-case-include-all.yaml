@@ -1,0 +1,8 @@
+# exam.md, "Question and include blocks": the key is `includeAll`. The
+# snake case spelling `include_all` is not an alias, so the entry is
+# neither a question nor an include block.
+type: exam
+id: biomas-quiz
+title: Biomas quiz
+questions:
+  - include_all: biome

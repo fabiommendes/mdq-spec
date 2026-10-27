@@ -41,8 +41,8 @@ cases:
     accept: ["Ab"]
     reject: ["ab"]
   - name: unicode-escape
-    pattern: "/Aá/"
-    accept: ["Aá"]
+    pattern: "/A\\u00e1/"
+    accept: ["A\u00E1"]
     reject: ["Aa"]
   - name: braced-unicode-escape
     pattern: "/\\u{1F600}\\u{41}/"
@@ -112,6 +112,14 @@ cases:
     pattern: "/(?:rio|mar) negro/"
     accept: ["mar negro"]
     reject: ["lago negro"]
+  - name: non-capturing-group-quantified
+    pattern: "/(?:sub)+/"
+    accept: ["sub", "subsubsub"]
+    reject: ["su", "subsu"]
+  - name: empty-body
+    pattern: "//"
+    accept: [""]
+    reject: ["x"]
   - name: alternation-empty-side
     pattern: "/rio( negro|)/"
     accept: ["rio", "rio negro"]
@@ -246,6 +254,10 @@ cases:
     pattern: "/mazon/fb"
     accept: ["Amazonas"]
     reject: []
+  - name: anchoring-b-flag-matches-the-prefix
+    pattern: "/abc/b"
+    accept: ["abc", "abcx"]
+    reject: ["xabc", "xabcx"]
   - name: flag-i-folds-case
     pattern: "/[Bb]ras[íi]lia/i"
     accept: ["BRASÍLIA", "brasilia", "Brasília", "BRASILIA"]
