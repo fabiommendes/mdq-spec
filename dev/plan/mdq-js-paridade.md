@@ -414,3 +414,5 @@ modelo, lint ou pontuação entram aqui.
   rejeita chave composta), chaves escalares viram string, e regras de campo
   junto com erro de schema. Falta o pacote K (`answer: " 1"` em YAML/JSON é
   `malformed-numeric-answer`; null num mapa por blank do fill-in = ausente).
+- 2026-10-27: P5 feita (`254c1c0`): `LINT` vazio. Pacote K portado
+  (`fa68490`). Suíte verde: 8612 testes; `spec_audit --check` verde.
