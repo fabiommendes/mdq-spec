@@ -304,6 +304,18 @@ Reportadas à sessão `mdq`:
   (`["domain"]`; `["incorrectFeedback", "river"]` para uma entrada), não `[]`.
   Quatro `.lint.json` de `examples/invalid/fill-in-*` mudaram.
 
+- Anunciadas pelo comitê, ainda sem commit (2026-10-27):
+  - D01: linha lazy do conteúdo que começa com tag reservada seguida de `:`
+    é `parse-error` (entra na gramática).
+  - D02: setext H1 é H1 em todo lugar; nas instruções do exame e no stem em
+    Markdown é `forbidden-block-element`. O parser deixa de apagar o
+    sublinhado setext. `valid/exam/setext-heading-equals-underline` vira
+    inválido.
+  - D06: o índice do banco só aceita fontes que validam como questão; sem
+    split por vírgula nem `str()` nas tags de mapping (`banks.ts`,
+    `tests/banks.spec.ts`).
+  - D07: só comentários dos `.ids.yaml` (ordem de code point).
+
 Próxima rodada anunciada pela sessão `mdq`: bugs de `dev/issues/`
 (conversores, `show`, CLI, `exam-duplicate-tags`,
 `exam-question-backref-lost`, `banks-index-invalid-questions`) e as questões
