@@ -51,13 +51,7 @@ export const RESOLVE: Manifest = {
  * `<group>.<relativeId>`: groups `syntax`, `parsed-only`, `source` and
  * `sibling`.
  */
-export const LOADING: Manifest = {
-	// Package I of mdq-py (YAML 1.2, untracked in the corpus): not P4.
-	"source.essay-frontmatter-complex-key.mdq.md":
-		"complex YAML key, mdq-py package I (not yet ported)",
-	"syntax.syntax.yaml-complex-key.yaml":
-		"complex YAML key, mdq-py package I (not yet ported)",
-};
+export const LOADING: Manifest = {};
 
 /**
  * Documents under `valid/` whose lint diagnostics differ from the
@@ -86,6 +80,7 @@ export const LINT: Manifest = {
 	"parsed.essay.feff-in-middle.yaml": "lint (P5)",
 	"parsed.essay.fenced-code-no-lang.yaml": "lint (P5)",
 	"parsed.essay.form-feed-is-text.yaml": "lint (P5)",
+	"parsed.essay.frontmatter-nel-ls-in-scalar.yaml": "lint (P5)",
 	"parsed.essay.frontmatter-only-comment.yaml": "lint (P5)",
 	"parsed.essay.full-metadata.yaml": "lint (P5)",
 	"parsed.essay.heading-in-stem.yaml": "lint (P5)",
@@ -106,6 +101,7 @@ export const LINT: Manifest = {
 	"parsed.essay.locale-yaml-11-boolean.yaml": "lint (P5)",
 	"parsed.essay.meta-null-value.yaml": "lint (P5)",
 	"parsed.essay.meta-same-key-in-nested-mappings.yaml": "lint (P5)",
+	"parsed.essay.meta-scalar-keys.yaml": "lint (P5)",
 	"parsed.essay.meta.yaml": "lint (P5)",
 	"parsed.essay.metadata-comment.yaml": "lint (P5)",
 	"parsed.essay.nbsp-after-slug.yaml": "lint (P5)",
@@ -152,6 +148,8 @@ export const LINT: Manifest = {
 	"parsed.essay.uuid-uppercase.yaml": "lint (P5)",
 	"parsed.essay.weight-fraction.yaml": "lint (P5)",
 	"parsed.essay.weight-zero.yaml": "lint (P5)",
+	"parsed.essay.yaml-nel-ls-in-scalar.yaml": "lint (P5)",
+	"parsed.essay.yaml-scalar-keys.yaml": "lint (P5)",
 	"parsed.exam.all-question-types.yaml": "lint (P5)",
 	"parsed.exam.bank.2024.yaml": "lint (P5)",
 	"parsed.exam.bank.cerrado-01.yaml": "lint (P5)",
@@ -548,6 +546,7 @@ export const LINT: Manifest = {
 	"source.essay.feff-in-middle.mdq.md": "lint (P5)",
 	"source.essay.fenced-code-no-lang.mdq.md": "lint (P5)",
 	"source.essay.form-feed-is-text.mdq.md": "lint (P5)",
+	"source.essay.frontmatter-nel-ls-in-scalar.mdq.md": "lint (P5)",
 	"source.essay.frontmatter-only-comment.mdq.md": "lint (P5)",
 	"source.essay.full-metadata.mdq.md": "lint (P5)",
 	"source.essay.heading-in-stem.mdq.md": "lint (P5)",
@@ -562,6 +561,7 @@ export const LINT: Manifest = {
 	"source.essay.locale-uppercase.mdq.md": "lint (P5)",
 	"source.essay.locale-yaml-11-boolean.mdq.md": "lint (P5)",
 	"source.essay.meta-same-key-in-nested-mappings.mdq.md": "lint (P5)",
+	"source.essay.meta-scalar-keys.mdq.md": "lint (P5)",
 	"source.essay.meta.mdq.md": "lint (P5)",
 	"source.essay.metadata-comment.mdq.md": "lint (P5)",
 	"source.essay.nbsp-after-slug.mdq.md": "lint (P5)",

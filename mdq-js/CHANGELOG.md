@@ -14,6 +14,7 @@ Implements part of the unreleased MDQ specification.
 
 ### Changed
 
+- The YAML loader reads YAML 1.2 Core with the `yaml` package: scalar keys become strings, a key that is not a scalar or a tag outside the Core schema is a `yaml-syntax-error`, and NEL, LS and PS stay in scalars.
 - The index of `DictLoader` only holds the sources that `load` accepts as a question: a mapping with `tags` as a string, or with a model rule broken, is left out, and a `tags` string is no longer split at commas. `resolveExam` also applies the model rules (a shared question id is an error).
 
 - The question parser is split like mdq-py (`parser/question.ts`, `blocks.ts`, `tags.ts`, `choices.ts`, `frontmatter.ts`, `numeric.ts`, `spaces.ts`; `letters.ts`, `markdown.ts`, `exact.ts`, `include-keys.ts` at the top). Multiple-choice, multiple-selection, true-false, essay and numeric bodies follow the new format: the stem is every block before the body (no `preamble`), an essay's `input` is `content`, a numeric value takes an exponent, a choice marker is normalized with NFKC, tags are lower case, and a tag in the epilogue is `detached-tag`.
@@ -66,6 +67,8 @@ Implements part of the unreleased MDQ specification.
   `Query`, `isStandardQuery` and `QuerySyntaxError`.
 
 ### Changed
+
+- The YAML loader reads YAML 1.2 Core with the `yaml` package: scalar keys become strings, a key that is not a scalar or a tag outside the Core schema is a `yaml-syntax-error`, and NEL, LS and PS stay in scalars.
 
 - A numeric value, fraction part or tolerance no longer accepts leading
   zeros (`007`, `00.5`), matching the spec grammar.

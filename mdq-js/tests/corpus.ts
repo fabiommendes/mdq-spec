@@ -14,7 +14,7 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
-import { load } from "js-yaml";
+import { loadYaml } from "../src/parser/frontmatter.js";
 
 export const JS_PROJECT_ROOT = fileURLToPath(new URL("..", import.meta.url));
 export const MDQ_ROOT = join(JS_PROJECT_ROOT, "..");
@@ -117,7 +117,7 @@ export function lintSibling(document: string): string {
 
 /** Load a parsed document from disk. */
 export function loadDocument(path: string): unknown {
-	return load(readFileSync(path, "utf-8"));
+	return loadYaml(readFileSync(path, "utf-8"));
 }
 
 /**

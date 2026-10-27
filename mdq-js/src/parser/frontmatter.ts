@@ -12,7 +12,16 @@
  * A port of `mdq-py/mdq/_parser/_frontmatter.py`.
  */
 
-import { FAILSAFE_SCHEMA, load, Type, YAMLException } from "js-yaml";
+import { YAMLException } from "js-yaml";
+import {
+	type Document,
+	isAlias,
+	isMap,
+	isNode,
+	isScalar,
+	isSeq,
+	parseDocument,
+} from "yaml";
 import { type Diagnostic, diagnostic, type PathStep } from "../diagnostics.js";
 import { YamlSyntaxError } from "../errors.js";
 import { splitLines, stripBom } from "../markdown.js";
@@ -79,77 +88,96 @@ export function extractComment(frontmatterText: string): string | null {
 	return strip(commentLines.join(" ")) || null;
 }
 
-//
-// YAML 1.2 Core schema scalars (base.md, "Frontmatter"), in place of the
-// YAML 1.1 ones js-yaml's `DEFAULT_SCHEMA` and PyYAML resolve: no
-// `yes`/`no`/`on`/`off` booleans, no timestamps, no base-60 `1:30`, no
-// `0b`/`_` numbers, no leading-zero octal (`010` is 10), no merge key. The
-// patterns are the ones `_CORE_RESOLVERS` in
-// `mdq-py/mdq/_parser/_frontmatter.py` registers, so both loaders read the
-// same text as the same value.
-//
-
-const NULL_RE = /^(?:~|null|Null|NULL|)$/u;
-const BOOL_RE = /^(?:true|True|TRUE|false|False|FALSE)$/u;
-const INT_RE = /^(?:[-+]?[0-9]+|0o[0-7]+|0x[0-9a-fA-F]+)$/u;
-const FLOAT_RE =
-	/^(?:[-+]?(?:\.[0-9]+|[0-9]+(?:\.[0-9]*)?)(?:[eE][-+]?[0-9]+)?|[-+]?\.(?:inf|Inf|INF)|\.(?:nan|NaN|NAN))$/u;
-
-const nullType = new Type("tag:yaml.org,2002:null", {
-	kind: "scalar",
-	resolve: (data: unknown) => data === null || NULL_RE.test(String(data)),
-	construct: () => null,
-});
-
-const boolType = new Type("tag:yaml.org,2002:bool", {
-	kind: "scalar",
-	resolve: (data: unknown) => typeof data === "string" && BOOL_RE.test(data),
-	construct: (data: string) => data.toLowerCase() === "true",
-});
-
-/** YAML 1.2 Core integers: decimal, `0o` octal, `0x` hex. */
-const intType = new Type("tag:yaml.org,2002:int", {
-	kind: "scalar",
-	resolve: (data: unknown) => typeof data === "string" && INT_RE.test(data),
-	construct: (data: string) => {
-		if (data.startsWith("0o")) return Number.parseInt(data.slice(2), 8);
-		if (data.startsWith("0x")) return Number.parseInt(data.slice(2), 16);
-		return Number.parseInt(data, 10);
-	},
-});
-
-const floatType = new Type("tag:yaml.org,2002:float", {
-	kind: "scalar",
-	resolve: (data: unknown) => typeof data === "string" && FLOAT_RE.test(data),
-	construct: (data: string) => {
-		const lower = data.toLowerCase();
-		const sign = lower.startsWith("-") ? -1 : 1;
-		const rest =
-			lower.startsWith("+") || lower.startsWith("-") ? lower.slice(1) : lower;
-		if (rest === ".inf") return sign * Number.POSITIVE_INFINITY;
-		if (rest === ".nan") return Number.NaN;
-		return sign * Number.parseFloat(rest);
-	},
-});
-
 /**
- * The YAML 1.2 Core schema: `FAILSAFE_SCHEMA` (strings, sequences and
- * mappings) plus the four scalar types above. js-yaml's own `CORE_SCHEMA`
- * keeps YAML 1.1 forms (`0b1`, `1_000`), so it is not used.
+ * A key written twice in one mapping, after every key became a string.
+ * `looksLikeFrontmatter` tells it from the other YAML errors.
  */
-const CORE_SCHEMA = FAILSAFE_SCHEMA.extend({
-	implicit: [nullType, boolType, intType, floatType],
-});
+export class DuplicateKeyError extends YAMLException {}
+
+/** The tags of the YAML 1.2 Core schema. */
+const CORE_TAGS: ReadonlySet<string> = new Set(
+	["null", "bool", "int", "float", "str", "seq", "map"].map(
+		(name) => `tag:yaml.org,2002:${name}`,
+	),
+);
 
 /**
- * Load MDQ YAML: a Markdown frontmatter or a YAML document. A key written
- * twice in one mapping is an error (base.md, "Frontmatter"), which js-yaml
- * reports on its own.
+ * Build the JavaScript value of a node of the YAML AST. Scalars are already
+ * resolved by the Core schema of the `yaml` package (YAML 1.2: no
+ * `yes`/`no`/`on`/`off` booleans, no timestamps, no base-60 `1:30`, no
+ * `0b`/`_` numbers, leading-zero `010` is 10), with the same patterns as
+ * `_CORE_RESOLVERS` in `mdq-py/mdq/_parser/_frontmatter.py`.
+ */
+function constructNode(
+	node: unknown,
+	doc: Document.Parsed,
+	built: Map<unknown, unknown>,
+): unknown {
+	if (node === null || node === undefined) return null;
+	if (isAlias(node)) {
+		const target = node.resolve(doc);
+		return target === undefined ? null : constructNode(target, doc, built);
+	}
+	if (!isNode(node)) return null;
+	if (node.tag !== undefined && !CORE_TAGS.has(node.tag)) {
+		throw new YAMLException(`unknown tag ${node.tag}, outside the Core schema`);
+	}
+	if (isScalar(node)) return node.value;
+	if (built.has(node)) return built.get(node);
+	if (isSeq(node)) {
+		const list: unknown[] = [];
+		built.set(node, list);
+		for (const item of node.items) list.push(constructNode(item, doc, built));
+		return list;
+	}
+	if (isMap(node)) {
+		// `fromEntries` defines own keys, so `__proto__` stays a key.
+		const entries = new Map<string, unknown>();
+		for (const pair of node.items) {
+			const keyNode = isAlias(pair.key) ? pair.key.resolve(doc) : pair.key;
+			if (keyNode !== null && keyNode !== undefined && !isScalar(keyNode)) {
+				throw new YAMLException("found a key that is not a scalar");
+			}
+			const key = String(constructNode(keyNode, doc, built));
+			if (entries.has(key)) {
+				throw new DuplicateKeyError(`found duplicate key ${repr(key)}`);
+			}
+			entries.set(key, constructNode(pair.value, doc, built));
+		}
+		const mapping = Object.fromEntries(entries);
+		built.set(node, mapping);
+		return mapping;
+	}
+	return null;
+}
+
+/**
+ * Load MDQ YAML: a Markdown frontmatter or a YAML document, read as YAML 1.2
+ * Core schema. Every scalar key becomes a string, as `String(key)` writes it
+ * (`true`, `null`, `31` for `0x1F`, `1000` for `1e3`, `Infinity`). A key
+ * written twice in one mapping, also after that conversion, is an error
+ * (base.md, "Frontmatter"), and so is a key that is not a scalar and a tag
+ * outside the Core schema (the merge key `<<` is an ordinary key). NEL, LS
+ * and PS are content of a scalar, not line breaks.
  *
- * @throws {YAMLException} `text` is not valid YAML, or repeats a key.
+ * The `yaml` package replaces `js-yaml` here because `js-yaml` converts a
+ * collection used as a key to a string before any hook can see it.
+ *
+ * @throws {YAMLException} `text` is not valid YAML, repeats a key (a
+ *   `DuplicateKeyError`), has a key that is not a scalar, or has a tag
+ *   outside the Core schema.
  */
 export function loadYaml(text: string): unknown {
-	return load(text, { schema: CORE_SCHEMA });
+	// A lone CR is a line break in YAML 1.2, which `yaml` does not accept.
+	const doc = parseDocument(text.replace(/\r\n?/gu, "\n"), {
+		schema: "core",
+		version: "1.2",
+		uniqueKeys: false,
+		merge: false,
+	});
+	const problem = doc.errors[0] ?? doc.warnings[0];
+	if (problem !== undefined) throw new YAMLException(problem.message);
+	return constructNode(doc.contents, doc, new Map());
 }
 
 function isPlainRecord(value: unknown): value is Record<string, unknown> {

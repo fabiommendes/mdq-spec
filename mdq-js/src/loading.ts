@@ -24,7 +24,7 @@ import {
 } from "./diagnostics.js";
 import { InvalidDocumentError, MdqError, ParseError } from "./errors.js";
 import { includeKeyHint } from "./include-keys.js";
-import { uuidDiagnostics } from "./models/base.js";
+import { baseFieldRules, uuidDiagnostics } from "./models/base.js";
 import { markerDiagnostic } from "./models/choice.js";
 import { scheduleDiagnostic } from "./models/exam.js";
 import {
@@ -378,13 +378,17 @@ function validated(
 		? ExamSchema.safeParse(data)
 		: QuestionSchema.safeParse(data);
 	if (!result.success) {
-		diagnostics.push(
-			...uniqueDiagnostics(
-				result.error.issues.flatMap((issue) =>
-					issueDiagnostics(issue as ZodIssue, data, [], isExamDocument),
-				),
+		const schemaDiagnostics = uniqueDiagnostics(
+			result.error.issues.flatMap((issue) =>
+				issueDiagnostics(issue as ZodIssue, data, [], isExamDocument),
 			),
 		);
+		diagnostics.push(...schemaDiagnostics);
+		// Pydantic runs the field validators of the fields that have the right
+		// type in the same pass as the type errors, so a question reports both.
+		if (!isExamDocument) {
+			diagnostics.push(...fieldRulesBeside(data, schemaDiagnostics));
+		}
 		return failed(diagnostics);
 	}
 	if (diagnostics.some((d) => d.severity === "error"))
@@ -396,6 +400,23 @@ function validated(
 	return diagnostics.some((d) => d.severity === "error")
 		? failed(diagnostics)
 		: { document, diagnostics };
+}
+
+/**
+ * The common field rules of a question that failed the schema, without the
+ * ones on a path a schema diagnostic already covers.
+ */
+function fieldRulesBeside(
+	data: Data,
+	schemaDiagnostics: readonly Diagnostic[],
+): Diagnostic[] {
+	const covered = (path: readonly PathStep[]) =>
+		schemaDiagnostics.some(
+			(d) =>
+				d.path.length <= path.length &&
+				d.path.every((step, index) => step === path[index]),
+		);
+	return baseFieldRules(data).filter((d) => !covered(d.path));
 }
 
 //

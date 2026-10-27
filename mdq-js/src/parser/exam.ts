@@ -7,7 +7,6 @@
  * frontmatter writes. `resolveExam` in `src/banks.ts` replaces them.
  */
 
-import { load } from "js-yaml";
 import {
 	type Diagnostic,
 	diagnostic,
@@ -23,9 +22,11 @@ import { validateExam } from "../validate.js";
 import { SLUG_PREFIX_RE } from "./choices.js";
 import {
 	commonFrontmatter,
+	DuplicateKeyError,
 	extractComment,
 	invalidFrontmatterFields,
 	loadFrontmatterYaml,
+	loadYaml,
 	splitFrontmatter,
 } from "./frontmatter.js";
 import {
@@ -584,19 +585,18 @@ function stripNewlines(text: string): string {
  *
  * A cheap secondary guard only: it keeps a positionally eligible candidate
  * from being treated as frontmatter when its enclosed text plainly is not
- * YAML. Like PyYAML's loader, `json: true` keeps the last of two equal keys,
- * so a block that repeats a key still counts as frontmatter here; loading it
- * with `loadFrontmatterYaml` then reports the repeated key.
+ * YAML. A block that repeats a key still counts as frontmatter here; loading
+ * it with `loadFrontmatterYaml` then reports the repeated key.
  */
 export function looksLikeFrontmatter(lines: readonly string[]): boolean {
 	try {
-		const loaded = load(lines.join("\n"), { json: true });
+		const loaded = loadYaml(lines.join("\n"));
 		return (
 			loaded === null ||
 			loaded === undefined ||
 			(typeof loaded === "object" && !Array.isArray(loaded))
 		);
-	} catch {
-		return false;
+	} catch (error) {
+		return error instanceof DuplicateKeyError;
 	}
 }
