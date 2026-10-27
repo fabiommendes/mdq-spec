@@ -416,3 +416,5 @@ modelo, lint ou pontuação entram aqui.
   `malformed-numeric-answer`; null num mapa por blank do fill-in = ausente).
 - 2026-10-27: P5 feita (`254c1c0`): `LINT` vazio. Pacote K portado
   (`fa68490`). Suíte verde: 8612 testes; `spec_audit --check` verde.
+- 2026-10-27: P6 feita (`e7d2cdd`): pontuação de todos os tipos. MS que
+  aceita string ou mapa na mdq-py levado à sessão `mdq` como bug.
