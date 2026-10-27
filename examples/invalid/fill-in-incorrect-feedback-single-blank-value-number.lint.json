@@ -1,0 +1,10 @@
+[
+  {
+    "code": "parse-error",
+    "severity": "error",
+    "path": [
+      "incorrectFeedback",
+      "river"
+    ]
+  }
+]

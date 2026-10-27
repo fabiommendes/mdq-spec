@@ -1,0 +1,6 @@
+# Only spaces and tabs are removed from the start of a block: the U+00A0 and
+# the U+FEFF after it stay in the stem.
+stem: " ﻿Quantos estados tem o Brasil?"
+answer: 26
+domain: integer
+type: numeric

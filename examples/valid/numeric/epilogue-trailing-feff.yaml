@@ -1,0 +1,6 @@
+# A U+FEFF is not `ws`: the end of the epilogue keeps it.
+stem: Quantos estados tem o Brasil?
+epilogue: "Fim﻿"
+answer: 26
+domain: integer
+type: numeric

@@ -1,0 +1,5 @@
+# A U+FEFF is not `ws`: the end of the stem keeps it.
+stem: "Quantos estados tem o Brasil?﻿"
+answer: 26
+domain: integer
+type: numeric
