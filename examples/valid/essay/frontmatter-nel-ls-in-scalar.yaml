@@ -1,0 +1,6 @@
+# NEL, LS and PS are content characters in the frontmatter too.
+id: essay-frontmatter-nel-ls
+type: essay
+stem: Describe the Amazon.
+meta:
+  plain: "a\Nb\Lc\Pd"

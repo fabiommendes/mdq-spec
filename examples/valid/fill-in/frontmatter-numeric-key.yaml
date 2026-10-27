@@ -1,0 +1,14 @@
+# A scalar key that is not a string becomes its string form: `1` in the
+# `domain` and `decimalPlaces` maps of the frontmatter applies to the blank `[^1]`.
+id: fill-in-numeric-key
+title: Rio Tocantins
+type: fill-in
+stem: The Tocantins River is [^1] kilometers long.
+blanks:
+  - id: "1"
+    type: numeric
+    answer: 2500
+    unit: km
+    domain: decimal
+    decimalPlaces: 1
+    tolerance: { absolute: 50 }

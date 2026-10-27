@@ -310,6 +310,34 @@ cases:
     pattern: "/cafe/n"
     accept: ["cafe\u0301"]
     reject: []
+  - name: nfd-pattern-with-n-strips-the-pattern-accent
+    pattern: "/cafe\u0301/n"
+    accept: ["cafe", "café", "cafe\u0301"]
+    reject: ["cafés"]
+  - name: nfd-pattern-with-n-in-a-class
+    pattern: "/[e\u0301]/n"
+    accept: ["e", "\u00E9", "e\u0301"]
+    reject: ["a"]
+  - name: dot-line-terminator-under-b
+    pattern: "/a.b/b"
+    accept: ["a-bxyz"]
+    reject: ["a\nb", "a\nbxyz", "a\rb"]
+  - name: dot-line-terminator-under-fb
+    pattern: "/a.b/fb"
+    accept: ["xa-by"]
+    reject: ["a\nb", "xa\nby"]
+  - name: dot-star-stops-at-the-line-terminator-under-b
+    pattern: "/a.*b/b"
+    accept: ["axxb tail"]
+    reject: ["a\nb"]
+  - name: dot-star-prefix-ends-at-the-line-terminator-under-b
+    pattern: "/a.*/b"
+    accept: ["a\nb", "ab\ncd"]
+    reject: []
+  - name: dot-star-stops-at-the-line-terminator-under-f
+    pattern: "/a.*b/f"
+    accept: ["xa-by"]
+    reject: ["xa\nby"]
   - name: trimmed-response
     pattern: "/Brasília/"
     accept: ["Brasília ", "Brasília\n", " \tBrasília", " Brasília\u3000"]

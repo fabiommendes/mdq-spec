@@ -665,7 +665,7 @@ def step_valid_corpus(audit: Audit) -> str:
             model_only += 1
         if ".yaml" in suffixes:
             try:
-                yaml.safe_load(Path(stem + ".yaml").read_text(encoding="utf-8"))
+                load_corpus_yaml(Path(stem + ".yaml").read_text(encoding="utf-8"))
             except yaml.YAMLError as error:
                 problems.append(f"{name}.yaml: invalid YAML: {error}")
         if LINT_SUFFIX in suffixes:
@@ -1498,6 +1498,14 @@ def lint_path_is_absent_value(document: Any, path: list[Any]) -> bool:
     return isinstance(parent, dict) and path[-1] not in parent
 
 
+def load_corpus_yaml(text: str) -> Any:
+    """Load the YAML of an example. In YAML 1.2, NEL, LS and PS are content
+    characters, not line breaks as in PyYAML; the audit checks structure only,
+    so each one becomes a private use character, which PyYAML keeps in a
+    scalar."""
+    return yaml.safe_load(text.translate({0x85: 0xE000, 0x2028: 0xE001, 0x2029: 0xE002}))
+
+
 def load_example_document(stem: str) -> tuple[Any, str] | None:
     """The data model of an example (`.yaml`, else `.json`) and its suffix, or
     None if it has none. Raises `ValueError` if the file does not parse."""
@@ -1505,7 +1513,7 @@ def load_example_document(stem: str) -> tuple[Any, str] | None:
         path = Path(stem + suffix)
         if path.is_file():
             try:
-                return yaml.safe_load(path.read_text(encoding="utf-8")), suffix
+                return load_corpus_yaml(path.read_text(encoding="utf-8")), suffix
             except yaml.YAMLError as error:
                 raise ValueError(f"{rel(path)}: invalid YAML: {error}") from error
     return None
@@ -1658,7 +1666,7 @@ def candidate_types(stem: str, front: dict[str, Any], source: str) -> list[str]:
     for suffix in (".yaml", ".json"):
         sibling = Path(stem + suffix)
         if sibling.is_file():
-            data = yaml.safe_load(sibling.read_text(encoding="utf-8"))
+            data = load_corpus_yaml(sibling.read_text(encoding="utf-8"))
             if isinstance(data, dict):
                 if data.get("type"):
                     return [str(data["type"])]

@@ -1,0 +1,6 @@
+# A key that is a sequence or a mapping is an error.
+type: essay
+stem: Describe the Cerrado.
+meta:
+  ? [a, b]
+  : 1

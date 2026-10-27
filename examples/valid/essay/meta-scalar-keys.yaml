@@ -1,0 +1,12 @@
+# The key of a mapping is a string. A scalar key of another type becomes its
+# string form (the one of JSON): `0x1F` is "31" and `1e3` is "1000".
+id: essay-meta-scalar-keys
+type: essay
+stem: Describe the Pantanal.
+meta:
+  "1": integer
+  "true": boolean
+  "null": null
+  "1.5": float
+  "31": hexadecimal
+  "1000": exponent

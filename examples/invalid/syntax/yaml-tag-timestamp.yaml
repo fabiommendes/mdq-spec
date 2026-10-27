@@ -1,0 +1,5 @@
+# An explicit tag outside the Core schema is an error.
+type: essay
+stem: Describe the Cerrado.
+meta:
+  date: !!timestamp 2026-03-10

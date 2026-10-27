@@ -1,0 +1,12 @@
+# In a YAML document too, a scalar key that is not a string becomes its
+# string form.
+id: essay-yaml-scalar-keys
+type: essay
+stem: Describe the Pantanal.
+meta:
+  1: integer
+  true: boolean
+  ~: null
+  1.5: float
+  0x1F: hexadecimal
+  1e3: exponent

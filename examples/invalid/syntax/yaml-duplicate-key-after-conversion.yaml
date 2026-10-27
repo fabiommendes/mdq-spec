@@ -1,0 +1,6 @@
+# `1` and "1" are the same key once the integer becomes a string.
+type: essay
+stem: Describe the Cerrado.
+meta:
+  1: a
+  "1": b

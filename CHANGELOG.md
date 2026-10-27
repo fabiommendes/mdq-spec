@@ -15,6 +15,8 @@ First version of the specification.
 
 ### Changed
 
+- YAML (breaking): a scalar mapping key that is not a string becomes its string form (`domain: {1: decimal}` applies to the blank `[^1]`); two keys equal after the conversion repeat a key, and a sequence or mapping key is a `yaml-syntax-error`. NEL, LS and PS are content characters of a scalar (YAML 1.2). A tag outside the Core schema (`!!timestamp`, `!!binary`, `!!set`, `!!omap`, `!!python/...`) is a `yaml-syntax-error`. `question-base.md` has the rules. New examples `valid/fill-in/frontmatter-numeric-key`, `valid/essay/meta-scalar-keys`, `yaml-scalar-keys`, `yaml-nel-ls-in-scalar`, `frontmatter-nel-ls-in-scalar`, `invalid/syntax/yaml-duplicate-key-after-conversion`, `yaml-complex-key`, `yaml-tag-*` and `invalid/essay-frontmatter-*` (four).
+- New vectors in `examples/matching/regex.yaml`: the `n` flag with a decomposed (NFD) literal in the body and in a class, and `.` against a line terminator under the `b` and `f` flags.
 - A line that starts with a tag (a reserved label or `^slug`, and a colon) right after the content of a short answer, numeric or fill-in definition, or after a pattern item, is a `parse-error` (breaking). `LAZY_START` excludes it. Write a blank line before the tag.
 - A setext H1 (`===`) is an H1: `forbidden-block-element` in exam `instructions`, a `stem` and an `epilogue` (breaking). It replaces `setext-heading` for `===`. A setext H2 stays a heading in the `stem` and `epilogue`; `setext-heading` applies to them in an exam.
 - `#` alone is a valid exam H1 (an exam with no title).

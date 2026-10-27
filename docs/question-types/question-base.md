@@ -117,6 +117,17 @@ scalar is `null` (`null`, `Null`, `NULL`, `~` or nothing), a boolean (`true`,
 forms are plain strings: `yes`, `no`, `on`, `off`, a timestamp such as
 `2026-03-10`, the base-60 `1:30`, `010` is the decimal 10, not the octal 8.
 A parser built on a YAML 1.1 library MUST be configured to match.
+In a scalar, NEL (U+0085), LS (U+2028) and PS (U+2029) are content
+characters, not line breaks. A tag outside the Core schema (`!!timestamp`,
+`!!binary`, `!!set`, `!!omap`, `!!python/...`, a local tag such as `!foo`) is a
+`yaml-syntax-error`.
+
+The key of a mapping is a string. A scalar key of another type becomes its
+string form, as in the conversion of YAML to JSON: `1` is `"1"`, `true` is
+`"true"`, `null` is `"null"`, `0x1F` is `"31"`, `1e3` is `"1000"`. So
+`domain: {1: decimal}` applies to the blank `[^1]`. Two keys that are the same
+string after the conversion (`1` and `"1"`) repeat a key, and a key that is a
+sequence or a mapping is also a `yaml-syntax-error`.
 
 A value keeps its YAML type and is never converted. A field of type string
 MUST hold a YAML string: `id: 2024` is a number and is an error, so a

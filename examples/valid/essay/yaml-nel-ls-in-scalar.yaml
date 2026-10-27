@@ -1,0 +1,9 @@
+# In YAML 1.2, NEL (U+0085), LS (U+2028) and PS (U+2029) are content
+# characters of a scalar, not line breaks.
+id: essay-yaml-nel-ls
+type: essay
+stem: Describe the Amazon.
+meta:
+  plain: ab c d
+  quoted: "ab c d"
+  escaped: "a\Nb\Lc\Pd"
