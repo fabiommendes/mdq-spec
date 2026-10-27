@@ -1,0 +1,9 @@
+# A `locale` with a newline after the last subtag is not a well-formed BCP 47
+# language tag.
+id: pantanal
+title: Pantanal
+type: essay
+content: text
+stem: Descreva a fauna do Pantanal.
+answerKey: Onça-pintada, jacaré-do-pantanal, tuiuiú e capivara.
+locale: "pt-BR\n"

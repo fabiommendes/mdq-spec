@@ -1,0 +1,7 @@
+# A newline after the last character is not url-safe: `unsafe-id` applies.
+id: "mata-atlantica\n"
+title: Mata Atlântica
+type: essay
+content: text
+stem: Descreva a Mata Atlântica e uma ameaça que ela enfrenta.
+answerKey: Floresta úmida costeira, reduzida pelo desmatamento e pela urbanização.

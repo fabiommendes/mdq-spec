@@ -1,0 +1,9 @@
+[
+  {
+    "code": "malformed-uuid",
+    "severity": "error",
+    "path": [
+      "uuid"
+    ]
+  }
+]

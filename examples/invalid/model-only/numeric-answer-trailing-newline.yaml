@@ -1,0 +1,7 @@
+# A string `answer` is exactly `sign? numeric_value`: a newline after the last
+# digit is a `parse-error`.
+id: regioes-do-brasil
+title: Regiões do Brasil
+type: numeric
+stem: Quantas regiões geográficas o IBGE reconhece no Brasil?
+answer: "5\n"

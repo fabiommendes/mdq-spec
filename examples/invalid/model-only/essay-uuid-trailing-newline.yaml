@@ -1,0 +1,11 @@
+# A `uuid` with a newline after the last digit is not well-formed. The schema
+# `pattern` is an ECMAScript regular expression, where `$` only matches at the
+# end of the string, but Python's `re` lets `$` match before a final newline,
+# so only `load` is sure to reject it.
+id: pantanal
+title: Pantanal
+type: essay
+content: text
+stem: Descreva a fauna do Pantanal.
+answerKey: Onça-pintada, jacaré-do-pantanal, tuiuiú e capivara.
+uuid: "12345678-1234-4234-8234-123456789012\n"
