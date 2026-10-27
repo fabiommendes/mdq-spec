@@ -32,8 +32,11 @@ export class YamlSyntaxError extends ParseError {
 
 /** A required field is absent from the document. */
 export class MissingFieldError extends ParseError {
-	constructor(readonly field: string) {
-		super(`missing required field: ${field}`);
+	constructor(
+		readonly field: string,
+		message?: string,
+	) {
+		super(message ?? `missing required field: ${field}`);
 	}
 }
 
@@ -77,7 +80,8 @@ export class ForeignChoiceMarkerError extends ParseError {
 		readonly questionType: string,
 		override readonly path: readonly (string | number)[],
 	) {
-		super(`[${value}] is not a ${questionType} choice marker`);
+		// An empty value came from `[ ]`, since `[]` is a different error.
+		super(`[${value || " "}] is not a ${questionType} choice marker`);
 	}
 }
 

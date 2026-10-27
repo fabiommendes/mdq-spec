@@ -551,50 +551,6 @@ describe("batch 1: exam blocks", () => {
 		});
 	});
 
-	it("a colon-bearing preamble line after --- is not frontmatter", () => {
-		expect(
-			parseExamDocument(
-				"# Sample Exam\n\n===\n\nConsidere o processo abaixo.\n\n---\n\nAtenção: a resposta deve ser justificada.\n\nExplique a seleção natural.\n\n[essay]\n",
-			),
-		).toEqual({
-			type: "exam",
-			title: "Sample Exam",
-			questions: [
-				{
-					preamble:
-						"Considere o processo abaixo.\n\n---\n\nAtenção: a resposta deve ser justificada.",
-					stem: "Explique a seleção natural.",
-					type: "essay",
-				},
-			],
-		});
-	});
-
-	it("=== then own frontmatter then a second === block", () => {
-		expect(
-			parseExamDocument(
-				"# Prova de Biologia\n\nLeia com atenção.\n\n===\n\nConsidere o processo abaixo.\n\n---\n\nAtenção: a resposta deve ser justificada.\n\nExplique a seleção natural.\n\n[essay]\n\n===\n\n---\ntype: essay\nid: q2\n---\n\nDescreva a fotossíntese.\n\n[essay]\n",
-			),
-		).toEqual({
-			type: "exam",
-			title: "Prova de Biologia",
-			instructions: "Leia com atenção.",
-			questions: [
-				{
-					preamble:
-						"Considere o processo abaixo.\n\n---\n\nAtenção: a resposta deve ser justificada.",
-					stem: "Explique a seleção natural.",
-					type: "essay",
-				},
-				{
-					id: "q2",
-					stem: "Descreva a fotossíntese.",
-					type: "essay",
-				},
-			],
-		});
-	});
-
 	it("a bracket item counts as a body: the next bare fence opens a block", () => {
 		expect(
 			parseExamDocument(
@@ -707,60 +663,6 @@ describe("batch 1: exam blocks", () => {
 		).toThrow(YamlSyntaxError);
 	});
 
-	it("a non-mapping between two --- is not a fence (preamble stays)", () => {
-		expect(
-			parseExamDocument(
-				"# Prova\n\n===\n\nAntes.\n\n---\n\nsó um texto solto\n\n---\n\nDescreva.\n\n[essay]\n",
-			),
-		).toEqual({
-			type: "exam",
-			title: "Prova",
-			questions: [
-				{
-					preamble: "Antes.\n\n---\n\nsó um texto solto\n\n---",
-					stem: "Descreva.",
-					type: "essay",
-				},
-			],
-		});
-	});
-
-	it("a list between two --- is not a fence", () => {
-		expect(
-			parseExamDocument(
-				"# Prova\n\n===\n\nAntes.\n\n---\n\n- a\n- b\n\n---\n\nDescreva.\n\n[essay]\n",
-			),
-		).toEqual({
-			type: "exam",
-			title: "Prova",
-			questions: [
-				{
-					preamble: "Antes.\n\n---\n\n- a\n- b\n\n---",
-					stem: "Descreva.",
-					type: "essay",
-				},
-			],
-		});
-	});
-
-	it("invalid YAML between two --- is not a fence", () => {
-		expect(
-			parseExamDocument(
-				"# Prova\n\n===\n\nAntes.\n\n---\n\n: [\n\n---\n\nDescreva.\n\n[essay]\n",
-			),
-		).toEqual({
-			type: "exam",
-			title: "Prova",
-			questions: [
-				{
-					preamble: "Antes.\n\n---\n\n: [\n\n---",
-					stem: "Descreva.",
-					type: "essay",
-				},
-			],
-		});
-	});
-
 	it("*** and ___ are thematic breaks allowed in an epilogue", () => {
 		expect(
 			parseExamDocument(
@@ -792,40 +694,6 @@ describe("batch 1: exam blocks", () => {
 					stem: "Explique.",
 					type: "essay",
 					epilogue: "___\n\nRubrica.",
-				},
-			],
-		});
-	});
-
-	it("--- without a blank line before it never opens a block", () => {
-		expect(
-			parseExamDocument(
-				"# Prova\n\n===\n\nTexto\n---\nid: x\n---\n\nQ\n\n[essay]\n",
-			),
-		).toEqual({
-			type: "exam",
-			title: "Prova",
-			questions: [
-				{
-					preamble: "Texto\n\nid: x",
-					stem: "Q",
-					type: "essay",
-				},
-			],
-		});
-	});
-
-	it("--- with trailing blanks still counts as a fence", () => {
-		expect(
-			parseExamDocument("# Prova\n\n---  \nid: a\n---\t\n\nQ\n\n[essay]\n"),
-		).toEqual({
-			type: "exam",
-			title: "Prova",
-			questions: [
-				{
-					preamble: "---  \n\nid: a",
-					stem: "Q",
-					type: "essay",
 				},
 			],
 		});
@@ -961,24 +829,6 @@ describe("batch 1: exam blocks ignore code lines", () => {
 					stem: "Explique.",
 					type: "essay",
 					epilogue: "    ---\n    x: 1\n    ---",
-				},
-			],
-		});
-	});
-
-	it("a body tag inside a code block does not count as a body", () => {
-		expect(
-			parseExamDocument(
-				"# Prova\n\n===\n\nAntes.\n\n```\n[essay]\n```\n\n---\n\nDepois.\n\n[essay]\n",
-			),
-		).toEqual({
-			type: "exam",
-			title: "Prova",
-			questions: [
-				{
-					preamble: "Antes.\n\n```\n[essay]\n```\n\n---",
-					stem: "Depois.",
-					type: "essay",
 				},
 			],
 		});

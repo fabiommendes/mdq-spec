@@ -34,6 +34,8 @@ export interface Node {
 	readonly children: readonly Node[];
 	readonly content: string | undefined;
 	readonly info: string | undefined;
+	/** The token `meta`: `indent` holds the content column of a list item. */
+	readonly meta: Readonly<Record<string, unknown>>;
 }
 
 /**
@@ -52,6 +54,7 @@ export function buildTree(tokens: readonly Token[]): Node[] {
 		children: [],
 		content: undefined,
 		info: undefined,
+		meta: {},
 	};
 	const stack: MutableNode[] = [root];
 
@@ -71,6 +74,7 @@ export function buildTree(tokens: readonly Token[]): Node[] {
 				children: [],
 				content: undefined,
 				info: token.info || undefined,
+				meta: (token.meta ?? {}) as Record<string, unknown>,
 			};
 			parent.children.push(node);
 			stack.push(node);
@@ -87,6 +91,7 @@ export function buildTree(tokens: readonly Token[]): Node[] {
 				children: [],
 				content: token.content || undefined,
 				info: token.info || undefined,
+				meta: (token.meta ?? {}) as Record<string, unknown>,
 			};
 			parent.children.push(node);
 		}
@@ -103,28 +108,11 @@ type MutableNode = {
 	children: MutableNode[];
 	content: string | undefined;
 	info: string | undefined;
+	meta: Record<string, unknown>;
 };
 
 function stripSuffix(text: string, suffix: string): string {
 	return text.endsWith(suffix) ? text.slice(0, -suffix.length) : text;
 }
 
-/**
- * Split `text` into lines the way Python's `str.splitlines()` does: on
- * `\n`, `\r\n` or lone `\r`, with no trailing empty entry for a
- * terminator-ending string and no entry at all for an empty string.
- */
-export function splitLines(text: string): string[] {
-	if (text === "") {
-		return [];
-	}
-	const lines = text.split(/\r\n|\r|\n/);
-	if (
-		lines.length > 0 &&
-		lines[lines.length - 1] === "" &&
-		/[\r\n]$/.test(text)
-	) {
-		lines.pop();
-	}
-	return lines;
-}
+export { splitLines } from "../markdown.js";

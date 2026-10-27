@@ -7,24 +7,22 @@
  * frontmatter writes. `resolveExam` in `src/banks.ts` replaces them.
  */
 
+import { load } from "js-yaml";
 import { type Diagnostic, diagnostic, prefixPath } from "../diagnostics.js";
 import { MissingFieldError, ParseError } from "../errors.js";
 import { md } from "../markdown.js";
 import { canonicalDuration, canonicalStart } from "../schedule.js";
 import type { Exam } from "../schema/exam.js";
 import { validateExam } from "../validate.js";
-import { BRACKET_ITEM_RE, SLUG_PREFIX_RE } from "./choices.js";
+import { BRACKET_ITEM_RE, SLUG_PREFIX_RE } from "./legacy/choices.js";
 import {
 	loadFrontmatterYaml,
 	normalizeTags,
 	splitFrontmatter,
 	unknownFrontmatterWarnings,
-} from "./frontmatter.js";
-import {
-	matchesTag,
-	parseQuestionDocument,
-	type RawDocument,
-} from "./question.js";
+} from "./legacy/frontmatter.js";
+import { matchesTag } from "./legacy/question.js";
+import { parseQuestionDocument, type RawDocument } from "./question.js";
 import { rstrip, strip } from "./text.js";
 import { splitLines } from "./tree.js";
 
@@ -453,4 +451,28 @@ function parseExamBlock(
 /** Python's `strip("\n")`: remove only leading and trailing newlines. */
 function stripNewlines(text: string): string {
 	return text.replace(/^\n+|\n+$/gu, "");
+}
+
+/**
+ * Report whether the lines between a candidate `---` pair parse as a YAML
+ * mapping, or nothing at all (an empty frontmatter block). A port of
+ * `_looks_like_frontmatter`.
+ *
+ * A cheap secondary guard only: it keeps a positionally eligible candidate
+ * from being treated as frontmatter when its enclosed text plainly is not
+ * YAML. Like PyYAML's loader, `json: true` keeps the last of two equal keys,
+ * so a block that repeats a key still counts as frontmatter here; loading it
+ * with `loadFrontmatterYaml` then reports the repeated key.
+ */
+export function looksLikeFrontmatter(lines: readonly string[]): boolean {
+	try {
+		const loaded = load(lines.join("\n"), { json: true });
+		return (
+			loaded === null ||
+			loaded === undefined ||
+			(typeof loaded === "object" && !Array.isArray(loaded))
+		);
+	} catch {
+		return false;
+	}
 }

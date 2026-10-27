@@ -1,406 +1,464 @@
 /**
- * Bracket-list body parsing: choice markers, type inference, choice ids and
- * scores, for `multiple-choice`, `multiple-selection` and `true-false`.
+ * Choice-list parsing, shared by multiple-choice, multiple-selection,
+ * true-false and fill-in choice blanks -- every question shape whose body is
+ * a bracket-led list (`* [x] ...`).
  *
- * A port of the choice-list section of `mdq-py/mdq/_parser/_choices.py` --
- * `parse_marker`, `_split_list_items`, `RawChoice`/`collect_item`,
- * `_slugify_choice_text`, `_infer_choice_type`, `_score_from_value` and
- * `parse_choice_body`.
+ * A port of `mdq-py/mdq/_parser/_choices.py`. Also home to `SLUG_PREFIX_RE`:
+ * a choice id is written with the exact same syntax as a question/exam slug.
  */
 
 import { ForeignChoiceMarkerError, ParseError } from "../errors.js";
+import {
+	FALSE_LETTERS,
+	isLetter,
+	normalizeValue,
+	stripMarkerSpace,
+} from "../letters.js";
+import { SLUG_BODY_RE } from "../markdown.js";
 import { repr, strip } from "./text.js";
 
+/** The question types whose body is a choice list. */
+export type ChoiceType =
+	| "multiple-choice"
+	| "multiple-selection"
+	| "true-false";
+
+/** A choice of any `ChoiceType`: the fields depend on the type. */
+export type ChoiceDict = Record<string, unknown>;
+
+/** A pattern entry of `accept` or `reject`: bare, or with its observations. */
+export type PatternEntry =
+	| string
+	| { pattern: string; feedback?: string; comment?: string };
+
 // The grammar's `ws` is only spaces and tabs (docs/references/grammar.md):
-// every `[ \t]` below is `ws`, and every `strip(..., " \t")` trims `ws`. Any
-// other Unicode space is text.
+// every `[ \t]` below is `ws`, and every `strip(text, " \t")` in this package
+// trims `ws`. Any other Unicode space is text.
 
-/** A slug's body, shared by choice ids and the inline `[slug]` prefix. */
-export const SLUG_BODY_RE = "[a-zA-Z0-9]+(?:[-_][a-zA-Z0-9]+)*";
-
-/**
- * A bracket followed by `(` or `[` opens a markdown link (`[text](url)`,
- * `[text][ref]`), so it is never a slug or a choice id (base.md, "Slug";
- * multiple-choice.md, "Body").
- */
+// Slugs and choice ids. A bracket followed by `(` or `[` opens a markdown
+// link (`[text](url)`, `[text][ref]`), so it is never a slug or a choice id
+// (base.md, "Slug"; multiple-choice.md, "Body").
 const NOT_A_LINK = "(?![(\\[])";
-
-/** `[slug]` at the very start of a line, e.g. the inline id/title prefix. */
 export const SLUG_PREFIX_RE = new RegExp(
 	`^\\[(?<slug>${SLUG_BODY_RE})\\]${NOT_A_LINK}[ \\t]*`,
 	"u",
 );
-
-/** An explicit choice id written right after a choice's marker. */
 export const CHOICE_ID_PREFIX_RE = new RegExp(
 	`^\\[(?<id>${SLUG_BODY_RE})\\]${NOT_A_LINK}[ \\t]*`,
 	"u",
 );
 
-/** A bullet item whose text starts with `[`, the shape a choice marker takes. */
-export const BRACKET_ITEM_RE = /^[*+-][ \t]*\[/u;
-
-/** A choice item's marker: `* [value] rest`. */
-export const ITEM_MARKER_RE =
-	/^[*+-][ \t]+\[(?<value>[^\]]*)\][ \t]?(?<rest>[^\n]*)$/u;
-
-/** A partial-credit marker, e.g. `50%` or `-25%`. */
-export const PERCENT_RE = /^[+-]?\d+(?:\.\d+)?%$/u;
-
 /**
- * A list item with no `[value]` marker, e.g. a pattern line. A bare marker
- * (`*` alone on its line) is an item with no text, so an empty pattern line
- * is reported as such instead of being read as a continuation of the item
- * before it.
+ * The `CHOICE_MARK` terminal of docs/references/choices.md: a bracket with no
+ * `]` or line ending inside, not followed by `(` or `[` (which would start a
+ * markdown link).
  */
-export const PLAIN_ITEM_RE = /^[*+-](?:[ \t]+(?<rest>[^\n]*)|[ \t]*)$/u;
-
-/** The first line of a list item: a marker followed by `ws` or the line end. */
-export const LIST_ITEM_START_RE = /^[*+-](?:[ \t]|[ \t]*$)/u;
-
+const CHOICE_MARK_RE = /^\[(?<value>[^\]\r\n]*)\](?![([])/u;
+/** A bracket that starts a markdown link, `[text](url)` or `[text][ref]`. */
+export const LINK_START_RE = /^\[[^\]\r\n]*\][([]/u;
 /**
- * True/false letters that mean false -- `docs/question-types/true-false.md`.
- * Every other non-empty single letter (`T`, `V`, provisional spellings, ...)
- * means true. CJK characters have no case, so they're listed once rather
- * than lowercased.
+ * The `percent` rule of multiple-choice.md: an `INTEGER` or a `DECIMAL` (no
+ * leading zeros) with an optional sign.
  */
-const FALSE_LETTERS = new Set(["f", "错", "偽"]);
+export const PERCENT_RE = /^[+-]?(?:[1-9][0-9]*|0)(?:\.[0-9]+)?%$/u;
+/**
+ * The `LAZY_START` terminal of docs/references/grammar.md, for a line without
+ * its line ending: the first character of a line that continues the block
+ * before it. It is not a `>` or `!` marker, and it does not start a block
+ * that interrupts a paragraph.
+ */
+const LAZY_START_RE =
+	/^(?!>|!(?!\[)|[*+-][ \t]|0{0,8}1[.)][ \t]|#{1,6}(?:[ \t]|$)|`{3}|~{3}|(?:\*[ \t]*){3,}$|(?:-[ \t]*){3,}$|(?:_[ \t]*){3,}$)[^ \t\r\n]/u;
+/**
+ * Columns of indentation that make a line code or a continuation line,
+ * relative to the content of the list item that holds it.
+ */
+export const CODE_INDENT = 4;
 
-/** One choice item, before it is turned into its final schema shape. */
+/** One list item read by the parser, before the fields of the type apply. */
 export interface RawChoice {
-	readonly value: string;
-	readonly explicitId: string | undefined;
-	readonly text: string;
-	readonly feedback: string | undefined;
-	readonly comment: string | undefined;
+	value: string;
+	explicitId: string | null;
+	text: string;
+	feedback: string | null;
+	comment: string | null;
+	/** The number of source lines of `text`. */
+	textLines: number;
 }
 
-/** A choice item's `(value, explicit id, remaining text)`, from its marker. */
 export interface ParsedMarker {
-	readonly value: string;
-	readonly id: string | undefined;
+	readonly marker: string;
+	readonly id: string | null;
 	readonly rest: string;
 }
 
 /**
- * Extract a choice item's `(value, explicit id, remaining text)` from its
- * first raw line, e.g. `* [x] [my-id] Some text`.
+ * The columns of whitespace at the start of `line`, with a tab expanded to
+ * the next multiple of four columns, as in CommonMark.
+ */
+export function indentation(line: string): number {
+	let column = 0;
+	for (const char of line) {
+		if (char === " ") column += 1;
+		else if (char === "\t") column += 4 - (column % 4);
+		else break;
+	}
+	return column;
+}
+
+/** `line` without the spaces and tabs at its start. */
+function lstripWs(line: string): string {
+	return line.replace(/^[ \t]+/u, "");
+}
+
+/**
+ * Remove `columns` columns of indentation from the start of `line`.
  *
- * @throws {ParseError} If `line` does not start with a `* [value]` marker.
+ * Tabs in the indentation expand to spaces first, so a tab that spans the cut
+ * keeps the columns after it. A line with less indentation loses all of it,
+ * as a lazy continuation line does in CommonMark.
+ */
+export function dedent(line: string, columns: number): string {
+	return " ".repeat(Math.max(indentation(line) - columns, 0)) + lstripWs(line);
+}
+
+/**
+ * The choice marker at the start of the first content line of a list item
+ * (choices.md, "Choice marker"), or `null` when the line does not start with
+ * one. Up to three columns of indentation can come before it; with more, the
+ * content is an indented code block (grammar.md, "Content of a list item").
+ */
+export function matchChoiceMarker(line: string): RegExpExecArray | null {
+	if (indentation(line) >= CODE_INDENT) return null;
+	return CHOICE_MARK_RE.exec(lstripWs(line));
+}
+
+/**
+ * Extract a choice item's (value, explicit id, remaining text) from the first
+ * content line of the item, e.g. `[x] [my-id] Some text`.
+ *
+ * @throws {ParseError} If `line` does not start with a choice marker, or the
+ *   brackets are empty (`[]`).
  */
 export function parseMarker(line: string): ParsedMarker {
-	const match = ITEM_MARKER_RE.exec(line);
-	if (!match?.groups) {
-		throw new ParseError(`malformed choice item: ${repr(line)}`);
-	}
-	if (!match.groups.value) {
+	const m = matchChoiceMarker(line);
+	if (m === null) throw new ParseError(`malformed choice item: ${repr(line)}`);
+	const raw = m.groups?.value ?? "";
+	if (raw === "") {
 		throw new ParseError(
 			`empty choice marker \`[]\` (use \`[ ]\` for blank): ${repr(line)}`,
 		);
 	}
+	const value = stripMarkerSpace(raw);
+	let rest = lstripWs(lstripWs(line).slice(m[0].length));
 
-	const value = strip(match.groups.value, " \t");
-	let rest = match.groups.rest ?? "";
-
-	let id: string | undefined;
+	let id: string | null = null;
 	const idMatch = CHOICE_ID_PREFIX_RE.exec(rest);
-	if (idMatch?.groups?.id !== undefined) {
-		id = idMatch.groups.id;
+	if (idMatch) {
+		id = idMatch.groups?.id ?? null;
 		rest = rest.slice(idMatch[0].length);
 	}
-
-	return { value, id, rest };
+	return { marker: value, id, rest };
 }
 
 /**
- * Strip a plain (non-bracket) list item line's `*`/`+`/`-` marker, e.g. for
- * a short-answer body's `oneOf` list, whose items carry no `[value]`
- * marker. A port of `_strip_list_marker`.
+ * Whether the text of a choice marker is the value of some choice type or is
+ * empty (question-base.md, "Forbidden elements"): blank, `x`/`X`, `*`, a
+ * percentage, a single letter, or `[]`. The value is normalized first
+ * (`normalizeValue`), so `[＊]` is `*`.
  */
-export function stripListMarker(line: string): string {
-	const match = PLAIN_ITEM_RE.exec(line);
-	return match?.groups?.rest !== undefined
-		? strip(match.groups.rest, " \t")
-		: strip(line, " \t");
+export function isChoiceValue(value: string): boolean {
+	const normalized = normalizeValue(value);
+	return (
+		normalized === "" ||
+		normalized === "*" ||
+		PERCENT_RE.test(normalized) ||
+		isLetter(normalized)
+	);
 }
 
-/** Split a list's raw source lines into per-item line groups. */
-export function splitListItems(lines: readonly string[]): string[][] {
-	const items: string[][] = [];
-	let current: string[] = [];
-	for (const line of lines) {
-		if (LIST_ITEM_START_RE.test(line)) {
-			current = [line];
-			items.push(current);
-		} else {
-			current.push(line);
-		}
-	}
-	return items;
-}
-
-const INTERLEAVED =
-	"a pattern item carries at most one feedback and one comment block, and " +
-	"they must not interleave";
+//
+// Feedback and comment lines (grammar.md, "Feedback and comment lines")
+//
+/**
+ * The kind of a line after the text of an element: a `>` feedback line, a `!`
+ * comment line, a lazy continuation line, a blank line, or a line that starts
+ * a block which interrupts a paragraph.
+ */
+export type LineKind = ">" | "!" | "lazy" | "blank" | "block";
 
 /**
- * Split an item's continuation lines into its text, `>` feedback and `!`
- * comment, and assemble the `RawChoice`.
+ * Return the kind of `line` and its content: the text after the marker and
+ * its `ws` for a feedback or comment line, the text without its indentation
+ * for a lazy line.
  *
- * @throws {ParseError} `strictObservations` is set and the feedback and
- *   comment lines interleave.
+ * `line` is relative to the content of its element: a line with four or more
+ * columns of indentation is a continuation line, whatever it starts with
+ * (grammar.md, "Content of a list item").
  */
-export function collectItem(
-	itemLines: readonly string[],
-	value: string,
-	explicitId: string | undefined,
-	rest: string,
-	strictObservations = false,
-): RawChoice {
-	const textLines: string[] = strip(rest, " \t") ? [rest] : [];
-	const feedbackLines: string[] = [];
-	const commentLines: string[] = [];
-	let mode: "text" | "feedback" | "comment" = "text";
+export function classifyLine(line: string): [LineKind, string] {
+	const stripped = strip(line, " \t");
+	if (!stripped) return ["blank", ""];
+	if (indentation(line) >= CODE_INDENT) return ["lazy", stripped];
+	if (stripped.startsWith(">")) return [">", strip(stripped.slice(1), " \t")];
+	if (stripped.startsWith("!") && !stripped.startsWith("![")) {
+		return ["!", strip(stripped.slice(1), " \t")];
+	}
+	if (LAZY_START_RE.test(stripped)) return ["lazy", stripped];
+	return ["block", stripped];
+}
 
-	for (const line of itemLines.slice(1)) {
-		const stripped = strip(line, " \t");
-		if (stripped.startsWith(">")) {
-			if (strictObservations && mode === "comment" && feedbackLines.length) {
-				throw new ParseError(INTERLEAVED);
-			}
-			mode = "feedback";
-			feedbackLines.push(strip(stripped.slice(1), " \t"));
-		} else if (stripped.startsWith("!")) {
-			if (strictObservations && mode === "feedback" && commentLines.length) {
-				throw new ParseError(INTERLEAVED);
-			}
-			mode = "comment";
-			commentLines.push(strip(stripped.slice(1), " \t"));
-		} else if (mode === "text") {
-			textLines.push(stripped);
-		} else if (mode === "feedback") {
-			feedbackLines.push(stripped);
-		} else {
-			commentLines.push(stripped);
+/**
+ * Join the lines of a text, feedback or comment as markdown joins the lines
+ * of a paragraph: with one space. An empty string in `lines` is an empty
+ * marker line, which separates two paragraphs with a blank line.
+ */
+export function joinParagraphLines(lines: readonly string[]): string {
+	const paragraphs: string[][] = [[]];
+	for (const line of lines) {
+		if (line) {
+			paragraphs[paragraphs.length - 1]?.push(line);
+		} else if ((paragraphs[paragraphs.length - 1]?.length ?? 0) > 0) {
+			paragraphs.push([]);
 		}
 	}
+	return paragraphs
+		.filter((p) => p.length > 0)
+		.map((p) => p.join(" "))
+		.join("\n\n");
+}
 
+/**
+ * Split the content of an element into its text, feedback and comment.
+ *
+ * @param first The text on the first line, after the marker, value and id.
+ * @param lines The other content lines of the element, relative to its
+ *   content column.
+ * @param joinText Joins the lines of the text. A pattern joins them as
+ *   `joinPatternLines` does.
+ * @returns A `RawChoice` with an empty value and no id, which the caller
+ *   fills in.
+ * @throws {ParseError} The lines after the text are not a feedback block and
+ *   a comment block (`parseObservations`).
+ */
+export function splitItem(
+	first: string,
+	lines: readonly string[],
+	joinText: (lines: readonly string[]) => string = joinParagraphLines,
+): RawChoice {
+	const text = [strip(first, " \t")];
+	let index = 0;
+	while (index < lines.length) {
+		const [kind, content] = classifyLine(lines[index] ?? "");
+		if (kind !== "lazy") break;
+		text.push(content);
+		index++;
+	}
+	const [feedback, comment] = parseObservations(lines.slice(index));
 	return {
-		value,
-		explicitId,
-		text: textLines.filter((line) => line).join(" "),
-		feedback: feedbackLines.some((line) => line)
-			? feedbackLines.filter((line) => line).join(" ")
-			: undefined,
-		comment: commentLines.some((line) => line)
-			? commentLines.filter((line) => line).join(" ")
-			: undefined,
+		value: "",
+		explicitId: null,
+		text: joinText(text),
+		feedback,
+		comment,
+		textLines: text.length,
 	};
 }
 
-/** Parse a bracket-marked list item, e.g. `* [x] Amazon rainforest`. */
-export function parseItem(itemLines: readonly string[]): RawChoice {
-	const first = itemLines[0];
-	if (first === undefined) {
-		throw new ParseError("empty list item");
-	}
-	const { value, id, rest } = parseMarker(first);
-	return collectItem(itemLines, value, id, rest);
-}
-
 /**
- * Parse a list item carrying no `[value]` marker, e.g. a short-answer
- * pattern line.
+ * Read the feedback (`>`) and comment (`!`) blocks of an element, in either
+ * order, and return the value of each, or `null` when absent.
  *
- * @throws {ParseError} If `itemLines` does not start with a list marker.
- */
-export function parsePlainItem(itemLines: readonly string[]): RawChoice {
-	const first = itemLines[0];
-	const match = first === undefined ? null : PLAIN_ITEM_RE.exec(first);
-	if (!match?.groups) {
-		throw new ParseError(`malformed list item: ${repr(first ?? "")}`);
-	}
-	return collectItem(itemLines, "", undefined, match.groups.rest ?? "", true);
-}
-
-/** One accept/reject pattern entry: a bare string, or the `{pattern, feedback?, comment?}` object form. */
-export type PatternEntry = string | Record<string, unknown>;
-
-/**
- * Build one accept/reject entry from a parsed pattern item, bare when it
- * carries no feedback or comment. A port of `_pattern_entry`, shared by a
- * short-answer question's `[short-answer/accept|reject]` blocks and a
- * fill-in short-answer blank's.
+ * A marker line of the other kind, or a blank line, ends a block. A lazy line
+ * continues the open block. An empty marker line separates two paragraphs of
+ * the value.
  *
- * @throws {ParseError} If the item's pattern text is empty.
+ * @throws {ParseError} A second block of the same kind (also after a blank
+ *   line or a block of the other kind), a lazy line with no open block, or a
+ *   line that starts another markdown block.
  */
-export function patternEntry(item: RawChoice): PatternEntry {
-	const pattern = strip(item.text, " \t");
-	if (!pattern) {
-		throw new ParseError("a short-answer pattern line cannot be empty");
-	}
-	if (!item.feedback && !item.comment) {
-		return pattern;
-	}
-	const entry: Record<string, unknown> = { pattern };
-	if (item.feedback) {
-		entry.feedback = item.feedback;
-	}
-	if (item.comment) {
-		entry.comment = item.comment;
-	}
-	return entry;
-}
-
-/**
- * Return each choice's id, exactly as the author wrote it -- `undefined` for
- * a choice with no explicit id.
- *
- * A choice without an id used to get one derived from its text here; that
- * derivation now lives in the model layer's `withIds` (F5), called by
- * whoever needs an addressable document (dev/specs/to-do/derived-ids.md).
- */
-export function assignChoiceIds(
-	choices: readonly RawChoice[],
-): (string | undefined)[] {
-	return choices.map((choice) => choice.explicitId);
-}
-
-/**
- * Infer `multiple-choice` / `multiple-selection` / `true-false` from the
- * bracket values used in a choice list, per `generic.md`'s rule that a
- * bracket-led list is always a choice body of one of these three kinds.
- *
- * A list whose markers are all blank is `multiple-selection`: nothing is
- * marked correct, which `multiple-selection` allows outright (zero correct
- * choices is a legal answer key) but `multiple-choice` does not.
- */
-export function inferChoiceType(
-	values: readonly string[],
-): "multiple-choice" | "multiple-selection" | "true-false" {
-	for (const value of values) {
-		if (value === "*" || PERCENT_RE.test(value)) {
-			return "multiple-choice";
+export function parseObservations(
+	lines: readonly string[],
+): [string | null, string | null] {
+	const blocks = new Map<string, string[]>();
+	let current: string | null = null;
+	for (const line of lines) {
+		const [kind, content] = classifyLine(line);
+		if (kind === "blank") {
+			current = null;
+		} else if (kind === ">" || kind === "!") {
+			if (kind !== current) {
+				if (blocks.has(kind)) {
+					const name = kind === ">" ? "feedback" : "comment";
+					throw new ParseError(
+						`an element has at most one ${name} block: ${repr(line)}`,
+					);
+				}
+				blocks.set(kind, []);
+				current = kind;
+			}
+			blocks.get(kind)?.push(content);
+		} else if (kind === "lazy" && current !== null) {
+			blocks.get(current)?.push(content);
+		} else {
+			throw new ParseError(
+				"only a feedback block and a comment block can follow the text " +
+					`of an element: ${repr(line)}`,
+			);
 		}
 	}
-	for (const value of values) {
-		if (value.toLowerCase() === "x") {
-			return "multiple-selection";
-		}
-	}
-	for (const value of values) {
-		if (
-			value &&
-			value.toLowerCase() !== "x" &&
-			value.length === 1 &&
-			/^\p{L}$/u.test(value)
-		) {
-			return "true-false";
-		}
-	}
-	return "multiple-selection";
+	const feedback = blocks.get(">");
+	const comment = blocks.get("!");
+	return [
+		feedback === undefined ? null : joinParagraphLines(feedback),
+		comment === undefined ? null : joinParagraphLines(comment),
+	];
 }
 
 /**
  * The index of the first value that is not in the `value` rule of
- * `questionType` (base.md, "Type inference"), or `undefined` when every
- * value belongs to it. `values` are the bracket values stripped of spaces
- * and tabs, as `RawChoice.value` holds them: multiple-choice takes `""`, `*`
- * or a percentage; multiple-selection `""`, `x` or `X`; true-false one
- * letter (`\p{L}`) other than `x`/`X`.
+ * `questionType` (base.md, "Type inference"), or `null` when every value
+ * belongs to it. `values` are the bracket values stripped of spaces and tabs,
+ * as `RawChoice.value` holds them. The rules apply to the normalized value
+ * (`normalizeValue`): multiple-choice takes `""`, `*` or a percentage;
+ * multiple-selection `""` or `x`; true-false one letter (`LETTER`) that is
+ * not `x`.
  */
 export function foreignChoiceIndex(
-	questionType: string,
+	questionType: ChoiceType,
 	values: readonly string[],
-): number | undefined {
+): number | null {
 	for (const [index, value] of values.entries()) {
+		const normalized = normalizeValue(value);
 		let ok: boolean;
 		if (questionType === "multiple-choice") {
-			ok = value === "" || value === "*" || PERCENT_RE.test(value);
+			ok =
+				normalized === "" || normalized === "*" || PERCENT_RE.test(normalized);
 		} else if (questionType === "multiple-selection") {
-			ok = value === "" || value === "x" || value === "X";
-		} else if (questionType === "true-false") {
-			ok = /^\p{L}$/u.test(value) && value.toLowerCase() !== "x";
+			ok = normalized === "" || normalized === "x";
 		} else {
-			continue;
+			ok = isLetter(normalized) && normalized !== "x";
 		}
 		if (!ok) return index;
 	}
-	return undefined;
+	return null;
 }
 
 /**
- * The `score` of a choice `value` (multiple-choice.md, "Choices"): `*` is
- * 1, a percentage is its fraction, and a blank omits the score -- the
- * grading strategy decides what it is worth. Any other value is read as a
- * blank too.
- */
-export function scoreFromValue(value: string): number | undefined {
-	if (value === "*") {
-		return 1;
-	}
-	if (PERCENT_RE.test(value)) {
-		return Number.parseFloat(value.slice(0, -1)) / 100;
-	}
-	return undefined;
-}
-
-/**
- * Build the final `choices` entries for a bracket-list body, per
- * `docs/question-types/{multiple-choice,multiple-selection,true-false}.md`.
- * A port of `parse_choice_body`. `pathPrefix` locates the list for a
- * `ForeignChoiceMarkerError`: `["choices"]` for a question, `["blanks", b,
- * "choices"]` for a fill-in choice blank.
+ * Infer multiple-choice / multiple-selection / true-false from the bracket
+ * values used in a choice list, per generic.md's rule that a bracket-led list
+ * is never valid stem -- it is always a choice body of one of these three
+ * kinds.
  *
- * @throws {ForeignChoiceMarkerError} A value is not in the `value` rule of
+ * A list whose markers are all blank is multiple-selection: nothing is marked
+ * correct, which multiple-selection allows outright (zero correct choices is
+ * a legal answer key) but multiple-choice does not.
+ */
+export function inferChoiceType(values: readonly string[]): ChoiceType {
+	const normalized = values.map(normalizeValue);
+	for (const n of normalized) {
+		if (n === "*" || PERCENT_RE.test(n)) return "multiple-choice";
+	}
+	if (normalized.includes("x")) return "multiple-selection";
+	for (const n of normalized) {
+		if (isLetter(n)) return "true-false";
+	}
+	return "multiple-selection";
+}
+
+/** The `ChoiceType` that `questionType` declares, or `null` for any other value. */
+export function asChoiceType(questionType: unknown): ChoiceType | null {
+	switch (questionType) {
+		case "multiple-choice":
+		case "multiple-selection":
+		case "true-false":
+			return questionType;
+		default:
+			return null;
+	}
+}
+
+/**
+ * Build the `choices` of a choice list body or of a fill-in choice blank.
+ *
+ * @param questionType The type that decides the fields of each choice. `null`
+ *   when the frontmatter forces a type that has no choices: the choices keep
+ *   their text, id, feedback and comment, and the schema rejects the
+ *   document.
+ * @param rawChoices The parsed list items.
+ * @param path The path of the object that holds the choices, for the error.
+ * @throws {ForeignChoiceMarkerError} A marker is not in the `value` rule of
  *   `questionType`.
  */
 export function buildChoices(
-	questionType: string,
+	questionType: ChoiceType | null,
 	rawChoices: readonly RawChoice[],
-	pathPrefix: readonly (string | number)[] = ["choices"],
-): Record<string, unknown>[] {
-	const foreign = foreignChoiceIndex(
-		questionType,
-		rawChoices.map((choice) => choice.value),
-	);
-	if (foreign !== undefined) {
-		throw new ForeignChoiceMarkerError(
-			rawChoices[foreign]?.value ?? "",
+	path: readonly (string | number)[] = [],
+): ChoiceDict[] {
+	if (questionType !== null) {
+		const foreign = foreignChoiceIndex(
 			questionType,
-			[...pathPrefix, foreign],
+			rawChoices.map((c) => c.value),
 		);
+		if (foreign !== null) {
+			throw new ForeignChoiceMarkerError(
+				rawChoices[foreign]?.value ?? "",
+				questionType,
+				[...path, "choices", foreign],
+			);
+		}
 	}
-	const ids = assignChoiceIds(rawChoices);
-	return rawChoices.map((choice, index) => {
-		const entry: Record<string, unknown> = { text: choice.text };
-		const id = ids[index];
-		if (id !== undefined) {
-			entry.id = id;
-		}
+	return rawChoices.map((choice) => buildChoice(questionType, choice));
+}
 
-		if (questionType === "multiple-choice") {
-			// `[ ]` omits the score; `[0%]` is an explicit zero
-			// (multiple-choice.md, "Choices").
-			const score = scoreFromValue(choice.value);
-			if (score !== undefined) entry.score = score;
-		} else if (questionType === "multiple-selection") {
-			// `correct` is required: a blank `[ ]` is an explicit false.
-			entry.correct = choice.value.toLowerCase() === "x";
-		} else if (questionType === "true-false") {
-			const letter = choice.value;
-			entry.correct = !FALSE_LETTERS.has(letter.toLowerCase());
-			if (letter) {
-				entry.marker = letter;
-			}
-		}
+/** One choice of a list item, with the fields of `questionType`. */
+function buildChoice(
+	questionType: ChoiceType | null,
+	choice: RawChoice,
+): ChoiceDict {
+	const entry: ChoiceDict = { text: choice.text };
+	if (choice.explicitId !== null) entry.id = choice.explicitId;
+	if (questionType === "multiple-choice") {
+		// `[ ]` omits the score; `[0%]` is an explicit zero
+		// (multiple-choice.md, "Choices").
+		const score = scoreFromValue(choice.value);
+		if (score !== undefined) entry.score = score;
+	} else if (questionType === "multiple-selection") {
+		// `correct` is required: a blank `[ ]` is an explicit false.
+		entry.correct = normalizeValue(choice.value) === "x";
+	} else if (questionType === "true-false") {
+		// TRUE and WARNING letters both mean true; only FALSE letters mean
+		// false (docs/question-types/true-false.md).
+		entry.correct = !FALSE_LETTERS.has(normalizeValue(choice.value));
+		if (choice.value) entry.marker = choice.value;
+	}
+	if (choice.feedback !== null) entry.feedback = choice.feedback;
+	if (choice.comment !== null) entry.comment = choice.comment;
+	return entry;
+}
 
-		if (choice.feedback) {
-			entry.feedback = choice.feedback;
-		}
-		if (choice.comment) {
-			entry.comment = choice.comment;
-		}
-		return entry;
-	});
+/**
+ * The `score` of a choice `value` (multiple-choice.md, "Choices"): `*` is 1,
+ * a percentage is its fraction, and a blank omits the score -- the grading
+ * strategy decides what it is worth. Any other value is read as a blank too.
+ */
+export function scoreFromValue(value: string): number | undefined {
+	const normalized = normalizeValue(value);
+	if (normalized === "*") return 1;
+	if (PERCENT_RE.test(normalized)) return Number(normalized.slice(0, -1)) / 100;
+	return undefined;
+}
+
+/** One accept/reject entry, bare when it has no feedback or comment. */
+export function patternEntry(item: RawChoice): PatternEntry {
+	const pattern = strip(item.text, " \t");
+	if (!pattern)
+		throw new ParseError("a short-answer pattern line cannot be empty");
+	if (item.feedback === null && item.comment === null) return pattern;
+	const entry: { pattern: string; feedback?: string; comment?: string } = {
+		pattern,
+	};
+	if (item.feedback !== null) entry.feedback = item.feedback;
+	if (item.comment !== null) entry.comment = item.comment;
+	return entry;
 }

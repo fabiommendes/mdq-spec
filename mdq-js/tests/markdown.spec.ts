@@ -58,6 +58,7 @@ const PYTHON_CORE_RULES = [
 	"text_join",
 ];
 const PYTHON_BLOCK_RULES = [
+	"mdq_item_indent",
 	"table",
 	"code",
 	"fence",
@@ -77,6 +78,7 @@ const PYTHON_INLINE_RULES = [
 	"backticks",
 	"strikethrough",
 	"emphasis",
+	"mdq_blank_position",
 	"link",
 	"image",
 	"autolink",

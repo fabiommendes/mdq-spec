@@ -4,14 +4,21 @@
  *
  * Only two layers are ported: the parser and the schema. A source whose
  * expected errors are parser codes must make `parseDocument` throw a
- * `ParseError` carrying one of them; a source whose expected error is
+ * `ParseError` carrying one of them, or report an error diagnostic with one
+ * of them in its `warnings` (`detached-tag`, `invalid-frontmatter-field`,
+ * which stop `load` without a thrown error); a source whose expected error is
  * `schema-error` must parse and then fail `validateDocument`. A source
  * that the port does not reject yet is listed in `LOAD` of `not-ported.ts`
  * and runs as an expected failure.
  */
 
 import { existsSync, readFileSync } from "node:fs";
-import { ParseError, parseDocument, validateDocument } from "@mdq";
+import {
+	type Diagnostic,
+	ParseError,
+	parseDocument,
+	validateDocument,
+} from "@mdq";
 import { describe, expect } from "vitest";
 import {
 	INVALID_SOURCES,
@@ -30,7 +37,8 @@ const PARSER_CODES = new Set([
 	"parse-error",
 	"yaml-syntax-error",
 	"foreign-choice-marker",
-	"conflicting-accept",
+	"detached-tag",
+	"invalid-frontmatter-field",
 ]);
 
 describe("invalid sources are rejected with the codes their .lint.json pins", () => {
@@ -48,8 +56,9 @@ describe("invalid sources are rejected with the codes their .lint.json pins", ()
 			const text = readFileSync(source, "utf-8");
 			let document: unknown;
 			let error: unknown;
+			const warnings: Diagnostic[] = [];
 			try {
-				document = parseDocument(text);
+				document = parseDocument(text, warnings);
 			} catch (e) {
 				error = e;
 			}
@@ -59,6 +68,16 @@ describe("invalid sources are rejected with the codes their .lint.json pins", ()
 				expect(
 					codes.has(code),
 					`${name}: parse error ${code}, expected one of [${[...codes].join(", ")}]`,
+				).toBe(true);
+				return;
+			}
+			const reported = warnings
+				.filter((d) => d.severity === "error")
+				.map((d) => d.code);
+			if (reported.length > 0) {
+				expect(
+					reported.some((code) => codes.has(code)),
+					`${name}: parser errors [${reported.join(", ")}], expected one of [${[...codes].join(", ")}]`,
 				).toBe(true);
 				return;
 			}

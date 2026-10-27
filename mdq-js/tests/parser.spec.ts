@@ -67,9 +67,7 @@ describe("bracket-list property: parses to exactly the built document", () => {
 });
 
 describe("bracket-list property: every parse satisfies validateQuestion", () => {
-	// Not ported: the parser and the arbitraries still write `preamble`,
-	// which the schema no longer has (plan phase P2).
-	it.fails("holds for multiple-choice, multiple-selection and true-false", () => {
+	it("holds for multiple-choice, multiple-selection and true-false", () => {
 		fc.assert(
 			fc.property(bracketListCaseArb, ({ source }) => {
 				const document = parseQuestionDocument(source);

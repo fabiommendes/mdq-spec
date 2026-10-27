@@ -14,12 +14,16 @@ Implements part of the unreleased MDQ specification.
 
 ### Changed
 
+- The question parser is split like mdq-py (`parser/question.ts`, `blocks.ts`, `tags.ts`, `choices.ts`, `frontmatter.ts`, `numeric.ts`, `spaces.ts`; `letters.ts`, `markdown.ts`, `exact.ts`, `include-keys.ts` at the top). Multiple-choice, multiple-selection, true-false, essay and numeric bodies follow the new format: the stem is every block before the body (no `preamble`), an essay's `input` is `content`, a numeric value takes an exponent, a choice marker is normalized with NFKC, tags are lower case, and a tag in the epilogue is `detached-tag`.
+- A frontmatter key that is not a field of the question type is an `invalid-frontmatter-field` error diagnostic (was the `unknown-frontmatter-key` warning). A `redundant-id` warning reports `id` in the frontmatter and as a slug.
+- The comment of the frontmatter is trimmed.
 - The exam include block key `include-all` is renamed to `includeAll` (Zod schema, parser, `resolveExam`). `include-all` is now an unknown field (`unknown-include-field`).
 - Empty free-text fields (`comment`, `preamble`, `epilogue`, `answerKey`, `instructions`, feedback) are now schema errors, and an empty frontmatter comment string is not stored.
 - Refreshed the bundled schema (description text only).
 
 ### Added
 
+- `findUnicodeSpaces` (the `non-ascii-whitespace` lint of the source), `reconstructBlocks`, `findForbiddenElements`, `findAnswerKeyForbiddenElements`, `findStrayChoiceMarkers`, `parseNumericAnswer` and `parseNumericString`.
 - Parser for multiple-choice, multiple-selection, true-false, essay,
   numeric, short-answer, ordering and fill-in questions (`parseQuestion`,
   `parseQuestionDocument`), including an essay's optional

@@ -57,18 +57,6 @@ describe("essay: error paths", () => {
 			expect((error as MissingFieldError).field).toBe("body");
 		}
 	});
-
-	it("throws MissingFieldError('body') for '[Essay]' (wrong case)", () => {
-		// ESSAY_TAG_RE is case-sensitive; a capitalized tag is just prose,
-		// same failure mode as trailing text on the line.
-		try {
-			parseQuestionDocument("What is DNA?\n\n[Essay]\n");
-			expect.unreachable();
-		} catch (error) {
-			expect(error).toBeInstanceOf(MissingFieldError);
-			expect((error as MissingFieldError).field).toBe("body");
-		}
-	});
 });
 
 describe("essay: non-error edge cases the corpus does not cover", () => {

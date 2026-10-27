@@ -189,19 +189,6 @@ describe("short-answer: frontmatter pattern lists", () => {
 			reject: ["Rio de Janeiro"],
 		});
 	});
-
-	it("a frontmatter `regex` is not a field: it is left to the unknown-key warning", () => {
-		const warnings: Diagnostic[] = [];
-		const source =
-			"---\nregex: Bras[ií]lia\n---\n\nQual é a capital do Brasil?\n\n[short-answer]:\n";
-		expect(parseQuestionDocument(source, warnings)).toEqual({
-			stem: "Qual é a capital do Brasil?",
-			type: "short-answer",
-		});
-		expect(warnings.map((w) => [w.code, w.path])).toEqual([
-			["unknown-frontmatter-key", ["regex"]],
-		]);
-	});
 });
 
 //

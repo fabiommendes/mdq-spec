@@ -696,15 +696,29 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 			[
 				"nbsp",
 				{
-					error: "ForeignChoiceMarkerError",
-					message: "[\u00a0] is not a multiple-selection choice marker",
+					ok: {
+						stem: "...",
+						choices: [
+							{ text: "Ipê", correct: false },
+							{ text: "Jatobá", correct: true },
+							{ text: "Buriti", correct: true },
+						],
+						type: "multiple-selection",
+					},
 				},
 			],
 			[
 				"ideographic",
 				{
-					error: "ForeignChoiceMarkerError",
-					message: "[\u3000] is not a multiple-selection choice marker",
+					ok: {
+						stem: "...",
+						choices: [
+							{ text: "Ipê", correct: false },
+							{ text: "Jatobá", correct: true },
+							{ text: "Buriti", correct: true },
+						],
+						type: "multiple-selection",
+					},
 				},
 			],
 			[
@@ -740,8 +754,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				"nbsp",
 				{
 					ok: {
-						preamble: "...",
-						stem: "*\u00a0[*] Ipê",
+						stem: "...\n\n*\u00a0[*] Ipê",
 						choices: [{ text: "Jatobá", correct: false }],
 						type: "multiple-selection",
 					},
@@ -751,8 +764,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				"ideographic",
 				{
 					ok: {
-						preamble: "...",
-						stem: "*\u3000[*] Ipê",
+						stem: "...\n\n*\u3000[*] Ipê",
 						choices: [{ text: "Jatobá", correct: false }],
 						type: "multiple-selection",
 					},
@@ -762,8 +774,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				"ls",
 				{
 					ok: {
-						preamble: "...",
-						stem: "*\u2028[*] Ipê",
+						stem: "...\n\n*\u2028[*] Ipê",
 						choices: [{ text: "Jatobá", correct: false }],
 						type: "multiple-selection",
 					},
@@ -773,8 +784,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				"nel",
 				{
 					ok: {
-						preamble: "...",
-						stem: "*\u0085[*] Ipê",
+						stem: "...\n\n*\u0085[*] Ipê",
 						choices: [{ text: "Jatobá", correct: false }],
 						type: "multiple-selection",
 					},
@@ -784,8 +794,7 @@ describe("batch 1: strip chars, BOM and grammar patterns (criteria 1-2)", () => 
 				"bom",
 				{
 					ok: {
-						preamble: "...",
-						stem: "*\ufeff[*] Ipê",
+						stem: "...\n\n*\ufeff[*] Ipê",
 						choices: [{ text: "Jatobá", correct: false }],
 						type: "multiple-selection",
 					},
@@ -1862,10 +1871,38 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 		"question",
 		"Quanto mede o Rio Amazonas?\n\n[numeric(k{c}m)]: 6400\n",
 		[
-			["nbsp", { error: "MissingFieldError", field: "body" }],
-			["ideographic", { error: "MissingFieldError", field: "body" }],
-			["ls", { error: "MissingFieldError", field: "body" }],
-			["nel", { error: "MissingFieldError", field: "body" }],
+			[
+				"nbsp",
+				{
+					error: "ParseError",
+					message:
+						"unknown tag `[numeric(k\u00a0m)]:`: a tag name that starts with a type name is reserved, see the tags of the question types",
+				},
+			],
+			[
+				"ideographic",
+				{
+					error: "ParseError",
+					message:
+						"unknown tag `[numeric(k\u3000m)]:`: a tag name that starts with a type name is reserved, see the tags of the question types",
+				},
+			],
+			[
+				"ls",
+				{
+					error: "ParseError",
+					message:
+						"unknown tag `[numeric(k\u2028m)]:`: a tag name that starts with a type name is reserved, see the tags of the question types",
+				},
+			],
+			[
+				"nel",
+				{
+					error: "ParseError",
+					message:
+						"unknown tag `[numeric(k\u0085m)]:`: a tag name that starts with a type name is reserved, see the tags of the question types",
+				},
+			],
 			[
 				"bom",
 				{
@@ -1891,7 +1928,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 				{
 					error: "ParseError",
 					message:
-						"unrecognized blank definition: '[^n/numeric(k\\xa0m)]: 6400'",
+						"unknown tag `[^n/numeric(k\u00a0m)]:`: a tag name that starts with a type name is reserved, see the tags of the question types",
 				},
 			],
 			[
@@ -1899,7 +1936,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 				{
 					error: "ParseError",
 					message:
-						"unrecognized blank definition: '[^n/numeric(k\\u3000m)]: 6400'",
+						"unknown tag `[^n/numeric(k\u3000m)]:`: a tag name that starts with a type name is reserved, see the tags of the question types",
 				},
 			],
 			[
@@ -1907,7 +1944,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 				{
 					error: "ParseError",
 					message:
-						"unrecognized blank definition: '[^n/numeric(k\\u2028m)]: 6400'",
+						"unknown tag `[^n/numeric(k\u2028m)]:`: a tag name that starts with a type name is reserved, see the tags of the question types",
 				},
 			],
 			[
@@ -1915,7 +1952,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 				{
 					error: "ParseError",
 					message:
-						"unrecognized blank definition: '[^n/numeric(k\\x85m)]: 6400'",
+						"unknown tag `[^n/numeric(k\u0085m)]:`: a tag name that starts with a type name is reserved, see the tags of the question types",
 				},
 			],
 			[
@@ -2108,8 +2145,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 				"nbsp",
 				{
 					ok: {
-						preamble: "Qual a capital?",
-						stem: "\u00a0Explique.",
+						stem: "Qual a capital?\n\n\u00a0Explique.",
 						type: "essay",
 					},
 				},
@@ -2118,8 +2154,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 				"ideographic",
 				{
 					ok: {
-						preamble: "Qual a capital?",
-						stem: "\u3000Explique.",
+						stem: "Qual a capital?\n\n\u3000Explique.",
 						type: "essay",
 					},
 				},
@@ -2128,8 +2163,7 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 				"bom",
 				{
 					ok: {
-						preamble: "Qual a capital?",
-						stem: "\ufeffExplique.",
+						stem: "Qual a capital?\n\n\ufeffExplique.",
 						type: "essay",
 					},
 				},
@@ -2145,40 +2179,25 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 			[
 				"nbsp",
 				{
-					ok: {
-						stem: "...",
-						choices: [
-							{ text: "Ipê \u00a0Árvore símbolo.", score: 1 },
-							{ text: "Jatobá" },
-						],
-						type: "multiple-choice",
-					},
+					error: "ParseError",
+					message:
+						"only a feedback block and a comment block can follow the text of an element: '\\xa0Árvore símbolo.'",
 				},
 			],
 			[
 				"ideographic",
 				{
-					ok: {
-						stem: "...",
-						choices: [
-							{ text: "Ipê \u3000Árvore símbolo.", score: 1 },
-							{ text: "Jatobá" },
-						],
-						type: "multiple-choice",
-					},
+					error: "ParseError",
+					message:
+						"only a feedback block and a comment block can follow the text of an element: '\\u3000Árvore símbolo.'",
 				},
 			],
 			[
 				"bom",
 				{
-					ok: {
-						stem: "...",
-						choices: [
-							{ text: "Ipê \ufeffÁrvore símbolo.", score: 1 },
-							{ text: "Jatobá" },
-						],
-						type: "multiple-choice",
-					},
+					error: "ParseError",
+					message:
+						"only a feedback block and a comment block can follow the text of an element: '\\ufeffÁrvore símbolo.'",
 				},
 			],
 		],
@@ -2208,7 +2227,11 @@ describe("batch 2: raw text, tag brackets, unit pattern and Python parser cases 
 		[
 			"space after the variant slash",
 			"Qual a capital do Brasil?\n\n[short-answer/ accept]: Brasília\n",
-			{ error: "MissingFieldError", field: "body" },
+			{
+				error: "ParseError",
+				message:
+					"unknown tag `[short-answer/ accept]:`: a tag name that starts with a type name is reserved, see the tags of the question types",
+			},
 		],
 		[
 			"inner tab",

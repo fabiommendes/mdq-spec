@@ -11,6 +11,7 @@
 export const SPACE =
 	"\\t\\n\\v\\f\\r\\x1c-\\x1f \\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000";
 const STRIP_RE = new RegExp(`^[${SPACE}]+|[${SPACE}]+$`, "gu");
+const LSTRIP_RE = new RegExp(`^[${SPACE}]+`, "u");
 const RSTRIP_RE = new RegExp(`[${SPACE}]+$`, "u");
 
 // The grammar's `ws` is `[ \t]` (docs/references/grammar.md). Patterns write
@@ -39,6 +40,15 @@ export function strip(text: string, chars?: string): string {
 	if (chars === undefined) return text.replace(STRIP_RE, "");
 	const body = classBody(chars);
 	return text.replace(new RegExp(`^[${body}]+|[${body}]+$`, "gu"), "");
+}
+
+/**
+ * Python's `str.lstrip()`, or `str.lstrip(chars)`: remove the leading
+ * characters in `chars`, or of `SPACE` without it.
+ */
+export function lstrip(text: string, chars?: string): string {
+	if (chars === undefined) return text.replace(LSTRIP_RE, "");
+	return text.replace(new RegExp(`^[${classBody(chars)}]+`, "u"), "");
 }
 
 /**

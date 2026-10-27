@@ -20,33 +20,14 @@ type Manifest = Record<string, string>;
 
 /** `.mdq.md` sources that do not parse into their `.yaml` sibling. */
 export const PARSE: Manifest = {
-	"essay.code-python.mdq.md": "parser (P2)",
-	"essay.content-text-frontmatter.mdq.md": "parser (P2)",
-	"essay.epilogue-rubric-list.mdq.md": "parser (P2)",
-	"essay.fenced-code-no-lang.mdq.md": "parser (P2)",
-	"essay.heading-in-stem.mdq.md": "parser (P2)",
-	"essay.image-and-link.mdq.md": "parser (P2)",
-	"essay.inline-id-in-stem.mdq.md": "parser (P2)",
-	"essay.list-partly-bracketed.mdq.md": "parser (P2)",
-	"essay.nbsp-in-code-is-skipped.mdq.md": "parser (P2)",
-	"essay.plain-content.mdq.md": "parser (P2)",
-	"essay.stem-epilogue.mdq.md": "parser (P2)",
-	"essay.stem-hard-breaks.mdq.md": "parser (P2)",
-	"essay.stem-indented-code-block-of-nbsp.mdq.md": "parser (P2)",
-	"essay.stem-with-code.mdq.md": "parser (P2)",
-	"essay.thematic-break-epilogue.mdq.md": "parser (P2)",
-	"essay.thematic-break-four-dashes.mdq.md": "parser (P2)",
-	"essay.thematic-break-indented-dashes.mdq.md": "parser (P2)",
-	"essay.thematic-break-spaced-asterisks.mdq.md": "parser (P2)",
-	"essay.thematic-break-spaced-dashes.mdq.md": "parser (P2)",
-	"essay.thematic-break-stem.mdq.md": "parser (P2)",
-	"essay.thematic-break-underscores.mdq.md": "parser (P2)",
-	"essay.unsafe-id.mdq.md": "parser (P2)",
+	"exam.question-stem-setext-h2.mdq.md": "corpus em mudança (rodada mdq)",
+	"multiple-choice.setext-heading-in-epilogue-not-linted.mdq.md":
+		"corpus em mudança (rodada mdq)",
+	"short-answer.stem-setext-h2.mdq.md": "corpus em mudança (rodada mdq)",
+	"exam.empty-heading.mdq.md": "corpus em mudança (rodada mdq)",
 	"exam.all-question-types.mdq.md": "parser (P2)",
 	"exam.comment.mdq.md": "parser (P2)",
 	"exam.ordering-sections.mdq.md": "parser (P2)",
-	"exam.separator-then-frontmatter-after-thematic-break.mdq.md": "parser (P2)",
-	"exam.thematic-break-colon-line.mdq.md": "parser (P2)",
 	"exam.thematic-break-in-question.mdq.md": "parser (P2)",
 	"exam.thematic-break-then-bare-frontmatter.mdq.md": "parser (P2)",
 	"exam.with-ordering.mdq.md": "parser (P2)",
@@ -63,38 +44,6 @@ export const PARSE: Manifest = {
 	"fill-in.open-blank-between-definitions.mdq.md": "parser (P2)",
 	"fill-in.open-blank.mdq.md": "parser (P2)",
 	"fill-in.stem-starts-with-blank.mdq.md": "parser (P2)",
-	"multiple-choice.comment-empty-lines.mdq.md": "parser (P2)",
-	"multiple-choice.comment-only-spaces.mdq.md": "parser (P2)",
-	"multiple-choice.comment-stripped.mdq.md": "parser (P2)",
-	"multiple-choice.context-paragraphs.mdq.md": "parser (P2)",
-	"multiple-choice.fullwidth-asterisk-marker.mdq.md": "parser (P2)",
-	"multiple-selection.bullet-list-stem.mdq.md": "parser (P2)",
-	"multiple-selection.choice-comment-empty-marker-line.mdq.md": "parser (P2)",
-	"multiple-selection.choice-deep-indent-continues-feedback.mdq.md":
-		"parser (P2)",
-	"multiple-selection.choice-deep-indent-continues-text.mdq.md": "parser (P2)",
-	"multiple-selection.choice-feedback-image-line.mdq.md": "parser (P2)",
-	"multiple-selection.fullwidth-x.mdq.md": "parser (P2)",
-	"multiple-selection.link-list.mdq.md": "parser (P2)",
-	"multiple-selection.multi-line.mdq.md": "parser (P2)",
-	"multiple-selection.nbsp-blank-marker.mdq.md": "parser (P2)",
-	"numeric.exponent-avogadro.mdq.md": "parser (P2)",
-	"numeric.exponent-both-tolerances.mdq.md": "parser (P2)",
-	"numeric.exponent-earth-mass.mdq.md": "parser (P2)",
-	"numeric.exponent-forms.mdq.md": "parser (P2)",
-	"numeric.exponent-largest-double.mdq.md": "parser (P2)",
-	"numeric.exponent-leading-zero.mdq.md": "parser (P2)",
-	"numeric.exponent-relative-tolerance.mdq.md": "parser (P2)",
-	"numeric.exponent-smallest-double.mdq.md": "parser (P2)",
-	"numeric.exponent-trailing-zero-places.mdq.md": "parser (P2)",
-	"numeric.exponent-trailing-zero.mdq.md": "parser (P2)",
-	"numeric.exponent-water-ions.mdq.md": "parser (P2)",
-	"numeric.exponent-wavelength.mdq.md": "parser (P2)",
-	"numeric.exponent.mdq.md": "parser (P2)",
-	"numeric.h1-line-in-stem-code-block.mdq.md": "parser (P2)",
-	"numeric.incorrect-feedback.mdq.md": "parser (P2)",
-	"numeric.relative-tolerance-decimal-shift.mdq.md": "parser (P2)",
-	"numeric.table-stem.mdq.md": "parser (P2)",
 	"ordering.accept-alternative.mdq.md": "parser (P2)",
 	"ordering.accept-blank-line-skip-blanks.mdq.md": "parser (P2)",
 	"ordering.accept-omits-line.mdq.md": "parser (P2)",
@@ -174,14 +123,6 @@ export const PARSE: Manifest = {
 	"short-answer.tab-indented-bang-continuation.mdq.md": "parser (P2)",
 	"short-answer.tab-indented-quote-continuation.mdq.md": "parser (P2)",
 	"short-answer.tab-indented-underline-continuation.mdq.md": "parser (P2)",
-	"true-false.cjk-markers.mdq.md": "parser (P2)",
-	"true-false.fullwidth-marker.mdq.md": "parser (P2)",
-	"true-false.global-markers.mdq.md": "parser (P2)",
-	"true-false.locale-hi-indic.mdq.md": "parser (P2)",
-	"true-false.locale-pt-cebraspe.mdq.md": "parser (P2)",
-	"true-false.locale-ru-cyrillic.mdq.md": "parser (P2)",
-	"true-false.locale-zh-fou.mdq.md": "parser (P2)",
-	"true-false.nested-list-stem.mdq.md": "parser (P2)",
 };
 
 /** `valid/` documents that the Zod schemas reject. */
@@ -189,6 +130,10 @@ export const SCHEMA: Manifest = {};
 
 /** `invalid/model-only/` documents that `validateDocument` accepts. */
 export const MODEL_RULES: Manifest = {
+	"model-only.exam-setext-h1-in-instructions.yaml":
+		"corpus em mudança (rodada mdq)",
+	"model-only.question-setext-h1-in-stem.yaml":
+		"corpus em mudança (rodada mdq)",
 	"model-only.essay-answer-key-setext-h1.yaml": "model rule (P4)",
 	"model-only.essay-blank-answer-key-json.json": "model rule (P4)",
 	"model-only.essay-blank-answer-key.yaml": "model rule (P4)",
@@ -322,33 +267,42 @@ export const MODEL_RULES: Manifest = {
  * of the port plan that ports them.
  */
 export const LOAD: Manifest = {
-	"essay-answer-key-frontmatter.mdq.md":
-		"expects invalid-frontmatter-field (P2)",
+	"exam-setext-h1-in-instructions.mdq.md": "corpus em mudança (rodada mdq)",
+	"fill-in-short-answer-tag-line-after-content.mdq.md":
+		"corpus em mudança (rodada mdq)",
+	"fill-in-short-answer-tag-line-after-item.mdq.md":
+		"corpus em mudança (rodada mdq)",
+	"question-setext-h1-in-epilogue.mdq.md": "corpus em mudança (rodada mdq)",
+	"short-answer-tag-line-after-content.mdq.md":
+		"corpus em mudança (rodada mdq)",
+	"short-answer-tag-line-after-continuation.mdq.md":
+		"corpus em mudança (rodada mdq)",
+	"short-answer-tag-line-after-empty-tag.mdq.md":
+		"corpus em mudança (rodada mdq)",
+	"short-answer-tag-line-after-item.mdq.md": "corpus em mudança (rodada mdq)",
+	"essay-answer-key-before-body.mdq.md": "expects forbidden-block-element (P4)",
+	"essay-forbidden-heading.mdq.md": "expects forbidden-block-element (P4)",
+	"essay-forbidden-paragraph-after-heading.mdq.md":
+		"expects forbidden-block-element (P4)",
+	"essay-forbidden-paragraph-stem.mdq.md":
+		"expects forbidden-block-element (P4)",
+	"essay-h1-in-stem.mdq.md": "expects forbidden-block-element (P4)",
+	"essay-slug-not-first-element.mdq.md": "expects forbidden-block-element (P4)",
+	"essay-tag-with-text-before-tag.mdq.md":
+		"expects forbidden-block-element (P4)",
 	"essay-answer-key-h1.mdq.md": "expects forbidden-block-element (P4)",
 	"essay-answer-key-zwsp.mdq.md": "expects blank-text (P4)",
 	"essay-forbidden-paragraph-epilogue.mdq.md":
 		"expects forbidden-block-element (P4)",
-	"essay-snake-case-frontmatter-key.mdq.md":
-		"expects invalid-frontmatter-field (P2)",
-	"essay-stem-frontmatter.mdq.md": "expects invalid-frontmatter-field (P2)",
 	"essay-tags-empty-string.mdq.md": "expects blank-text (P4)",
 	"essay-tags-string-empty-entry.mdq.md": "expects blank-text (P4)",
-	"essay-two-tags.mdq.md": "expects detached-tag (P2)",
-	"essay-unknown-frontmatter-key.mdq.md":
-		"expects invalid-frontmatter-field (P2)",
-	"exam-block-snake-case-include-all-with-body.mdq.md":
-		"expects invalid-frontmatter-field (P2)",
 	"exam-duplicate-question-id.mdq.md": "expects duplicate-question-id (P4)",
 	"exam-h1-in-instructions.mdq.md": "expects forbidden-block-element (P4)",
 	"exam-malformed-start.mdq.md": "expects malformed-start (P4)",
-	"exam-question-block-unknown-frontmatter-key.mdq.md":
-		"expects invalid-frontmatter-field (P2)",
 	"exam-tags-string-empty-entry.mdq.md": "expects blank-text (P4)",
 	"exam-unknown-frontmatter-key.mdq.md":
 		"expects invalid-frontmatter-field (P2)",
 	"fill-in-autolink-blank-defined.mdq.md": "expects unreferenced-blank (P4)",
-	"fill-in-automation-frontmatter.mdq.md":
-		"expects invalid-frontmatter-field (P2)",
 	"fill-in-choice-blank-two-feedback-blocks.mdq.md": "expects parse-error (P2)",
 	"fill-in-choice-list-marker-change.mdq.md": "expects parse-error (P2)",
 	"fill-in-decimal-places-negative.mdq.md": "expects schema-error (P4)",
@@ -415,51 +369,18 @@ export const LOAD: Manifest = {
 		"expects blank-text (P4)",
 	"multiple-choice-blank-text-no-text.mdq.md": "expects blank-text (P4)",
 	"multiple-choice-blank-text-only-id.mdq.md": "expects blank-text (P4)",
-	"multiple-choice-choices-frontmatter.mdq.md":
-		"expects invalid-frontmatter-field (P2)",
-	"multiple-choice-code-block.mdq.md": "expects parse-error (P2)",
 	"multiple-choice-forbidden-paragraph-epilogue.mdq.md":
 		"expects forbidden-block-element (P4)",
-	"multiple-choice-frontmatter-stem.mdq.md":
-		"expects invalid-frontmatter-field (P2)",
-	"multiple-choice-lazy-zero-ordered-list.mdq.md": "expects parse-error (P2)",
-	"multiple-choice-nested-list.mdq.md": "expects parse-error (P2)",
-	"multiple-choice-percent-leading-zero.mdq.md":
-		"expects foreign-choice-marker (P2)",
-	"multiple-choice-second-paragraph.mdq.md": "expects parse-error (P2)",
-	"multiple-choice-text-after-feedback.mdq.md": "expects parse-error (P2)",
 	"multiple-choice-two-checkbox-lists.mdq.md":
 		"expects forbidden-block-element (P4)",
 	"multiple-selection-blank-text-only-id.mdq.md": "expects blank-text (P4)",
-	"multiple-selection-comment-between-feedback-blocks.mdq.md":
-		"expects parse-error (P2)",
 	"multiple-selection-duplicate-text-whitespace.mdq.md":
 		"expects duplicate-choice-text (P4)",
-	"multiple-selection-feedback-between-comment-blocks.mdq.md":
-		"expects parse-error (P2)",
-	"multiple-selection-feedback-comment-feedback.mdq.md":
-		"expects parse-error (P2)",
-	"multiple-selection-first-item-is-a-reference-link.mdq.md":
-		"expects parse-error (P2)",
-	"multiple-selection-first-item-is-an-inline-link.mdq.md":
-		"expects parse-error (P2)",
-	"multiple-selection-item-indented-past-content-column.mdq.md":
-		"expects parse-error (P2)",
-	"multiple-selection-percent-leading-zero.mdq.md":
-		"expects foreign-choice-marker (P2)",
-	"multiple-selection-two-comment-blocks.mdq.md": "expects parse-error (P2)",
-	"multiple-selection-two-feedback-blocks.mdq.md": "expects parse-error (P2)",
 	"numeric-fraction-decimal-places-missing.mdq.md":
 		"expects missing-decimal-places (P4)",
-	"numeric-fraction-denominator-out-of-range.mdq.md":
-		"expects parse-error (P2)",
 	"numeric-fraction-exponent-tolerance.mdq.md":
 		"expects missing-decimal-places (P4)",
-	"numeric-fraction-numerator-out-of-range.mdq.md": "expects parse-error (P2)",
-	"numeric-frontmatter-unit.mdq.md": "expects invalid-frontmatter-field (P2)",
-	"numeric-integer-out-of-range.mdq.md": "expects parse-error (P2)",
 	"numeric-invisible-unit.mdq.md": "expects blank-text (P4)",
-	"numeric-tag-in-epilogue.mdq.md": "expects detached-tag (P2)",
 	"ordering-automation-frontmatter.mdq.md":
 		"expects invalid-frontmatter-field (P2)",
 	"ordering-detached-tag.mdq.md": "expects detached-tag (P2)",
@@ -479,8 +400,6 @@ export const LOAD: Manifest = {
 		"expects parse-error (P2)",
 	"short-answer-accept-alias-empty-tag-blank-line-text.mdq.md":
 		"expects parse-error (P2)",
-	"short-answer-automation-frontmatter.mdq.md":
-		"expects invalid-frontmatter-field (P2)",
 	"short-answer-bang-indented-line-after-content.mdq.md":
 		"expects parse-error (P2)",
 	"short-answer-bang-indented-line-after-empty-tag.mdq.md":
@@ -502,7 +421,6 @@ export const LOAD: Manifest = {
 		"expects parse-error (P2)",
 	"short-answer-bang-no-space-line-after-reject-content.mdq.md":
 		"expects parse-error (P2)",
-	"short-answer-bare-tag-text-before-reject.mdq.md": "expects parse-error (P2)",
 	"short-answer-blank-line-before-list.mdq.md": "expects parse-error (P2)",
 	"short-answer-block-start-pattern-single-line.mdq.md":
 		"expects block-start-pattern (P4)",
@@ -531,8 +449,6 @@ export const LOAD: Manifest = {
 		"expects parse-error (P2)",
 	"short-answer-exact-opens-at-line-end.mdq.md": "expects parse-error (P2)",
 	"short-answer-fence-mismatch.mdq.md": "expects parse-error (P2)",
-	"short-answer-frontmatter-one-of.mdq.md":
-		"expects invalid-frontmatter-field (P2)",
 	"short-answer-frontmatter-regex.mdq.md":
 		"expects invalid-frontmatter-field (P2)",
 	"short-answer-frontmatter-reject.mdq.md":
@@ -551,13 +467,7 @@ export const LOAD: Manifest = {
 	"short-answer-list-marker-change.mdq.md": "expects parse-error (P2)",
 	"short-answer-marker-line-after-continuation.mdq.md":
 		"expects parse-error (P2)",
-	"short-answer-open-ended-frontmatter.mdq.md":
-		"expects invalid-frontmatter-field (P2)",
 	"short-answer-partial-backtick.mdq.md": "expects parse-error (P2)",
-	"short-answer-pre-accept-block.mdq.md": "expects parse-error (P2)",
-	"short-answer-pre-accept-single-line.mdq.md": "expects parse-error (P2)",
-	"short-answer-pre-reject-block.mdq.md": "expects parse-error (P2)",
-	"short-answer-pre-reject-single-line.mdq.md": "expects parse-error (P2)",
 	"short-answer-quote-after-content.mdq.md": "expects parse-error (P2)",
 	"short-answer-quote-after-empty-tag.mdq.md": "expects parse-error (P2)",
 	"short-answer-quote-line-after-content.mdq.md": "expects parse-error (P2)",
@@ -636,7 +546,6 @@ export const LOAD: Manifest = {
 	"short-answer-regex-word-boundary-in-class.mdq.md":
 		"expects invalid-regex (P4)",
 	"short-answer-reject-after-epilogue.mdq.md": "expects detached-tag (P2)",
-	"short-answer-reject-tag-all-caps.mdq.md": "expects parse-error (P2)",
 	"short-answer-reject-without-colon.mdq.md": "expects parse-error (P2)",
 	"short-answer-repeated-ignored-regex-flag.mdq.md":
 		"expects invalid-regex (P4)",
@@ -645,10 +554,6 @@ export const LOAD: Manifest = {
 	"short-answer-unclosed-regex-content.mdq.md": "expects invalid-regex (P4)",
 	"short-answer-unclosed-regex-item.mdq.md": "expects invalid-regex (P4)",
 	"short-answer-unknown-regex-flag.mdq.md": "expects invalid-regex (P4)",
-	"short-answer-unknown-tag-suffix.mdq.md": "expects parse-error (P2)",
-	"true-false-ligature-marker.mdq.md": "expects foreign-choice-marker (P2)",
-	"true-false-modifier-marker.mdq.md": "expects foreign-choice-marker (P2)",
-	"true-false-two-feedback-blocks.mdq.md": "expects parse-error (P2)",
 };
 
 /** `.resolved.yaml` fixtures whose exam `resolveExam` does not resolve to the expected ids. */

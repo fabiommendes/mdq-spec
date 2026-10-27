@@ -7,7 +7,7 @@
  * `docs/handoffs/02-parser-bracket-lists-parity.md` asks for: title,
  * optional id (frontmatter or inline `[slug]`), an optional `type`
  * (sometimes left out of the frontmatter entirely, so the markers alone
- * must drive `_infer_choice_type`), preamble paragraphs, a stem, N choices
+ * must drive `_infer_choice_type`), extra stem paragraphs before the last one, a stem, N choices
  * with markers, optional explicit ids and optional per-choice feedback, and
  * optional `grading`/`shuffle`/`weight` frontmatter.
  *
@@ -120,7 +120,7 @@ const PERCENTS = ["0%", "25%", "50%", "75%", "100%", "-25%", "-50%"];
 const TRUE_FALSE_LETTERS = ["T", "F", "t", "f", "V", "v"];
 const FALSE_LETTERS = new Set(["f", "错", "偽"]);
 
-const GRADINGS = ["partial", "all-or-nothing", "symmetric"] as const;
+const GRADINGS = ["partial", "inherit", "symmetric"] as const;
 const WEIGHTS = [0, 0.5, 1, 2, 3.25, 10] as const;
 
 function markerArb(kind: ChoiceKind): fc.Arbitrary<string> {
@@ -302,10 +302,8 @@ function buildCase(cfg: CaseConfig): BracketListCase {
 		expected.weight = cfg.weight;
 	}
 	expected.type = cfg.kind;
-	if (cfg.preambles.length > 0) {
-		expected.preamble = cfg.preambles.join("\n\n");
-	}
-	expected.stem = cfg.stem;
+	// The stem is every block before the body (no `preamble` field).
+	expected.stem = [...cfg.preambles, cfg.stem].join("\n\n");
 	expected.choices = cfg.choices.map((c) => choiceEntry(cfg.kind, c));
 	if (cfg.shuffle !== undefined) {
 		expected.shuffle = cfg.shuffle;

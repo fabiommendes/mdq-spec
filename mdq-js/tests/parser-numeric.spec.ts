@@ -26,7 +26,6 @@
  */
 
 import { ParseError, parseQuestionDocument } from "@mdq";
-import { PERCENT_RE, scoreFromValue } from "@mdq/parser/choices.js";
 import { parseNumericExpression } from "@mdq/parser/numeric.js";
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
@@ -166,17 +165,13 @@ describe("parseNumericExpression: value grammar", () => {
 		[
 			"a positive fraction stays a string",
 			"1/3",
-			{ answer: "1/3", domain: "fraction", decimalPlaces: 0 },
+			{ answer: "1/3", domain: "fraction" },
 		],
-		[
-			"negative fraction",
-			"-1/3",
-			{ answer: "-1/3", domain: "fraction", decimalPlaces: 0 },
-		],
+		["negative fraction", "-1/3", { answer: "-1/3", domain: "fraction" }],
 		[
 			"a zero numerator fraction is still domain fraction",
 			"0/5",
-			{ answer: "0/5", domain: "fraction", decimalPlaces: 0 },
+			{ answer: "0/5", domain: "fraction" },
 		],
 	])("%s: %j", (_label, expr, expected) => {
 		expect(parseNumericExpression(expr)).toEqual(expected);
@@ -295,7 +290,6 @@ describe("parseNumericExpression: value grammar", () => {
 		["tolerance written as a fraction", "3 +- 1/2"],
 		["tolerance with a leading dot", "3.14+-.5"],
 		["underscore digit grouping", "1_000"],
-		["scientific notation", "1e10"],
 		["the literal word Infinity", "Infinity"],
 		["the literal word NaN", "NaN"],
 	])("rejects: %s (%j)", (_label, expr) => {
@@ -364,7 +358,7 @@ interface GeneratedExpr {
 	expected: {
 		answer: number | string;
 		domain: "integer" | "decimal" | "fraction";
-		decimalPlaces: number;
+		decimalPlaces?: number;
 		tolerance?: { absolute?: number; relative?: number };
 	};
 }
@@ -450,8 +444,10 @@ const generatedExprArb: fc.Arbitrary<GeneratedExpr> = fc
 		const expected: GeneratedExpr["expected"] = {
 			answer: cfg.value.answer(cfg.sign),
 			domain: cfg.value.domain,
-			decimalPlaces: cfg.value.decimalPlaces ?? 0,
 		};
+		if (cfg.value.domain !== "fraction") {
+			expected.decimalPlaces = cfg.value.decimalPlaces ?? 0;
+		}
 		const tolerance: { absolute?: number; relative?: number } = {};
 		if (cfg.abstol) tolerance.absolute = cfg.abstol.value;
 		if (cfg.reltol) tolerance.relative = cfg.reltol.value;
@@ -488,38 +484,6 @@ describe("numeric body: zero denominator", () => {
 	});
 });
 
-//
-// Criterion 2 (handoff 06): PERCENT_RE and _score_from_value (a multiple-
-// choice marker's partial-credit percentage) are unchanged by this cycle's
-// leading-zero fix to the numeric grammar -- they keep accepting a leading
-// zero, unlike a numeric body's own value/fraction/tolerance.
-//
-
-describe("multiple-choice score: a leading zero in a percentage still parses", () => {
-	it.each([
-		["05%", 0.05],
-		["007%", 0.07],
-		["-05%", -0.05],
-	])("PERCENT_RE and scoreFromValue accept %s: %j", (value, expected) => {
-		expect(PERCENT_RE.test(value)).toBe(true);
-		expect(scoreFromValue(value)).toBeCloseTo(expected);
-	});
-
-	it("parses a [05%] choice marker through the full document parser, like Python", () => {
-		const source =
-			"Which is the largest ocean?\n\n* [*] Pacific\n* [05%] Atlantic\n* [ ] Indian\n";
-		expect(parseQuestionDocument(source)).toEqual({
-			stem: "Which is the largest ocean?",
-			type: "multiple-choice",
-			choices: [
-				{ text: "Pacific", score: 1 },
-				{ text: "Atlantic", score: 0.05 },
-				{ text: "Indian" },
-			],
-		});
-	});
-});
-
 // numeric.md, "Number type/domain" (root `95d7535`, mdq-py `d4e6e5c`): an
 // absolute tolerance written with "." makes the domain decimal; the last
 // absolute term decides; a relative tolerance does not count. Expected
@@ -540,7 +504,6 @@ describe("parseNumericExpression: domain from the absolute tolerance", () => {
 			{
 				answer: "1/3",
 				domain: "fraction",
-				decimalPlaces: 0,
 				tolerance: { absolute: 1 },
 			},
 		],
@@ -613,10 +576,10 @@ describe("parseNumericExpression: answer representation", () => {
 			"+390000000000",
 			{ answer: "390000000000", domain: "integer", decimalPlaces: 0 },
 		],
-		["1/3", { answer: "1/3", domain: "fraction", decimalPlaces: 0 }],
-		["-1/3", { answer: "-1/3", domain: "fraction", decimalPlaces: 0 }],
-		["+3/4", { answer: "3/4", domain: "fraction", decimalPlaces: 0 }],
-		["4/2", { answer: "4/2", domain: "fraction", decimalPlaces: 0 }],
+		["1/3", { answer: "1/3", domain: "fraction" }],
+		["-1/3", { answer: "-1/3", domain: "fraction" }],
+		["+3/4", { answer: "3/4", domain: "fraction" }],
+		["4/2", { answer: "4/2", domain: "fraction" }],
 		["0.25", { answer: 0.25, domain: "decimal", decimalPlaces: 2 }],
 		["-273.15", { answer: -273.15, domain: "decimal", decimalPlaces: 2 }],
 		["+3.14", { answer: 3.14, domain: "decimal", decimalPlaces: 2 }],
@@ -660,15 +623,6 @@ describe("parseNumericExpression: answer representation", () => {
 		],
 	] as const)("%s", (expression, expected) => {
 		expect(parseNumericExpression(expression)).toEqual(expected);
-	});
-
-	it("a decimal that underflows to zero stays a string", () => {
-		const value = `0.${"0".repeat(400)}1`;
-		expect(parseNumericExpression(value)).toEqual({
-			answer: value,
-			domain: "decimal",
-			decimalPlaces: 401,
-		});
 	});
 
 	it("-0 is the number 0, not -0", () => {

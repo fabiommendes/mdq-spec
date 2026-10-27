@@ -33,11 +33,11 @@ describe("isExam ignores code lines", () => {
 		});
 	});
 
-	it("an H1 line in a preamble code block does not make an exam", () => {
+	it("an H1 line in a stem code block does not make an exam", () => {
 		const text = `${PYTHON_BLOCK}\n\nQuantos estados tem o Brasil?\n\n[numeric]: 26\n`;
 		expect(isExam(text)).toBe(false);
 		expect(parseQuestionDocument(text)).toMatchObject({
-			preamble: PYTHON_BLOCK,
+			stem: `${PYTHON_BLOCK}\n\nQuantos estados tem o Brasil?`,
 		});
 	});
 
