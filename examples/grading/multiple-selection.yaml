@@ -16,7 +16,11 @@
 #   // choices it judged wrong, in the order of the choices. When absent,
 #   // the feedback is not checked.
 #   examples: {
-#     ticks: (string | number)[],
+#     // Exactly one of `ticks` and `response`. `ticks` is the list of ticked
+#     // ids. `response` is passed to the question as it is, to write a
+#     // value that is not a list of ids (a string, a mapping).
+#     ticks?: (string | number)[],
+#     response?: any,
 #     score: number | Fraction | "malformed",
 #     feedback?: string[]
 #   }[]
@@ -196,6 +200,24 @@ questions:
       - ticks: ["e"]
         score: "malformed"
       - ticks: ["a", 1]
+        score: "malformed"
+
+  # The response is a list of ids (responses.md, "Multiple selection"). A
+  # string is not read as a list of characters, and a mapping is not read as
+  # its keys.
+  - name: "Malformed container"
+    choices: { a: true, b: false, c: true, d: false }
+    grading: "symmetric"
+    examples:
+      - response: "a"
+        score: "malformed"
+      - response: "ac"
+        score: "malformed"
+      - response: ""
+        score: "malformed"
+      - response: { a: true }
+        score: "malformed"
+      - response: {}
         score: "malformed"
 
   # The feedback lists only the choices the response judged wrong: the

@@ -45,6 +45,26 @@ questions:
       - response: [[0, "Nordeste"], [0, "Bahia"], [2, "Salvador"]]
         score: malformed
 
+  # The response is a list of pairs. An empty string or an empty mapping is
+  # not the empty list: it is malformed, not a response that matches nothing.
+  - name: "Response that is not a list"
+    question:
+      content: text
+      lines:
+        - [0, "Nordeste"]
+        - [1, "Bahia"]
+    examples:
+      - response: ""
+        score: malformed
+      - response: "Nordeste"
+        score: malformed
+      - response: {}
+        score: malformed
+      - response: { Nordeste: 0 }
+        score: malformed
+      - response: []
+        score: 0
+
   - name: "Fixed, text, unmatched manual"
     question:
       content: text
