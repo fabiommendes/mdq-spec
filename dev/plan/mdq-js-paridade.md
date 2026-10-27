@@ -236,6 +236,17 @@ Notas:
   P1Y, `""` e não string são inválidos).
 - `id`, `include`, `includeAll` que não são string: `schema-error` no path
   do campo.
+- `ParseError` do TS não guarda o nó, então não tem a `line` que o Python
+  reporta (`blocks.ts`, `ordering.ts`). Portar junto com `load`.
+- Chaves de YAML que não são string (revisão da P2): o js-yaml converte toda
+  chave em string, o PyYAML não. `1: a` mais `"1": b` é `yaml-syntax-error`
+  só no TS; `domain: {1: decimal}` com `[^1/numeric]` é `undefined-blank` só
+  no Python; `{? [a]: 1}` é `yaml-syntax-error` só no Python. Decidir com a
+  sessão `mdq` se vira exemplo de corpus ou se o formato proíbe chave não
+  string.
+- `CORE_SCHEMA` recusa `!!timestamp`/`!!binary` com `yaml-syntax-error`; o
+  Python carrega e o modelo rejeita. U+0085/U+2028 num escalar: o PyYAML
+  rejeita, o js-yaml aceita. Mesmo encaminhamento.
 
 ### P5. Lint
 
@@ -255,6 +266,11 @@ Notas:
   `$` depois de número ímpar de `\` é literal.
 - True/false: ordem das regras de locale em
   `mdq-py/mdq/models/_lint.py` (`check_true_false_markers`).
+
+Notas da revisão da P2 para a P5:
+
+- `findUnicodeSpaces` (`parser/spaces.ts`) não é chamado em `src/`: o TS
+  não emite `non-ascii-whitespace`. Ligar no `lint`.
 
 ### P6. Pontuação
 
@@ -286,6 +302,13 @@ Notas:
   de corpus; apagar o que não soma cobertura ou levar o caso ao corpus.
 - [ ] `mdq-js/docs/sync/*` revisados; `mdq-js/CHANGELOG.md` [Unreleased].
 - [ ] `tests/not-ported.ts` vazio em todas as camadas.
+- [ ] Só mensagem difere (código e path batem): `[numerİc]` (o `iu` do JS
+  não leva `İ`/`ı` a `i`, `tags.ts`); `split(/\s+/u)` em
+  `short-answer.ts:298` contra `str.split()` (U+0085, U+001C, U+FEFF).
+- [ ] Candidatos ao enxugamento, da revisão da P2: `parser-exam.spec.ts`
+  (repete o corpus), blocos "edge cases the corpus does not cover" de
+  `parser-essay`, `parser-short-answer` e `parser-fill-in` (viram corpus),
+  `whitespace.spec.ts`.
 
 ## Lacunas na referência
 
