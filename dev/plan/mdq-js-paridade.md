@@ -1,0 +1,287 @@
+---
+type: plan
+status: active
+tags: [mdq-js, port, sync, corpus, testes]
+relatedTo: [dev/rfcs/0001-mdq-js-paridade.md, mdq-js/docs/sync/modules.md, mdq-js/docs/sync/testing.md, mdq-js/docs/sync/roadmap.md]
+---
+
+# Plano: paridade da mdq-js com a mdq-py
+
+Implementa o RFC `dev/rfcs/0001-mdq-js-paridade.md`. Este arquivo é a única
+lista do que falta portar. Substitui `dev/handoffs/mdq-js-port-pendente.md`,
+`dev/handoffs/mdq-js-corpus-slim.md` e a seção "Reference changes waiting for
+a phase" de `mdq-js/docs/sync/roadmap.md` (apagados na fase P0; o git guarda
+o texto original).
+
+## Referência
+
+- Commit da mdq-py: **a definir**. A sessão `mdq` manda o hash quando
+  terminar J3b e J7 (refatoração interna, sem mudança de comportamento; o
+  dump do corpus sai igual byte a byte).
+- J3b divide `mdq-py/mdq/_parser/_question.py` em `_blocks`, `_tags`,
+  `_short_answer`, `_fill_in` e `_ordering`. `parser/question.ts` segue a
+  mesma divisão na fase P2, e `mdq-js/docs/sync/modules.md` é atualizado.
+- Partida (2026-10-27): 353 falhas em 4140 testes; `exam-resolution.spec.ts`
+  e `schema-agreement.spec.ts` não carregam.
+
+## Regras de execução
+
+- Uma fase por vez. Uma fase termina com o manifesto dela vazio em
+  `mdq-js/tests/not-ported.ts` e com `pnpm test`, `pnpm typecheck` e
+  `pnpm lint` verdes.
+- O corpus é a especificação. As notas de cada fase abaixo só cobrem o que o
+  corpus não expressa: mensagens, armadilhas do runtime JS, API.
+- Teste unitário TS que quebra por mudança de formato: o caso vai para o
+  corpus ou o teste é apagado (RFC, D2).
+- Commits: `mdq-js/` num commit, `dev/` em outro, `examples/` e
+  `mdq-py/tests/` (fase M) em commits próprios.
+- Mudança da mdq-py depois da referência: entra em "Pendências depois da
+  referência" no fim deste arquivo, e é portada numa fase própria.
+
+## Fases
+
+### P0. Base
+
+Não depende do commit de referência.
+
+- [x] `schema-agreement.spec.ts` carrega e ignora os `$defs` `frontmatter-*`.
+- [x] `exam-resolution.spec.ts` carrega: o erro de um exemplo vira falha de
+  um teste, não da suíte.
+- [x] Regenerar `tests/not-ported.ts` a partir das falhas atuais. Cada
+  entrada com o motivo e a fase (P2...P7). Suíte verde. `LOAD_CODES` (por
+  código) saiu: `LOAD` lista cada arquivo com os códigos esperados.
+- [x] Mover para o lugar do mapa: `query.ts` e `slugify.ts` para `models/`,
+  `parser/markdown.ts` para `markdown.ts`. Só mover, sem mudar código.
+  (`letters.ts` nasce na P2, como port de `_letters.py`: as letras de
+  `parser/choices.ts` são a regra antiga.)
+- [x] Zod igual ao JSON Schema: `schema-agreement.spec.ts` e as partes
+  `valid`/`invalid` de `schema.spec.ts` verdes (`model-only` fica para P4).
+- [x] `responses.ts` em JSON puro (arrays e objetos, sem `Set`/`Map`); tirar
+  a referência morta ao ADR.
+- [x] `roadmap.md`: trocar a tabela de fases F5-F8 por um link para este
+  plano; apagar "Reference changes waiting for a phase" e "Known gaps in the
+  reference". Apagar os dois handoffs de `dev/handoffs/`.
+
+### P1. Suítes de corpus novas
+
+- [ ] `tests/loading.spec.ts` (`invalid/syntax/`).
+- [ ] `tests/lint.spec.ts` (todos os `valid/**/*.lint.json`, multiconjunto;
+  o lado `.yaml` ignora `PARSER_ONLY_CODES`).
+- [ ] `tests/matching.spec.ts` (`examples/matching/*.yaml`).
+- [ ] `tests/grading.spec.ts` (`examples/grading/*.yaml`, incluindo
+  `short-answer-prevalidation.yaml`; `"malformed"` = `ResponseError`,
+  `"pending"` = `NotAutoGradable`; `feedback` só é checado quando a chave
+  existe; YAML `.inf`/`.nan`).
+- [ ] Teste de consistência: todo código de `docs/lint-codes.md` existe em
+  `models/lint-codes.ts` com a mesma severidade.
+- [ ] Cada suíte nova começa com o manifesto cheio.
+
+### M. Migração dos testes da mdq-py para o corpus
+
+Depende do hash de J7 e da liberação da sessão `mdq`. Tem de terminar antes
+da rodada de bugs da mdq-py; avisar a sessão `mdq` ao terminar.
+
+- [ ] Listar os testes de `mdq-py/tests/` que são fatos do formato e não
+  estão no corpus. Candidatos: `test_ordering_scoring.py`,
+  `test_ordering_models.py`, `test_inherited_grading.py`,
+  `test_exam_score.py`, `test_numeric_representation.py`,
+  `test_numeric_exponent.py`, `test_regex.py`, `test_short_answer*.py`,
+  `test_fill_in_*.py`, `test_unknown_response_ids.py`,
+  `test_text_response.py`, `test_omitted_choice_score.py`,
+  `test_null_fields.py`, `test_missing_type_message.py`,
+  `test_derived_ids.py`, `test_unique_ids.py`.
+- [ ] Criar os tipos de corpus que faltarem. Prováveis: pontuação de exame
+  (`examples/grading/exam.yaml`), `gradingFor`/`resolveQuestion`,
+  `withIds`, `normalize`. Cada tipo novo ganha leitor nos dois lados
+  (`mdq-py/tests/_corpus.py`, `mdq-js/tests/corpus.ts`) e uma linha em
+  `mdq-js/docs/sync/testing.md`.
+- [ ] Levar os casos, apagar os testes Python redundantes. Métricas como em
+  `dev/refactor/mdq-py-test-suite-slim.md`.
+- [ ] Na mdq-js, as falhas novas entram no manifesto da fase certa.
+
+### P2. Parser
+
+Fechar `parser.spec.ts` e os códigos do parser em `invalid-sources.spec.ts`.
+Dividir `parser/question.ts` como o `_parser/` final da mdq-py.
+
+Notas:
+
+- `tests/parser.spec.ts`: a propriedade "every parse satisfies
+  validateQuestion" está como `it.fails` até o parser e
+  `tests/arbitraries.ts` pararem de escrever `preamble`.
+- `PARSER_CODES` de `tests/invalid-sources.spec.ts` está desatualizado
+  (`conflicting-accept` não existe mais; faltam `invalid-frontmatter-field`,
+  `detached-tag`, ...).
+- O Zod não tem mais `min(1)` onde o YAML não tem `minLength`: texto vazio
+  passa no schema e as regras `blank-text` do modelo (P4) o rejeitam.
+- Frontmatter: validar as chaves com `$defs/frontmatter-<tipo>` e
+  `frontmatter-exam` do bundle (só as chaves de `properties`; os valores
+  seguem para o schema). Chave fora: `invalid-frontmatter-field`, um por
+  chave, `path` = `[chave]` (ou `questions, i, chave` no exame), e `load`
+  não devolve documento. A mensagem diz quando a chave é campo do corpo e
+  mostra a sintaxe (`_BODY_SYNTAX`). `unknown-frontmatter-key` e
+  `ConflictingAnswerKeyError` deixam de existir. Atalhos:
+  `FRONTMATTER_SHORTHANDS` de `scripts/schema_bundle.py` (`preAccept`,
+  `preReject`, `incorrectFeedback`, `domain`, `decimalPlaces` do fill-in).
+- `preamble` sai do formato; o stem é a junção de todos os blocos antes do
+  corpo. Essay: `input` vira `content`.
+- Comentário do frontmatter: trim; vazio não é guardado. `redundant-id`
+  (warning, `["id"]`) com `id` no frontmatter e slug `[Q1]`.
+- Marcadores: valor normalizado = NFKC e depois minúscula só em `A-Z`
+  (`replace(/[A-Z]/g, ...)`, nunca `toLowerCase`). `LETTER` =
+  `/^[\p{Lu}\p{Ll}\p{Lt}\p{Lo}]$/u`, medido no texto escrito, contando code
+  points. `[050%]` é `foreign-choice-marker`. Conjuntos TRUE/FALSE e tabela
+  de locale: `mdq-py/mdq/_letters.py`.
+- Tags: só minúsculas; com `:` exigem conteúdo, sem `:` não aceitam;
+  `detached-tag` em todos os tipos; lista colada a lista de conteúdo é
+  `parse-error`; literal exato malformado no corpo é `parse-error`.
+  Ordering usa `[ordering]:`.
+- Linhas: `>`/`!` com 4+ colunas continuam o conteúdo; sublinhado setext
+  depois do conteúdo é `parse-error`; linha só com `>` ou `!` vira `\n\n`.
+  `rawText` mantém as quebras duras (dois espaços ou `\` antes do fim de
+  linha) byte a byte; só a quebra suave vira espaço.
+- `[^x]` em código é texto; em heading, item, célula, citação, ênfase, link
+  ou alt é `misplaced-blank`; `[^x](url)` e `[^x][ref]` são links; dentro de
+  autolink é literal.
+- Numeric: unidade da tag é texto-fonte. Expoente
+  `/[eE][+-]?[0-9]{1,3}/`; checar a faixa do double antes de qualquer
+  aritmética (`Number.isFinite`, mantissa não nula que dá 0). Valor com
+  expoente vira número só se `parseFloat` volta aos mesmos dígitos e a
+  mantissa não termina em zero depois do ponto. Casas: `max(0, d - e)`.
+- Ordering: nível de `ul` = profundidade do item na árvore (não coluna);
+  `- - Bahia` é `[1, "Bahia"]`; espaços no fim saem; tab vai ao múltiplo de
+  4; epílogo antes da primeira seção; linguagem da cerca = primeira palavra
+  do info string; seção usa a linguagem do `[ordering]` ou nenhuma.
+- Exame: separador `===` estrito com `malformed-separator`; `comment` e
+  `missing-title`; `setext-heading` com o path da seção.
+- `letters.ts` (`_letters.py`) substitui as letras de `parser/choices.ts`.
+- `parser/spaces.ts` (`_parser/_spaces.py`): `non-ascii-whitespace` roda
+  antes do parse e fica quando o parse falha; as linhas de
+  `[short-answer]:` são posição de sintaxe.
+- Mensagens seguem o texto da mdq-py. O corpus só confere código e path,
+  mas `tests/parser-exam.spec.ts` compara o texto antigo do erro de `---`
+  (agora "a question's epilogue or section cannot use '---' ...").
+
+### P3. Casamento de padrões
+
+`exact.ts`, normalização inexata (`src/inexact-tables.json`) e
+`models/regex.ts`. Fecha `matching.spec.ts`.
+
+Notas:
+
+- Literal exato = code span do CommonMark (N crases abrem, a primeira
+  sequência de exatamente N fecha e termina o padrão; um espaço sai de cada
+  ponta quando as duas têm espaço).
+- Comparação: NFKC, case folding e remoção de acentos como a mdq-py.
+  `toLowerCase` não é case folding.
+- Regex: a última `/` separa corpo e flags, depois de tirar espaço e tab das
+  pontas; nunca usar o parser de literal `RegExp`. Compilar sempre com `u`.
+  Allow-list de construções de `docs/references/patterns.md`; fora dela,
+  `invalid-regex`. `\d` = `[0-9]`, `\w` = `[A-Za-z0-9_]`, `\s` =
+  `UNICODE_SPACE` (o `\s` do JS casa U+FEFF); `\b` segue o `\w` explícito;
+  as classes abreviadas dobram sob `i`. `\uHHHH` em D800-DFFF é inválido.
+  Classe abreviada como ponta de intervalo é inválida.
+- Sujeito da regex: NFC e trim de `UNICODE_SPACE` antes; flag `n` depois
+  (tira `Mn` pela tabela `nonspacing`, da resposta e dos literais do corpo,
+  nunca dos escapes).
+- Padrão sem caractere visível é `blank-text`; `has_visible_character` e
+  `starts_block` vêm de `mdq-py/mdq/_markdown.py`.
+
+### P4. Regras de modelo e `load`
+
+`models/<família>.ts` com os validadores, `loading.ts` com `load`/`parse`,
+`assertValid`. Fecha `model-only/`, `LOAD_CODES`, `loading.spec.ts` e o
+resto de `invalid-sources.spec.ts`.
+
+Notas:
+
+- Issue genérica do Zod é `schema-error`; regra nomeada mantém seu código
+  (`docs/lint-codes.md`, "Load errors").
+- Paths: sem tag de união (`questions.0.stem`, não
+  `questions.0.question.essay.stem`); param num atalho escrito como string
+  (`["accept", 0]`, nunca `["accept", 0, "pattern"]`); um diagnóstico por
+  `(code, path)`.
+- `null` em campo opcional é ausente, também aninhado; `meta` guarda os
+  nulls.
+- Sem `type`: "a question needs a `type`"; entrada de exame sem `type` nem
+  include: "an entry of `questions` needs a `type`, or an `include` or
+  `includeAll` key", mais a dica de `include-all` (`_include_keys.py`).
+  Nunca vazar a mensagem do discriminador do Zod.
+- YAML usa o carregador do frontmatter (YAML 1.1 sem base 60). JSON com
+  chave repetida é `json-syntax-error`: `JSON.parse` fica com o último valor,
+  então precisa de checagem própria.
+- `start`/`duration`: `malformed-start`, `invalid-duration` (PT0S, P0D, P1M,
+  P1Y, `""` e não string são inválidos).
+- `id`, `include`, `includeAll` que não são string: `schema-error` no path
+  do campo.
+
+### P5. Lint
+
+`models/lint.ts`, `models/lint-codes.ts` e o `lint()` de cada família. Fecha
+`lint.spec.ts`.
+
+Notas:
+
+- Identidade de linha do ordering por modo: `fixed` = nível e texto;
+  `lenient`/`strict` = texto. Vale para `accept-outside-answer-key`,
+  `unreachable-alternative` e a checagem da resposta.
+- Numeric: `domain-mismatch`, `answer-outside-domain`,
+  `missing-tolerance`, `relative-tolerance-around-zero` julgam uma string
+  pelo valor ou pela grafia; o blank numérico do fill-in usa as mesmas
+  regras.
+- `redundant-regex-anchor`: `^` só sem a flag `f`; `$` só sem `f` nem `b`;
+  `$` depois de número ímpar de `\` é literal.
+- True/false: ordem das regras de locale em
+  `mdq-py/mdq/models/_lint.py` (`check_true_false_markers`).
+
+### P6. Pontuação
+
+`scoreResponse`, `prevalidate`, `scoreResponses`, `gradingFor`,
+`shuffleFor`, `resolveQuestion`. Fecha `grading.spec.ts`.
+
+Notas:
+
+- Aritmética exata com `fraction.js` 5 (BigInt). Número lido por
+  `String(x)`; arredondamento half away from zero; tolerância relativa sobre
+  o answer antes do arredondamento; nada em `number`.
+- Resposta numérica: tabela por domain de `docs/responses.md`; string é
+  `sign? numeric_value` com expoente opcional, sem trim; `{value, unit}` com
+  unidade igual em NFC ou ausente.
+- Malformado (`ResponseError`): id desconhecido em qualquer tipo; valor de
+  TF que não é booleano nem `null`; resposta de texto que não é string;
+  tipo errado no blank do fill-in. `null` pula; `{}` no fill-in é nota 0.
+- `grading` do exame traduzido por tipo (tabela em `docs/exam.md`); mapa sem
+  tradução.
+- Feedback: o do primeiro padrão com feedback entre os que casam na lista
+  que decidiu; `incorrectFeedback` só com nota 0, resposta bem formada e sem
+  feedback de padrão. Pendente: sem feedback.
+
+### P7. Fechamento
+
+- [ ] `normalize` (usa a reconstrução de blocos do parser), `withIds`,
+  `automation`.
+- [ ] Enxugamento dos testes unitários TS por cobertura: baseline = suítes
+  de corpus; apagar o que não soma cobertura ou levar o caso ao corpus.
+- [ ] `mdq-js/docs/sync/*` revisados; `mdq-js/CHANGELOG.md` [Unreleased].
+- [ ] `tests/not-ported.ts` vazio em todas as camadas.
+
+## Lacunas na referência
+
+Reportar à sessão `mdq`, não corrigir daqui:
+
+- `empty-include-all` está em `docs/lint-codes.md`, mas nenhum
+  `.resolved.yaml` o produz.
+
+## Pendências depois da referência
+
+Vazio. Próxima rodada anunciada pela sessão `mdq`: bugs de `dev/issues/`
+(conversores, `show`, CLI, `exam-duplicate-tags`,
+`exam-question-backref-lost`, `banks-index-invalid-questions`) e as questões
+de `dev/issues/spec-questions-from-review.md`. Só as que mudarem parser,
+modelo, lint ou pontuação entram aqui.
+
+## Histórico
+
+- 2026-10-27: plano criado. P0 feita (sem commit): Zod igual ao JSON Schema, módulos
+  movidos, manifesto explícito (PARSE 154, MODEL_RULES 103, LOAD 174,
+  RESOLVE 2). Suíte verde: 4206 testes.

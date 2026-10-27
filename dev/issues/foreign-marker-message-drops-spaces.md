@@ -31,4 +31,5 @@ outro erro (`parse-error`).
 
 Correção: passar o texto original do marcador (com espaços) para a mensagem,
 ou formatar o valor vazio como `[ ]`. Adicionar um teste da mensagem.
-Portar para o mdq-js no final (ver `dev/handoffs/mdq-js-port-pendente.md`).
+Depois da correção, registrar em "Pendências depois da referência" de
+`dev/plan/mdq-js-paridade.md`.
