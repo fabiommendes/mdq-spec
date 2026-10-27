@@ -1,5 +1,7 @@
-# `Brasília` and `Brasilia` fold to the same slug. The ASCII spelling keeps it and
-# the accented one gets a numeric suffix.
+# `Brasília` and `Brasilia` fold to the same slug. The texts are processed in
+# code point order of the raw text, and `i` (U+0069) sorts before `í` (U+00ED):
+# `Brasilia` takes `brasilia` and `Brasília` gets the suffix `-2`. The position
+# of the choice does not matter. This file pins mdq-py and mdq-js, not the spec.
 id: grafia-brasilia
 choices:
   - brasilia-2

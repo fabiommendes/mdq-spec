@@ -190,7 +190,7 @@ LAZY_TEXT       : LAZY_START /[^\r\n]*/
 LAZY_EXACT_MID  : LAZY_START /[^`\r\n]*(`+[^`\r\n]*)*/
 LAZY_EXACT_TEXT : LAZY_START /[^`\r\n]*(`+[^`\r\n]+)*/
 LAZY_FENCE      : /`{1,2}/
-LAZY_PLAIN_TEXT : /(?!>|!(?!\[)|[*+-][ \t]|0{0,8}1[.)][ \t]|#{1,6}([ \t]|(?=[\r\n]))|~{3}|(\*[ \t]*){3,}(?=[\r\n])|(-[ \t]*){3,}(?=[\r\n])|(_[ \t]*){3,}(?=[\r\n]))[^`\/ \t\r\n][^\r\n]*/
+LAZY_PLAIN_TEXT : /(?!>|!(?!\[)|[*+-][ \t]|0{0,8}1[.)][ \t]|#{1,6}([ \t]|(?=[\r\n]))|~{3}|(\*[ \t]*){3,}(?=[\r\n])|(-[ \t]*){3,}(?=[\r\n])|(_[ \t]*){3,}(?=[\r\n])|\[(?:\^[^\]\r\n]+|(?:essay|numeric|short-answer|ordering|true-false|multiple-choice|multiple-selection|fill-in)(?:[\/(][^\]\r\n]*)?)\][ \t]*:)[^`\/ \t\r\n][^\r\n]*/
 ```
 
 The rules `ws` and `nl`, and the terminal `LAZY_START`, are defined in
@@ -375,6 +375,7 @@ The lines after the content of a single-line block follow these rules:
 | Lazy line (`LAZY_START`), up to a blank line       | continues the content           |
 | Setext underline[^6] (a line of `=` characters, or of `-` characters such as `---`) | `parse-error` |
 | `>` line, or `!` line (not `![`)                   | `parse-error`                   |
+| Tag line: a reserved label and a colon (`[short-answer/reject]:`, `[^slug/numeric]:`, `[numeric]:`) | `parse-error`: put a blank line before the tag |
 | List item                                          | `parse-error`                   |
 | ATX heading, fenced code, HTML block, thematic break (`***`, `___`, `- - -`) | ends the block, goes to the epilogue |
 
@@ -391,6 +392,17 @@ right after a tag with a colon and no text on its line (`[short-answer]:` then
 in the single-line form: it has no container to hold them, and a blank line
 before it would make the block quote ambiguous with a block quote of the
 epilogue. Use the list form for feedback.
+
+A tag line right after the content is a `parse-error` too, because `LAZY_START`
+excludes it. Without the blank line, `[short-answer/reject]: Rio de Janeiro`
+would be read as the rest of the pattern `Brasília`, and the tag would define
+nothing:
+
+```md
+[short-answer]: Brasília
+
+[short-answer/reject]: Rio de Janeiro
+```
 
 
 ## Regex
@@ -617,6 +629,7 @@ the same rules for its own `preAccept` and `preReject` lists.
 | accept                               | error    | parse-error            | a bare tag must not be followed by text, on its line or on a lazy line |
 | reject                               | error    | parse-error            | the tag must have a colon |
 | accept, reject                       | error    | parse-error            | a `>` or `!` line must not follow the content or a tag line with a colon, without a blank line |
+| accept, reject                       | error    | parse-error            | a line that starts with a tag (a reserved label and a colon) must not follow the content or a pattern item without a blank line, see [Feedback and comment lines](../references/grammar.md#feedback-and-comment-lines) |
 | accept, reject                       | error    | parse-error            | a setext underline (`=` or `-` characters) must not follow the content[^6] |
 | accept, reject                       | error    | parse-error            | the Markdown body must have at least one of the `[short-answer]` and `[short-answer/reject]` blocks |
 | reject                               | error    | parse-error            | must declare at least one pattern |

@@ -404,7 +404,10 @@ rules of the [short answer body](short-answer.md#pattern-lines): a lazy line
 continues the content, also after a tag line with a colon and no text; a `>`
 or `!` line (not `![`) or a list item right after the content (a `>` or `!`
 line also right after a tag line with a colon and no text) MUST be a
-`parse-error`, and so MUST a setext underline (a line of only `=` or only `-`
+`parse-error`, and so MUST a tag line (a reserved label or a blank label
+`^slug` with a colon, such as `[^b/short-answer]:`) right after the content
+or after a pattern item, so write a blank line before the next tag, and so
+MUST a setext underline (a line of only `=` or only `-`
 characters) right after the content, since it would turn the tag line into a
 heading; an ATX heading, fenced code, HTML block or thematic break ends the
 definition.
@@ -601,6 +604,7 @@ alone, such as `blanks[].accept` for `accept`, is not a reason to restate a row.
 | blanks[]             | error    | parse-error        | the choice list must start on the line right after the tag of a choice blank, with no blank line in between |
 | blanks[]             | error    | parse-error        | a tag with a colon must have content, see [Body tags](question-base.md#body-tags): a short answer definition has a pattern on its line or in a list on the line right after it, and a choice blank has a list |
 | blanks[]             | error    | parse-error        | a tag is in lower case, and a tag with a reserved label has a known suffix, see [Body tags](question-base.md#body-tags) |
+| blanks[]             | error    | parse-error        | a line that starts with a tag (a reserved label or `^slug`, and a colon) must not follow the content of a definition or a pattern item without a blank line |
 | blanks[]             | error    | parse-error        | a list must not start on the line right after the choice list or the pattern list of a blank, see [Lists after a content list](question-base.md#lists-after-a-content-list) |
 | blanks[]             | error    | parse-error        | the tag line of a choice blank must have no text after the colon (use `/short-answer` for a text answer) |
 | epilogue             | error    | detached-tag       | a blank definition tag line must not follow a block that is not a definition[^10] |

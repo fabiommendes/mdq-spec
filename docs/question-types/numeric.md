@@ -113,6 +113,11 @@ The unit in the tag is source text. The parser does no inline Markdown
 processing on it: `[numeric(m\*s)]` has the unit `m\*s` (with the backslash),
 and ``[numeric(`m`)]`` has the unit `` `m` `` (with the backticks).
 
+A line that starts with a tag (a reserved label and a colon) right after the
+tag line, such as a second `[numeric]:`, is not a continuation of the body: it
+is a `parse-error`. Write a blank line before the next tag, see
+[Feedback and comment lines](../references/grammar.md#feedback-and-comment-lines).
+
 A fraction with a zero denominator, such as `[numeric]: 1/0`, does not match
 the grammar: it is a `parse-error`. The same value written as the string
 `"1/0"` in a JSON/YAML document is the `malformed-numeric-answer` error, see
@@ -407,6 +412,7 @@ values is outside this specification.
 | ------------------ | -------- | ------------------------------ | ------------------------------------------------------------------ |
 | epilogue           | error    | detached-tag                   | a tag must not come after the epilogue started, see [Body tags](question-base.md#tags-after-the-epilogue-starts) |
 | answer             | error    | parse-error                    | a Markdown body must match the grammar of [Body](#body), which rejects U+2212, `±`, the decimal comma and the digit group separator; the value and both tolerances must fit the range of a double |
+| answer             | error    | parse-error                    | in a Markdown body, a line that starts with a tag must not follow the tag line without a blank line |
 | answer             | error    | malformed-numeric-answer       | in a JSON/YAML document, a string must be a valid `sign? numeric_value`, with a nonzero denominator; a number must be finite; the value must fit the range of a double |
 | tolerance.absolute | error    | malformed-numeric-answer       | in a JSON/YAML document, must be finite and fit the range of a double |
 | tolerance.relative | error    | malformed-numeric-answer       | in a JSON/YAML document, must be finite and fit the range of a double |

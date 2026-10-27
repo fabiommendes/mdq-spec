@@ -1,5 +1,6 @@
 # The `setext-heading` lint applies to exams only: in a standalone question a
 # `---` cannot open a next block, so `Source` followed by `---` is not reported.
+# The epilogue keeps the heading with its underline.
 id: mc-epilogue-setext
 title: Largest Brazilian river
 type: multiple-choice
@@ -8,4 +9,4 @@ choices:
   - text: Amazon
     score: 1.0
   - text: Tocantins
-epilogue: Source
+epilogue: "Source\n---"

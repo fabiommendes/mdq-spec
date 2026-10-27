@@ -1,5 +1,8 @@
-# `São Paulo!` and `São Paulo?` slugify to the same id once punctuation is stripped;
-# the second one gets a numeric suffix.
+# `São Paulo!` and `São Paulo?` slugify to the same id once punctuation is
+# stripped. The texts are processed in code point order of the raw text, and `!`
+# (U+0021) sorts before `?` (U+003F): `São Paulo!` takes `sao-paulo` and
+# `São Paulo?` gets the suffix `-2`. The position of the choice does not matter.
+# This file pins mdq-py and mdq-js, not the spec.
 id: pontuacao-sao-paulo
 choices:
   - sao-paulo

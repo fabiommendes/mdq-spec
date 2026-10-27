@@ -1,0 +1,11 @@
+# exam.md, "Body": a setext H1 (`===`) is an H1 heading, as an ATX one is,
+# so the instructions cannot hold it.
+type: exam
+id: prova-de-geografia
+title: Prova de Geografia
+instructions: |-
+  Parte 1
+  ===
+
+  Leia todas as questões com atenção.
+questions: []

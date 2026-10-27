@@ -315,6 +315,9 @@ one line:
   feedback line continues the feedback.
 * A blank line ends the part before it. After it, only the feedback or the
   comment can start. Any other line is a `parse-error`.
+* A line that starts with a tag (a reserved label and a colon, such as
+  `[short-answer/reject]:`) is not a continuation line: it is a `parse-error`.
+  Write a blank line before the tag.
 * A setext underline (a line of only `=` or only `-` characters, with up to
   three spaces of indentation and optional trailing spaces and tabs) right
   after the lines of the pattern is a `parse-error`: in CommonMark it turns
@@ -359,6 +362,11 @@ rules are:
   more columns of indentation the line is continuation text. The message suggests the list form: `* pattern`
   with the `>` or `!` lines indented under it.
 * A list item right after the content is a `parse-error`.
+* A line that starts with a tag (a reserved label between brackets and a colon,
+  such as `[short-answer/reject]:`) right after the content or after a pattern
+  line is a `parse-error`: `LAZY_START` excludes it. The message says to put a
+  blank line before the tag. Another link reference definition, such as
+  `[ibge]: https://www.ibge.gov.br`, continues the content.
 * A setext underline right after the content (`[short-answer]: Rio` followed
   by `===`), also after its continuation lines, is a `parse-error`: in
   CommonMark the tag line would become a heading, so there would be no

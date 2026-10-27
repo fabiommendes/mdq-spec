@@ -1,0 +1,9 @@
+# A `#` alone is an H1 with no text, so the exam has no title.
+type: exam
+locale: pt-BR
+questions:
+  - type: short-answer
+    locale: pt-BR
+    stem: Qual é o maior bioma do Brasil?
+    accept:
+      - Amazônia

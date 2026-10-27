@@ -160,7 +160,9 @@ MDQ tag line such as `[numeric]: 42`, or a mistyped one such as
 * Paragraph that starts with optional `ws` + `[`, except the first block of the
   stem, when it is a paragraph, or if the `[` character is immediately followed
   by a `^` character[^6]. The epilogue has no exception for its first block.
-* H1 headings.
+* H1 headings, ATX (`# Title`) or setext (`Title` over `===`). A setext
+  heading underlined by `---` is an H2: it stays a heading in the text of the
+  field.
 * Heading starting with optional `ws` + `[`.
 
 An unordered list in which only some items start with a

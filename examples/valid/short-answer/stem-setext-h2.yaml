@@ -1,0 +1,8 @@
+# A setext H2 stays a heading in the stem, underline included. A setext H1
+# (`=====`) is an H1, which the stem forbids.
+id: sa-stem-setext-h2
+title: Bioma do Brasil
+type: short-answer
+stem: "Bioma\n-----\n\nQual bioma cobre a maior parte do Brasil?"
+accept:
+  - Amazônia

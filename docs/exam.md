@@ -110,7 +110,7 @@ for the YAML schema.
 
 The exam has a required H1 heading that either starts the document or follows
 the frontmatter. The text of the H1 is optional: `# [p1]` is a valid H1 with a
-slug and no title. An exam with no title at all (no text in the H1 and no
+slug and no title, and so is a `#` alone. An exam with no title at all (no text in the H1 and no
 `title` in the frontmatter) gets the `missing-title` info.
 
 The title identifies the exam and MAY include a slug id in square brackets. The
@@ -127,7 +127,9 @@ documents.
 Zero or more paragraphs of instructions followed by zero or more question
 blocks. Any markdown block element is allowed in the instructions except:
 
-- H1 headings
+- H1 headings, ATX (`# Title`) or setext (`Title` over `===`). The
+  instructions with one are a `forbidden-block-element` error. A setext
+  underline of `---` makes an H2, which `setext-heading` reports.
 - A fenced block between `---` (like a YAML frontmatter)
 
 ## Question and include blocks
@@ -178,7 +180,9 @@ id: q1
 Here the instructions become the heading "Read every question carefully."
 followed by `id: q1` as text, and the exam has no question. Implementations
 SHOULD warn about a setext heading in the instructions or in a question of an
-exam (`setext-heading`).
+exam (`setext-heading`). A setext heading underlined by `===` is an H1, which
+the instructions and the stem and epilogue of a question forbid: the error
+`forbidden-block-element` replaces the warning for it.
 
 Inside an exam, a block after the body of a question MUST NOT use `---` as a
 thematic break. This covers the epilogue and the type-specific sections that
@@ -504,6 +508,7 @@ exam frontmatter.
 | duration        | error    | invalid-duration                | must be a positive ISO 8601 duration without years or months, `HH:MM` or `Xd Yh Zm`                                                                                                                               |
 | title           | info     | missing-title                   | no text in the H1 and no `title` in the frontmatter                                                                                                                                                              |
 | description, course | error | blank-text                  | if defined, must have at least one visible character                                                                                                                                                              |
+| instructions    | error    | forbidden-block-element         | must not hold an H1 heading, ATX or setext (`===`), see [Body](#body)                                                                                                                                              |
 | instructions    | error    | blank-text                      | must have at least one visible character                                                                                                                                                                          |
 | questions[].{epilogue,answerKey,extra,accept,reject} | error    | parse-error                     | must not use `---` as a thematic break inside an exam                                                                                                                                                             |
 | questions[]     | error    | unknown-include-field           | an include block allows only `include`, or `includeAll` with `max`                                                                                                                                               |

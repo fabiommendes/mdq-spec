@@ -1,0 +1,9 @@
+# A link reference definition with a label that is not a tag stays
+# continuation text of the content: only a reserved tag label is a
+# `parse-error` on that line.
+id: sa-link-definition-continuation
+title: Capital do Brasil
+type: short-answer
+stem: Qual é a capital do Brasil?
+accept:
+  - "Brasília [ibge]: https://www.ibge.gov.br"

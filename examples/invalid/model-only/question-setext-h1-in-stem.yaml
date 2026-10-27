@@ -1,0 +1,4 @@
+# A setext H1 is an H1 heading: the stem cannot hold it.
+type: short-answer
+stem: "Bioma\n=====\n\nQual bioma cobre a maior parte do Brasil?"
+accept: [Amazônia]

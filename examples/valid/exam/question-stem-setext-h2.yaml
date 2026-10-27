@@ -1,0 +1,10 @@
+# A setext H2 in the stem of an exam question stays a heading, and
+# `setext-heading` warns about it (exam.md, "Additional Rules").
+type: exam
+id: prova-de-geografia
+title: Prova de Geografia
+questions:
+  - type: short-answer
+    stem: "Bioma\n-----\n\nQual bioma cobre a maior parte do Brasil?"
+    accept:
+      - Amazônia
