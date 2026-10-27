@@ -2,20 +2,34 @@
  * Short answer and essay questions. A port of `models/_text.py`.
  *
  * PARTLY PORTED: the pattern matching (phase P3 of
- * `dev/plan/mdq-js-paridade.md`) is here. The rest is a stub that throws
- * (phase P7).
+ * `dev/plan/mdq-js-paridade.md`) and the validation (phase P4b) are here. The
+ * rest is a stub that throws (phase P7).
  */
 
+import type { Diagnostic, PathStep } from "../diagnostics.js";
 import { exactLiteral } from "../exact.js";
 import tables from "../inexact-tables.json";
-import { UNICODE_SPACE } from "../parser/text.js";
+import { hasVisibleCharacter, startsBlock } from "../markdown.js";
+import { findAnswerKeyForbiddenElements } from "../parser/blocks.js";
+import { strip, UNICODE_SPACE } from "../parser/text.js";
 import type {
 	DiacriticsType,
+	EssayQuestion,
 	PatternEntry,
 	ShortAnswerQuestion,
 	Unmatched,
 } from "../schema/index.js";
-import { RegexPattern, normalizeText as stripMarks } from "./regex.js";
+import {
+	type FamilyRules,
+	freeTextDiagnostics,
+	freeTextFields,
+	modelError,
+} from "./base.js";
+import {
+	InvalidRegexError,
+	RegexPattern,
+	normalizeText as stripMarks,
+} from "./regex.js";
 import type { QuestionScore } from "./score.js";
 
 /** The `unmatched` of a short answer question once the default is applied. */
@@ -254,3 +268,143 @@ export function scoreText(
 	}
 	return { score: outcome === "correct" ? 1 : 0, feedback };
 }
+
+//
+// Validation
+//
+
+/** The pattern lists of a short answer key, in the order Pydantic validates them. */
+const PATTERN_LISTS = ["accept", "reject", "preAccept", "preReject"] as const;
+
+/**
+ * patterns.md, "Pattern string": one entry of a pattern list that opens with
+ * a backtick is a complete exact literal (`schema-error`), and an inexact
+ * pattern does not start a Markdown block (`block-start-pattern`).
+ */
+function patternStringDiagnostic(
+	pattern: string,
+	path: readonly PathStep[],
+): Diagnostic | undefined {
+	if (
+		strip(pattern, " \t").startsWith("`") &&
+		exactLiteral(pattern) === undefined
+	) {
+		return modelError(
+			"schema-error",
+			"a pattern that opens with a backtick must be a complete exact literal: a run of the same number of backticks closes it, and nothing follows the closing run",
+			path,
+		);
+	}
+	if (startsBlock(pattern)) {
+		return modelError(
+			"block-start-pattern",
+			`an inexact pattern cannot start a markdown block (a block quote, heading, list, fence, HTML block or thematic break): write an exact literal, \`\` \`${strip(pattern, " \t")}\` \`\`, or a regex`,
+			path,
+		);
+	}
+	return undefined;
+}
+
+/**
+ * The rules of one entry of a pattern list at `path`. The field rules (the
+ * `feedback` and `comment`, the pattern string) report together. Only if none
+ * fails, the first failing rule of the whole entry reports, at the entry:
+ * a pattern with no visible character (`blank-text`) or a regex that does not
+ * compile (`invalid-regex`).
+ */
+function patternEntryDiagnostics(
+	entry: PatternEntry,
+	path: readonly PathStep[],
+): Diagnostic[] {
+	const isString = typeof entry === "string";
+	const pattern = isString ? entry : entry.pattern;
+	const fields = isString
+		? []
+		: freeTextFields(entry, ["feedback", "comment"], path);
+	const problem = patternStringDiagnostic(
+		pattern,
+		isString ? path : [...path, "pattern"],
+	);
+	if (problem !== undefined) fields.push(problem);
+	if (fields.length > 0) return fields;
+
+	const text = strip(pattern, " \t");
+	const exact = exactLiteral(text);
+	if (!hasVisibleCharacter(exact ?? text)) {
+		return [modelError("blank-text", "pattern has no visible character", path)];
+	}
+	if (text.startsWith("/")) {
+		try {
+			new RegexPattern(pattern);
+		} catch (error) {
+			if (error instanceof InvalidRegexError) {
+				return [
+					modelError(
+						"invalid-regex",
+						`regex does not compile: ${error.message}`,
+						path,
+					),
+				];
+			}
+			throw error;
+		}
+	}
+	return [];
+}
+
+/**
+ * The validation of the pattern lists and of `incorrectFeedback` of a short
+ * answer key, which a short answer question and a short answer blank share.
+ *
+ * @param path Where the key sits in the document.
+ */
+export function patternKeyFields(
+	key: Readonly<{
+		accept?: readonly PatternEntry[];
+		reject?: readonly PatternEntry[];
+		preAccept?: readonly PatternEntry[];
+		preReject?: readonly PatternEntry[];
+		incorrectFeedback?: string;
+	}>,
+	path: readonly PathStep[],
+): Diagnostic[] {
+	return [
+		...freeTextDiagnostics(key.incorrectFeedback, "incorrectFeedback", [
+			...path,
+			"incorrectFeedback",
+		]),
+		...PATTERN_LISTS.flatMap((list) =>
+			(key[list] ?? []).flatMap((entry, index) =>
+				patternEntryDiagnostics(entry, [...path, list, index]),
+			),
+		),
+	];
+}
+
+export const shortAnswerRules: FamilyRules<ShortAnswerQuestion> = {
+	fields: patternKeyFields,
+};
+
+/** essay.md, "Answer key": the section holds any block except an H1. */
+function checkAnswerKeyHasNoH1(
+	question: EssayQuestion,
+	path: readonly PathStep[],
+): Diagnostic | undefined {
+	if (!question.answerKey) return undefined;
+	const [description] = findAnswerKeyForbiddenElements(question.answerKey);
+	if (description === undefined) return undefined;
+	return modelError(
+		"forbidden-block-element",
+		`'answerKey' holds ${description}, which essay.md's "Answer key" does not allow`,
+		[...path, "answerKey"],
+	);
+}
+
+export const essayRules: FamilyRules<EssayQuestion> = {
+	fields: (question, path) =>
+		freeTextDiagnostics(question.answerKey, "answerKey", [
+			...path,
+			"answerKey",
+		]),
+	models: [checkAnswerKeyHasNoH1],
+};

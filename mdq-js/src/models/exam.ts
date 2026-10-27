@@ -26,13 +26,31 @@ import {
 	modelError,
 	uuidDiagnostics,
 } from "./base.js";
+import {
+	multipleChoiceRules,
+	multipleSelectionRules,
+	trueFalseRules,
+} from "./choice.js";
+import { fillInRules } from "./fill-in.js";
+import { numericRules } from "./numeric.js";
+import { orderingRules } from "./ordering.js";
+import { essayRules, shortAnswerRules } from "./text.js";
 
 /**
  * The rules of each question family, beyond `BaseQuestion`'s. A family module
- * (`choice.ts`, `numeric.ts`, ...) adds its entry here.
+ * (`choice.ts`, `numeric.ts`, ...) exports its rules, registered here.
  */
 // biome-ignore lint/suspicious/noExplicitAny: each entry takes its own question type
-export const FAMILY_RULES: Partial<Record<QuestionType, FamilyRules<any>>> = {};
+export const FAMILY_RULES: Partial<Record<QuestionType, FamilyRules<any>>> = {
+	"multiple-choice": multipleChoiceRules,
+	"multiple-selection": multipleSelectionRules,
+	"true-false": trueFalseRules,
+	numeric: numericRules,
+	"short-answer": shortAnswerRules,
+	essay: essayRules,
+	"fill-in": fillInRules,
+	ordering: orderingRules,
+};
 
 /**
  * The model rules of a question that Zod accepted: the field validators of

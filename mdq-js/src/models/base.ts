@@ -12,7 +12,7 @@
 import { type Diagnostic, diagnostic, type PathStep } from "../diagnostics.js";
 import { hasVisibleCharacter, UUID_RE } from "../markdown.js";
 import { findForbiddenElements } from "../parser/blocks.js";
-import { repr } from "../parser/text.js";
+import { repr, SPACE, strip } from "../parser/text.js";
 import type { Question } from "../schema/index.js";
 import type { MdqDocument } from "../validate.js";
 
@@ -201,6 +201,87 @@ export function checkNoForbiddenBlockElements(
 		}
 	}
 	return undefined;
+}
+
+/** Runs of backticks around a code span, kept apart when text is compared. */
+const CODE_SPAN_RE = /(`+[^`]*`+)/u;
+const SPACE_RUN_RE = new RegExp(`[${SPACE}]+`, "gu");
+
+/**
+ * Normalize `text` the way a Markdown renderer would, for comparing choice
+ * texts as a reader sees them once rendered: whitespace runs collapse to a
+ * single space in prose, but not inside code spans. A port of `_visual_key`.
+ */
+export function visualKey(text: string): string {
+	const parts = text.split(CODE_SPAN_RE);
+	const normalized = parts.map((part, index) =>
+		index % 2 === 1 ? part : part.replace(SPACE_RUN_RE, " "),
+	);
+	return strip(normalized.join("").normalize("NFC"));
+}
+
+/** A choice, as the rules over a list of choices see it. */
+interface ChoiceLike {
+	readonly id?: string;
+	readonly text: string;
+}
+
+/**
+ * multiple-choice.md, "Choices": ids and texts are each unique in a list of
+ * choices (`duplicate-choice-id`, `duplicate-choice-text`). Ids are compared
+ * as they are, texts with `visualKey`. Only the first problem is reported.
+ *
+ * @param prefix Where the model that owns `choices` sits in the document.
+ */
+export function checkUniqueChoices(
+	choices: readonly ChoiceLike[],
+	prefix: readonly PathStep[] = [],
+): Diagnostic | undefined {
+	const seenIds = new Map<string, number>();
+	const seenVisuals = new Map<string, number>();
+	for (const [index, choice] of choices.entries()) {
+		if (choice.id !== undefined) {
+			const first = seenIds.get(choice.id);
+			if (first !== undefined) {
+				return modelError(
+					"duplicate-choice-id",
+					`choice id ${repr(choice.id)} is already used by choices[${first}]`,
+					[...prefix, "choices", index, "id"],
+				);
+			}
+			seenIds.set(choice.id, index);
+		}
+		const visual = visualKey(choice.text);
+		const first = seenVisuals.get(visual);
+		if (first !== undefined) {
+			return modelError(
+				"duplicate-choice-text",
+				`choice text ${repr(choice.text)} is already used by choices[${first}]`,
+				[...prefix, "choices", index, "text"],
+			);
+		}
+		seenVisuals.set(visual, index);
+	}
+	return undefined;
+}
+
+/**
+ * The `blank-text` check of the `text`, `feedback` and `comment` of each
+ * choice of a list.
+ *
+ * @param prefix Where the model that owns `choices` sits in the document.
+ */
+export function choiceFreeTexts(
+	choices: readonly object[],
+	prefix: readonly PathStep[] = [],
+): Diagnostic[] {
+	return choices.flatMap((choice, index) =>
+		freeTextFields(
+			choice as Readonly<Record<string, unknown>>,
+			["text", "feedback", "comment"],
+			[...prefix, "choices", index],
+		),
+	);
 }
 
 /** How much of the grading the library does without an instructor. */

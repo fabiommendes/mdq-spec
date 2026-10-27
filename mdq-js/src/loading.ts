@@ -25,7 +25,12 @@ import {
 import { InvalidDocumentError, MdqError, ParseError } from "./errors.js";
 import { includeKeyHint } from "./include-keys.js";
 import { uuidDiagnostics } from "./models/base.js";
+import { markerDiagnostic } from "./models/choice.js";
 import { scheduleDiagnostic } from "./models/exam.js";
+import {
+	nonFiniteDiagnostic,
+	numericAnswerDiagnostic,
+} from "./models/numeric.js";
 import {
 	isExam,
 	loadYaml,
@@ -318,7 +323,8 @@ function loadData(data: unknown, kind: Kind | undefined): Loaded {
 /**
  * base.md, "Frontmatter": a `null` in an optional field is the same as an
  * absent field, also nested in a choice or a blank. The values of `meta` keep
- * their nulls.
+ * their nulls, and so does the `grading` map of an exam, whose values are not
+ * optional fields: a `null` there is a wrong strategy.
  */
 function dropNulls(value: unknown): unknown {
 	if (Array.isArray(value)) return value.map(dropNulls);
@@ -328,7 +334,7 @@ function dropNulls(value: unknown): unknown {
 		if (item === null) continue;
 		// `defineProperty` keeps `__proto__` an own key.
 		Object.defineProperty(kept, key, {
-			value: key === "meta" ? item : dropNulls(item),
+			value: key === "meta" || key === "grading" ? item : dropNulls(item),
 			enumerable: true,
 			writable: true,
 			configurable: true,
@@ -497,9 +503,10 @@ function issueDiagnostics(
 }
 
 /**
- * Rules of the model that the schema also states as a `pattern`: Zod rejects
- * the value first, and the rule's own code is reported instead of
- * `schema-error` (`malformed-uuid`).
+ * Rules of the model that the schema also states as a `pattern` (or as a
+ * type): Zod rejects the value first, and the rule's own code is reported
+ * instead of `schema-error` (`malformed-uuid`, `malformed-numeric-answer`,
+ * `malformed-true-false-marker`).
  */
 function namedSchemaIssue(
 	issue: ZodIssue,
@@ -508,6 +515,19 @@ function namedSchemaIssue(
 ): Diagnostic | undefined {
 	if (issue.code === "invalid_format" && path.at(-1) === "uuid") {
 		return uuidDiagnostics(valueAt(data, path), path)[0];
+	}
+	const field = path.at(-1);
+	const value = valueAt(data, path);
+	if (field === "answer" || field === "absolute" || field === "relative") {
+		if (typeof value === "number" && !Number.isFinite(value)) {
+			return nonFiniteDiagnostic(value, path);
+		}
+		if (field === "answer" && typeof value === "string") {
+			return numericAnswerDiagnostic(value, path);
+		}
+	}
+	if (field === "marker" && typeof value === "string") {
+		return markerDiagnostic(value, path);
 	}
 	return undefined;
 }
