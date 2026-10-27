@@ -15,6 +15,8 @@ First version of the specification.
 
 ### Changed
 
+- JSON follows RFC 8259 (breaking): `NaN`, `Infinity` and `-Infinity` are a `json-syntax-error`, as in `JSON.parse`. New examples `invalid/syntax/nan-constant`, `infinity-constant` and `negative-infinity-constant`.
+- New examples `invalid/exam-grading-null-strategy` (a `null` entry of the `grading` mapping is a `schema-error`, with the same two diagnostics as a bad strategy) and `invalid/essay-blank-stem-and-unknown-field` (`blank-text` and `schema-error` in one document; the order is not part of the format).
 - YAML (breaking): a scalar mapping key that is not a string becomes its string form (`domain: {1: decimal}` applies to the blank `[^1]`); two keys equal after the conversion repeat a key, and a sequence or mapping key is a `yaml-syntax-error`. NEL, LS and PS are content characters of a scalar (YAML 1.2). A tag outside the Core schema (`!!timestamp`, `!!binary`, `!!set`, `!!omap`, `!!python/...`) is a `yaml-syntax-error`. `question-base.md` has the rules. New examples `valid/fill-in/frontmatter-numeric-key`, `valid/essay/meta-scalar-keys`, `yaml-scalar-keys`, `yaml-nel-ls-in-scalar`, `frontmatter-nel-ls-in-scalar`, `invalid/syntax/yaml-duplicate-key-after-conversion`, `yaml-complex-key`, `yaml-tag-*` and `invalid/essay-frontmatter-*` (four).
 - New vectors in `examples/matching/regex.yaml`: the `n` flag with a decomposed (NFD) literal in the body and in a class, and `.` against a line terminator under the `b` and `f` flags.
 - A line that starts with a tag (a reserved label or `^slug`, and a colon) right after the content of a short answer, numeric or fill-in definition, or after a pattern item, is a `parse-error` (breaking). `LAZY_START` excludes it. Write a blank line before the tag.

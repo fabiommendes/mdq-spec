@@ -107,7 +107,8 @@ These codes are not rules about the document content. `load` reports them
 when it cannot read the input or cannot build a model at all.
 
 - `yaml-syntax-error`, `json-syntax-error`: the input is not valid YAML or JSON,
-  or a mapping repeats a key. `yaml-syntax-error` also covers the frontmatter
+  or a mapping repeats a key. JSON means [RFC 8259][rfc8259]: the constants
+  `NaN`, `Infinity` and `-Infinity` are a `json-syntax-error`. `yaml-syntax-error` also covers the frontmatter
   of a Markdown document or of an exam block.
 - `parse-error`: the Markdown source does not follow the MDQ grammar.
 - `invalid-document`: the top level of the document is not a mapping.
@@ -122,5 +123,6 @@ when it cannot read the input or cannot build a model at all.
   code in the "Errors" table above reports that code instead.
 
 [exam.md]: exam.md
+[rfc8259]: https://www.rfc-editor.org/rfc/rfc8259
 [question-types]: question-types/
 [grammar.md]: references/grammar.md#the-non-ascii-whitespace-lint

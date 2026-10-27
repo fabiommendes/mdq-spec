@@ -1,0 +1,6 @@
+# Two kinds of error in one document: `stem` has no visible character
+# (`blank-text`) and `foo` is not a field (`schema-error`). `load` reports both.
+# The order of the diagnostics is not part of the format.
+type: essay
+stem: "  "
+foo: 1

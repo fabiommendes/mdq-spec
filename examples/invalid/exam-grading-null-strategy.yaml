@@ -1,0 +1,8 @@
+# A `null` entry of the `grading` mapping is not a strategy: it breaks the
+# schema like any other bad value (exam.md, "Grading"). `null` is an absent
+# field only for a whole optional field, not for an entry of a mapping.
+type: exam
+title: Prova de Geografia
+grading:
+  multiple-choice: null
+questions: []
