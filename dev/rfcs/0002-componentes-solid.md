@@ -68,6 +68,14 @@ usa.
 - O feedback usa `role="alert"`, que interrompe o leitor de tela em toda
   carga da página. Agora é um bloco comum.
 
+## Diferenças em relação ao codehood
+
+- A questão vem de `publicForm()` (`docs/public-form.md`). O spec não tem
+  `preamble`, então o componente não o mostra.
+- `result` é `QuestionScore` (`score`, `feedback: string[]`) mais
+  `correct?`, que vem de `correctResponses()`. Uma alternativa é correta
+  quando tem score 1, não quando tem o maior score.
+
 ## Fora de escopo
 
 - `ChoiceSelect` (usado só pelo fill-in). Entra com o fill-in.
