@@ -19,6 +19,7 @@ the whole shared corpus (`examples/`), as mdq-py does.
 
 ### Added
 
+- `scoreBlanks(question, response)` gives the score of each blank of a fill-in response, keyed by blank id, with `null` for a pending blank. It throws `ResponseError` like `scoreResponse`, but not `NotAutoGradable`, so a host can show the settled blanks of a pending response. `QuestionScore.blanks` holds the same map for a settled fill-in response.
 - `publicForm(question)` gives the question as a student may see it, without the answer key, feedback, comments, `author` and `meta` (`docs/public-form.md`). A numeric question gets its effective `domain` and `decimalPlaces`; an ordering question gets a sorted `pool` in place of `lines` and `extra`. Short-answer and ordering questions and each short answer blank carry their effective `unmatched`; a fill-in question has none of its own. A choice without an id throws `MissingIdError`. Types: `PublicQuestion` and one per question type.
 - `correctResponses(question)` gives the responses that score 1, derived from the answer key. A fill-in question gives a record from blank id to the responses of that blank.
 - `mdq/solid`: SolidJS components, first the base ones (`Markdown`, `Score`, `Feedback`, `Mark`). They emit semantic `mdq-*` classes and keep state in `data-*` attributes. Text comes from a `Messages` dictionary (English by default, `ptBR` included), set by the optional `MdqProvider` or by the `messages` prop of each component. The `"solid"` export condition ships JSX for the consumer to compile.

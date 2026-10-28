@@ -43,6 +43,14 @@ export interface QuestionScore {
 	readonly score: number;
 	/** The feedback the response triggers, in document order. */
 	readonly feedback: readonly string[];
+	/**
+	 * The score of each blank of a fill-in question, keyed by blank id in
+	 * definition order, with that blank's own feedback (fill-in.md, "Blank
+	 * scores"). A blank scores as the question's strategy gives it, before the
+	 * strategy combines the blanks; an empty blank is `{score: 0, feedback:
+	 * []}`; `null` marks a pending blank. Only fill-in sets it.
+	 */
+	readonly blanks?: Readonly<Record<string, QuestionScore | null>>;
 }
 
 /** What one attempt at an exam was worth (`docs/exam.md`, "Exam score"). */

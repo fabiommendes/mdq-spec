@@ -27,12 +27,14 @@ import {
 	effectiveGrading,
 	effectiveShuffle,
 	effectiveUnmatched,
+	type FillInQuestion,
 	gradingFor,
 	load,
 	NotAutoGradable,
 	type Question,
 	ResponseError,
 	resolveQuestion,
+	scoreBlanks,
 	scoreResponse,
 	scoreResponses,
 	shuffleFor,
@@ -309,6 +311,42 @@ describe("short answer pre-validation", () => {
 //
 const STRATEGIES = ["partial", "no-mistakes", "all-or-nothing", "symmetric"];
 
+/** The scores of a blank map: blank id to score, or `"pending"` for `null`. */
+function blankScoreValues(
+	blanks: Readonly<Record<string, { score: number } | null>>,
+): Record<string, number | "pending"> {
+	return Object.fromEntries(
+		Object.entries(blanks).map(([id, result]) => [
+			id,
+			result === null ? "pending" : result.score,
+		]),
+	);
+}
+
+/** Expect the blank scores to be the `blanks` field of an example, if any. */
+function expectBlanks(
+	actual: Readonly<Record<string, { score: number } | null>>,
+	example: Plain,
+	strategy: string,
+): void {
+	if (!("blanks" in example)) return;
+	const expected = Object.entries(example.blanks as Plain).map(
+		([id, value]) => {
+			const own =
+				typeof value === "object" && value !== null
+					? (value as Plain)[strategy]
+					: value;
+			return [id, own === "pending" ? own : scoreValue(own)] as const;
+		},
+	);
+	const scores = blankScoreValues(actual);
+	expect(Object.keys(scores).sort()).toEqual(expected.map(([id]) => id).sort());
+	for (const [id, value] of expected) {
+		if (value === "pending") expect(scores[id]).toBe("pending");
+		else expectApprox(scores[id] as number, value);
+	}
+}
+
 describe("fill-in", () => {
 	for (const testCase of questionsOf("fill-in")) {
 		for (const example of testCase.examples as Plain[]) {
@@ -326,11 +364,16 @@ describe("fill-in", () => {
 							grading: strategy,
 							...(testCase.question as Plain),
 						});
+						const fillIn = question as FillInQuestion;
 						const response = example.response;
 						if (expected === "malformed") {
 							expect(() => scoreOf(question, response)).toThrow(ResponseError);
+							expect(() => scoreBlanks(fillIn, response)).toThrow(
+								ResponseError,
+							);
 							return;
 						}
+						expectBlanks(scoreBlanks(fillIn, response), example, strategy);
 						if (expected === "pending") {
 							expect(() => scoreOf(question, response)).toThrow(
 								NotAutoGradable,
@@ -344,6 +387,10 @@ describe("fill-in", () => {
 						if ("feedback" in example) {
 							expect(result.feedback).toEqual(example.feedback);
 						}
+						expect(Object.keys(result.blanks ?? {})).toEqual(
+							fillIn.blanks.map((blank) => blank.id),
+						);
+						expectBlanks(result.blanks ?? {}, example, strategy);
 					},
 				);
 			}

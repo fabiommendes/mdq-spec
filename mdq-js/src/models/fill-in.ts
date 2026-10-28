@@ -362,10 +362,74 @@ function parseFillIn(
 	return response as Record<string, unknown>;
 }
 
+/** The strategy a fill-in question scores its blanks by. */
+function fillInGrading(
+	question: FillInQuestion,
+): NonNullable<FillInQuestion["grading"]> {
+	return question.grading === undefined || question.grading === "inherit"
+		? "symmetric"
+		: question.grading;
+}
+
+/** The response to a blank, or `undefined` when the blank is empty. */
+function filledAnswer(
+	answers: Readonly<Record<string, unknown>>,
+	id: string,
+): unknown {
+	return Object.hasOwn(answers, id) ? (answers[id] ?? undefined) : undefined;
+}
+
+/**
+ * Score every blank of a parsed response, in the order of the blank
+ * definitions. A pending blank maps to `null`.
+ *
+ * @throws {ResponseError} A blank's response does not match its type.
+ */
+function blankScores(
+	question: FillInQuestion,
+	answers: Readonly<Record<string, unknown>>,
+): Record<string, QuestionScore | null> {
+	const symmetric = fillInGrading(question) === "symmetric";
+	const scores: Record<string, QuestionScore | null> = {};
+	for (const blank of question.blanks) {
+		const answer = filledAnswer(answers, blank.id);
+		if (answer === undefined) {
+			scores[blank.id] = { score: 0, feedback: [] };
+			continue;
+		}
+		// The instructor scores a pending blank; the other blanks are still
+		// checked, so a malformed one throws.
+		scores[blank.id] =
+			scoreBlank(blank, answer, {
+				symmetric,
+				diacritics: question.diacritics ?? "fold",
+				unmatched: question.unmatched,
+			}) ?? null;
+	}
+	return scores;
+}
+
+/**
+ * The score of each blank, keyed by blank id, in the order of the blank
+ * definitions (fill-in.md, "Blank scores"). Each blank is scored as the
+ * question's strategy scores it, before the strategy combines the blanks. An
+ * empty blank scores 0 with no feedback; a pending blank maps to `null`.
+ * Unlike `scoreResponse`, a pending blank does not throw, so a review screen
+ * can show the settled blanks of a pending question.
+ *
+ * @throws {ResponseError} The response is not valid for this question.
+ */
+export function scoreBlanks(
+	question: FillInQuestion,
+	response: unknown,
+): Record<string, QuestionScore | null> {
+	return blankScores(question, parseFillIn(question, response));
+}
+
 /**
  * Score each blank independently and combine by `grading`. A blank with no
  * key, or a `null` value, is empty and scores 0 (fill-in.md, "Grading"); `{}`
- * is a response with every blank empty.
+ * is a response with every blank empty. The score carries its `blanks`.
  *
  * @throws {ResponseError} The response is malformed, or a blank's response
  *   does not match its type.
@@ -376,41 +440,19 @@ export function scoreFillIn(
 	response: unknown,
 ): QuestionScore {
 	const answers = parseFillIn(question, response);
-	const grading =
-		question.grading === undefined || question.grading === "inherit"
-			? "symmetric"
-			: question.grading;
-	const filled = (id: string): unknown =>
-		Object.hasOwn(answers, id) ? (answers[id] ?? undefined) : undefined;
+	const grading = fillInGrading(question);
+	const filled = (id: string): unknown => filledAnswer(answers, id);
 
-	const scores: number[] = [];
-	const feedback: string[] = [];
-	const pending: string[] = [];
-	for (const blank of question.blanks) {
-		const answer = filled(blank.id);
-		if (answer === undefined) {
-			scores.push(0);
-			continue;
-		}
-		const result = scoreBlank(blank, answer, {
-			symmetric: grading === "symmetric",
-			diacritics: question.diacritics ?? "fold",
-			unmatched: question.unmatched,
-		});
-		if (result === undefined) {
-			// The instructor scores a pending blank; the question stays
-			// pending, but the other blanks are still checked.
-			pending.push(blank.id);
-			continue;
-		}
-		scores.push(result.score);
-		feedback.push(...result.feedback);
-	}
+	const blanks = blankScores(question, answers);
+	const pending = Object.keys(blanks).filter((id) => blanks[id] === null);
 	if (pending.length > 0) {
 		throw new NotAutoGradable(
 			`the response to blank ${repr(pending[0] ?? "")} is pending: it matches no pattern and 'unmatched' is 'manual'`,
 		);
 	}
+	const settled = Object.values(blanks) as QuestionScore[];
+	const scores = settled.map((result) => result.score);
+	const feedback = settled.flatMap((result) => result.feedback);
 
 	const mean = scores.reduce((sum, value) => sum + value, 0) / scores.length;
 	let score: number;
@@ -434,5 +476,5 @@ export function scoreFillIn(
 		default:
 			score = mean;
 	}
-	return { score, feedback };
+	return { score, feedback, blanks };
 }
