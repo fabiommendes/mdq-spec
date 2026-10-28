@@ -6,6 +6,10 @@
  * its own Solid tree: a provider around the page does not reach it. There is
  * no global setter on purpose. During SSR a module-level locale is shared by
  * every request the server handles at once.
+ *
+ * `locale` picks a whole dictionary by name. It exists for the same islands:
+ * Astro serializes the props of an island, and a dictionary holds functions,
+ * which do not survive that.
  */
 
 import {
@@ -197,18 +201,31 @@ export const ptBR: Messages = {
 		`${text} adicionada na posição ${position} de ${total}.`,
 };
 
+/** The dictionaries this package ships. */
+export type Locale = "en" | "pt-BR";
+
+export const locales: Readonly<Record<Locale, Messages>> = {
+	en,
+	"pt-BR": ptBR,
+};
+
+/** The props a component takes to choose its text. */
+export interface LocalizedProps {
+	/** Merged over the base dictionary, so a partial one is enough. */
+	messages?: Partial<Messages>;
+	/** The base dictionary, in place of the provider's or English. */
+	locale?: Locale;
+}
+
 // An accessor, so a provider whose `messages` change updates its subtree.
 const MessagesContext = createContext<() => Messages>(() => en);
 
-export interface MdqProviderProps extends ParentProps {
-	/** Merged over English, so a partial dictionary is enough. */
-	messages?: Partial<Messages>;
-}
+export interface MdqProviderProps extends ParentProps, LocalizedProps {}
 
 /** Sets the messages of every component inside it. Optional. */
 export function MdqProvider(props: MdqProviderProps): JSX.Element {
 	const outer = useContext(MessagesContext);
-	const messages = createMemo(() => ({ ...outer(), ...props.messages }));
+	const messages = useMessagesOver(outer, props);
 	return (
 		<MessagesContext.Provider value={messages}>
 			{props.children}
@@ -217,12 +234,19 @@ export function MdqProvider(props: MdqProviderProps): JSX.Element {
 }
 
 /**
- * The messages a component uses: the provider's, or English, with the
- * component's own `messages` prop merged over them.
+ * The messages a component uses: the dictionary of its `locale` prop, or else
+ * the provider's, or else English, with its `messages` prop merged over it.
  */
-export function useMessages(
-	override: () => Partial<Messages> | undefined,
+export function useMessages(props: LocalizedProps): () => Messages {
+	return useMessagesOver(useContext(MessagesContext), props);
+}
+
+function useMessagesOver(
+	base: () => Messages,
+	props: LocalizedProps,
 ): () => Messages {
-	const context = useContext(MessagesContext);
-	return createMemo(() => ({ ...context(), ...override() }));
+	return createMemo(() => ({
+		...(props.locale === undefined ? base() : locales[props.locale]),
+		...props.messages,
+	}));
 }

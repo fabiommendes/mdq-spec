@@ -12,7 +12,7 @@ import type { TextResponse } from "../responses.js";
 import { Feedback } from "./Feedback.jsx";
 import { Mark } from "./Mark.jsx";
 import { Markdown } from "./Markdown.jsx";
-import { type Messages, useMessages } from "./messages.jsx";
+import { type Locale, type Messages, useMessages } from "./messages.jsx";
 import { Pending } from "./Pending.jsx";
 import { Score } from "./Score.jsx";
 import { TextInput } from "./TextInput.jsx";
@@ -34,6 +34,7 @@ export interface ShortAnswerProps {
 	 */
 	result?: ReviewResult<TextResponse>;
 	messages?: Partial<Messages>;
+	locale?: Locale;
 }
 
 /**
@@ -49,7 +50,7 @@ export interface ShortAnswerProps {
  * score (1 is correct). A pending result shows the `Pending` badge and no verdict.
  */
 export function ShortAnswer(props: ShortAnswerProps): JSX.Element {
-	const messages = useMessages(() => props.messages);
+	const messages = useMessages(props);
 	const mode = () => props.mode ?? "answer";
 	const id = createUniqueId();
 	const stemId = `${id}-stem`;

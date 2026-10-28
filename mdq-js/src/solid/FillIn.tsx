@@ -18,7 +18,7 @@ import { Feedback } from "./Feedback.jsx";
 import { placedBlanks, type StemPart, splitStem } from "./fill-in-stem.js";
 import { Mark, type MarkKind } from "./Mark.jsx";
 import { Markdown } from "./Markdown.jsx";
-import { type Messages, useMessages } from "./messages.jsx";
+import { type Locale, type Messages, useMessages } from "./messages.jsx";
 import { NumericInput } from "./NumericInput.jsx";
 import { Pending } from "./Pending.jsx";
 import { Score } from "./Score.jsx";
@@ -75,6 +75,7 @@ export interface FillInProps {
 	hideScore?: boolean;
 	result?: FillInResult | PendingFillInResult;
 	messages?: Partial<Messages>;
+	locale?: Locale;
 }
 
 /**
@@ -98,7 +99,7 @@ export interface FillInProps {
  * order; shuffling is the host's job.
  */
 export function FillIn(props: FillInProps): JSX.Element {
-	const messages = useMessages(() => props.messages);
+	const messages = useMessages(props);
 	const mode = () => props.mode ?? "answer";
 	const id = createUniqueId();
 	const feedbackId = `${id}-feedback`;
@@ -343,8 +344,7 @@ function Control(props: ControlProps): JSX.Element {
 	// created on every read. The controls read `value` in their event
 	// handlers, outside any owner, so the conditions live in plain functions.
 	const text = () => (typeof props.value === "string" ? props.value : "");
-	const choiceId = () =>
-		typeof props.value === "string" ? props.value : null;
+	const choiceId = () => (typeof props.value === "string" ? props.value : null);
 	return (
 		<Switch>
 			<Match when={props.blank.type === "multiple-choice" && props.blank}>

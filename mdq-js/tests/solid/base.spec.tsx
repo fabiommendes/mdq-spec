@@ -8,10 +8,10 @@ import {
 	en,
 	Feedback,
 	formatScore,
+	type LocalizedProps,
 	Mark,
 	Markdown,
 	MdqProvider,
-	type Messages,
 	ptBR,
 	Score,
 	useMessages,
@@ -19,8 +19,8 @@ import {
 import { render, screen } from "@solidjs/testing-library";
 import type { JSX } from "solid-js";
 
-function Probe(props: { messages?: Partial<Messages> }): JSX.Element {
-	const messages = useMessages(() => props.messages);
+function Probe(props: LocalizedProps): JSX.Element {
+	const messages = useMessages(props);
 	return <Mark kind="correct" messages={messages()} />;
 }
 
@@ -46,6 +46,24 @@ describe("messages", () => {
 			</MdqProvider>
 		));
 		expect(screen.getByText("OK")).toBeTruthy();
+	});
+
+	it("picks a dictionary by locale, over the provider", () => {
+		render(() => (
+			<MdqProvider messages={{ correct: "Certa" }}>
+				<Probe locale="pt-BR" />
+			</MdqProvider>
+		));
+		expect(screen.getByText("Correta")).toBeTruthy();
+	});
+
+	it("takes a locale on the provider", () => {
+		render(() => (
+			<MdqProvider locale="pt-BR">
+				<Probe messages={{ yourAnswer: "x" }} />
+			</MdqProvider>
+		));
+		expect(screen.getByText("Correta")).toBeTruthy();
 	});
 
 	it("has every key in Portuguese", () => {

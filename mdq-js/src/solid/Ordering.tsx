@@ -13,7 +13,7 @@ import type { OrderingResponse } from "../responses.js";
 import type { OrderingLine } from "../schema/questions.js";
 import { Feedback } from "./Feedback.jsx";
 import { Markdown } from "./Markdown.jsx";
-import { type Messages, useMessages } from "./messages.jsx";
+import { type Locale, type Messages, useMessages } from "./messages.jsx";
 import { Pending } from "./Pending.jsx";
 import { Score } from "./Score.jsx";
 import { isPending, type QuestionMode, type ReviewResult } from "./types.js";
@@ -43,6 +43,7 @@ export interface OrderingProps {
 	 */
 	result?: ReviewResult<OrderingResponse>;
 	messages?: Partial<Messages>;
+	locale?: Locale;
 }
 
 /** The deepest level the controls give a line of code. The spec sets no limit. */
@@ -71,7 +72,7 @@ type Action = "up" | "down" | "indent" | "outdent" | "remove" | "add";
  * grades a whole ordering, never a line.
  */
 export function Ordering(props: OrderingProps): JSX.Element {
-	const messages = useMessages(() => props.messages);
+	const messages = useMessages(props);
 	const mode = () => props.mode ?? "answer";
 	const id = createUniqueId();
 	const stemId = `${id}-stem`;

@@ -367,8 +367,14 @@
 	width: 9rem;
 }
 
+/* The box grows with the unit; the input keeps room for a long value. */
 .mdq-sentence .mdq-numeric-box {
-	width: 7rem;
+	width: auto;
+}
+
+.mdq-sentence .mdq-numeric-input {
+	flex: none;
+	width: 12ch;
 }
 
 .mdq-blank[data-key="correct"]

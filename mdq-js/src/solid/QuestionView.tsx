@@ -7,7 +7,7 @@ import {
 	MultipleSelection,
 	type MultipleSelectionProps,
 } from "./MultipleSelection.jsx";
-import { type Messages, useMessages } from "./messages.jsx";
+import { type Locale, type Messages, useMessages } from "./messages.jsx";
 import { Numeric, type NumericProps } from "./Numeric.jsx";
 import { Ordering, type OrderingProps } from "./Ordering.jsx";
 import { ShortAnswer, type ShortAnswerProps } from "./ShortAnswer.jsx";
@@ -46,6 +46,7 @@ export interface UnsupportedProps {
 		}
 	>;
 	messages?: Partial<Messages>;
+	locale?: Locale;
 }
 
 /**
@@ -56,7 +57,7 @@ export interface UnsupportedProps {
  * blank space.
  */
 export function QuestionView(props: QuestionViewProps): JSX.Element {
-	const messages = useMessages(() => props.messages);
+	const messages = useMessages(props);
 	// TypeScript cannot narrow a union by a nested discriminant, so each arm
 	// asserts the shape its own `when` has proved. The spread stays reactive.
 	const type = () => props.question.type as string;

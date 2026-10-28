@@ -9,7 +9,12 @@
  *     @import "mdq/css/daisyui.css";
  *
  * Markdown blocks (`.mdq-markdown`) get no typography here. Add
- * `@tailwindcss/typography` and `@apply prose` to them if you want it.
+ * `@tailwindcss/typography` and `prose` to them if you want it, but put that
+ * rule in `@layer base`: these rules live in `@layer components`, and a rule
+ * outside any layer beats every layered one, so an unlayered `prose` would
+ * undo the margins and the feedback text color set below. Apply it to block
+ * Markdown only, `.mdq-markdown:not([data-inline])`, or inline code in a
+ * choice gets the block styles.
  */
 
 @layer components {
@@ -249,8 +254,12 @@
 	.mdq-sentence .mdq-input {
 		@apply input-sm w-36;
 	}
+	/* The box grows with the unit; the input keeps room for a long value. */
 	.mdq-sentence .mdq-numeric-box {
-		@apply input-sm w-28;
+		@apply input-sm w-auto;
+	}
+	.mdq-sentence .mdq-numeric-input {
+		@apply w-[12ch] grow-0;
 	}
 	/* daisyUI fades a disabled border to the page color, which would show a
 	   frozen empty blank as a gap. */

@@ -4,7 +4,7 @@ import type { NumericResponse } from "../responses.js";
 import { Feedback } from "./Feedback.jsx";
 import { Mark } from "./Mark.jsx";
 import { Markdown } from "./Markdown.jsx";
-import { type Messages, useMessages } from "./messages.jsx";
+import { type Locale, type Messages, useMessages } from "./messages.jsx";
 import { NumericInput } from "./NumericInput.jsx";
 import { Score } from "./Score.jsx";
 import type { QuestionMode, QuestionResult } from "./types.js";
@@ -26,6 +26,7 @@ export interface NumericProps {
 	/** `correct` holds the `answer`; the verdict comes from the score. */
 	result?: QuestionResult<NumericResponse>;
 	messages?: Partial<Messages>;
+	locale?: Locale;
 }
 
 function withUnit(text: string, unit: string | undefined): string {
@@ -45,7 +46,7 @@ function textOf(value: NumericResponse): string {
  * value.
  */
 export function Numeric(props: NumericProps): JSX.Element {
-	const messages = useMessages(() => props.messages);
+	const messages = useMessages(props);
 	const mode = () => props.mode ?? "answer";
 	const id = createUniqueId();
 	const stemId = `${id}-stem`;

@@ -11,7 +11,7 @@ import type { MultipleChoiceResponse } from "../responses.js";
 import { Feedback } from "./Feedback.jsx";
 import { Mark } from "./Mark.jsx";
 import { Markdown } from "./Markdown.jsx";
-import { type Messages, useMessages } from "./messages.jsx";
+import { type Locale, type Messages, useMessages } from "./messages.jsx";
 import { Score } from "./Score.jsx";
 import type { QuestionMode, QuestionResult } from "./types.js";
 
@@ -26,6 +26,7 @@ export interface MultipleChoiceProps {
 	hideScore?: boolean;
 	result?: QuestionResult<MultipleChoiceResponse>;
 	messages?: Partial<Messages>;
+	locale?: Locale;
 }
 
 /**
@@ -41,7 +42,7 @@ export interface MultipleChoiceProps {
  * in the DOM too.
  */
 export function MultipleChoice(props: MultipleChoiceProps): JSX.Element {
-	const messages = useMessages(() => props.messages);
+	const messages = useMessages(props);
 	const mode = () => props.mode ?? "answer";
 	const id = createUniqueId();
 	const stemId = `${id}-stem`;
