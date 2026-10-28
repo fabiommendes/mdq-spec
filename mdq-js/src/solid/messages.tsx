@@ -56,6 +56,14 @@ export interface Messages {
 	writeAnswerPlaceholder: string;
 	/** The note under the box of an essay whose content is text. */
 	markdownSupported: string;
+	/** The name of a blank of a fill-in. `n` counts from 1 in the order of the stem. */
+	blankLabel: (n: number, total: number) => string;
+	/** What a choice blank shows while nothing is picked. */
+	selectPlaceholder: string;
+	/** The title of the answer key of a fill-in, in review. */
+	expected: string;
+	/** Under a blank of the answer key that has nothing to show. */
+	noBlankKey: string;
 }
 
 export const en: Messages = {
@@ -81,6 +89,10 @@ export const en: Messages = {
 	writeCodePlaceholder: "Write your code here…",
 	writeAnswerPlaceholder: "Write your answer here…",
 	markdownSupported: "Markdown is supported.",
+	blankLabel: (n, total) => `Blank ${n} of ${total}`,
+	selectPlaceholder: "Select…",
+	expected: "Expected",
+	noBlankKey: "Nothing to show for this blank",
 };
 
 export const ptBR: Messages = {
@@ -106,6 +118,10 @@ export const ptBR: Messages = {
 	writeCodePlaceholder: "Escreva seu código aqui…",
 	writeAnswerPlaceholder: "Escreva sua resposta aqui…",
 	markdownSupported: "Há suporte a Markdown.",
+	blankLabel: (n, total) => `Lacuna ${n} de ${total}`,
+	selectPlaceholder: "Selecione…",
+	expected: "Esperado",
+	noBlankKey: "Não exibido para esta lacuna",
 };
 
 // An accessor, so a provider whose `messages` change updates its subtree.

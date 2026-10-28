@@ -7,8 +7,11 @@
  * from the consumer's own.
  */
 
+export * from "./ChoiceSelect.jsx";
 export * from "./Essay.jsx";
 export * from "./Feedback.jsx";
+export * from "./FillIn.jsx";
+export * from "./fill-in-stem.js";
 export * from "./Mark.jsx";
 export * from "./Markdown.jsx";
 export * from "./MultipleChoice.jsx";

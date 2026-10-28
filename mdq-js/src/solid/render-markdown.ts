@@ -21,3 +21,21 @@ export function renderMarkdown(text: string): string {
 export function renderMarkdownInline(text: string): string {
 	return md.renderInline(text);
 }
+
+/** A Markdown token, as `parseMarkdown` returns it. */
+export type MarkdownToken = ReturnType<MarkdownIt["parse"]>[number];
+
+/** Parse a Markdown string into its tokens, for a component that renders parts of it itself. */
+export function parseMarkdown(text: string): MarkdownToken[] {
+	return md.parse(text, {});
+}
+
+/** Render block tokens as HTML. */
+export function renderTokens(tokens: MarkdownToken[]): string {
+	return md.renderer.render(tokens, md.options, {});
+}
+
+/** Render inline tokens as HTML. */
+export function renderInlineTokens(tokens: MarkdownToken[]): string {
+	return md.renderer.renderInline(tokens, md.options, {});
+}

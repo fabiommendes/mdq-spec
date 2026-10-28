@@ -239,6 +239,51 @@
 		@apply mockup-code w-full text-sm;
 	}
 
+	/* A tall line: every control is taller than a line of text. */
+	.mdq-sentence {
+		@apply text-base font-medium leading-[2.75];
+	}
+	.mdq-blank {
+		@apply mx-1 inline-flex items-center gap-1 align-middle leading-normal;
+	}
+	.mdq-sentence .mdq-input {
+		@apply input-sm w-36;
+	}
+	.mdq-sentence .mdq-numeric-box {
+		@apply input-sm w-28;
+	}
+	/* daisyUI fades a disabled border to the page color, which would show a
+	   frozen empty blank as a gap. */
+	.mdq-question:not([data-mode="answer"]) .mdq-blank
+		:is(.mdq-input, .mdq-numeric-box, .mdq-select-button) {
+		@apply border-base-content/25;
+	}
+
+	.mdq-select {
+		@apply dropdown inline-block align-middle;
+	}
+	.mdq-select[data-open] {
+		@apply dropdown-open;
+	}
+	.mdq-select-button {
+		@apply select select-sm inline-flex w-auto items-center gap-1 text-left disabled:text-base-content;
+	}
+	.mdq-select-list {
+		@apply dropdown-content z-10 mt-1 flex w-max min-w-40 flex-col rounded-box border border-base-300 bg-base-100 p-1 shadow-lg;
+	}
+	.mdq-select-option {
+		@apply cursor-pointer rounded-field px-3 py-1.5 text-sm;
+	}
+	.mdq-select-option[data-active] {
+		@apply bg-base-200;
+	}
+	.mdq-select-option[data-selected] {
+		@apply font-semibold;
+	}
+	.mdq-select-placeholder {
+		@apply text-base-content/50;
+	}
+
 	.mdq-mark {
 		@apply inline-flex shrink-0;
 	}

@@ -348,3 +348,83 @@
 	margin: 0;
 	overflow-x: auto;
 }
+
+.mdq-sentence {
+	margin: 0;
+	line-height: 2.5;
+}
+
+.mdq-blank {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.25rem;
+	margin: 0 0.25rem;
+	vertical-align: middle;
+	line-height: normal;
+}
+
+.mdq-sentence .mdq-input {
+	width: 9rem;
+}
+
+.mdq-sentence .mdq-numeric-box {
+	width: 7rem;
+}
+
+.mdq-select {
+	position: relative;
+	display: inline-block;
+}
+
+.mdq-select-button {
+	display: inline-flex;
+	align-items: center;
+	min-width: 6rem;
+	padding: 0.25rem 0.5rem;
+	border: 1px solid GrayText;
+	border-radius: 0.25rem;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+
+.mdq-select-button:disabled {
+	cursor: default;
+	opacity: 1;
+}
+
+.mdq-select-list {
+	position: absolute;
+	z-index: 10;
+	top: 100%;
+	left: 0;
+	display: flex;
+	flex-direction: column;
+	width: max-content;
+	min-width: 10rem;
+	margin-top: 0.25rem;
+	padding: 0.25rem;
+	border: 1px solid GrayText;
+	border-radius: 0.25rem;
+	background: Canvas;
+	color: CanvasText;
+}
+
+.mdq-select-option {
+	padding: 0.25rem 0.75rem;
+	cursor: pointer;
+}
+
+.mdq-select-option[data-active] {
+	outline: 1px solid currentColor;
+}
+
+.mdq-select-option[data-selected] {
+	font-weight: bold;
+}
+
+.mdq-select-placeholder {
+	opacity: 0.6;
+}

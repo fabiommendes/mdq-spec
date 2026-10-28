@@ -29,6 +29,7 @@ export interface NumericInputProps {
 	id?: string;
 	placeholder?: string;
 	"aria-labelledby"?: string;
+	"aria-label"?: string;
 	"aria-describedby"?: string;
 	messages: Messages;
 }
@@ -91,6 +92,15 @@ export function NumericInput(props: NumericInputProps): JSX.Element {
 		}
 	});
 
+	const inputId = () => props.id ?? `${unitId}-input`;
+	// The unit is part of the name. `aria-labelledby` wins over `aria-label`,
+	// unless it points at the input itself, which then contributes its label.
+	const labelledBy = () => {
+		const base =
+			props["aria-labelledby"] ?? (props["aria-label"] ? inputId() : undefined);
+		return props.unit ? `${base ?? ""} ${unitId}`.trim() : base;
+	};
+
 	const invalid = () =>
 		left() && text().trim() !== "" && submitted(text(), props.domain) === null;
 	const fraction = () => props.domain === "fraction";
@@ -99,11 +109,11 @@ export function NumericInput(props: NumericInputProps): JSX.Element {
 		<span class="mdq-numeric">
 			<label
 				class="mdq-numeric-box"
-				for={props.id}
+				for={inputId()}
 				data-invalid={invalid() ? "" : undefined}
 			>
 				<input
-					id={props.id}
+					id={inputId()}
 					type="text"
 					inputmode={fraction() ? "text" : "decimal"}
 					class="mdq-numeric-input"
@@ -126,11 +136,8 @@ export function NumericInput(props: NumericInputProps): JSX.Element {
 						});
 					}}
 					onBlur={() => setLeft(true)}
-					aria-labelledby={
-						props.unit
-							? `${props["aria-labelledby"] ?? ""} ${unitId}`.trim()
-							: props["aria-labelledby"]
-					}
+					aria-label={props["aria-label"]}
+					aria-labelledby={labelledBy()}
 					aria-describedby={
 						[props["aria-describedby"], invalid() ? warningId : undefined]
 							.filter(Boolean)
