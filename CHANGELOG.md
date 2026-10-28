@@ -15,6 +15,8 @@ First version of the specification.
 
 ### Changed
 
+- `examples/normalize.yaml` gains `normalize: true` cases for choice texts and feedback, patterns, ordering feedback, true/false markers, numeric `domain`, `decimalPlaces` and string `answer`, and fill-in blanks: `normalize()` gives what a render and parse give.
+- New examples `invalid/question-type-disagrees-with-short-answer-body` and `invalid/numeric-frontmatter-error-and-parse-error`. `invalid/question-type-disagrees-with-body` and `invalid/essay-tag-in-list-typed` now expect one `parse-error` instead of `schema-error` entries.
 - New examples `invalid/numeric-answer-leading-space`, `numeric-answer-surrounding-spaces`, `numeric-answer-trailing-space` and `fill-in-numeric-blank-answer-surrounding-space`: a string `answer` with a space around it is a `malformed-numeric-answer`, as the schema pattern says. The Markdown body `[numeric]: 5` is trimmed and stays valid.
 - Fill-in frontmatter: a `null` entry in any of the `domain`, `decimalPlaces`, `preAccept`, `preReject` and `incorrectFeedback` maps means the field is absent for that blank (`docs/question-types/fill-in.md`). The frontmatter schema accepts the `null` entry. New examples `valid/fill-in/null-entry-numeric-maps` and `null-entry-pattern-maps`.
 - JSON follows RFC 8259 (breaking): `NaN`, `Infinity` and `-Infinity` are a `json-syntax-error`, as in `JSON.parse`. New examples `invalid/syntax/nan-constant`, `infinity-constant` and `negative-infinity-constant`.

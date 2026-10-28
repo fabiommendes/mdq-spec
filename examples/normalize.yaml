@@ -192,3 +192,246 @@ cases:
         ---
 
         Qual é a população estimada do Pará?
+  - name: normalize strips the spaces around a multiple-choice text
+    normalize: true
+    input:
+      type: multiple-choice
+      stem: Qual é o maior estado do Brasil?
+      choices:
+        - {text: "Amazonas  ", score: 1}
+        - {text: " Pará"}
+    output:
+      type: multiple-choice
+      stem: Qual é o maior estado do Brasil?
+      choices:
+        - {text: Amazonas, score: 1.0}
+        - {text: Pará}
+  - name: normalize fills the marker of a true-false statement
+    normalize: true
+    input:
+      type: true-false
+      stem: Sobre o Brasil.
+      choices:
+        - {text: "O Brasil tem litoral.  ", correct: true}
+        - {text: O Brasil é uma ilha., correct: false}
+    output:
+      type: true-false
+      stem: Sobre o Brasil.
+      choices:
+        - {text: O Brasil tem litoral., correct: true, marker: T}
+        - {text: O Brasil é uma ilha., correct: false, marker: F}
+  - name: normalize fills the domain of an integer numeric question
+    normalize: true
+    input:
+      type: numeric
+      stem: Quantos estados tem o Brasil?
+      answer: 27
+      tolerance: {absolute: 1}
+    output:
+      type: numeric
+      stem: Quantos estados tem o Brasil?
+      answer: 27
+      domain: integer
+      tolerance: {absolute: 1}
+  - name: normalize fills the domain and the decimal places of a decimal numeric question
+    normalize: true
+    input:
+      type: numeric
+      stem: Qual é a aceleração da gravidade, em m/s2?
+      answer: "9.80"
+      tolerance: {absolute: 0.1}
+    output:
+      type: numeric
+      stem: Qual é a aceleração da gravidade, em m/s2?
+      answer: "9.80"
+      domain: decimal
+      decimalPlaces: 2
+      tolerance: {absolute: 0.1}
+  - name: normalize keeps the declared domain and decimal places of a numeric question
+    normalize: true
+    input:
+      type: numeric
+      stem: Qual é a razão entre a circunferência e o diâmetro?
+      answer: 3.14
+      domain: decimal
+      decimalPlaces: 1
+    output:
+      type: numeric
+      stem: Qual é a razão entre a circunferência e o diâmetro?
+      answer: 3.14
+      domain: decimal
+      decimalPlaces: 1
+  - name: normalize reaches the choice and numeric blanks of a fill-in
+    normalize: true
+    input:
+      type: fill-in
+      stem: O [^rio] mede cerca de [^km] km.
+      blanks:
+        - id: rio
+          type: multiple-choice
+          choices:
+            - {id: a, text: "Amazonas ", score: 1}
+            - {id: b, text: Tietê}
+        - id: km
+          type: numeric
+          answer: 6400
+          tolerance: {absolute: 100}
+    output:
+      type: fill-in
+      stem: O [^rio] mede cerca de [^km] km.
+      blanks:
+        - id: rio
+          type: multiple-choice
+          choices:
+            - {id: a, text: Amazonas, score: 1.0}
+            - {id: b, text: Tietê}
+        - id: km
+          type: numeric
+          answer: 6400
+          domain: integer
+          tolerance: {absolute: 100}
+  - name: normalize strips the spaces around the feedback and the comment of a choice
+    normalize: true
+    input:
+      type: multiple-choice
+      stem: Qual rio corta Manaus?
+      choices:
+        - {text: Rio Negro, score: 1, feedback: " Certo.  ", comment: " c  "}
+        - {text: Rio Tietê}
+    output:
+      type: multiple-choice
+      stem: Qual rio corta Manaus?
+      choices:
+        - {text: Rio Negro, score: 1.0, feedback: Certo., comment: c}
+        - {text: Rio Tietê}
+  - name: normalize strips the spaces around a short-answer pattern and its feedback
+    normalize: true
+    input:
+      type: short-answer
+      stem: Qual é o maior rio do Brasil?
+      accept:
+        - {pattern: "Amazonas  ", feedback: " Certo.  "}
+      reject:
+        - {pattern: "Tietê  ", feedback: " Não.  ", comment: " c "}
+    output:
+      type: short-answer
+      stem: Qual é o maior rio do Brasil?
+      accept:
+        - {pattern: Amazonas, feedback: Certo.}
+      reject:
+        - {pattern: Tietê, feedback: Não., comment: c}
+  - name: normalize strips the spaces around the patterns and the choices of a fill-in
+    normalize: true
+    input:
+      type: fill-in
+      stem: "A capital do Brasil é [^a], no estado [^b]."
+      blanks:
+        - id: a
+          type: short-answer
+          accept:
+            - {pattern: "Brasília  ", feedback: " Certo.  "}
+        - id: b
+          type: multiple-choice
+          choices:
+            - {text: "Distrito Federal  ", score: 1, feedback: " Certo.  "}
+            - {text: Goiás}
+    output:
+      type: fill-in
+      stem: "A capital do Brasil é [^a], no estado [^b]."
+      blanks:
+        - id: a
+          accept:
+            - {pattern: Brasília, feedback: Certo.}
+          type: short-answer
+        - id: b
+          choices:
+            - {text: Distrito Federal, score: 1.0, feedback: Certo.}
+            - {text: Goiás}
+          type: multiple-choice
+  - name: normalize strips the spaces around the feedback of an ordering alternative
+    normalize: true
+    input:
+      type: ordering
+      stem: Ordene as etapas do ciclo da água.
+      lines: [[0, Evaporação], [0, Condensação], [0, Precipitação]]
+      content: text
+      reject:
+        - {lines: [[0, Condensação], [0, Evaporação], [0, Precipitação]], feedback: " Falta a evaporação primeiro.  "}
+    output:
+      type: ordering
+      stem: Ordene as etapas do ciclo da água.
+      lines: [[0, Evaporação], [0, Condensação], [0, Precipitação]]
+      reject:
+        - {lines: [[0, Condensação], [0, Evaporação], [0, Precipitação]], feedback: Falta a evaporação primeiro.}
+      content: text
+  - name: normalize reads a string numeric answer as the parser does
+    normalize: true
+    input:
+      type: numeric
+      stem: Quantos estados tem o Brasil?
+      answer: "27"
+    output:
+      type: numeric
+      stem: Quantos estados tem o Brasil?
+      answer: 27
+      domain: integer
+  - name: normalize reads a decimal string as a number
+    normalize: true
+    input:
+      type: numeric
+      stem: Qual é a altura do Pico da Neblina, em km?
+      answer: "2.995"
+    output:
+      type: numeric
+      stem: Qual é a altura do Pico da Neblina, em km?
+      answer: 2.995
+      domain: decimal
+      decimalPlaces: 3
+  - name: normalize keeps a numeric answer string with a significant trailing zero
+    normalize: true
+    input:
+      type: numeric
+      stem: Qual é a massa do Sol, em kg, com três algarismos significativos?
+      answer: "1.50e3"
+    output:
+      type: numeric
+      stem: Qual é a massa do Sol, em kg, com três algarismos significativos?
+      answer: "1.50e3"
+      domain: decimal
+      decimalPlaces: 0
+  - name: normalize reads the string answer of a numeric blank
+    normalize: true
+    input:
+      type: fill-in
+      stem: "A Amazônia tem [^a] estados."
+      blanks:
+        - {id: a, type: numeric, answer: "9"}
+    output:
+      type: fill-in
+      stem: "A Amazônia tem [^a] estados."
+      blanks:
+        - {id: a, answer: 9, domain: integer, type: numeric}
+  - name: normalize writes a string numeric answer with an exponent as the parser reads its rendering
+    normalize: true
+    input:
+      type: numeric
+      stem: Quantos metros tem um quilômetro?
+      answer: "1e3"
+    output:
+      type: numeric
+      stem: Quantos metros tem um quilômetro?
+      answer: "1000.0"
+      domain: decimal
+      decimalPlaces: 1
+  - name: normalize writes a large float numeric answer as the parser reads its rendering
+    normalize: true
+    input:
+      type: numeric
+      stem: Quantos metros tem 1e17 quilômetros?
+      answer: 1.0e+20
+    output:
+      type: numeric
+      stem: Quantos metros tem 1e17 quilômetros?
+      answer: "100000000000000000000.0"
+      domain: decimal
+      decimalPlaces: 1
