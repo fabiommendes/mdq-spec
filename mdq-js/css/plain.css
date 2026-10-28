@@ -106,3 +106,80 @@
 	border: 1px solid currentColor;
 	border-radius: 0.25rem;
 }
+
+.mdq-statement {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 0.5rem;
+	border: 1px solid GrayText;
+	border-radius: 0.25rem;
+}
+
+.mdq-statement[data-key="correct"] {
+	border-width: 2px;
+	border-style: solid;
+}
+
+.mdq-statement[data-key="incorrect"] {
+	border-width: 2px;
+	border-style: dashed;
+}
+
+.mdq-statement-text {
+	flex: 1;
+}
+
+.mdq-toggle-label {
+	font-size: 0.75rem;
+	opacity: 0.6;
+}
+
+.mdq-toggle-label[data-active] {
+	font-weight: bold;
+	opacity: 1;
+}
+
+/* The track of a three-state toggle: the knob sits left (false), centered
+   (unmarked) or right (true). */
+.mdq-toggle {
+	position: relative;
+	flex-shrink: 0;
+	width: 2.5rem;
+	height: 1.25rem;
+	padding: 0;
+	border: 1px solid currentColor;
+	border-radius: 999px;
+	background: transparent;
+	color: inherit;
+	cursor: pointer;
+}
+
+.mdq-toggle::before {
+	content: "";
+	position: absolute;
+	top: 2px;
+	bottom: 2px;
+	left: calc(50% - 0.45rem);
+	width: 0.9rem;
+	border-radius: 50%;
+	background: currentColor;
+}
+
+.mdq-toggle[data-state="false"]::before {
+	left: 2px;
+}
+
+.mdq-toggle[data-state="true"]::before {
+	left: calc(100% - 0.9rem - 2px);
+}
+
+.mdq-toggle:disabled {
+	cursor: default;
+}
+
+.mdq-empty {
+	margin: 0;
+	font-style: italic;
+	opacity: 0.7;
+}

@@ -26,6 +26,14 @@ export interface Messages {
 	incorrect: string;
 	/** Read by a screen reader next to the picked choice of a frozen question. */
 	yourAnswer: string;
+	/** The note of a frozen question the student left empty. */
+	noAnswer: string;
+	/** The label of the true end of a true/false toggle. */
+	trueLabel: string;
+	/** The label of the false end of a true/false toggle. */
+	falseLabel: string;
+	/** Read by a screen reader to explain the three states of a true/false toggle. */
+	trueFalseHint: string;
 }
 
 export const en: Messages = {
@@ -33,6 +41,11 @@ export const en: Messages = {
 	correct: "Correct",
 	incorrect: "Incorrect",
 	yourAnswer: "Your answer",
+	noAnswer: "No answer submitted.",
+	trueLabel: "True",
+	falseLabel: "False",
+	trueFalseHint:
+		"For each statement: checked means true, unchecked means false, mixed means no answer.",
 };
 
 export const ptBR: Messages = {
@@ -40,6 +53,11 @@ export const ptBR: Messages = {
 	correct: "Correta",
 	incorrect: "Incorreta",
 	yourAnswer: "Sua resposta",
+	noAnswer: "Nenhuma resposta enviada.",
+	trueLabel: "Verdadeiro",
+	falseLabel: "Falso",
+	trueFalseHint:
+		"Em cada afirmação: marcado significa verdadeiro, desmarcado significa falso, intermediário significa sem resposta.",
 };
 
 // An accessor, so a provider whose `messages` change updates its subtree.

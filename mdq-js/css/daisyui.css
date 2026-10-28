@@ -81,6 +81,52 @@
 		@apply flex-1;
 	}
 
+	.mdq-statement {
+		@apply flex items-center gap-3 rounded-box border border-base-300 p-3;
+	}
+	.mdq-statement[data-key="correct"] {
+		@apply border-success bg-success/10;
+	}
+	.mdq-statement[data-key="incorrect"] {
+		@apply border-error bg-error/10;
+	}
+
+	.mdq-statement-text {
+		@apply flex-1;
+	}
+
+	.mdq-toggle-label {
+		@apply text-xs font-bold text-base-content/40;
+	}
+	.mdq-toggle-label[data-active] {
+		@apply text-base-content/80;
+	}
+
+	/* daisyUI colors only the checked toggle, so the false state is painted
+	   with currentColor. The unmarked state centers the knob with the grid
+	   that daisyUI uses for :indeterminate, which a DOM property cannot give
+	   to server-rendered markup. */
+	.mdq-toggle {
+		@apply toggle;
+	}
+	.mdq-toggle[data-state="true"] {
+		@apply toggle-success;
+	}
+	.mdq-toggle[data-state="false"] {
+		@apply text-error;
+	}
+	.mdq-toggle[data-state="unmarked"] {
+		grid-template-columns: 0.5fr 1fr 0.5fr;
+	}
+	/* A disabled toggle would dim to 30%, which hides what review shows. */
+	.mdq-toggle:disabled {
+		opacity: 1;
+	}
+
+	.mdq-empty {
+		@apply text-sm italic text-base-content/50;
+	}
+
 	.mdq-mark {
 		@apply inline-flex shrink-0;
 	}

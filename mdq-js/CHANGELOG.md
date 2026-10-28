@@ -19,6 +19,7 @@ the whole shared corpus (`examples/`), as mdq-py does.
 - `correctResponses(question)` gives the responses that score 1, derived from the answer key. A fill-in question gives a record from blank id to the responses of that blank.
 - `mdq/solid`: SolidJS components, first the base ones (`Markdown`, `Score`, `Feedback`, `Mark`). They emit semantic `mdq-*` classes and keep state in `data-*` attributes. Text comes from a `Messages` dictionary (English by default, `ptBR` included), set by the optional `MdqProvider` or by the `messages` prop of each component. The `"solid"` export condition ships JSX for the consumer to compile.
 - `MultipleChoice` in `mdq/solid`: renders a `PublicMultipleChoiceQuestion` in `answer`, `readonly` or `review` mode. In review it marks the choices of `result.correct` and the wrong pick, with text for screen readers, and shows every feedback message of the result.
+- `TrueFalse` in `mdq/solid`: renders a `PublicTrueFalseQuestion` with one three-state toggle per statement (true, false, abstained). In review it marks each judged statement against `result.correct`. An abstained statement has no key in the response.
 - `mdq/css/plain.css` (minimal, functional styles) and `mdq/css/daisyui.css` (daisyUI 5, through the consumer's Tailwind v4 build).
 - `package.json` has an `exports` map: `.`, `./solid` and `./css/*`.
 - `load(source, {format, kind})` returns `{document, diagnostics}` for YAML, JSON or Markdown text, or a mapping. `parse` returns the raw document, `assertValid` throws `InvalidDocumentError` on an error diagnostic.
