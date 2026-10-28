@@ -46,6 +46,12 @@ differs states the reason in its header comment.
 
 Only in TypeScript:
 
+- `src/models/public-form.ts`: `publicForm` and `correctResponses`. Python
+  spreads `public()` and `correct_responses()` over `models/_base.py`,
+  `_choice.py`, `_numeric.py`, `_text.py`, `_fill_in.py` and `_ordering.py`
+  as methods. Here one module dispatches on `type`, like `models/exam.ts`.
+  `public` is a reserved word in strict-mode JavaScript, hence `publicForm`.
+
 - `src/parser/text.ts` and `src/parser/tree.ts`: helpers that markdown-it-py
   provides and markdown-it JS does not.
 - `src/validate.ts`: `validateDocument` and friends. Python validates when
@@ -87,6 +93,8 @@ A Pydantic model is two things in TypeScript:
 | `ShortAnswerQuestion.prevalidate(r)`            | `prevalidate(question, response)` -> `{valid, feedback}` |
 | `Question.normalize()`                          | `normalize(question)` (`src/models/base.ts`, per-type part in `src/models/normalize.ts`; throws `TypeError` for an exam, which has no `normalize` in mdq-py) |
 | `Question.with_ids()`, `Exam.with_ids()`        | `withIds(document)` (`src/models/exam.ts`; choice ids by `withChoiceIds` in `choice.ts`) |
+| `Question.public()`                              | `publicForm(question)` (`src/models/public-form.ts`; types `PublicQuestion`, `PublicMultipleChoiceQuestion`, ...) |
+| `Question.correct_responses()`                  | `correctResponses(question)` (same module)    |
 | `Question.automation`                           | `automation(question)` (`src/models/exam.ts`) |
 | `Exam.resolve(bank)`                            | `resolveExam(exam, bank)`                     |
 | `Exam.grading_for`, `shuffle_for`, `resolve_question` | `gradingFor`, `shuffleFor`, `resolveQuestion` |

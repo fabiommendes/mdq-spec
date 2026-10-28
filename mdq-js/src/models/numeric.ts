@@ -21,10 +21,10 @@ import { type FamilyRules, freeTextDiagnostics, modelError } from "./base.js";
 import { lintDiagnostic } from "./lint-codes.js";
 import type { QuestionScore } from "./score.js";
 
-type NumericAnswer = number | string;
+export type NumericAnswer = number | string;
 
 /** The part of a numeric question and of a numeric blank that is the key. */
-type NumericKey = Pick<
+export type NumericKey = Pick<
 	NumericQuestion,
 	| "answer"
 	| "unit"
@@ -120,7 +120,7 @@ function inferNumericDomain(answer: NumericAnswer): NumericDomain {
 }
 
 /** The declared `domain`, else the wider one inferred from `answer` and the absolute tolerance. */
-function effectiveNumericDomain(
+export function effectiveNumericDomain(
 	answer: NumericAnswer,
 	domain: NumericDomain | undefined,
 	tolerance: Tolerance | undefined,
@@ -321,7 +321,7 @@ export const numericRules: FamilyRules<NumericQuestion> = {
  *
  * @throws {ParseError} `value` is not a valid finite number.
  */
-function numericValue(value: NumericAnswer): Fraction {
+export function numericValue(value: NumericAnswer): Fraction {
 	const [exact] = parseNumericString(
 		typeof value === "number" ? String(value) : value,
 	);
@@ -334,7 +334,7 @@ function numericValue(value: NumericAnswer): Fraction {
  * places written in `answer` and in `tolerance.absolute`. A fraction answer
  * has no places of its own.
  */
-function inferDecimalPlaces(
+export function inferDecimalPlaces(
 	answer: NumericAnswer,
 	tolerance: Tolerance | undefined,
 ): number {
@@ -347,7 +347,7 @@ function inferDecimalPlaces(
 }
 
 /** Round `value` to `places` decimals, half away from zero (exact). */
-function roundHalfUp(value: Fraction, places: number): Fraction {
+export function roundHalfUp(value: Fraction, places: number): Fraction {
 	const scale = new Fraction(10n ** BigInt(places));
 	const rounded = value.abs().mul(scale).add(new Fraction(1n, 2n)).floor();
 	return (value.lt(0) ? rounded.neg() : rounded).div(scale);

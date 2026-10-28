@@ -15,6 +15,8 @@ the whole shared corpus (`examples/`), as mdq-py does.
 
 ### Added
 
+- `publicForm(question)` gives the question as a student may see it, without the answer key, feedback, comments, `author` and `meta` (`docs/public-form.md`). A numeric question gets its effective `domain` and `decimalPlaces`; an ordering question gets a sorted `pool` in place of `lines` and `extra`. A choice without an id throws `MissingIdError`. Types: `PublicQuestion` and one per question type.
+- `correctResponses(question)` gives the responses that score 1, derived from the answer key. A fill-in question gives a record from blank id to the responses of that blank.
 - `mdq/solid`: SolidJS components, first the base ones (`Markdown`, `Score`, `Feedback`, `Mark`). They emit semantic `mdq-*` classes and keep state in `data-*` attributes. Text comes from a `Messages` dictionary (English by default, `ptBR` included), set by the optional `MdqProvider` or by the `messages` prop of each component. The `"solid"` export condition ships JSX for the consumer to compile.
 - `mdq/css/plain.css` (minimal, functional styles) and `mdq/css/daisyui.css` (daisyUI 5, through the consumer's Tailwind v4 build).
 - `package.json` has an `exports` map: `.`, `./solid` and `./css/*`.

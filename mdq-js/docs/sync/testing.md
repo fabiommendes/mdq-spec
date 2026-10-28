@@ -22,6 +22,7 @@ and neither can quietly fall behind the other.
 | `examples/grading/`  | Responses and the scores they must produce: one file per question type, plus `exam.yaml` (exam score, inherited `grading`/`shuffle`), `automation.yaml` and `short-answer-prevalidation.yaml` |
 | `examples/matching/` | Pattern vectors (`exact`, `inexact`, `regex`) and the `includeAll` query language (`query.yaml`) |
 | `examples/normalize.yaml` | Inputs and the document `load` returns for them (nulls, defaults, YAML 1.1 scalars) |
+| `examples/public.yaml` | Questions with their public form and correct responses (`docs/public-form.md`), or the error the public form raises |
 
 Four file shapes appear under `valid/`:
 
@@ -90,6 +91,10 @@ The TypeScript suites consume the corpus at these levels:
    `short-answer-prevalidation.yaml` does the same for pre-validation.
 8. **Ids and normalization.** The `.ids.yaml` files and
    `examples/normalize.yaml` pin `withIds` and `normalize`.
+9. **Public form.** `examples/public.yaml` pins `publicForm` and
+   `correctResponses`. `tests/public-form.spec.ts` also checks, over the
+   valid corpus, that no private key reaches a public form and that each
+   correct response scores 1.
 
 | Layer      | TypeScript suite              | Python test                      |
 | ---------- | ----------------------------- | -------------------------------- |
