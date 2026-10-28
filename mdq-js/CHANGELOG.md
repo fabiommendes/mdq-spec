@@ -21,6 +21,7 @@ the whole shared corpus (`examples/`), as mdq-py does.
 - `MultipleChoice` in `mdq/solid`: renders a `PublicMultipleChoiceQuestion` in `answer`, `readonly` or `review` mode. In review it marks the choices of `result.correct` and the wrong pick, with text for screen readers, and shows every feedback message of the result.
 - `TrueFalse` in `mdq/solid`: renders a `PublicTrueFalseQuestion` with one three-state toggle per statement (true, false, abstained). In review it marks each judged statement against `result.correct`. An abstained statement has no key in the response.
 - `MultipleSelection` in `mdq/solid`: renders a `PublicMultipleSelectionQuestion` with one checkbox per choice. In review it judges each choice by its ticked state against `result.correct`, so a correct choice left unticked is marked wrong.
+- `ShortAnswer` in `mdq/solid`: renders a `PublicShortAnswerQuestion` as one text input. It warns as the student types with `preAccept` and `preReject` (through `prevalidateText`), and in review it marks the verdict and lists the accepted answers. Also `Pending` and the `PendingResult` type for a response that waits for an instructor.
 - `mdq/css/plain.css` (minimal, functional styles) and `mdq/css/daisyui.css` (daisyUI 5, through the consumer's Tailwind v4 build).
 - `package.json` has an `exports` map: `.`, `./solid` and `./css/*`.
 - `load(source, {format, kind})` returns `{document, diagnostics}` for YAML, JSON or Markdown text, or a mapping. `parse` returns the raw document, `assertValid` throws `InvalidDocumentError` on an error diagnostic.

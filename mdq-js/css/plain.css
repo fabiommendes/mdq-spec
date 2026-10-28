@@ -183,3 +183,73 @@
 	font-style: italic;
 	opacity: 0.7;
 }
+
+.mdq-score[data-sign="pending"] {
+	border-style: dotted;
+}
+
+.mdq-input-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+.mdq-input {
+	box-sizing: border-box;
+	width: 100%;
+	max-width: 24rem;
+	padding: 0.375rem 0.5rem;
+	font: inherit;
+}
+
+.mdq-input[aria-invalid="true"] {
+	border-style: dashed;
+}
+
+.mdq-warning {
+	margin: 0;
+	font-size: 0.875rem;
+	font-weight: bold;
+}
+
+.mdq-note {
+	margin: 0;
+	font-size: 0.75rem;
+	opacity: 0.7;
+}
+
+.mdq-answer {
+	margin: 0;
+}
+
+.mdq-answer-text {
+	font-family: monospace;
+	font-weight: bold;
+}
+
+.mdq-accepted {
+	padding: 0.75rem;
+	border: 1px solid GrayText;
+	border-radius: 0.25rem;
+}
+
+.mdq-accepted-title {
+	margin: 0 0 0.5rem;
+	font-size: 0.875rem;
+}
+
+.mdq-accepted-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.mdq-accepted-item {
+	padding: 0 0.5em;
+	border: 1px solid currentColor;
+	border-radius: 0.25em;
+}

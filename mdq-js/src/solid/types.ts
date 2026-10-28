@@ -24,3 +24,24 @@ export function scoreSign(score: number): ScoreSign {
 export interface QuestionResult<R> extends QuestionScore {
 	correct?: readonly R[];
 }
+
+/**
+ * The result of a response that the question does not settle: an essay, a
+ * `manual` short answer, an `unmatched: manual` response. It has no score and
+ * no feedback until an instructor grades it, see `docs/responses.md`
+ * ("Pending"). `correct` is still the key, when the student may see it.
+ */
+export interface PendingResult<R> {
+	readonly pending: true;
+	readonly correct?: readonly R[];
+}
+
+/** What a view of a question that can be graded by hand takes as `result`. */
+export type ReviewResult<R> = QuestionResult<R> | PendingResult<R>;
+
+/** Whether `result` waits for an instructor. */
+export function isPending<R>(
+	result: ReviewResult<R>,
+): result is PendingResult<R> {
+	return "pending" in result && result.pending === true;
+}

@@ -47,6 +47,10 @@
 		@apply badge-neutral badge-ghost;
 	}
 
+	.mdq-score[data-sign="pending"] {
+		@apply badge-warning badge-soft;
+	}
+
 	.mdq-choices {
 		@apply flex flex-col gap-2;
 	}
@@ -128,6 +132,48 @@
 
 	.mdq-empty {
 		@apply text-sm italic text-base-content/50;
+	}
+
+	.mdq-input-row {
+		@apply flex flex-wrap items-center gap-3;
+	}
+
+	.mdq-input {
+		@apply input w-full max-w-sm disabled:text-base-content;
+	}
+	.mdq-input[aria-invalid="true"] {
+		@apply input-warning;
+	}
+
+	.mdq-warning {
+		@apply text-sm text-warning;
+	}
+
+	.mdq-note {
+		@apply text-xs text-base-content/60;
+	}
+
+	.mdq-answer {
+		@apply text-sm;
+	}
+	.mdq-answer-label {
+		@apply text-base-content/60;
+	}
+	.mdq-answer-text {
+		@apply font-mono font-medium;
+	}
+
+	.mdq-accepted {
+		@apply rounded-box border border-info/40 bg-info/5 p-4;
+	}
+	.mdq-accepted-title {
+		@apply mb-2 text-sm font-semibold text-info;
+	}
+	.mdq-accepted-list {
+		@apply flex flex-wrap gap-2;
+	}
+	.mdq-accepted-item {
+		@apply badge badge-outline;
 	}
 
 	.mdq-mark {

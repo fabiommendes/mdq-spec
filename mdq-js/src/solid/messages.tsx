@@ -34,6 +34,16 @@ export interface Messages {
 	falseLabel: string;
 	/** Read by a screen reader to explain the three states of a true/false toggle. */
 	trueFalseHint: string;
+	/** The badge of a response that waits for an instructor. */
+	pending: string;
+	/** The note under a question an instructor grades by hand. */
+	gradedByHand: string;
+	/** The warning for a submission that fails the pre-validation, when its pattern has no feedback. */
+	shortAnswerMismatch: string;
+	/** The label before the text a student wrote, in a frozen question. */
+	yourAnswerLabel: string;
+	/** The title of the list of accepted answers. */
+	acceptedAnswers: (count: number) => string;
 }
 
 export const en: Messages = {
@@ -46,6 +56,13 @@ export const en: Messages = {
 	falseLabel: "False",
 	trueFalseHint:
 		"For each statement: checked means true, unchecked means false, mixed means no answer.",
+	pending: "Awaiting grading",
+	gradedByHand: "An instructor grades this question by hand.",
+	shortAnswerMismatch:
+		"This does not look like the kind of answer this question expects.",
+	yourAnswerLabel: "Your answer:",
+	acceptedAnswers: (count) =>
+		count === 1 ? "Accepted answer" : "Accepted answers",
 };
 
 export const ptBR: Messages = {
@@ -58,6 +75,13 @@ export const ptBR: Messages = {
 	falseLabel: "Falso",
 	trueFalseHint:
 		"Em cada afirmação: marcado significa verdadeiro, desmarcado significa falso, intermediário significa sem resposta.",
+	pending: "Aguardando correção",
+	gradedByHand: "Esta questão é corrigida manualmente.",
+	shortAnswerMismatch:
+		"Isto não parece o tipo de resposta que esta questão espera.",
+	yourAnswerLabel: "Sua resposta:",
+	acceptedAnswers: (count) =>
+		count === 1 ? "Resposta aceita" : "Respostas aceitas",
 };
 
 // An accessor, so a provider whose `messages` change updates its subtree.
