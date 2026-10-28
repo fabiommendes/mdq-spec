@@ -134,7 +134,7 @@ First version of the specification.
 
 ### Added
 
-- `docs/public-form.md`: the public form of a question (the question without its private fields, with the ordering lines as a sorted `pool` and the effective numeric `domain` and `decimalPlaces`) and its correct responses (the responses that score 1). Each question type links to it from a new "Public form" section.
+- `docs/public-form.md`: the public form of a question (the question without its private fields, with the ordering lines as a sorted `pool` and the effective numeric `domain` and `decimalPlaces`, and the effective `unmatched` of a short answer question, an ordering question and each short answer blank) and its correct responses (the responses that score 1). Each question type links to it from a new "Public form" section.
 - Grading corpus `examples/grading/fill-in.yaml`: the rows of the example table for the four strategies, empty blanks, `{}`, malformed responses, pending blanks and the feedback order.
 - Numeric scientific notation, in the form of a JSON number: a `number` is an
   `INTEGER` or `DECIMAL` with an optional `EXPONENT` (`6.022e23`, `1E-3`,

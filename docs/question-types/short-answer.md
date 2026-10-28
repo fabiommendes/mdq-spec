@@ -612,8 +612,9 @@ the same rules for its own `preAccept` and `preReject` lists.
 ## Public form
 
 The [public form](../public-form.md) keeps `preAccept`, `preReject` (without the `comment` of each
-pattern), `diacritics` and `unmatched`, so a client can run the
-[pre-validation](#pre-validation). `accept`, `reject` and `incorrectFeedback`
+pattern), `diacritics` and the effective `unmatched`, so a client can run the
+[pre-validation](#pre-validation) and tell if a response can go to manual
+grading. `accept`, `reject` and `incorrectFeedback`
 are private. The [correct responses](../public-form.md#correct-responses) are the texts of the literal patterns of `accept`.
 
 

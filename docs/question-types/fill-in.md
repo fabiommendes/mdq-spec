@@ -580,8 +580,10 @@ results should be computed with full precision.
 
 ## Public form
 
-The [public form](../public-form.md) keeps `shuffle`, `grading`, `diacritics`, `unmatched` and the blanks,
-each with only the fields a student needs to answer it. Every choice of a
+The [public form](../public-form.md) keeps `shuffle`, `grading`, `diacritics` and the blanks,
+each with only the fields a student needs to answer it. Each short answer
+blank holds its effective `unmatched`, in place of the `unmatched` of the
+question. Every choice of a
 choice blank MUST have an id. The [correct responses](../public-form.md#correct-responses) are a mapping from blank id to the
 correct responses of that blank.
 

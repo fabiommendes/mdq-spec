@@ -118,10 +118,15 @@ same question give the same public form.
 | preAccept         | each pattern without its `comment`               |
 | preReject         | each pattern without its `comment`               |
 | diacritics        | public                                           |
-| unmatched         | public                                           |
+| unmatched         | the effective value, always present              |
 | accept            | private                                          |
 | reject            | private                                          |
 | incorrectFeedback | private                                          |
+
+The effective `unmatched` is the declared value, or else the default, see
+[Grading](question-types/short-answer.md#grading). The default depends on
+`accept`, which is private: without it, a client cannot tell if a response
+that matches no pattern goes to manual grading.
 
 `preAccept` and `preReject` validate a submission before the student sends it,
 see [Pre-validation](question-types/short-answer.md#pre-validation). A pattern
@@ -147,7 +152,7 @@ A client that validates the submission needs it.
 | shuffle           | public                                             |
 | grading           | public                                             |
 | diacritics        | public                                             |
-| unmatched         | public                                             |
+| unmatched         | removed, see the short answer blank below          |
 | blanks            | each blank by the table below, in document order   |
 
 Each blank keeps the fields of its kind in this table. Its other fields are
@@ -157,12 +162,19 @@ private.
 | ------------ | ------------------------------------------------------------------- |
 | choice       | `id`, `type`, `choices` (each with only its `id` and `text`)        |
 | numeric      | `id`, `type`, `unit`, `domain` (effective), `decimalPlaces` (effective) |
-| short answer | `id`, `type`, `preAccept`, `preReject` (each pattern without its `comment`) |
+| short answer | `id`, `type`, `preAccept`, `preReject` (each pattern without its `comment`), `unmatched` (effective) |
 
 The private fields of a blank are `score`, `feedback` and `comment` of a
 choice, `answer`, `tolerance`, `accept`, `reject` and `incorrectFeedback`.
 The effective `domain` and `decimalPlaces` follow the rules of a
 [numeric question](#numeric).
+
+The default of `unmatched` is per blank: it depends on the `accept` of the
+blank, see [Short answer blanks](question-types/fill-in.md#short-answer-blanks).
+So each short answer blank holds its effective `unmatched`, always present:
+the value the question declares, or else the default of the blank. The
+question-level `unmatched` is resolved into the blanks and is not in the
+public form. A choice blank and a numeric blank have no `unmatched`.
 
 ### Ordering
 
@@ -171,7 +183,7 @@ The effective `domain` and `decimalPlaces` follow the rules of a
 | content           | public                                           |
 | highlight         | public                                           |
 | indentation       | public                                           |
-| unmatched         | public                                           |
+| unmatched         | the effective value, always present              |
 | normalizations    | public                                           |
 | pool              | derived, see [Pool](#pool)                       |
 | lines             | private                                          |
@@ -179,6 +191,9 @@ The effective `domain` and `decimalPlaces` follow the rules of a
 | accept            | private                                          |
 | reject            | private                                          |
 | incorrectFeedback | private                                          |
+
+The effective `unmatched` is the declared value, or else `incorrect`, as in a
+short answer question.
 
 #### Pool
 
@@ -333,6 +348,7 @@ stem: Sort the lines to print the first terms of the Fibonacci sequence.
 content: code
 highlight: python
 indentation: lenient
+unmatched: incorrect
 pool:
   - [0, "for _ in range(10):"]
   - [0, "print(x)"]

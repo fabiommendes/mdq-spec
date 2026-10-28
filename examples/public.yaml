@@ -258,6 +258,7 @@ cases:
       preReject:
         - "/\\d/"
         - "/^.$/"
+      unmatched: incorrect
     correctResponses: [Maceió, MCZ]
 
   - name: short answer with only regex accepts has no correct response
@@ -269,6 +270,19 @@ cases:
     public:
       type: short-answer
       stem: Escreva o ano da Independência do Brasil.
+      unmatched: manual
+    correctResponses: []
+
+  - name: short answer with only reject patterns goes to manual grading
+    question:
+      type: short-answer
+      stem: Cite um bioma brasileiro além da Amazônia.
+      reject:
+        - pattern: Amazônia
+          feedback: A questão pede outro bioma.
+    public:
+      type: short-answer
+      stem: Cite um bioma brasileiro além da Amazônia.
       unmatched: manual
     correctResponses: []
 
@@ -337,6 +351,7 @@ cases:
           preAccept:
             - pattern: "/^[a-zà-ú]+$/i"
               feedback: Uma palavra só.
+          unmatched: incorrect
         - id: km
           type: numeric
           unit: km
@@ -365,14 +380,34 @@ cases:
           accept: ["/s[aã]o paulo/i"]
     public:
       type: fill-in
-      unmatched: manual
       stem: A Semana de Arte Moderna aconteceu em [^ano] na cidade de [^cidade].
       blanks:
         - { id: ano, type: numeric, domain: integer }
-        - { id: cidade, type: short-answer }
+        - { id: cidade, type: short-answer, unmatched: manual }
     correctResponses:
       ano: [1922]
       cidade: []
+
+  - name: fill-in short answer blank without accept goes to manual grading
+    question:
+      type: fill-in
+      stem: Tarsila do Amaral pintou o [^quadro] em 1928, inspirada pelo [^movimento].
+      blanks:
+        - id: quadro
+          type: short-answer
+          accept: [Abaporu]
+        - id: movimento
+          type: short-answer
+          reject: [Barroco]
+    public:
+      type: fill-in
+      stem: Tarsila do Amaral pintou o [^quadro] em 1928, inspirada pelo [^movimento].
+      blanks:
+        - { id: quadro, type: short-answer, unmatched: incorrect }
+        - { id: movimento, type: short-answer, unmatched: manual }
+    correctResponses:
+      quadro: [Abaporu]
+      movimento: []
 
   - name: fill-in choice blank with a choice without id is not addressable
     question:
@@ -408,6 +443,7 @@ cases:
       type: ordering
       content: text
       stem: Ordene os períodos da história do Brasil.
+      unmatched: incorrect
       pool:
         - [1, Ciclo do açúcar]
         - [1, Ciclo do ouro]
@@ -447,6 +483,7 @@ cases:
       highlight: python
       indentation: lenient
       stem: Ordene as linhas para somar a população das capitais.
+      unmatched: incorrect
       pool:
         - [0, "for capital in capitais:"]
         - [0, "print(total)"]
