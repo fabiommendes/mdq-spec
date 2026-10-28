@@ -189,7 +189,10 @@ export type FillInQuestion = z.infer<typeof FillInQuestion>;
 export const OrderingLine = z
 	.tuple([
 		z.number().int().min(0),
-		z.string().regex(ORDERING_LINE_TEXT_PATTERN),
+		z
+			.string()
+			.regex(ORDERING_LINE_TEXT_PATTERN)
+			.meta({ examples: ["Descobrimento do Brasil", "def fib(n):", ""] }),
 	])
 	// `if` the text is empty `then` the level is 0: only a blank line of a
 	// code block is empty, and a blank line has no indentation.

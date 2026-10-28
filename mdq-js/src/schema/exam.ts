@@ -100,8 +100,22 @@ export const Exam = z.strictObject({
 	grading: ExamGradingType.optional(),
 	shuffle: z.boolean().optional(),
 	penalty: PenaltyPolicy.optional(),
-	start: z.string().regex(START_PATTERN).optional(),
-	duration: z.string().regex(DURATION_PATTERN).optional(),
+	start: z
+		.string()
+		.regex(START_PATTERN)
+		.meta({
+			examples: [
+				"2026-03-10",
+				"2026-03-10T09:00:00",
+				"2026-03-10T09:00:00-03:00",
+			],
+		})
+		.optional(),
+	duration: z
+		.string()
+		.regex(DURATION_PATTERN)
+		.meta({ examples: ["PT1H30M", "P1DT2H"] })
+		.optional(),
 	questions: z.array(ExamEntry),
 });
 export type Exam = z.infer<typeof Exam>;

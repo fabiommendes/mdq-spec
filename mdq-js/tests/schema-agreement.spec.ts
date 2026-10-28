@@ -62,6 +62,7 @@ import {
 	OrderingQuestion,
 	Pattern,
 	PenaltyPolicy,
+	Question,
 	QuestionType,
 	questionBaseShape,
 	ScoredChoice,
@@ -697,4 +698,47 @@ describe("zod-json-schema agreement", () => {
 			).toBe(false);
 		});
 	});
+});
+
+/** Every `pattern` node of a converted schema, with its JSON path. */
+function patternNodes(
+	node: unknown,
+	path: string,
+	found: [string, JsonNode][] = [],
+): [string, JsonNode][] {
+	if (Array.isArray(node)) {
+		node.forEach((child, index) => {
+			patternNodes(child, `${path}/${index}`, found);
+		});
+	} else if (node !== null && typeof node === "object") {
+		const object = node as JsonNode;
+		if (typeof object.pattern === "string") found.push([path, object]);
+		for (const [key, child] of Object.entries(object)) {
+			patternNodes(child, `${path}/${key}`, found);
+		}
+	}
+	return found;
+}
+
+describe("pattern examples", () => {
+	// A consumer that generates OpenAPI from these schemas needs an example on
+	// every patterned string; schema/*.yaml declares them (spec_audit checks
+	// that they match), and the Zod schemas mirror them with `.meta()`.
+	const schemas: [string, z.ZodType][] = [
+		["Question", Question as z.ZodType],
+		["Exam", Exam],
+	];
+	for (const [name, schema] of schemas) {
+		const json = z.toJSONSchema(schema, { unrepresentable: "any" });
+		for (const [path, node] of patternNodes(json, name)) {
+			it(`${path} has examples that match its pattern`, () => {
+				const examples = node.examples as unknown[] | undefined;
+				expect(examples?.length ?? 0).toBeGreaterThan(0);
+				const pattern = new RegExp(node.pattern as string, "u");
+				for (const example of examples ?? []) {
+					expect(example).toMatch(pattern);
+				}
+			});
+		}
+	}
 });

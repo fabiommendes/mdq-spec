@@ -55,7 +55,10 @@ export const PATTERN_STRING_PATTERN =
 export const ORDERING_LINE_TEXT_PATTERN =
 	/^(?:[^ \t\r\n](?:[^\r\n]*[^ \t\r\n])?)?$/;
 
-export const Slug = z.string().regex(SLUG_PATTERN);
+export const Slug = z
+	.string()
+	.regex(SLUG_PATTERN)
+	.meta({ examples: ["berlin", "red-green-and-blue"] });
 
 /**
  * The id of a question or an exam, and the target of an `include`. Any
@@ -63,7 +66,16 @@ export const Slug = z.string().regex(SLUG_PATTERN);
  * (`unsafe-id`), but the schema accepts them. Choice and blank ids stay slugs.
  */
 export const DocumentId = z.string().min(1);
-export const Uuid = z.string().regex(UUID_PATTERN);
+export const Uuid = z
+	.string()
+	.regex(UUID_PATTERN)
+	.meta({
+		examples: [
+			"123e4567-e89b-12d3-a456-426614174000",
+			"550e8400-e29b-41d4-a716-446655440000",
+			"f47ac10b-58cc-4372-a567-0e02b2c3d479",
+		],
+	});
 
 /**
  * Structural equality per JSON Schema's own equality rule: same type,
@@ -345,7 +357,11 @@ export type Tolerance = z.infer<typeof Tolerance>;
  * A regular expression when delimited by `/`, an exact literal when enclosed
  * in backticks, and a plain literal compared inexactly otherwise.
  */
-export const PatternString = z.string().min(1).regex(PATTERN_STRING_PATTERN);
+export const PatternString = z
+	.string()
+	.min(1)
+	.regex(PATTERN_STRING_PATTERN)
+	.meta({ examples: ["Brasília", "`H2O`", "/rio s[aã]o francisco/i"] });
 
 /** The object form of a pattern -- `schema/short-answer.yaml#/$defs/pattern`. */
 export const Pattern = z.strictObject({
@@ -388,9 +404,16 @@ export const shortAnswerKeyShape = {
 export const numericAnswerShape = {
 	answer: z.union([
 		z.number(),
-		z.string().regex(NUMERIC_STRING_ANSWER_PATTERN),
+		z
+			.string()
+			.regex(NUMERIC_STRING_ANSWER_PATTERN)
+			.meta({ examples: ["1/3", "2.50", "6.022e23"] }),
 	]),
-	unit: z.string().regex(UNIT_PATTERN).optional(),
+	unit: z
+		.string()
+		.regex(UNIT_PATTERN)
+		.meta({ examples: ["m/s", "km", "°C"] })
+		.optional(),
 	domain: NumericDomain.optional(),
 	decimalPlaces: z.number().int().min(0).optional(),
 	tolerance: Tolerance.optional(),
