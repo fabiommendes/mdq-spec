@@ -567,7 +567,11 @@ The initial presentation of the lines depends on `indentation`:
 * `"fixed"`: each line is shown at its authored level.
 * `"lenient"` and `"strict"`: every line is shown at level 0, because the
   authored level would give away part of the answer. The student sets the
-  levels.
+  levels. The [public form](../public-form.md#max-level) gives a `maxLevel`: a
+  host MAY stop the student from setting a deeper level. This does not
+  change [Response](#response) or [Grading](#grading): a response line deeper
+  than `maxLevel` does not make the response malformed. Under `"strict"` that
+  response matches no declared answer.
 
 
 ## Normalizations
@@ -715,7 +719,8 @@ answer: under `unmatched: incorrect` (the default) it scores 0, and under
 
 The [public form](../public-form.md) replaces `lines` and `extra` with a `pool`: every line the student
 sorts, at level 0 under `lenient` and `strict`, in a fixed order that does not
-give away the answer. `accept`, `reject` and `incorrectFeedback` are private.
+give away the answer. Under `lenient` and `strict` it adds `maxLevel`, the
+deepest level the student may set. `accept`, `reject` and `incorrectFeedback` are private.
 The [correct responses](../public-form.md#correct-responses) are the `[ordering]` block and each `## [accept]` section.
 
 

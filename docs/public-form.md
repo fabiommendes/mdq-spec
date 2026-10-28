@@ -186,6 +186,7 @@ public form. A choice blank and a numeric blank have no `unmatched`.
 | unmatched         | the effective value, always present              |
 | normalizations    | public                                           |
 | pool              | derived, see [Pool](#pool)                       |
+| maxLevel          | derived, see [Max level](#max-level)             |
 | lines             | private                                          |
 | extra             | private                                          |
 | accept            | private                                          |
@@ -220,6 +221,30 @@ The text is compared by code points, not by the rules of a locale and not by
 UTF-16 code units. The order only makes the public form deterministic, and
 it does not depend on the answer. A host MUST still shuffle the pool before it
 shows it to the student, see [Ordering](question-types/ordering.md).
+
+#### Max level
+
+`maxLevel` is the highest indentation level that the student may set. It is
+present under `lenient` and `strict`, and absent under `fixed`, because then
+the student cannot change the levels.
+
+| Rule  | Max level                                                                                 |
+| ----- | ----------------------------------------------------------------------------------------- |
+| Lines | Every line of `[ordering]`, `## [extra]`, each `## [accept]` and each `## [reject]`.      |
+| Level | The authored level, before normalization.                                                 |
+| Value | The highest level of these lines, plus 1.                                                 |
+
+A `## [reject]` section can hold a deeper line to give feedback to an
+over-indentation, so every declared line counts. The +1 lets the student make
+a plausible over-indentation mistake, and does not show the exact depth of
+the answer.
+
+`maxLevel` is a presentation limit only. A host MAY stop the student from
+setting a deeper level. It does not change the validity or the grading of a
+response: a response line deeper than `maxLevel` does not make the response
+malformed, and the response is graded as usual. Under `strict` that response
+matches no declared answer. Under `lenient` the levels are ignored when
+grading.
 
 
 ## Correct responses
@@ -349,6 +374,7 @@ content: code
 highlight: python
 indentation: lenient
 unmatched: incorrect
+maxLevel: 2
 pool:
   - [0, "for _ in range(10):"]
   - [0, "print(x)"]

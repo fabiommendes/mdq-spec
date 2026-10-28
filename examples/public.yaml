@@ -484,6 +484,7 @@ cases:
       indentation: lenient
       stem: Ordene as linhas para somar a população das capitais.
       unmatched: incorrect
+      maxLevel: 2
       pool:
         - [0, "for capital in capitais:"]
         - [0, "print(total)"]
@@ -513,9 +514,39 @@ cases:
       normalizations: [skip-blanks]
       unmatched: manual
       stem: Ordene os comandos para listar os arquivos do projeto Sirius.
+      maxLevel: 1
       pool:
         - [0, ""]
         - [0, "cd sirius"]
         - [0, "ls -la"]
     correctResponses:
       - [[0, "cd sirius"], [0, ""], [0, "ls -la"]]
+
+  - name: ordering maxLevel counts the levels of the reject sections
+    question:
+      type: ordering
+      content: code
+      highlight: python
+      indentation: strict
+      stem: Ordene as linhas para listar os biomas do Brasil.
+      lines:
+        - [0, "for bioma in biomas:"]
+        - [1, "print(bioma)"]
+      reject:
+        - lines:
+            - [0, "for bioma in biomas:"]
+            - [3, "print(bioma)"]
+          feedback: Um nível de recuo basta dentro do laço.
+    public:
+      type: ordering
+      content: code
+      highlight: python
+      indentation: strict
+      stem: Ordene as linhas para listar os biomas do Brasil.
+      unmatched: incorrect
+      maxLevel: 4
+      pool:
+        - [0, "for bioma in biomas:"]
+        - [0, "print(bioma)"]
+    correctResponses:
+      - [[0, "for bioma in biomas:"], [1, "print(bioma)"]]
