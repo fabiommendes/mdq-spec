@@ -31,9 +31,11 @@ import type {
 	ShortAnswerBlank,
 	ShortAnswerQuestion,
 	TrueFalseQuestion,
+	Unmatched,
 } from "../schema/index.js";
 import { effectiveGrading } from "./base.js";
 import { unspecifiedChoiceScore } from "./choice.js";
+import { blankEffectiveUnmatched } from "./fill-in.js";
 import {
 	effectiveNumericDomain,
 	inferDecimalPlaces,
@@ -42,7 +44,7 @@ import {
 	numericValue,
 	roundHalfUp,
 } from "./numeric.js";
-import { matches, patternKind } from "./text.js";
+import { effectiveUnmatched, matches, patternKind } from "./text.js";
 
 /** The fields every public form copies as they are. */
 type PublicBase<Q extends Question> = Pick<
@@ -98,9 +100,13 @@ type PublicPatternKey = {
 	preReject?: PublicPattern[];
 };
 
+/**
+ * `unmatched` is the effective value, always present: its default depends on
+ * `accept`, which is private.
+ */
 export type PublicShortAnswerQuestion = PublicBase<ShortAnswerQuestion> &
-	Pick<ShortAnswerQuestion, "diacritics" | "unmatched"> &
-	PublicPatternKey;
+	Pick<ShortAnswerQuestion, "diacritics"> &
+	PublicPatternKey & { unmatched: Unmatched };
 
 export type PublicEssayQuestion = PublicBase<EssayQuestion> &
 	Pick<EssayQuestion, "content" | "highlight">;
@@ -108,8 +114,9 @@ export type PublicEssayQuestion = PublicBase<EssayQuestion> &
 export type PublicChoiceBlank = Pick<ChoiceBlank, "id" | "type"> & {
 	choices: PublicChoice[];
 };
+/** `unmatched` is the effective value of the blank, as in a short answer question. */
 export type PublicShortAnswerBlank = Pick<ShortAnswerBlank, "id" | "type"> &
-	PublicPatternKey;
+	PublicPatternKey & { unmatched: Unmatched };
 export type PublicNumericBlank = Pick<NumericBlank, "id" | "type"> &
 	PublicNumericKey;
 export type PublicBlank =
@@ -118,15 +125,18 @@ export type PublicBlank =
 	| PublicNumericBlank;
 
 export type PublicFillInQuestion = PublicBase<FillInQuestion> &
-	Pick<FillInQuestion, "shuffle" | "grading" | "diacritics" | "unmatched"> & {
+	Pick<FillInQuestion, "shuffle" | "grading" | "diacritics"> & {
+		/** The question `unmatched` is not copied: each short answer blank holds its own. */
 		blanks: PublicBlank[];
 	};
 
 export type PublicOrderingQuestion = PublicBase<OrderingQuestion> &
 	Pick<
 		OrderingQuestion,
-		"content" | "highlight" | "indentation" | "unmatched" | "normalizations"
+		"content" | "highlight" | "indentation" | "normalizations"
 	> & {
+		/** The effective value, always present. */
+		unmatched: NonNullable<OrderingQuestion["unmatched"]>;
 		/** The `lines` and the `extra` lines, sorted, with the levels the student may see. */
 		pool: OrderingLine[];
 	};
@@ -336,7 +346,10 @@ function orderingPool(question: OrderingQuestion): OrderingLine[] {
 		.sort((a, b) => compareCodePoints(a[1], b[1]) || a[0] - b[0]);
 }
 
-function publicBlank(blank: Blank): PublicBlank {
+function publicBlank(
+	blank: Blank,
+	unmatched: Unmatched | undefined,
+): PublicBlank {
 	switch (blank.type) {
 		case "multiple-choice":
 			return {
@@ -347,7 +360,12 @@ function publicBlank(blank: Blank): PublicBlank {
 		case "numeric":
 			return { id: blank.id, type: blank.type, ...publicNumericKey(blank) };
 		case "short-answer":
-			return { id: blank.id, type: blank.type, ...publicPatternKey(blank) };
+			return {
+				id: blank.id,
+				type: blank.type,
+				...publicPatternKey(blank),
+				unmatched: blankEffectiveUnmatched(blank, unmatched),
+			};
 	}
 }
 
@@ -396,8 +414,9 @@ export function publicForm(question: Question): PublicQuestion {
 		case "short-answer":
 			return {
 				...base,
-				...copy(question, ["diacritics", "unmatched"]),
+				...copy(question, ["diacritics"]),
 				...publicPatternKey(question),
+				unmatched: effectiveUnmatched(question),
 			} as PublicQuestion;
 		case "essay":
 			return {
@@ -407,8 +426,10 @@ export function publicForm(question: Question): PublicQuestion {
 		case "fill-in":
 			return {
 				...base,
-				...copy(question, ["shuffle", "grading", "diacritics", "unmatched"]),
-				blanks: question.blanks.map(publicBlank),
+				...copy(question, ["shuffle", "grading", "diacritics"]),
+				blanks: question.blanks.map((blank) =>
+					publicBlank(blank, question.unmatched),
+				),
 			} as PublicQuestion;
 		case "ordering":
 			return {
@@ -417,9 +438,9 @@ export function publicForm(question: Question): PublicQuestion {
 					"content",
 					"highlight",
 					"indentation",
-					"unmatched",
 					"normalizations",
 				]),
+				unmatched: question.unmatched ?? "incorrect",
 				pool: orderingPool(question),
 			} as PublicQuestion;
 	}
