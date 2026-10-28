@@ -284,6 +284,36 @@
 		@apply text-base-content/50;
 	}
 
+	.mdq-ordering-list {
+		@apply flex flex-col gap-2;
+	}
+	.mdq-panel .mdq-ordering-list + .mdq-ordering-list {
+		@apply mt-3 border-t border-dashed border-base-300 pt-3;
+	}
+	.mdq-panel[data-tone="unused"] {
+		@apply border-dashed;
+	}
+	.mdq-ordering-line {
+		@apply flex items-center gap-3 rounded-box border border-base-300 bg-base-100 p-2;
+	}
+	/* The level comes from the component as a custom property. */
+	.mdq-ordering-body {
+		@apply min-w-0 flex-1;
+		margin-left: calc(var(--mdq-level, 0) * 1.5rem);
+	}
+	.mdq-ordering-code {
+		@apply whitespace-pre font-mono text-sm;
+	}
+	.mdq-ordering-controls {
+		@apply flex shrink-0 gap-1;
+	}
+	.mdq-ordering-button {
+		@apply btn btn-ghost btn-sm btn-square;
+	}
+	.mdq-ordering-button[aria-disabled="true"] {
+		@apply cursor-default opacity-40;
+	}
+
 	.mdq-unsupported {
 		@apply alert alert-warning;
 	}

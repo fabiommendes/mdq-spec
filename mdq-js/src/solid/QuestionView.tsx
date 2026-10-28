@@ -9,6 +9,7 @@ import {
 } from "./MultipleSelection.jsx";
 import { type Messages, useMessages } from "./messages.jsx";
 import { Numeric, type NumericProps } from "./Numeric.jsx";
+import { Ordering, type OrderingProps } from "./Ordering.jsx";
 import { ShortAnswer, type ShortAnswerProps } from "./ShortAnswer.jsx";
 import { TrueFalse, type TrueFalseProps } from "./TrueFalse.jsx";
 
@@ -25,9 +26,10 @@ export type QuestionViewProps =
 	| ShortAnswerProps
 	| EssayProps
 	| FillInProps
+	| OrderingProps
 	| UnsupportedProps;
 
-/** An ordering question, or a type this version does not know. */
+/** A type this version does not know, such as one from a newer server. */
 export interface UnsupportedProps {
 	question: Exclude<
 		PublicQuestion,
@@ -39,7 +41,8 @@ export interface UnsupportedProps {
 				| "numeric"
 				| "short-answer"
 				| "essay"
-				| "fill-in";
+				| "fill-in"
+				| "ordering";
 		}
 	>;
 	messages?: Partial<Messages>;
@@ -48,8 +51,7 @@ export interface UnsupportedProps {
 /**
  * Renders a question with the component of its `type`.
  *
- * An ordering question has no component yet, and neither has a type this
- * version does not know (a payload from a newer server): both get a
+ * A type this version does not know (a payload from a newer server) gets a
  * `.mdq-question[data-type]` holding a `.mdq-unsupported` note, rather than a
  * blank space.
  */
@@ -87,6 +89,9 @@ export function QuestionView(props: QuestionViewProps): JSX.Element {
 			</Match>
 			<Match when={type() === "fill-in"}>
 				<FillIn {...(props as FillInProps)} />
+			</Match>
+			<Match when={type() === "ordering"}>
+				<Ordering {...(props as OrderingProps)} />
 			</Match>
 		</Switch>
 	);

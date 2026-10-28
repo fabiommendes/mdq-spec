@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import type { PublicOrderingQuestion, PublicQuestion } from "@mdq/index.js";
-import { ptBR, QuestionView } from "@mdq/solid/index.js";
+import { QuestionView } from "@mdq/solid/index.js";
 import { fireEvent, render, screen } from "@solidjs/testing-library";
 
 const questions: PublicQuestion[] = [
@@ -37,6 +37,16 @@ const questions: PublicQuestion[] = [
 		stem: "fi [^x]",
 		blanks: [{ id: "x", type: "short-answer" }],
 	},
+	{
+		type: "ordering",
+		stem: "or",
+		content: "text",
+		unmatched: "incorrect",
+		pool: [
+			[0, "A"],
+			[0, "B"],
+		],
+	},
 ];
 
 describe("QuestionView", () => {
@@ -59,20 +69,6 @@ describe("QuestionView", () => {
 		));
 		fireEvent.click(screen.getAllByRole("radio")[1] as HTMLElement);
 		expect(seen).toEqual(["b"]);
-	});
-
-	it("shows a note for an ordering question", () => {
-		const ordering: PublicOrderingQuestion = {
-			type: "ordering",
-			stem: "Sort.",
-			pool: [[0, "a"]],
-		};
-		const { container } = render(() => (
-			<QuestionView question={ordering} messages={ptBR} />
-		));
-		expect(container.querySelector(".mdq-unsupported")?.textContent).toBe(
-			'Questões do tipo "ordering" ainda não podem ser exibidas.',
-		);
 	});
 
 	it("shows a note for a type it does not know", () => {

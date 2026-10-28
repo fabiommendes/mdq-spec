@@ -19,6 +19,7 @@ export * from "./MultipleSelection.jsx";
 export * from "./messages.jsx";
 export * from "./Numeric.jsx";
 export * from "./NumericInput.jsx";
+export * from "./Ordering.jsx";
 export * from "./Pending.jsx";
 export * from "./QuestionView.jsx";
 export * from "./render-markdown.js";

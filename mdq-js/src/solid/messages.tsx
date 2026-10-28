@@ -66,6 +66,36 @@ export interface Messages {
 	noBlankKey: string;
 	/** Shown in place of a question whose type the components do not render. */
 	notSupported: (type: string) => string;
+	/** The title of the lines an ordering answer leaves out. */
+	orderingUnused: string;
+	/** The note of an ordering answer that holds no line yet. */
+	orderingEmpty: string;
+	/** The title of the accepted orderings, in review. */
+	orderingCorrect: (count: number) => string;
+	/** Stands for a blank line, which has no text. */
+	orderingBlankLine: string;
+	/** Read by a screen reader before a line that is indented. */
+	orderingLevel: (level: number) => string;
+	/** The name of the button that moves a line up. `text` is the line. */
+	orderingMoveUp: (text: string) => string;
+	/** The name of the button that moves a line down. */
+	orderingMoveDown: (text: string) => string;
+	/** The name of the button that indents a line. */
+	orderingIndent: (text: string) => string;
+	/** The name of the button that outdents a line. */
+	orderingOutdent: (text: string) => string;
+	/** The name of the button that leaves a line out of the answer. */
+	orderingRemove: (text: string) => string;
+	/** The name of the button that puts a left out line in the answer. */
+	orderingAdd: (text: string) => string;
+	/** Announced after a line moves. `position` counts from 1. */
+	orderingMoved: (text: string, position: number, total: number) => string;
+	/** Announced after a line changes its indentation level. */
+	orderingLevelSet: (text: string, level: number) => string;
+	/** Announced after a line leaves the answer. */
+	orderingRemoved: (text: string) => string;
+	/** Announced after a line joins the answer, at the end. */
+	orderingAdded: (text: string, position: number, total: number) => string;
 }
 
 export const en: Messages = {
@@ -96,6 +126,25 @@ export const en: Messages = {
 	expected: "Expected",
 	noBlankKey: "Nothing to show for this blank",
 	notSupported: (type) => `Questions of type "${type}" cannot be shown yet.`,
+	orderingUnused: "Not used",
+	orderingEmpty: "No lines in your answer yet.",
+	orderingCorrect: (count) =>
+		count === 1 ? "Correct order" : "Correct orders",
+	orderingBlankLine: "(blank line)",
+	orderingLevel: (level) => `Indentation level ${level}.`,
+	orderingMoveUp: (text) => `Move up: ${text}`,
+	orderingMoveDown: (text) => `Move down: ${text}`,
+	orderingIndent: (text) => `Indent: ${text}`,
+	orderingOutdent: (text) => `Outdent: ${text}`,
+	orderingRemove: (text) => `Leave out: ${text}`,
+	orderingAdd: (text) => `Use: ${text}`,
+	orderingMoved: (text, position, total) =>
+		`${text} moved to position ${position} of ${total}.`,
+	orderingLevelSet: (text, level) =>
+		`${text} is at indentation level ${level}.`,
+	orderingRemoved: (text) => `${text} left out of the answer.`,
+	orderingAdded: (text, position, total) =>
+		`${text} added at position ${position} of ${total}.`,
 };
 
 export const ptBR: Messages = {
@@ -127,6 +176,25 @@ export const ptBR: Messages = {
 	noBlankKey: "Não exibido para esta lacuna",
 	notSupported: (type) =>
 		`Questões do tipo "${type}" ainda não podem ser exibidas.`,
+	orderingUnused: "Não usadas",
+	orderingEmpty: "Nenhuma linha na sua resposta ainda.",
+	orderingCorrect: (count) =>
+		count === 1 ? "Ordem correta" : "Ordens corretas",
+	orderingBlankLine: "(linha em branco)",
+	orderingLevel: (level) => `Nível de indentação ${level}.`,
+	orderingMoveUp: (text) => `Mover para cima: ${text}`,
+	orderingMoveDown: (text) => `Mover para baixo: ${text}`,
+	orderingIndent: (text) => `Indentar: ${text}`,
+	orderingOutdent: (text) => `Recuar: ${text}`,
+	orderingRemove: (text) => `Deixar de fora: ${text}`,
+	orderingAdd: (text) => `Usar: ${text}`,
+	orderingMoved: (text, position, total) =>
+		`${text} movida para a posição ${position} de ${total}.`,
+	orderingLevelSet: (text, level) =>
+		`${text} está no nível de indentação ${level}.`,
+	orderingRemoved: (text) => `${text} deixada de fora da resposta.`,
+	orderingAdded: (text, position, total) =>
+		`${text} adicionada na posição ${position} de ${total}.`,
 };
 
 // An accessor, so a provider whose `messages` change updates its subtree.

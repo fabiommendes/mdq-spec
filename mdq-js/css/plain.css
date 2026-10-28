@@ -435,3 +435,70 @@
 	border: 1px dashed currentColor;
 	border-radius: 0.25rem;
 }
+
+.mdq-ordering-list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.mdq-panel .mdq-ordering-list + .mdq-ordering-list {
+	margin-top: 0.75rem;
+	padding-top: 0.75rem;
+	border-top: 1px dashed GrayText;
+}
+
+.mdq-panel[data-tone="unused"] {
+	border-style: dotted;
+}
+
+.mdq-ordering-line {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 0.5rem;
+	border: 1px solid GrayText;
+	border-radius: 0.25rem;
+}
+
+/* The level comes from the component as a custom property. */
+.mdq-ordering-body {
+	flex: 1;
+	min-width: 0;
+	margin-left: calc(var(--mdq-level, 0) * 1.5rem);
+}
+
+.mdq-ordering-code {
+	font-family: monospace;
+	white-space: pre;
+}
+
+.mdq-ordering-controls {
+	display: flex;
+	flex-shrink: 0;
+	gap: 0.25rem;
+}
+
+.mdq-ordering-button {
+	min-width: 2rem;
+	min-height: 2rem;
+	border: 1px solid currentColor;
+	border-radius: 0.25rem;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	cursor: pointer;
+}
+
+.mdq-ordering-button:focus-visible {
+	outline: 2px solid currentColor;
+	outline-offset: 2px;
+}
+
+.mdq-ordering-button[aria-disabled="true"] {
+	cursor: default;
+	opacity: 0.4;
+}
