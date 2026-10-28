@@ -23,6 +23,7 @@ import {
 	checkUnsafeThematicBreak,
 	checkUuidVersionAndVariant,
 } from "./lint.js";
+import { normalizeByType } from "./normalize.js";
 
 /**
  * A rule of a family: `fields` are the checks of single fields (all of them
@@ -387,6 +388,7 @@ export function normalize<T extends MdqDocument>(document: T): T {
 		else delete copy.tags;
 	}
 	if (question.author !== undefined) copy.author = strip(question.author);
+	normalizeByType(question, copy);
 	return copy as T;
 }
 

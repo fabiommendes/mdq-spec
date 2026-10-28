@@ -24,9 +24,9 @@
  */
 
 import { type Diagnostic, diagnostic } from "../diagnostics.js";
-import { MissingFieldError, ParseError } from "../errors.js";
+import { MdqError, MissingFieldError, ParseError } from "../errors.js";
 import { SLUG_BODY_RE } from "../markdown.js";
-import type { Question } from "../schema/questions.js";
+import { QUESTION_TYPES, type Question } from "../schema/questions.js";
 import { validateQuestion } from "../validate.js";
 import {
 	BlockCursor,
@@ -45,6 +45,8 @@ import {
 } from "./choices.js";
 import { parseFillInBody } from "./fill-in.js";
 import {
+	anyQuestionFrontmatterField,
+	article,
 	commonFrontmatter,
 	extractComment,
 	GRADED_QUESTION_TYPES,
@@ -112,7 +114,19 @@ export function parseQuestionDocument(
 	warnings?: Diagnostic[],
 ): RawDocument {
 	const parser = new MDQParser(source);
-	const doc = parser.parseQuestion();
+	let doc: RawDocument;
+	try {
+		doc = parser.parseQuestion();
+	} catch (error) {
+		// The frontmatter errors do not depend on the body: report them along
+		// with the error that stops the parse.
+		if (error instanceof MdqError) {
+			warnings?.push(
+				...frontmatterErrorsWithoutBody(parser.frontmatter, parser.bodyType),
+			);
+		}
+		throw error;
+	}
 	warnings?.push(
 		...invalidFrontmatterFields(
 			parser.frontmatter,
@@ -137,6 +151,75 @@ export function parseQuestion(source: string): Question {
 		);
 	}
 	return result.data;
+}
+
+/**
+ * The `invalid-frontmatter-field` errors of a question whose body did not
+ * parse. The declared `type` decides the allowed keys, else the type the body
+ * implies. If neither is a question type, a key is an error only when no
+ * question type allows it.
+ */
+function frontmatterErrorsWithoutBody(
+	front: Readonly<Record<string, unknown>>,
+	bodyType: string | undefined,
+): Diagnostic[] {
+	for (const type of [front.type, bodyType]) {
+		if (typeof type === "string" && QUESTION_TYPES.has(type as never)) {
+			return invalidFrontmatterFields(front, type);
+		}
+	}
+	return Object.keys(front)
+		.filter((key) => !anyQuestionFrontmatterField(key))
+		.map((key) =>
+			diagnostic(
+				"error",
+				"invalid-frontmatter-field",
+				`${repr(key)} is not a frontmatter field of any question type`,
+				[key],
+			),
+		);
+}
+
+const ALL_TYPES: ReadonlySet<string> = QUESTION_TYPES;
+
+/** The types a body tag allows, and how the message calls the body. */
+const TAG_BODY: Readonly<
+	Record<string, readonly [ReadonlySet<string>, string]>
+> = {
+	essay: [new Set(["essay"]), "an essay (`[essay]`)"],
+	ordering: [new Set(["ordering"]), "an ordering (`[ordering]`)"],
+	"short-answer": [
+		new Set(["short-answer"]),
+		"a short-answer (`[short-answer]`)",
+	],
+	numeric: [new Set(["numeric"]), "a numeric (`[numeric]`)"],
+	"choice-blank": [new Set(["fill-in"]), "a fill-in (`[^id]:`)"],
+	"numeric-blank": [new Set(["fill-in"]), "a fill-in (`[^id/numeric]:`)"],
+	"short-answer-blank": [
+		new Set(["fill-in"]),
+		"a fill-in (`[^id/short-answer]:`)",
+	],
+	"unrecognized-blank": [new Set(["fill-in"]), "a fill-in blank tag"],
+};
+
+/**
+ * Throw a `ParseError` if the `type` of the frontmatter is a question type
+ * and the body belongs to another one (question-base.md, "Type inference").
+ */
+function checkDeclaredType(
+	declared: unknown,
+	bodyTypes: ReadonlySet<string>,
+	body: string,
+): void {
+	if (
+		typeof declared === "string" &&
+		QUESTION_TYPES.has(declared as never) &&
+		!bodyTypes.has(declared)
+	) {
+		throw new ParseError(
+			`the frontmatter declares type ${repr(declared)}, but the body is ${body}; write the body of ${article(declared)} ${declared} question or change \`type\``,
+		);
+	}
 }
 
 /** The `redundant-id` warning: `id` in the frontmatter and as a slug. */
@@ -193,6 +276,11 @@ export class MDQParser {
 	readonly cursor: BlockCursor;
 	/** Warnings the parser found in the source layout. */
 	readonly diagnostics: Diagnostic[] = [];
+	/**
+	 * The type the body implies, once the parser knows it. Set before the body
+	 * is parsed, so it is available when the body fails.
+	 */
+	bodyType: string | undefined;
 
 	constructor(readonly src: string) {
 		const [frontmatterText, bodyText] = splitFrontmatter(src);
@@ -487,6 +575,11 @@ export class MDQParser {
 		} else if (node.type === "bullet_list") {
 			// Ambiguous between multiple-choice / multiple-selection /
 			// true-false: infer from the bracket values unless declared.
+			checkDeclaredType(
+				questionType,
+				new Set(["multiple-choice", "multiple-selection", "true-false"]),
+				"a choice list",
+			);
 			const bodyNode = this.cursor.expect(
 				"bullet_list",
 				"malformed choice list",
@@ -494,13 +587,21 @@ export class MDQParser {
 			const rawChoices = parseItemList(this.reader, bodyNode);
 			questionType =
 				questionType ?? inferChoiceType(rawChoices.map((c) => c.value));
-			this.parseChoiceBody(asChoiceType(questionType), rawChoices);
+			const choiceType = asChoiceType(questionType);
+			this.bodyType = choiceType ?? undefined;
+			this.parseChoiceBody(choiceType, rawChoices);
 		} else {
 			const bodyNode = this.cursor.expect(
 				"paragraph",
 				"unrecognized question body",
 			);
 			const tag = readBodyTag(this.reader.rawText(bodyNode));
+			const [bodyTypes, bodyName] =
+				tag === null
+					? [ALL_TYPES, ""]
+					: (TAG_BODY[tag.kind] ?? [ALL_TYPES, ""]);
+			if (bodyTypes.size === 1) this.bodyType = [...bodyTypes][0];
+			checkDeclaredType(questionType, bodyTypes, bodyName);
 			switch (tag?.kind) {
 				case "essay":
 					questionType = questionType ?? "essay";

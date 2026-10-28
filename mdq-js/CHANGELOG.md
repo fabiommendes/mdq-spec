@@ -46,6 +46,8 @@ the whole shared corpus (`examples/`), as mdq-py does.
 - A lone digit or symbol as a choice text gets a fixed id (`1` is `one`, `-` is `hyphen`).
 - Parse error messages quote the source as Python `repr` does, so they match mdq-py.
 - `DictLoader` indexes only the sources that `load` accepts as a question, and `resolveExam` applies the model rules (a shared question id is an error).
+- `normalize()` gives what a render and parse give: it strips the spaces around choice texts, patterns and the `feedback` and `comment` of choices, patterns and ordering alternatives, fills `domain` and `decimalPlaces` of numeric questions and blanks and the `marker` of true/false statements, and puts a numeric `answer` in the form a render and parse keep (`"100"` becomes `100`, `"1.50e3"` stays a string). A whole number outside the 32-bit range counts as a float, since a JS number cannot tell `2` from `2.0`.
+- A frontmatter `type` that disagrees with the body is one `parse-error` instead of `schema-error` entries. A frontmatter error is reported together with a body `parse-error`, in that order. The message of `invalid-frontmatter-field` says "an essay".
 
 ### Removed
 

@@ -25,6 +25,7 @@ import { type Diagnostic, diagnostic, type PathStep } from "../diagnostics.js";
 import { YamlSyntaxError } from "../errors.js";
 import { splitLines, stripBom } from "../markdown.js";
 import bundleJson from "../mdq.schema.json";
+import { QUESTION_TYPES } from "../schema/questions.js";
 import { repr, strip } from "./text.js";
 
 /**
@@ -283,6 +284,22 @@ const BODY_SYNTAX: Readonly<Record<string, string>> = {
 	questions: "write the questions as blocks separated by `===`",
 };
 
+/** The indefinite article of a document type: "an" before a vowel. */
+export function article(word: string): string {
+	return "aeiou".includes(word[0] ?? "") ? "an" : "a";
+}
+
+/**
+ * The keys a frontmatter may hold for some question type: the keys of no
+ * question type are errors even when the type of the document is unknown.
+ */
+export function anyQuestionFrontmatterField(key: string): boolean {
+	for (const type of QUESTION_TYPES) {
+		if (frontmatterFields(type).has(key)) return true;
+	}
+	return false;
+}
+
 /**
  * One `invalid-frontmatter-field` error `Diagnostic` per key of `front` that
  * is not in the frontmatter schema of `documentType`, in frontmatter order
@@ -312,7 +329,7 @@ export function invalidFrontmatterFields(
 			message = `${repr(key)} is a field the body sets, not a frontmatter field`;
 			message += hint ? `: ${hint}` : "";
 		} else {
-			message = `${repr(key)} is not a frontmatter field of a ${documentType}`;
+			message = `${repr(key)} is not a frontmatter field of ${article(documentType)} ${documentType}`;
 		}
 		diagnostics.push(
 			diagnostic("error", "invalid-frontmatter-field", message, [
