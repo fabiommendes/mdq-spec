@@ -55,6 +55,8 @@ Then it runs these steps in order and reports every problem it finds:
     bundle, built from the frontmatter tables): a valid example passes, and
     an invalid example whose `.lint.json` expects `invalid-frontmatter-field`
     fails.
+15. Every schema node of `schema/*.yaml` with a `pattern` has `examples`,
+    and each example matches the pattern.
 
 Run it from the repository root with `uv run scripts/spec_audit.py`.
 `--fail-fast` stops at the first step that fails. A step that fails still
@@ -1744,6 +1746,65 @@ def step_frontmatter_schemas(audit: Audit) -> str:
     return f"{checked} frontmatters agree with the frontmatter schemas"
 
 
+#: Keywords whose value is instance data, not a subschema. A `pattern` key
+#: inside them is not the keyword.
+DATA_KEYWORDS = frozenset({"examples", "const", "default", "enum"})
+
+
+def check_pattern_examples(path: Path, problems: list[str]) -> int:
+    """Check that each node of the schema `path` with a `pattern` has examples
+    that match it, and return the number of patterns checked.
+
+    The patterns are ECMA-262 regular expressions. Python `re` compiles them,
+    as `jsonschema` does when it validates `pattern`. The dialects differ
+    (for example, `\\d` and `\\w` match non-ASCII digits and letters in
+    Python), but the schemas use only explicit classes, where they agree.
+    """
+    count = 0
+
+    def walk(node: Any, pointer: str) -> None:
+        nonlocal count
+        if isinstance(node, list):
+            for i, item in enumerate(node):
+                walk(item, f"{pointer}/{i}")
+            return
+        if not isinstance(node, dict):
+            return
+        pattern = node.get("pattern")
+        if isinstance(pattern, str):
+            count += 1
+            where = f"{rel(path)}#{pointer}"
+            examples = node.get("examples")
+            if not examples:
+                problems.append(f"{where}: has a `pattern` and no `examples`")
+            else:
+                try:
+                    regexp = re.compile(pattern)
+                except re.error as error:
+                    problems.append(f"{where}: the pattern does not compile: {error}")
+                else:
+                    for example in examples:
+                        if not isinstance(example, str) or not regexp.search(example):
+                            problems.append(
+                                f"{where}: the example {example!r} does not match the pattern"
+                            )
+        for key, value in node.items():
+            if key not in DATA_KEYWORDS:
+                walk(value, f"{pointer}/{pointer_escape(str(key))}")
+
+    walk(load_schema(path), "")
+    return count
+
+
+def step_pattern_examples(audit: Audit) -> str:
+    problems: list[str] = []
+    schemas = sorted(SCHEMA_DIR.glob("*.yaml"))
+    count = sum(check_pattern_examples(path, problems) for path in schemas)
+    if problems:
+        raise AuditFailure(problems)
+    return f"{count} patterns, each with matching examples"
+
+
 STEPS: list[tuple[str, Callable[[Audit], str]]] = [
     ("schemas", step_schemas),
     ("docs", step_docs),
@@ -1759,6 +1820,7 @@ STEPS: list[tuple[str, Callable[[Audit], str]]] = [
     ("lint paths", step_lint_paths),
     ("schema agreement", step_schema_agreement),
     ("frontmatter schemas", step_frontmatter_schemas),
+    ("pattern examples", step_pattern_examples),
 ]
 
 

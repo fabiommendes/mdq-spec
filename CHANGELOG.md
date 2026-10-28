@@ -15,6 +15,7 @@ First version of the specification.
 
 ### Changed
 
+- Every schema node with a `pattern` has `examples` that match it (exam `uuid`, numeric and fill-in string `answer` and `unit`, ordering line text, short-answer pattern string). `scripts/spec_audit.py` step 15 checks it.
 - Fill-in instructor scores (`docs/question-types/fill-in.md`, "Blank scores"): an implementation provides an operation that scores a response with the instructor score, in `[0, 1]`, of each pending blank. The strategy combines them with the other blank scores; under `no-mistakes` an instructor score below 1 is a mistake. A key that is not a pending blank, or a score outside `[0, 1]`, is a host error (`docs/responses.md`, "Errors"); a pending blank without a score stays pending. `examples/grading/fill-in.yaml` gets an optional `manual` field per example and the score `"invalid"`.
 - Fill-in blank scores (`docs/question-types/fill-in.md`, "Blank scores"): the score of a fill-in question carries the score and feedback of each blank, keyed by blank id, as the question's strategy scores it; an empty blank scores 0, a pending blank has no score. An implementation provides an operation that returns the blank scores also for a pending response. `examples/grading/fill-in.yaml` gets an optional `blanks` field per example.
 - `examples/normalize.yaml` gains `normalize: true` cases for choice texts and feedback, patterns, ordering feedback, true/false markers, numeric `domain`, `decimalPlaces` and string `answer`, and fill-in blanks: `normalize()` gives what a render and parse give.

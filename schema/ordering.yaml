@@ -190,6 +190,10 @@ unevaluatedProperties: false
           tab and no line break. The text is empty only for a blank line
           of a code block.
         pattern: '^(?:[^ \t\r\n](?:[^\r\n]*[^ \t\r\n])?)?$'
+        examples:
+          - Descobrimento do Brasil
+          - "def fib(n):"
+          - ""
     items: false
     minItems: 2
     maxItems: 2

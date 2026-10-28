@@ -144,6 +144,10 @@ allOf:
     # models check the rest and report it as `schema-error`.
     # `minLength` rejects the empty string.
     pattern: "^[ \\t]*(?:`[^\\r\\n]+`[ \\t]*|[^` \\t\\r\\n][^\\r\\n]*)?$"
+    examples:
+      - Brasília
+      - "`H2O`"
+      - "/rio s[aã]o francisco/i"
 
 
 # Rejects any key not defined by question-base.yaml or by the object
