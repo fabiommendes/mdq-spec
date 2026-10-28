@@ -249,6 +249,169 @@ describe("review mode", () => {
 	});
 });
 
+describe("review mode, per blank", () => {
+	const value: FillInResponse = { capital: "lisboa", river: "Tietê" };
+	const blanks = {
+		capital: { score: -0.5, feedback: ["Not Lisbon."] },
+		size: { score: 0, feedback: [] },
+		river: { score: 1, feedback: ["Right."] },
+	};
+
+	function blankOf(id: string): HTMLElement {
+		const items = [...document.querySelectorAll<HTMLElement>(".mdq-blank")];
+		const order = ["capital", "size", "river"];
+		return items[order.indexOf(id)] as HTMLElement;
+	}
+
+	function reviewBlanks(extra: object = {}) {
+		render(() => (
+			<FillIn
+				question={question}
+				value={value}
+				mode="review"
+				result={{
+					score: 0.5,
+					feedback: ["Not Lisbon.", "Right."],
+					blanks,
+					...extra,
+				}}
+			/>
+		));
+	}
+
+	it("marks a correct and an incorrect blank, with text", () => {
+		reviewBlanks();
+		const wrong = blankOf("capital");
+		expect(wrong.getAttribute("data-key")).toBe("incorrect");
+		expect(wrong.querySelector("[data-mark]")?.getAttribute("data-mark")).toBe(
+			"incorrect",
+		);
+		expect(wrong.querySelector(".mdq-sr-only")?.textContent).toBe("Incorrect");
+		const right = blankOf("river");
+		expect(right.getAttribute("data-key")).toBe("correct");
+		expect(right.querySelector(".mdq-sr-only")?.textContent).toBe("Correct");
+	});
+
+	it("gives an empty blank no mark", () => {
+		reviewBlanks();
+		const empty = blankOf("size");
+		expect(empty.hasAttribute("data-key")).toBe(false);
+		expect(empty.querySelector(".mdq-mark")).toBeNull();
+	});
+
+	it("shows a pending blank with the badge, and keeps the settled marks", () => {
+		render(() => (
+			<FillIn
+				question={question}
+				value={value}
+				mode="review"
+				result={{
+					pending: true,
+					blanks: { ...blanks, river: null },
+				}}
+			/>
+		));
+		const pending = blankOf("river");
+		expect(pending.getAttribute("data-key")).toBe("pending");
+		expect(pending.querySelector('[data-sign="pending"]')).not.toBeNull();
+		expect(blankOf("capital").getAttribute("data-key")).toBe("incorrect");
+		expect(document.querySelector(".mdq-feedback")).not.toBeNull();
+	});
+
+	it("lists the feedback of each blank under its label, not the flat list", () => {
+		reviewBlanks();
+		const items = document.querySelectorAll(".mdq-blank-feedback");
+		expect(items).toHaveLength(2);
+		expect(items[0]?.getAttribute("data-blank")).toBe("capital");
+		expect(
+			items[0]?.querySelector(".mdq-blank-feedback-label")?.textContent,
+		).toBe("Blank 1 of 3");
+		expect(items[0]?.textContent).toContain("Not Lisbon.");
+		expect(items[1]?.textContent).toContain("Right.");
+		// One message each, not repeated by a flat list.
+		expect(document.body.textContent?.match(/Right\./g)).toHaveLength(1);
+	});
+
+	it("links each control to its own feedback", () => {
+		reviewBlanks();
+		const own = document.querySelector(".mdq-blank-feedback .mdq-feedback");
+		expect(combobox().getAttribute("aria-describedby")).toBe(own?.id);
+		expect(
+			screen
+				.getByRole("textbox", { name: "Blank 2 of 3 m" })
+				.getAttribute("aria-describedby"),
+		).toBeNull();
+	});
+
+	it("shows no mark and no key without blanks or correct", () => {
+		render(() => (
+			<FillIn
+				question={question}
+				value={value}
+				mode="review"
+				result={{ score: 0.5, feedback: [] }}
+			/>
+		));
+		expect(document.querySelector(".mdq-mark")).toBeNull();
+		expect(document.querySelector(".mdq-key")).toBeNull();
+	});
+
+	it("shows the expected answers per blank when correct is present", () => {
+		reviewBlanks({
+			correct: {
+				capital: ["brasilia"],
+				size: [1172],
+				river: ["Paraná", "Tietê"],
+			},
+		});
+		expect(document.querySelector(".mdq-key-title")?.textContent).toBe(
+			"Expected",
+		);
+		const items = document.querySelectorAll(".mdq-key-item");
+		expect(items).toHaveLength(3);
+		expect(items[0]?.getAttribute("data-blank")).toBe("capital");
+		expect(items[0]?.querySelector(".mdq-key-label")?.textContent).toBe(
+			"Blank 1 of 3",
+		);
+		// The choice id shows the choice text, as Markdown.
+		expect(items[0]?.querySelector(".mdq-key-answer code")?.textContent).toBe(
+			"Brasília",
+		);
+		expect(items[1]?.querySelector(".mdq-key-answer")?.textContent).toBe(
+			"1172 m",
+		);
+		expect(
+			[...(items[2]?.querySelectorAll(".mdq-key-answer") ?? [])].map(
+				(node) => node.textContent,
+			),
+		).toEqual(["Paraná", "Tietê"]);
+	});
+
+	it("says a blank with no answer to show has none, and uses the messages", () => {
+		render(() => (
+			<FillIn
+				question={question}
+				mode="review"
+				result={{ pending: true, correct: { river: [] } }}
+				messages={ptBR}
+			/>
+		));
+		expect(document.querySelector(".mdq-key-title")?.textContent).toBe(
+			"Esperado",
+		);
+		expect(document.querySelector(".mdq-key-none")?.textContent).toBe(
+			"Não exibido para esta lacuna",
+		);
+		expect(document.querySelectorAll(".mdq-key-item")).toHaveLength(1);
+	});
+
+	it("shows no mark outside review", () => {
+		render(() => <FillIn question={question} value={value} mode="readonly" />);
+		expect(document.querySelector(".mdq-mark")).toBeNull();
+		expect(document.querySelector(".mdq-key")).toBeNull();
+	});
+});
+
 it("renders the epilogue", () => {
 	render(() => <FillIn question={question} />);
 	expect(document.querySelector(".mdq-epilogue")?.textContent).toContain(

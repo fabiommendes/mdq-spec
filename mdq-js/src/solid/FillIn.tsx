@@ -10,11 +10,13 @@ import {
 	Switch,
 } from "solid-js";
 import type { PublicBlank, PublicFillInQuestion } from "../index.js";
+import type { QuestionScore } from "../models/score.js";
 import { prevalidateText } from "../models/text.js";
 import type { FillInResponse, NumericResponse } from "../responses.js";
 import { ChoiceSelect } from "./ChoiceSelect.jsx";
 import { Feedback } from "./Feedback.jsx";
 import { placedBlanks, type StemPart, splitStem } from "./fill-in-stem.js";
+import { Mark, type MarkKind } from "./Mark.jsx";
 import { Markdown } from "./Markdown.jsx";
 import { type Messages, useMessages } from "./messages.jsx";
 import { NumericInput } from "./NumericInput.jsx";
@@ -24,20 +26,34 @@ import { TextInput } from "./TextInput.jsx";
 import type { QuestionMode } from "./types.js";
 
 /**
- * The result of a settled fill-in response: its score and the feedback of
- * every blank in one list, in the order of the definitions.
- *
- * There is no per-blank verdict and no answer key yet. Both wait for the
- * per-blank score of the spec.
+ * What the student may see of the answer key of a fill-in: the responses that
+ * score 1 for each blank, as `correctResponses(question)` gives. For a choice
+ * blank they are choice ids, for a numeric blank numbers, for a short answer
+ * blank its literal answers (possibly none).
  */
-export interface FillInResult {
-	readonly score: number;
-	readonly feedback: readonly string[];
+export type FillInKey = Readonly<Record<string, readonly (string | number)[]>>;
+
+/**
+ * The result of a settled fill-in response: the score and the flat feedback
+ * of the question, `blanks` from `scoreBlanks(question, response)` and
+ * `correct` from `correctResponses(question)`.
+ *
+ * Without `blanks` the blanks carry no mark and the feedback is one list.
+ * Absent `correct` means the key is withheld.
+ */
+export interface FillInResult extends QuestionScore {
+	readonly correct?: FillInKey;
 }
 
-/** The result of a fill-in response with a pending blank: no score, no feedback. */
+/**
+ * The result of a fill-in response with a pending blank: no score and no
+ * flat feedback. `blanks` still shows the settled blanks (from
+ * `scoreBlanks`): a `null` entry is a pending blank.
+ */
 export interface PendingFillInResult {
 	readonly pending: true;
+	readonly blanks?: QuestionScore["blanks"];
+	readonly correct?: FillInKey;
 }
 
 export interface FillInProps {
@@ -70,8 +86,16 @@ export interface FillInProps {
  * A `[^slug]` that is not in the plain text of a paragraph, or that the
  * question does not define, stays as written. See `splitStem`.
  *
- * `review` mode shows the score (or the pending badge) and the feedback, with
- * no mark on the blanks yet. The choices are shown in document order; shuffling is the host's job.
+ * `review` mode shows the score (or the pending badge). With `result.blanks`
+ * each blank gets `data-key` on its `.mdq-blank`: `correct` (score 1) or
+ * `incorrect` (answered, below 1) with a `Mark`, or `pending` with the
+ * pending badge. An empty blank has no mark: it is neither right nor wrong.
+ * The feedback of each blank is listed under the stem as
+ * `.mdq-blank-feedback[data-blank]`, headed by the label of the blank;
+ * without `blanks` it is the flat feedback of the question. With
+ * `result.correct` the expected answers are listed in `.mdq-key`, one
+ * `.mdq-key-item[data-blank]` per blank. The choices are shown in document
+ * order; shuffling is the host's job.
  */
 export function FillIn(props: FillInProps): JSX.Element {
 	const messages = useMessages(() => props.messages);
@@ -111,8 +135,33 @@ export function FillIn(props: FillInProps): JSX.Element {
 		const result = review();
 		return result === undefined || "pending" in result ? undefined : result;
 	};
-	const hasFeedback = () => (settled()?.feedback.length ?? 0) > 0;
-	const describedBy = () => (hasFeedback() ? feedbackId : undefined);
+	const blankScores = () => review()?.blanks;
+	const blankFeedbackId = (blankId: string) => `${feedbackId}-${blankId}`;
+	const hasBlankFeedback = (blankId: string) =>
+		(blankScores()?.[blankId]?.feedback.length ?? 0) > 0;
+	const describedBy = (blankId: string) => {
+		if (blankScores() !== undefined) {
+			return hasBlankFeedback(blankId) ? blankFeedbackId(blankId) : undefined;
+		}
+		return (settled()?.feedback.length ?? 0) > 0 ? feedbackId : undefined;
+	};
+
+	/** The mark of a blank in review, from its score. */
+	const verdict = (
+		blankId: string,
+	): "correct" | "incorrect" | "pending" | undefined => {
+		const entry = blankScores()?.[blankId];
+		if (entry === undefined) return undefined;
+		if (entry === null) return "pending";
+		if (answers()[blankId] == null) return undefined;
+		return entry.score >= 1 ? "correct" : "incorrect";
+	};
+	const feedbackBlanks = () =>
+		order().filter((blankId) => hasBlankFeedback(blankId));
+	const keyBlanks = () => {
+		const key = review()?.correct;
+		return key === undefined ? [] : order().filter((id) => id in key);
+	};
 
 	/** Prevalidation of a short answer blank, as the student types. */
 	function warning(blank: PublicBlank): string | undefined {
@@ -171,16 +220,32 @@ export function FillIn(props: FillInProps): JSX.Element {
 												}
 											>
 												{(blank) => (
-													<span class="mdq-blank" data-type={blank().type}>
+													<span
+														class="mdq-blank"
+														data-type={blank().type}
+														data-key={verdict(blank().id)}
+													>
 														<Control
 															blank={blank()}
 															label={label(blank().id)}
 															value={answers()[blank().id]}
 															onChange={(next) => edit(blank().id, next)}
 															disabled={mode() !== "answer"}
-															describedBy={describedBy()}
+															describedBy={describedBy(blank().id)}
 															messages={messages()}
 														/>
+														<Show when={verdict(blank().id)}>
+															{(kind) => (
+																<Show
+																	when={markOf(kind())}
+																	fallback={<Pending messages={messages()} />}
+																>
+																	{(mark) => (
+																		<Mark kind={mark()} messages={messages()} />
+																	)}
+																</Show>
+															)}
+														</Show>
 													</span>
 												)}
 											</Show>
@@ -211,14 +276,52 @@ export function FillIn(props: FillInProps): JSX.Element {
 				</div>
 			</Show>
 
-			<Show when={settled()}>
-				{(result) => (
-					<Feedback
-						id={feedbackId}
-						feedback={result().feedback}
-						score={result().score}
-					/>
-				)}
+			<Show when={keyBlanks().length > 0}>
+				<div class="mdq-key">
+					<h4 class="mdq-key-title">{messages().expected}</h4>
+					<ul class="mdq-key-list">
+						<For each={keyBlanks()}>
+							{(blankId) => (
+								<li class="mdq-key-item" data-blank={blankId}>
+									<span class="mdq-key-label">{label(blankId)}</span>{" "}
+									<KeyAnswers
+										blank={blanks().get(blankId)}
+										answers={review()?.correct?.[blankId] ?? []}
+										messages={messages()}
+									/>
+								</li>
+							)}
+						</For>
+					</ul>
+				</div>
+			</Show>
+
+			<Show
+				when={blankScores() !== undefined}
+				fallback={
+					<Show when={settled()}>
+						{(result) => (
+							<Feedback
+								id={feedbackId}
+								feedback={result().feedback}
+								score={result().score}
+							/>
+						)}
+					</Show>
+				}
+			>
+				<For each={feedbackBlanks()}>
+					{(blankId) => (
+						<div class="mdq-blank-feedback" data-blank={blankId}>
+							<p class="mdq-blank-feedback-label">{label(blankId)}</p>
+							<Feedback
+								id={blankFeedbackId(blankId)}
+								feedback={blankScores()?.[blankId]?.feedback ?? []}
+								score={blankScores()?.[blankId]?.score ?? 0}
+							/>
+						</div>
+					)}
+				</For>
 			</Show>
 		</div>
 	);
@@ -281,5 +384,53 @@ function Control(props: ControlProps): JSX.Element {
 				/>
 			</Match>
 		</Switch>
+	);
+}
+
+/** The mark of a verdict: a pending blank has a badge instead. */
+function markOf(
+	verdict: "correct" | "incorrect" | "pending",
+): MarkKind | undefined {
+	return verdict === "pending" ? undefined : verdict;
+}
+
+interface KeyAnswersProps {
+	blank: PublicBlank | undefined;
+	answers: readonly (string | number)[];
+	messages: Messages;
+}
+
+/** The expected answers of one blank, in the answer key of a review. */
+function KeyAnswers(props: KeyAnswersProps): JSX.Element {
+	const text = (answer: string | number): string => {
+		const blank = props.blank;
+		if (blank?.type === "numeric" && blank.unit) {
+			return `${answer} ${blank.unit}`;
+		}
+		return String(answer);
+	};
+	/** A choice id shows the text of the choice, as inline Markdown. */
+	const choiceText = (answer: string | number): string | undefined => {
+		const blank = props.blank;
+		if (blank?.type !== "multiple-choice") return undefined;
+		return blank.choices.find((choice) => choice.id === answer)?.text;
+	};
+	return (
+		<Show
+			when={props.answers.length > 0}
+			fallback={<span class="mdq-key-none">{props.messages.noBlankKey}</span>}
+		>
+			<span class="mdq-key-answers">
+				<For each={props.answers}>
+					{(answer) => (
+						<span class="mdq-key-answer">
+							<Show when={choiceText(answer)} fallback={text(answer)}>
+								{(choice) => <Markdown inline text={choice()} />}
+							</Show>
+						</span>
+					)}
+				</For>
+			</span>
+		</Show>
 	);
 }

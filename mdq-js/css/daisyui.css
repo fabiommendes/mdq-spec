@@ -259,6 +259,44 @@
 		@apply border-base-content/25;
 	}
 
+	.mdq-question
+		.mdq-blank[data-key="correct"]
+		:is(.mdq-input, .mdq-numeric-box, .mdq-select-button) {
+		@apply border-success;
+	}
+	.mdq-question
+		.mdq-blank[data-key="incorrect"]
+		:is(.mdq-input, .mdq-numeric-box, .mdq-select-button) {
+		@apply border-error;
+	}
+	.mdq-blank-feedback {
+		@apply flex flex-col gap-1;
+	}
+	.mdq-blank-feedback-label {
+		@apply text-sm font-semibold;
+	}
+	.mdq-key {
+		@apply rounded-box border border-info/40 bg-info/5 p-4;
+	}
+	.mdq-key-title {
+		@apply mb-2 text-sm font-semibold text-info;
+	}
+	.mdq-key-list {
+		@apply flex flex-col gap-1;
+	}
+	.mdq-key-label {
+		@apply font-semibold;
+	}
+	.mdq-key-answers {
+		@apply inline-flex flex-wrap gap-2;
+	}
+	.mdq-key-answer {
+		@apply badge badge-outline;
+	}
+	.mdq-key-none {
+		@apply text-sm text-base-content/60;
+	}
+
 	.mdq-select {
 		@apply dropdown inline-block align-middle;
 	}
