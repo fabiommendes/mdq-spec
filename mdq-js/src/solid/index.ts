@@ -7,6 +7,7 @@
  * from the consumer's own.
  */
 
+export * from "./Essay.jsx";
 export * from "./Feedback.jsx";
 export * from "./Mark.jsx";
 export * from "./Markdown.jsx";

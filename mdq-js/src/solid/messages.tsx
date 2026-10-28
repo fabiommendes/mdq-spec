@@ -48,6 +48,14 @@ export interface Messages {
 	numericInvalid: string;
 	/** The key of a numeric question, in review. `value` has its unit. */
 	expectedValue: (value: string) => string;
+	/** The title of the model answer of an essay, in review. */
+	modelAnswer: string;
+	/** The placeholder of the box of an essay whose content is code. */
+	writeCodePlaceholder: string;
+	/** The placeholder of the box of an essay whose content is text. */
+	writeAnswerPlaceholder: string;
+	/** The note under the box of an essay whose content is text. */
+	markdownSupported: string;
 }
 
 export const en: Messages = {
@@ -69,6 +77,10 @@ export const en: Messages = {
 		count === 1 ? "Accepted answer" : "Accepted answers",
 	numericInvalid: "Enter a valid number. Use a point as the decimal separator.",
 	expectedValue: (value) => `Expected ${value}`,
+	modelAnswer: "Model answer",
+	writeCodePlaceholder: "Write your code here…",
+	writeAnswerPlaceholder: "Write your answer here…",
+	markdownSupported: "Markdown is supported.",
 };
 
 export const ptBR: Messages = {
@@ -90,6 +102,10 @@ export const ptBR: Messages = {
 		count === 1 ? "Resposta aceita" : "Respostas aceitas",
 	numericInvalid: "Digite um número válido. Use ponto como separador decimal.",
 	expectedValue: (value) => `Esperado ${value}`,
+	modelAnswer: "Resposta modelo",
+	writeCodePlaceholder: "Escreva seu código aqui…",
+	writeAnswerPlaceholder: "Escreva sua resposta aqui…",
+	markdownSupported: "Há suporte a Markdown.",
 };
 
 // An accessor, so a provider whose `messages` change updates its subtree.

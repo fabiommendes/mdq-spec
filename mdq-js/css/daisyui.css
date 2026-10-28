@@ -207,6 +207,38 @@
 		@apply text-sm text-base-content/60;
 	}
 
+	.mdq-editor {
+		@apply flex flex-col gap-2;
+	}
+	.mdq-language {
+		@apply badge badge-outline badge-sm self-end;
+	}
+	.mdq-textarea {
+		@apply textarea h-40 w-full;
+	}
+	.mdq-textarea[data-content="code"] {
+		@apply h-56 font-mono text-sm;
+	}
+
+	.mdq-panel {
+		@apply rounded-box border border-base-300 p-4;
+	}
+	.mdq-panel[data-tone="key"] {
+		@apply border-info/40 bg-info/5;
+	}
+	.mdq-panel-title {
+		@apply mb-2 text-sm font-semibold text-base-content/60;
+	}
+	.mdq-panel[data-tone="key"] .mdq-panel-title {
+		@apply text-info;
+	}
+	.mdq-plain {
+		@apply whitespace-pre-wrap text-sm;
+	}
+	.mdq-code {
+		@apply mockup-code w-full text-sm;
+	}
+
 	.mdq-mark {
 		@apply inline-flex shrink-0;
 	}

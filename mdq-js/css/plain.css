@@ -296,3 +296,55 @@
 	font-size: 0.875rem;
 	opacity: 0.7;
 }
+
+.mdq-editor {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.mdq-language {
+	align-self: flex-end;
+	padding: 0 0.5em;
+	border: 1px solid currentColor;
+	border-radius: 0.25em;
+	font-size: 0.75rem;
+}
+
+.mdq-textarea {
+	box-sizing: border-box;
+	width: 100%;
+	height: 10rem;
+	font: inherit;
+}
+
+.mdq-textarea[data-content="code"] {
+	height: 14rem;
+	font-family: monospace;
+}
+
+.mdq-panel {
+	padding: 0.75rem;
+	border: 1px solid GrayText;
+	border-radius: 0.25rem;
+}
+
+.mdq-panel[data-tone="key"] {
+	border-style: dashed;
+}
+
+.mdq-panel-title {
+	margin: 0 0 0.5rem;
+	font-size: 0.875rem;
+}
+
+.mdq-plain {
+	margin: 0;
+	white-space: pre-wrap;
+	font: inherit;
+}
+
+.mdq-code {
+	margin: 0;
+	overflow-x: auto;
+}
