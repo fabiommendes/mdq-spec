@@ -284,6 +284,10 @@
 		@apply text-base-content/50;
 	}
 
+	.mdq-unsupported {
+		@apply alert alert-warning;
+	}
+
 	.mdq-mark {
 		@apply inline-flex shrink-0;
 	}

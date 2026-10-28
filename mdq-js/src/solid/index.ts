@@ -20,6 +20,7 @@ export * from "./messages.jsx";
 export * from "./Numeric.jsx";
 export * from "./NumericInput.jsx";
 export * from "./Pending.jsx";
+export * from "./QuestionView.jsx";
 export * from "./render-markdown.js";
 export * from "./Score.jsx";
 export * from "./ShortAnswer.jsx";

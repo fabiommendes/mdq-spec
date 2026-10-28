@@ -64,6 +64,8 @@ export interface Messages {
 	expected: string;
 	/** Under a blank of the answer key that has nothing to show. */
 	noBlankKey: string;
+	/** Shown in place of a question whose type the components do not render. */
+	notSupported: (type: string) => string;
 }
 
 export const en: Messages = {
@@ -93,6 +95,7 @@ export const en: Messages = {
 	selectPlaceholder: "Select…",
 	expected: "Expected",
 	noBlankKey: "Nothing to show for this blank",
+	notSupported: (type) => `Questions of type "${type}" cannot be shown yet.`,
 };
 
 export const ptBR: Messages = {
@@ -122,6 +125,8 @@ export const ptBR: Messages = {
 	selectPlaceholder: "Selecione…",
 	expected: "Esperado",
 	noBlankKey: "Não exibido para esta lacuna",
+	notSupported: (type) =>
+		`Questões do tipo "${type}" ainda não podem ser exibidas.`,
 };
 
 // An accessor, so a provider whose `messages` change updates its subtree.
