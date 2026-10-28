@@ -15,6 +15,7 @@ import { Feedback } from "./Feedback.jsx";
 import { Markdown } from "./Markdown.jsx";
 import { type Locale, type Messages, useMessages } from "./messages.jsx";
 import { Pending } from "./Pending.jsx";
+import { plainInline } from "./render-markdown.js";
 import { Score } from "./Score.jsx";
 import { isPending, type QuestionMode, type ReviewResult } from "./types.js";
 
@@ -122,8 +123,11 @@ export function Ordering(props: OrderingProps): JSX.Element {
 	const [announcement, setAnnouncement] = createSignal("");
 	let root: HTMLDivElement | undefined;
 
-	const name = (text: string) =>
-		text === "" ? messages().orderingBlankLine : text;
+	// A text line is Markdown; its markup is not read out in a control name.
+	const name = (text: string) => {
+		if (text === "") return messages().orderingBlankLine;
+		return content() === "text" ? plainInline(text) : text;
+	};
 
 	/** Blank lines have level 0; a text outline stays valid when the student sets levels. */
 	function fitLevels(lines: OrderingLine[]): OrderingLine[] {

@@ -39,3 +39,28 @@ export function renderTokens(tokens: MarkdownToken[]): string {
 export function renderInlineTokens(tokens: MarkdownToken[]): string {
 	return md.renderer.renderInline(tokens, md.options, {});
 }
+
+/**
+ * The text of an inline Markdown string without its markup, for an
+ * accessible name: `*Shrubs*` gives `Shrubs`, `` `x` `` gives `x`. An image
+ * gives its alt text.
+ */
+export function plainInline(text: string): string {
+	const env = {};
+	const [inline] = md.parseInline(text, env);
+	return collectText(inline?.children ?? []);
+}
+
+function collectText(tokens: MarkdownToken[]): string {
+	let text = "";
+	for (const token of tokens) {
+		if (token.type === "text" || token.type === "code_inline") {
+			text += token.content;
+		} else if (token.type === "softbreak" || token.type === "hardbreak") {
+			text += " ";
+		} else if (token.type === "image") {
+			text += collectText(token.children ?? []);
+		}
+	}
+	return text;
+}

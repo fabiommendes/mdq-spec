@@ -12,6 +12,7 @@ import {
 	Mark,
 	Markdown,
 	MdqProvider,
+	plainInline,
 	ptBR,
 	Score,
 	useMessages,
@@ -133,5 +134,16 @@ describe("Mark", () => {
 		expect(container.querySelector(".mdq-sr-only")?.textContent).toBe(
 			"Your answer",
 		);
+	});
+});
+
+describe("plainInline", () => {
+	it.each([
+		["*Shrubs* and **trees**", "Shrubs and trees"],
+		["`O(n)` time", "O(n) time"],
+		["![Ipê amarelo](ipe.png)", "Ipê amarelo"],
+		["[Pantanal](https://example.org)", "Pantanal"],
+	])("reads %s as %s", (markdown, text) => {
+		expect(plainInline(markdown)).toBe(text);
 	});
 });

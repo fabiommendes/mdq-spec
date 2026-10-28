@@ -298,13 +298,13 @@ describe("indentation", () => {
 		expect(levels()).toEqual(["0", "1", "0", "0"]);
 		expect(button("Indent: Mosses").getAttribute("aria-disabled")).toBe("true");
 		// Not while the next line is deeper.
-		fireEvent.click(button("Indent: *Shrubs*"));
-		fireEvent.click(button("Indent: *Shrubs*"));
+		fireEvent.click(button("Indent: Shrubs"));
+		fireEvent.click(button("Indent: Shrubs"));
 		expect(levels()).toEqual(["0", "1", "2", "0"]);
 		expect(button("Outdent: Mosses").getAttribute("aria-disabled")).toBe(
 			"true",
 		);
-		fireEvent.click(button("Outdent: *Shrubs*"));
+		fireEvent.click(button("Outdent: Shrubs"));
 		fireEvent.click(button("Outdent: Mosses"));
 		expect(levels()).toEqual(["0", "0", "1", "0"]);
 		expect(seen.at(-1)).toEqual([
