@@ -607,6 +607,33 @@ So a review screen can show the settled blanks of a pending question. A
 skipped question (`null`) is not graded and has no blank scores, see
 [Skipping](../responses.md#skipping).
 
+An implementation MUST also provide an operation that scores a response with
+the instructor scores of its pending blanks. It takes the response and a map
+from the id of each pending blank to the instructor score of that blank, in
+`[0, 1]`. It scores the response as a settled response, with the instructor
+score as the blank score of each pending blank:
+
+* The strategy combines the instructor scores with the other blank scores, see
+  [Grading](#grading). A pending blank is filled, so under `no-mistakes` an
+  instructor score below 1 is a mistake and the question scores 0.
+* The blank scores give each pending blank its instructor score and no
+  feedback. A pending blank has no feedback of its own.
+* The response is now settled, so the flat feedback list holds the feedback
+  of the settled blanks, as for any settled response.
+
+| Condition                                                      | Result          |
+| -------------------------------------------------------------- | --------------- |
+| a malformed response                                           | malformed error |
+| a key of the map that is not the id of a blank                 | host error      |
+| a key of the map whose blank is not pending (settled or empty) | host error      |
+| an instructor score outside `[0, 1]`                           | host error      |
+| a pending blank with no key in the map                         | pending error   |
+
+A host error is an error in the call, not in the response or the document, see
+[Errors](../responses.md#errors). The grading corpus
+`examples/grading/fill-in.yaml` has these cases in the question "Instructor
+scores a pending blank".
+
 
 ## Public form
 

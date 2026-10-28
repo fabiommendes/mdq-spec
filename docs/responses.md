@@ -370,7 +370,9 @@ grading.
 A host can still read the
 [blank scores](question-types/fill-in.md#blank-scores) of a pending fill-in
 response, for example on a review screen: the settled blanks have their score
-and feedback, the pending ones have none.
+and feedback, the pending ones have none. When the instructor has scored the
+pending blanks, the host passes those scores with the response to get the
+question score, see [Blank scores](question-types/fill-in.md#blank-scores).
 
 
 ## Errors
@@ -380,7 +382,10 @@ are not normative: an implementation names its errors as its language asks, but
 it MUST fail in each condition of the table.
 
 Every failure below means "this is not ready to be graded", never "the student
-answered badly" -- a wrong answer is a score, not an error.
+answered badly" -- a wrong answer is a score, not an error. The exception is a
+host error: the host called the operation with a wrong argument. A host error
+is not a grading error, so a host that catches grading errors does not hide its
+own bugs.
 
 | Condition                                         | Error               |
 | ------------------------------------------------- | ------------------- |
@@ -391,3 +396,5 @@ answered badly" -- a wrong answer is a score, not an error.
 | an ordering line outside the presented pool, used more often than the pool offers it, (under `fixed`) at another level, or (under `lenient` or `strict`, with `content: text`) not a valid outline | `ResponseError` |
 | a key naming no question in the exam              | `ResponseError`     |
 | a score asked of a pending response                | `NotAutoGradable`   |
+| a fill-in pending blank with no instructor score, see [Blank scores](question-types/fill-in.md#blank-scores) | `NotAutoGradable` |
+| a fill-in instructor score for an id that is not a pending blank, or outside `[0, 1]` (host error) | `ValueError` |

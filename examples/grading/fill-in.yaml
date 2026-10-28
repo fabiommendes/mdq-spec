@@ -18,9 +18,17 @@
 #   // score is a number, a fraction string such as "2/3" (floats cannot
 #   // write it exactly), "malformed" (the question rejects the response
 #   // with a `ResponseError`) or "pending" (a blank leaves its response to
-#   // the instructor, responses.md, "Pending"). The corpus cannot express
-#   // the score the instructor gives to a pending blank, so it only asserts
-#   // that the question is pending.
+#   // the instructor, responses.md, "Pending").
+#   //
+#   // `manual` maps the id of each pending blank to the score the
+#   // instructor gives it (fill-in.md, "Blank scores"). An example with
+#   // `manual` checks the operation that combines the instructor scores
+#   // with the other blank scores, not the plain score: `scores`, `score`,
+#   // `feedback` and `blanks` are what that operation gives, and a pending
+#   // blank has its instructor score in `blanks`. Its score can also be
+#   // "invalid": `manual` has a key that is not a pending blank, or a value
+#   // outside [0, 1] (an error of the host, responses.md, "Errors").
+#   // "pending" means a pending blank has no key in `manual`.
 #   //
 #   // `feedback` is the whole flat list of feedback strings, in the order
 #   // the blank definitions appear (fill-in.md, "Feedback"). When the key
@@ -36,6 +44,7 @@
 #   // absent, the vector does not check the blank scores.
 #   examples: {
 #     response: any,
+#     manual?: { [blank id]: number },
 #     score?: number | string,
 #     scores?: { partial?: n, "no-mistakes"?: n, "all-or-nothing"?: n, symmetric?: n },
 #     feedback?: string[],
@@ -312,6 +321,90 @@ questions:
         scores: { partial: 0, no-mistakes: 0, all-or-nothing: 0, symmetric: 0 }
       # A malformed blank is still malformed next to a pending one.
       - response: { river: "Madeira", length: [6400] }
+        score: "malformed"
+
+  # The instructor scores the pending blank `river` ("Rio-Mar", a nickname
+  # of the Amazonas, matches no pattern) and the strategy combines that
+  # score with the other blank scores (fill-in.md, "Blank scores"). The
+  # pending blank is filled: under "no-mistakes" an instructor score below 1
+  # is a mistake. A wrong pick of `city` scores -0.5 under "symmetric" and 0
+  # under the other strategies.
+  - name: "Instructor scores a pending blank"
+    question:
+      stem: "O rio [^river] passa pela cidade de [^city]."
+      unmatched: manual
+      blanks:
+        - id: river
+          type: short-answer
+          accept: ["Amazonas"]
+        - id: city
+          type: multiple-choice
+          choices:
+            - { id: santarem, text: "Santarém", score: 1 }
+            - { id: recife, text: "Recife", feedback: "Recife fica no litoral de Pernambuco." }
+            - { id: salvador, text: "Salvador" }
+    examples:
+      # [1, 1]
+      - response: { river: "Rio-Mar", city: santarem }
+        manual: { river: 1 }
+        scores: { partial: 1, no-mistakes: 1, all-or-nothing: 1, symmetric: 1 }
+        feedback: []
+        blanks: { river: 1, city: 1 }
+      # [0.5, 1]
+      - response: { river: "Rio-Mar", city: santarem }
+        manual: { river: 0.5 }
+        scores: { partial: "3/4", no-mistakes: 0, all-or-nothing: 0, symmetric: "3/4" }
+        blanks: { river: 0.5, city: 1 }
+      # [0, 1]
+      - response: { river: "Rio-Mar", city: santarem }
+        manual: { river: 0 }
+        scores: { partial: "1/2", no-mistakes: 0, all-or-nothing: 0, symmetric: "1/2" }
+        blanks: { river: 0, city: 1 }
+      # [1, -0.5] under symmetric, [1, 0] under the others. The response is
+      # settled now, so the feedback of the settled blanks shows.
+      - response: { river: "Rio-Mar", city: recife }
+        manual: { river: 1 }
+        scores: { partial: "1/2", no-mistakes: 0, all-or-nothing: 0, symmetric: "1/4" }
+        feedback: ["Recife fica no litoral de Pernambuco."]
+        blanks: { river: 1, city: { partial: 0, no-mistakes: 0, all-or-nothing: 0, symmetric: -0.5 } }
+      # [1, 0], the city is empty: no mistake under "no-mistakes".
+      - response: { river: "Rio-Mar" }
+        manual: { river: 1 }
+        scores: { partial: "1/2", no-mistakes: "1/2", all-or-nothing: 0, symmetric: "1/2" }
+        blanks: { river: 1, city: 0 }
+      # [0.5, 0], the city is empty, but the river is a mistake.
+      - response: { river: "Rio-Mar" }
+        manual: { river: 0.5 }
+        scores: { partial: "1/4", no-mistakes: 0, all-or-nothing: 0, symmetric: "1/4" }
+        blanks: { river: 0.5, city: 0 }
+      # The pending blank has no instructor score: still pending.
+      - response: { river: "Rio-Mar", city: santarem }
+        manual: {}
+        score: "pending"
+      # Scores outside [0, 1].
+      - response: { river: "Rio-Mar", city: santarem }
+        manual: { river: 1.5 }
+        score: "invalid"
+      - response: { river: "Rio-Mar", city: santarem }
+        manual: { river: -0.5 }
+        score: "invalid"
+      # A key that is not a blank id.
+      - response: { river: "Rio-Mar", city: santarem }
+        manual: { river: 1, lake: 1 }
+        score: "invalid"
+      # A key of a blank that is not pending: settled, or empty.
+      - response: { river: "Rio-Mar", city: santarem }
+        manual: { river: 1, city: 1 }
+        score: "invalid"
+      - response: { river: "Amazonas", city: santarem }
+        manual: { river: 1 }
+        score: "invalid"
+      - response: { river: null, city: santarem }
+        manual: { river: 1 }
+        score: "invalid"
+      # A malformed response stays malformed.
+      - response: { river: "Rio-Mar", city: belem }
+        manual: { river: 1 }
         score: "malformed"
 
   # A blank with an empty accept block and no reject block leaves every
