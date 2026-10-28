@@ -13,6 +13,10 @@ that it implements.
 Implements part of the unreleased MDQ specification. The library now passes
 the whole shared corpus (`examples/`), as mdq-py does.
 
+### Changed
+
+- `zod` is a peer dependency (`>=4.3.6 <4.5`), so a consumer that builds schemas over the exported ones shares one zod copy. zod 4.5 changed how union issues are reported, and some diagnostics of `load` differ under it.
+
 ### Added
 
 - `publicForm(question)` gives the question as a student may see it, without the answer key, feedback, comments, `author` and `meta` (`docs/public-form.md`). A numeric question gets its effective `domain` and `decimalPlaces`; an ordering question gets a sorted `pool` in place of `lines` and `extra`. Short-answer and ordering questions and each short answer blank carry their effective `unmatched`; a fill-in question has none of its own. A choice without an id throws `MissingIdError`. Types: `PublicQuestion` and one per question type.
