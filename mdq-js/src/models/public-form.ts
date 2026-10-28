@@ -137,6 +137,12 @@ export type PublicOrderingQuestion = PublicBase<OrderingQuestion> &
 	> & {
 		/** The effective value, always present. */
 		unmatched: NonNullable<OrderingQuestion["unmatched"]>;
+		/**
+		 * The deepest level a student may set, only under `lenient` and
+		 * `strict`: the highest authored level of every declared line, plus 1.
+		 * A presentation limit; grading ignores it.
+		 */
+		maxLevel?: number;
 		/** The `lines` and the `extra` lines, sorted, with the levels the student may see. */
 		pool: OrderingLine[];
 	};
@@ -346,6 +352,20 @@ function orderingPool(question: OrderingQuestion): OrderingLine[] {
 		.sort((a, b) => compareCodePoints(a[1], b[1]) || a[0] - b[0]);
 }
 
+/** `maxLevel`, under `lenient` and `strict` only (public-form.md, "Max level"). */
+function orderingMaxLevel(question: OrderingQuestion): { maxLevel?: number } {
+	if ((question.indentation ?? "fixed") === "fixed") return {};
+	const sections = [
+		question.lines,
+		question.extra ?? [],
+		...[...(question.accept ?? []), ...(question.reject ?? [])].map(
+			(alternative) => alternative.lines,
+		),
+	];
+	const levels = sections.flatMap((lines) => lines.map(([level]) => level));
+	return { maxLevel: 1 + Math.max(...levels) };
+}
+
 function publicBlank(
 	blank: Blank,
 	unmatched: Unmatched | undefined,
@@ -442,6 +462,7 @@ export function publicForm(question: Question): PublicQuestion {
 				]),
 				unmatched: question.unmatched ?? "incorrect",
 				pool: orderingPool(question),
+				...orderingMaxLevel(question),
 			} as PublicQuestion;
 	}
 }
