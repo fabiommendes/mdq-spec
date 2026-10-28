@@ -91,6 +91,7 @@ A Pydantic model is two things in TypeScript:
 | `Question.lint()`, `Exam.lint()`                | `lint(document)`                              |
 | `Question.score_response(r)`                    | `scoreResponse(question, response)`           |
 | `FillInQuestion.score_blanks(r)`                | `scoreBlanks(question, response)` (`fill-in.ts`) |
+| `FillInQuestion.combine(r, manual)`             | `combineBlanks(question, response, manual)` (`fill-in.ts`; Python's `ValueError` is a `RangeError`) |
 | `ShortAnswerQuestion.prevalidate(r)`            | `prevalidate(question, response)` -> `{valid, feedback}` |
 | `Question.normalize()`                          | `normalize(question)` (`src/models/base.ts`, per-type part in `src/models/normalize.ts`; throws `TypeError` for an exam, which has no `normalize` in mdq-py) |
 | `Question.with_ids()`, `Exam.with_ids()`        | `withIds(document)` (`src/models/exam.ts`; choice ids by `withChoiceIds` in `choice.ts`) |

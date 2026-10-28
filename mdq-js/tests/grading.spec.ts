@@ -23,6 +23,7 @@ import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import {
 	automation,
+	combineBlanks,
 	type Exam,
 	effectiveGrading,
 	effectiveShuffle,
@@ -30,6 +31,7 @@ import {
 	type FillInQuestion,
 	gradingFor,
 	load,
+	MdqError,
 	NotAutoGradable,
 	type Question,
 	ResponseError,
@@ -347,6 +349,45 @@ function expectBlanks(
 	}
 }
 
+/**
+ * An example with `manual`: the instructor scores the pending blanks
+ * (fill-in.md, "Blank scores").
+ */
+function expectCombined(
+	question: FillInQuestion,
+	example: Plain,
+	strategy: string,
+	expected: unknown,
+): void {
+	const response = example.response;
+	const manual = example.manual as Record<string, number>;
+	const combine = () => combineBlanks(question, response, manual);
+	if (expected === "malformed") {
+		expect(combine).toThrow(ResponseError);
+		return;
+	}
+	if (expected === "pending") {
+		expect(combine).toThrow(NotAutoGradable);
+		return;
+	}
+	if (expected === "invalid") {
+		// An error of the host, not of the response or the document.
+		expect(combine).toThrow(RangeError);
+		expect(combine).not.toThrow(MdqError);
+		return;
+	}
+	const result = combine();
+	expectApprox(result.score, scoreValue(expected));
+	if ("feedback" in example) expect(result.feedback).toEqual(example.feedback);
+	expect(Object.keys(result.blanks ?? {})).toEqual(
+		question.blanks.map((blank) => blank.id),
+	);
+	expectBlanks(result.blanks ?? {}, example, strategy);
+	for (const id of Object.keys(manual)) {
+		expect(result.blanks?.[id]?.feedback).toEqual([]);
+	}
+}
+
 describe("fill-in", () => {
 	for (const testCase of questionsOf("fill-in")) {
 		for (const example of testCase.examples as Plain[]) {
@@ -366,6 +407,10 @@ describe("fill-in", () => {
 						});
 						const fillIn = question as FillInQuestion;
 						const response = example.response;
+						if ("manual" in example) {
+							expectCombined(fillIn, example, strategy, expected);
+							return;
+						}
 						if (expected === "malformed") {
 							expect(() => scoreOf(question, response)).toThrow(ResponseError);
 							expect(() => scoreBlanks(fillIn, response)).toThrow(

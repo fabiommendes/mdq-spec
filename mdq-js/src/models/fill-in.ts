@@ -440,17 +440,86 @@ export function scoreFillIn(
 	response: unknown,
 ): QuestionScore {
 	const answers = parseFillIn(question, response);
+	return combineScores(question, answers, blankScores(question, answers), {});
+}
+
+/**
+ * Score `response` with the instructor's score of each pending blank
+ * (fill-in.md, "Blank scores"; responses.md, "Pending"). `manual` maps the id
+ * of each pending blank to the score the instructor gives it, in [0, 1]. The
+ * question's strategy combines those scores with the other blank scores as
+ * `scoreFillIn` does. A pending blank is filled, so under `no-mistakes` an
+ * instructor score below 1 is a mistake. In the result, a pending blank has
+ * the instructor's score and no feedback; the feedback of the settled blanks
+ * is shown, since the response is now settled.
+ *
+ * @throws {ResponseError} `response` is not a valid response to this question.
+ * @throws {RangeError} A key of `manual` is not the id of a pending blank, or
+ *   a value is outside [0, 1]. This is an error of the host, not a
+ *   `GradingError` (Python raises `ValueError`).
+ * @throws {NotAutoGradable} A pending blank has no entry in `manual`.
+ */
+export function combineBlanks(
+	question: FillInQuestion,
+	response: unknown,
+	manual: Readonly<Record<string, number>>,
+): QuestionScore {
+	const answers = parseFillIn(question, response);
+	return combineScores(
+		question,
+		answers,
+		blankScores(question, answers),
+		manual,
+	);
+}
+
+/**
+ * Combine the blank scores by `grading`, with the score of each pending
+ * blank taken from `manual`.
+ *
+ * @throws {RangeError} `manual` has a key that is not a pending blank, or a
+ *   value outside [0, 1].
+ * @throws {NotAutoGradable} A pending blank has no entry in `manual`.
+ */
+function combineScores(
+	question: FillInQuestion,
+	answers: Readonly<Record<string, unknown>>,
+	blanks: Readonly<Record<string, QuestionScore | null>>,
+	manual: Readonly<Record<string, number>>,
+): QuestionScore {
 	const grading = fillInGrading(question);
 	const filled = (id: string): unknown => filledAnswer(answers, id);
 
-	const blanks = blankScores(question, answers);
-	const pending = Object.keys(blanks).filter((id) => blanks[id] === null);
+	for (const [id, value] of Object.entries(manual)) {
+		if (!Object.hasOwn(blanks, id)) {
+			throw new RangeError(
+				`manual score for ${repr(id)}, which is not a blank`,
+			);
+		}
+		if (blanks[id] !== null) {
+			throw new RangeError(
+				`manual score for blank ${repr(id)}, which is not pending`,
+			);
+		}
+		if (!(value >= 0 && value <= 1)) {
+			throw new RangeError(
+				`manual score ${value} for blank ${repr(id)} is outside [0, 1]`,
+			);
+		}
+	}
+	const pending = Object.keys(blanks).filter(
+		(id) => blanks[id] === null && !Object.hasOwn(manual, id),
+	);
 	if (pending.length > 0) {
 		throw new NotAutoGradable(
 			`the response to blank ${repr(pending[0] ?? "")} is pending: it matches no pattern and 'unmatched' is 'manual'`,
 		);
 	}
-	const settled = Object.values(blanks) as QuestionScore[];
+	const settledBlanks: Record<string, QuestionScore> = {};
+	for (const [id, result] of Object.entries(blanks)) {
+		settledBlanks[id] = result ?? { score: manual[id] as number, feedback: [] };
+	}
+	const settled = Object.values(settledBlanks);
 	const scores = settled.map((result) => result.score);
 	const feedback = settled.flatMap((result) => result.feedback);
 
@@ -476,5 +545,5 @@ export function scoreFillIn(
 		default:
 			score = mean;
 	}
-	return { score, feedback, blanks };
+	return { score, feedback, blanks: settledBlanks };
 }
