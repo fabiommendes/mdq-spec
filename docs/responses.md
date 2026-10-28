@@ -362,9 +362,15 @@ A pending response has no score until the instructor supplies one, and shows
 no feedback. The score of an instructor for a pending response is in the range
 `[0, 1]`, for every question type. For a fill in, the instructor scores each
 pending blank in that range, and the question's `grading` strategy then combines the blank
-scores as usual, see [Grading](question-types/fill-in.md#grading). An exam-level scorer accepts it and reports it as pending rather
-than scored. An LMS should not have to strip essay answers out of its response
-map before grading.
+scores as usual, see [Grading](question-types/fill-in.md#grading). An
+exam-level scorer accepts it and reports it as pending rather than scored. An
+LMS should not have to strip essay answers out of its response map before
+grading.
+
+A host can still read the
+[blank scores](question-types/fill-in.md#blank-scores) of a pending fill-in
+response, for example on a review screen: the settled blanks have their score
+and feedback, the pending ones have none.
 
 
 ## Errors

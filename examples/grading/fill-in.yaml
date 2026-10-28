@@ -27,11 +27,19 @@
 #   // is absent, the vector does not check the feedback. For a "pending"
 #   // example, `feedback` is the list shown before the instructor scores:
 #   // always empty, also when some blanks are settled.
+#   //
+#   // `blanks` maps every blank id to its blank score (fill-in.md, "Blank
+#   // scores"): a number, a fraction string, or "pending" for a pending
+#   // blank. A blank whose score depends on the strategy takes a mapping of
+#   // strategy to score, like `scores`. It is checked for every strategy the
+#   // example covers, also when the question is pending. When the key is
+#   // absent, the vector does not check the blank scores.
 #   examples: {
 #     response: any,
 #     score?: number | string,
 #     scores?: { partial?: n, "no-mistakes"?: n, "all-or-nothing"?: n, symmetric?: n },
-#     feedback?: string[]
+#     feedback?: string[],
+#     blanks?: { [blank id]: number | string | { [strategy]: number | string } }
 #   }[]
 # }
 questions:
@@ -64,12 +72,17 @@ questions:
       # [1, 1, 0], the city is a missing key.
       - response: { river: "Amazonas", length: 6400 }
         scores: { partial: "2/3", no-mistakes: "2/3", all-or-nothing: 0, symmetric: "2/3" }
+        blanks: { river: 1, length: 1, city: 0 }
       # [1, 1, 0], the city is null: the same as a missing key.
       - response: { river: "Amazonas", length: 6400, city: null }
         scores: { partial: "2/3", no-mistakes: "2/3", all-or-nothing: 0, symmetric: "2/3" }
       # [1, 1, -0.5] under symmetric, [1, 1, 0] under the others.
       - response: { river: "Amazonas", length: 6400, city: rio }
         scores: { partial: "2/3", no-mistakes: 0, all-or-nothing: 0, symmetric: "1/2" }
+        blanks:
+          river: 1
+          length: 1
+          city: { partial: 0, no-mistakes: 0, all-or-nothing: 0, symmetric: "-1/2" }
       # [1, 0, 1]
       - response: { river: "Amazonas", length: 6000, city: brasilia }
         scores: { partial: "2/3", no-mistakes: 0, all-or-nothing: 0, symmetric: "2/3" }
@@ -268,24 +281,31 @@ questions:
           answer: 6400
           tolerance: { absolute: 100 }
     examples:
+      # The blank scores of a pending question still score the settled
+      # blanks.
       - response: { river: "Madeira", length: 6400 }
         score: "pending"
         feedback: []
+        blanks: { river: "pending", length: 1 }
       # The pending blank is enough, whatever the other blank scored.
       - response: { river: "Madeira", length: 1 }
         score: "pending"
         feedback: []
+        blanks: { river: "pending", length: 0 }
       - response: { river: "Madeira" }
         score: "pending"
         feedback: []
+        blanks: { river: "pending", length: 0 }
       # The others are settled: accept and reject patterns match.
       - response: { river: "Amazonas", length: 6400 }
         scores: { partial: 1, no-mistakes: 1, all-or-nothing: 1, symmetric: 1 }
       - response: { river: "Tietê", length: 6400 }
         scores: { partial: "1/2", no-mistakes: 0, all-or-nothing: 0, symmetric: "1/2" }
+        blanks: { river: 0, length: 1 }
       # An empty short answer blank is not pending: it scores 0.
       - response: { length: 6400 }
         scores: { partial: "1/2", no-mistakes: "1/2", all-or-nothing: 0, symmetric: "1/2" }
+        blanks: { river: 0, length: 1 }
       - response: { river: null, length: 6400 }
         scores: { partial: "1/2", no-mistakes: "1/2", all-or-nothing: 0, symmetric: "1/2" }
       - response: {}
@@ -326,8 +346,11 @@ questions:
             - { id: wrong, text: "o deserto", score: -1 }
             - { id: right, text: "a floresta", score: 1 }
     examples:
+      # The blank keeps its declared -1 under every strategy; only the
+      # question score of "partial" floors it.
       - response: { biome: wrong }
         scores: { partial: 0, no-mistakes: 0, all-or-nothing: 0, symmetric: -1 }
+        blanks: { biome: -1 }
       - response: { biome: right }
         scores: { partial: 1, no-mistakes: 1, all-or-nothing: 1, symmetric: 1 }
 

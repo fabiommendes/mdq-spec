@@ -15,6 +15,7 @@ First version of the specification.
 
 ### Changed
 
+- Fill-in blank scores (`docs/question-types/fill-in.md`, "Blank scores"): the score of a fill-in question carries the score and feedback of each blank, keyed by blank id, as the question's strategy scores it; an empty blank scores 0, a pending blank has no score. An implementation provides an operation that returns the blank scores also for a pending response. `examples/grading/fill-in.yaml` gets an optional `blanks` field per example.
 - `examples/normalize.yaml` gains `normalize: true` cases for choice texts and feedback, patterns, ordering feedback, true/false markers, numeric `domain`, `decimalPlaces` and string `answer`, and fill-in blanks: `normalize()` gives what a render and parse give.
 - New examples `invalid/question-type-disagrees-with-short-answer-body` and `invalid/numeric-frontmatter-error-and-parse-error`. `invalid/question-type-disagrees-with-body` and `invalid/essay-tag-in-list-typed` now expect one `parse-error` instead of `schema-error` entries.
 - New examples `invalid/numeric-answer-leading-space`, `numeric-answer-surrounding-spaces`, `numeric-answer-trailing-space` and `fill-in-numeric-blank-answer-surrounding-space`: a string `answer` with a space around it is a `malformed-numeric-answer`, as the schema pattern says. The Markdown body `[numeric]: 5` is trimmed and stays valid.

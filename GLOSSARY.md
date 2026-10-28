@@ -63,6 +63,15 @@ An ordering an ordering question declares: the answer key (`[ordering]` and
 `## [accept]`) or a `## [reject]` section. A response is graded by the first
 declared answer it matches.
 
+### Correct responses
+The responses that score 1, derived from the answer key, each in the shape of
+a response. Regex patterns give none. See `docs/public-form.md`.
+_Avoid_: answer key (that is what the instructor declared)
+
+### Public form
+A question as a student may see it: the document without the answer key,
+feedback, comments, `author` and `meta`. See `docs/public-form.md`.
+
 ### Skip
 The absence of a response to a whole question, distinct from a response that
 happens to mark nothing.

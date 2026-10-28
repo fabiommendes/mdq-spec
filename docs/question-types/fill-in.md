@@ -577,6 +577,36 @@ fill-in.md" and "Partial-credit choice".
 The results are rounded to 2 decimal places for clarity, but the actual
 results should be computed with full precision.
 
+### Blank scores
+
+The blank scores of a response map every blank id of the question to an
+entry:
+
+| Blank              | Entry                                               |
+| ------------------ | --------------------------------------------------- |
+| filled and settled | the blank score and the feedback of that blank only |
+| empty              | score 0, no feedback                                |
+| pending            | no score (`null`)                                   |
+
+The blank score is the one the question's strategy gives the blank, before the
+strategy combines the blanks: in the table above, a wrong pick of `city`
+scores -0.5 under `symmetric` and 0 under the other strategies. The flat
+feedback list of the question does not change, see [Feedback](#feedback).
+
+The score of a settled question carries its blank scores. An implementation
+MUST also provide an operation that returns the blank scores alone, also for a
+response that is not settled:
+
+| Response             | Question score  | Blank scores                             |
+| -------------------- | --------------- | ---------------------------------------- |
+| settled              | a number        | one entry per blank                      |
+| with a pending blank | pending error   | one entry per blank, pending ones `null` |
+| malformed            | malformed error | malformed error                          |
+
+So a review screen can show the settled blanks of a pending question. A
+skipped question (`null`) is not graded and has no blank scores, see
+[Skipping](../responses.md#skipping).
+
 
 ## Public form
 
