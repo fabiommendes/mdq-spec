@@ -12,6 +12,7 @@
  * document (there is no `Path` or file object, `docs/sync/modules.md`).
  */
 
+import * as z from "zod";
 import {
 	type Diagnostic,
 	diagnostic,
@@ -45,7 +46,11 @@ import { repr } from "./parser/text.js";
 import { canonicalDuration, canonicalStart } from "./schedule.js";
 import { GradingType } from "./schema/common.js";
 import type { Exam } from "./schema/exam.js";
-import { Exam as ExamSchema } from "./schema/exam.js";
+import {
+	ExamEntry,
+	ExamGradingType,
+	Exam as ExamSchema,
+} from "./schema/exam.js";
 import type { Question } from "./schema/questions.js";
 import { Question as QuestionSchema } from "./schema/questions.js";
 import {
@@ -406,9 +411,11 @@ function validated(
 		: QuestionSchema.safeParse(data);
 	if (!result.success) {
 		const schemaDiagnostics = uniqueDiagnostics(
-			result.error.issues.flatMap((issue) =>
-				issueDiagnostics(issue as ZodIssue, data, [], isExamDocument),
-			),
+			isExamDocument
+				? examDiagnostics(data)
+				: result.error.issues.flatMap((issue) =>
+						issueDiagnostics(issue as ZodIssue, data, [], false),
+					),
 		);
 		diagnostics.push(...schemaDiagnostics);
 		// Pydantic runs the field validators of the fields that have the right
@@ -490,6 +497,58 @@ function entryMember(value: unknown): number {
 	return 2;
 }
 
+/** `Exam` with the two union-typed fields left for `examDiagnostics`. */
+const ExamShell = ExamSchema.extend({
+	grading: z.unknown().optional(),
+	questions: z.array(z.unknown()),
+});
+
+/**
+ * The schema diagnostics of an exam that failed `Exam`.
+ *
+ * Zod reports a failed union differently from one version to the next (4.5
+ * merges the `unrecognized_keys` issues of the members, for one). So the two
+ * unions of an exam, `grading` and each entry of `questions`, are not read
+ * from the issues of `Exam`: each member is validated on its own, and the
+ * union is rebuilt from those results.
+ */
+function examDiagnostics(data: Data): Diagnostic[] {
+	const found: Diagnostic[] = [];
+	const shell = ExamShell.safeParse(data);
+	if (!shell.success) {
+		for (const issue of shell.error.issues) {
+			found.push(...issueDiagnostics(issue as ZodIssue, data, [], true));
+		}
+	}
+	if (data.grading !== undefined) {
+		const results = ExamGradingType.options.map((member) =>
+			member.safeParse(data.grading),
+		);
+		if (!results.some((result) => result.success)) {
+			const errors = results.map((r) =>
+				r.success ? [] : (r.error.issues as ZodIssue[]),
+			);
+			found.push(...unionDiagnostics(errors, data, ["grading"], true));
+		}
+	}
+	if (Array.isArray(data.questions)) {
+		data.questions.forEach((entry, index) => {
+			const member = entryMember(entry);
+			const result = ExamEntry.options[member]?.safeParse(entry);
+			if (result === undefined || result.success) return;
+			found.push(
+				...memberDiagnostics(
+					result.error.issues as ZodIssue[],
+					data,
+					["questions", index],
+					member,
+				),
+			);
+		});
+	}
+	return found;
+}
+
 /**
  * One diagnostic per Zod issue, in the vocabulary of `docs/lint-codes.md`:
  * `schema-error` for an issue with no code of its own. The path has no union
@@ -513,15 +572,6 @@ function issueDiagnostics(
 			return [tagDiagnostic(valueAt(data, at), at, isExamDocument)];
 		}
 		const errors = issue.errors ?? [];
-		const isEntry =
-			errors.length === 3 &&
-			path.length === 2 &&
-			path[0] === "questions" &&
-			typeof path[1] === "number";
-		if (isEntry) {
-			const member = entryMember(valueAt(data, path));
-			return memberDiagnostics(errors[member] ?? [], data, path, member);
-		}
 		return unionDiagnostics(errors, data, path, isExamDocument);
 	}
 

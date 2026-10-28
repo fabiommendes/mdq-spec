@@ -16,7 +16,7 @@ the whole shared corpus (`examples/`), as mdq-py does.
 ### Changed
 
 - The JSON files are imported with `with { type: "json" }`, so the built package loads in plain Node ESM, not only through a bundler.
-- `zod` is a peer dependency (`>=4.3.6 <4.5`), so a consumer that builds schemas over the exported ones shares one zod copy. zod 4.5 changed how union issues are reported, and some diagnostics of `load` differ under it.
+- `zod` is a peer dependency (`^4.3.6`), so a consumer that builds schemas over the exported ones shares one zod copy. The diagnostics of `load` for an exam no longer depend on how zod reports union issues: the `grading` union and each entry of `questions` are validated member by member. Verified with zod 4.3.6, 4.4.3 and 4.6.7.
 
 ### Added
 
