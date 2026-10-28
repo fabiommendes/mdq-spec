@@ -74,6 +74,12 @@ export interface Messages {
 	orderingUnused: string;
 	/** The note of an ordering answer that holds no line yet. */
 	orderingEmpty: string;
+	/** Shown in an ordering question before the student gives a response. */
+	orderingNotAnswered: string;
+	/** The button that takes the order on screen as the response. */
+	orderingKeep: string;
+	/** Announced when the student keeps the order on screen. */
+	orderingKept: string;
 	/** The title of the accepted orderings, in review. */
 	orderingCorrect: (count: number) => string;
 	/** Stands for a blank line, which has no text. */
@@ -132,6 +138,10 @@ export const en: Messages = {
 	notSupported: (type) => `Questions of type "${type}" cannot be shown yet.`,
 	orderingUnused: "Not used",
 	orderingEmpty: "No lines in your answer yet.",
+	orderingNotAnswered:
+		"You have not answered yet. Reorder the lines, or keep this order.",
+	orderingKeep: "Keep this order",
+	orderingKept: "Order kept as your answer.",
 	orderingCorrect: (count) =>
 		count === 1 ? "Correct order" : "Correct orders",
 	orderingBlankLine: "(blank line)",
@@ -182,6 +192,10 @@ export const ptBR: Messages = {
 		`Questões do tipo "${type}" ainda não podem ser exibidas.`,
 	orderingUnused: "Não usadas",
 	orderingEmpty: "Nenhuma linha na sua resposta ainda.",
+	orderingNotAnswered:
+		"Você ainda não respondeu. Reordene as linhas ou mantenha esta ordem.",
+	orderingKeep: "Manter esta ordem",
+	orderingKept: "Ordem mantida como sua resposta.",
 	orderingCorrect: (count) =>
 		count === 1 ? "Ordem correta" : "Ordens corretas",
 	orderingBlankLine: "(linha em branco)",

@@ -363,8 +363,9 @@ describe("controlled and uncontrolled", () => {
 			[0, "x = 0"],
 		]);
 		expect(lines()).toEqual(["for i in range(3):", "x = 0"]);
+		// No response yet: the student sees the pool, as before the first move.
 		setValue(null);
-		expect(lines()).toEqual([]);
+		expect(lines()).toEqual(fixed.pool.map(([, text]) => text));
 	});
 
 	it("shows only what value says when the parent ignores the change", () => {
@@ -534,5 +535,64 @@ describe("messages", () => {
 		expect(button("Deixar de fora: Mosses")).toBeTruthy();
 		expect(button("Indentar: Lichens")).toBeTruthy();
 		expect(button("Recuar: Lichens")).toBeTruthy();
+	});
+});
+
+describe("keep this order", () => {
+	it("takes the untouched order as the response", () => {
+		const seen: OrderingResponse[] = [];
+		render(() => (
+			<Ordering question={fixed} onChange={(lines) => seen.push(lines)} />
+		));
+		fireEvent.click(screen.getByRole("button", { name: "Keep this order" }));
+		expect(seen).toEqual([fixed.pool]);
+		expect(
+			screen.queryByRole("button", { name: "Keep this order" }),
+		).toBeNull();
+		expect(document.querySelector("output")?.textContent).toBe(
+			"Order kept as your answer.",
+		);
+	});
+
+	it("goes away after the first move", () => {
+		render(() => <Ordering question={fixed} />);
+		fireEvent.click(button("Move down: x = 0"));
+		expect(
+			screen.queryByRole("button", { name: "Keep this order" }),
+		).toBeNull();
+	});
+
+	it("shows while a controlled value is null, and only in answer mode", () => {
+		const [value, setValue] = createSignal<OrderingResponse | null>(null);
+		render(() => (
+			<Ordering question={fixed} value={value()} onChange={setValue} />
+		));
+		fireEvent.click(screen.getByRole("button", { name: "Keep this order" }));
+		expect(value()).toEqual(fixed.pool);
+	});
+
+	it("is absent in readonly mode", () => {
+		render(() => <Ordering question={fixed} value={null} mode="readonly" />);
+		expect(
+			screen.queryByRole("button", { name: "Keep this order" }),
+		).toBeNull();
+	});
+});
+
+describe("maxLevel", () => {
+	it("stops indenting at maxLevel", () => {
+		render(() => (
+			<Ordering
+				question={{
+					...fixed,
+					indentation: "strict",
+					maxLevel: 1,
+					pool: fixed.pool.map(([, text]) => [0, text] as const),
+				}}
+			/>
+		));
+		const name = `Indent: ${fixed.pool[1]?.[1]}`;
+		fireEvent.click(button(name));
+		expect(button(name).getAttribute("aria-disabled")).toBe("true");
 	});
 });

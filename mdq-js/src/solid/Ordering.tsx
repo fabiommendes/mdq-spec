@@ -47,9 +47,6 @@ export interface OrderingProps {
 	locale?: Locale;
 }
 
-/** The deepest level the controls give a line of code. The spec sets no limit. */
-const MAX_CODE_LEVEL = 8;
-
 type Action = "up" | "down" | "indent" | "outdent" | "remove" | "add";
 
 /**
@@ -88,9 +85,20 @@ export function Ordering(props: OrderingProps): JSX.Element {
 	const [internal, setInternal] = createSignal<OrderingResponse>(
 		props.value ?? props.question.pool,
 	);
-	const used = createMemo<OrderingResponse>(() =>
-		props.value !== undefined ? (props.value ?? []) : internal(),
-	);
+	const [touched, setTouched] = createSignal(false);
+	/**
+	 * Whether there is a response. Before the first one, the answer shows the
+	 * pool: a student who agrees with it confirms it with "Keep this order",
+	 * and a host whose student submits without a response can ask whether to
+	 * skip the question.
+	 */
+	const answered = () =>
+		props.value !== undefined ? props.value !== null : touched();
+	const used = createMemo<OrderingResponse>(() => {
+		if (props.value === undefined) return internal();
+		if (props.value !== null) return props.value;
+		return mode() === "answer" ? props.question.pool : [];
+	});
 
 	/** How the spec identifies a pool line: see "Line identity". */
 	const identity = (line: OrderingLine): string =>
@@ -143,8 +151,15 @@ export function Ordering(props: OrderingProps): JSX.Element {
 
 	function commit(lines: OrderingLine[]): void {
 		const next = editsLevels() ? fitLevels(lines) : lines;
+		setTouched(true);
 		setInternal(next);
 		props.onChange?.(next);
+	}
+
+	/** Takes the order on screen, untouched, as the response. */
+	function keep(): void {
+		commit([...used()]);
+		setAnnouncement(messages().orderingKept);
 	}
 
 	/**
@@ -214,11 +229,14 @@ export function Ordering(props: OrderingProps): JSX.Element {
 	function canIndent(lines: OrderingResponse, index: number): boolean {
 		const line = lines[index];
 		if (!editsLevels() || line === undefined || line[1] === "") return false;
+		if (line[0] >= (props.question.maxLevel ?? Number.POSITIVE_INFINITY)) {
+			return false;
+		}
 		if (content() === "text") {
 			const before = lines[index - 1];
 			return before !== undefined && line[0] <= before[0];
 		}
-		return line[0] < MAX_CODE_LEVEL;
+		return true;
 	}
 
 	function canOutdent(lines: OrderingResponse, index: number): boolean {
@@ -367,6 +385,18 @@ export function Ordering(props: OrderingProps): JSX.Element {
 							)}
 						</Index>
 					</ol>
+					<Show when={!answered()}>
+						<p class="mdq-ordering-keep">
+							<span>{messages().orderingNotAnswered}</span>
+							<button
+								type="button"
+								class="mdq-ordering-keep-button"
+								onClick={keep}
+							>
+								{messages().orderingKeep}
+							</button>
+						</p>
+					</Show>
 				</section>
 
 				<Show when={unused().length > 0}>

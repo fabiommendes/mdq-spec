@@ -360,6 +360,12 @@
 	.mdq-ordering-button[aria-disabled="true"] {
 		@apply cursor-default opacity-40;
 	}
+	.mdq-ordering-keep {
+		@apply flex flex-wrap items-center gap-2;
+	}
+	.mdq-ordering-keep-button {
+		@apply btn btn-sm btn-primary;
+	}
 
 	.mdq-unsupported {
 		@apply alert alert-warning;

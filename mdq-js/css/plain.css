@@ -570,3 +570,25 @@
 	cursor: default;
 	opacity: 0.4;
 }
+
+.mdq-ordering-keep {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.mdq-ordering-keep-button {
+	padding: 0.25rem 0.75rem;
+	border: 1px solid currentColor;
+	border-radius: 0.25rem;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	cursor: pointer;
+}
+
+.mdq-ordering-keep-button:focus-visible {
+	outline: 2px solid currentColor;
+	outline-offset: 2px;
+}
