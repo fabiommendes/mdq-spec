@@ -158,6 +158,13 @@ score) and the effect of picking a choice with an omitted score.
 The results are rounded to 2 decimal places for clarity, but the actual 
 results should be computed with full precision.
 
+## Public form
+
+In the [public form](../public-form.md), each choice keeps only its `id` and `text`: `score`, `feedback`
+and `comment` are private. Every choice MUST have an id. The
+[correct responses](../public-form.md#correct-responses) are the ids of the choices whose score is 1.
+
+
 ## Additional Rules
 
 | Field              | Level    | Code                       | Rule                                                      |

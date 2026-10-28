@@ -578,6 +578,14 @@ The results are rounded to 2 decimal places for clarity, but the actual
 results should be computed with full precision.
 
 
+## Public form
+
+The [public form](../public-form.md) keeps `shuffle`, `grading`, `diacritics`, `unmatched` and the blanks,
+each with only the fields a student needs to answer it. Every choice of a
+choice blank MUST have an id. The [correct responses](../public-form.md#correct-responses) are a mapping from blank id to the
+correct responses of that blank.
+
+
 ## Additional Rules
 
 Beyond the rules below, every blank carries the additional rules of the

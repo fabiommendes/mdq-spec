@@ -237,6 +237,12 @@ The response to an essay question is a string. See
 An empty response is a response, not a skip.
 
 
+## Public form
+
+The [public form](../public-form.md) keeps `content` and `highlight`. `answerKey` is private. The
+[correct responses](../public-form.md#correct-responses) are the answer key, when it is present.
+
+
 ## Additional Rules
 
 | Field     | Level    | Code                           | Rule                                                       |

@@ -544,6 +544,14 @@ Each question defines its own rules for translating the body and eventual
 additional fields. Those rules are covered in their own dedicated document.
 
 
+## Public form
+
+The [public form](../public-form.md) of a question is the question as a student may see it. It keeps the
+base fields except `author`, `meta` and `comment`, which are private. Each
+question type removes its own private fields, such as the answer and the
+feedback. The [correct responses](../public-form.md#correct-responses) are the responses that score 1.
+
+
 ## Additional Rules
 
 This section documents only the rules that are NOT captured by the JSON schema and

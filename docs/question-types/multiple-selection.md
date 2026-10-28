@@ -152,6 +152,13 @@ convention. A student cannot abstain on a single choice: every choice gets a
 verdict. If abstention is necessary, use [true/false](true-false.md)
 questions.
 
+## Public form
+
+In the [public form](../public-form.md), each choice keeps only its `id` and `text`: `correct`, `feedback`
+and `comment` are private. Every choice MUST have an id. The
+[correct responses](../public-form.md#correct-responses) are one response: the ids of the choices with `correct: true`.
+
+
 ## Additional Rules
 
 | Field              | Level    | Code                       | Rule                                                      |

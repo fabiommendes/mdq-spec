@@ -444,6 +444,14 @@ here. Only the uniform pattern is suspicious, so one code covers both the
 all true and the all false cases.
 
 
+## Public form
+
+In the [public form](../public-form.md), each statement keeps only its `id` and `text`: `correct`,
+`marker`, `feedback` and `comment` are private. Every statement MUST have an
+id. The [correct responses](../public-form.md#correct-responses) are one response: each statement id mapped to its `correct`
+value.
+
+
 ## Additional Rules
 
 | Field              | Level    | Code                                     | Rule                                                       |

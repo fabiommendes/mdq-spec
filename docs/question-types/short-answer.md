@@ -609,6 +609,14 @@ submission is still invalid, and the system SHOULD say so in its own words.
 feedback. A [fill-in](fill-in.md#short-answer-blanks) short answer blank uses
 the same rules for its own `preAccept` and `preReject` lists.
 
+## Public form
+
+The [public form](../public-form.md) keeps `preAccept`, `preReject` (without the `comment` of each
+pattern), `diacritics` and `unmatched`, so a client can run the
+[pre-validation](#pre-validation). `accept`, `reject` and `incorrectFeedback`
+are private. The [correct responses](../public-form.md#correct-responses) are the texts of the literal patterns of `accept`.
+
+
 ## Additional Rules
 
 | Field                                | Level    | Code                   | Rule                                                                                |

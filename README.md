@@ -143,7 +143,9 @@ Choices and patterns take student feedback in indented `>` lines and
 instructor-only comments in `!` lines. Choice-based types accept a `grading`
 strategy (`symmetric`, `partial`, `no-mistakes` or `all-or-nothing`, depending on the type). See
 [docs/responses.md](docs/responses.md) for how responses are represented and
-scored.
+scored. See [docs/public-form.md](docs/public-form.md) for the
+public form of a question, the form a student may see, and its correct
+responses.
 
 
 ## Exams

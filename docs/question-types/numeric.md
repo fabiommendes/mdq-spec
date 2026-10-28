@@ -406,6 +406,13 @@ The message is the same for every incorrect response. Feedback for known wrong
 values is outside this specification.
 
 
+## Public form
+
+The [public form](../public-form.md) keeps `unit`, and always holds the effective `domain` and, when it
+exists, the effective `decimalPlaces`. `answer`, `tolerance` and
+`incorrectFeedback` are private. The [correct responses](../public-form.md#correct-responses) are one response: the `answer`.
+
+
 ## Additional Rules
 
 | Field              | Level    | Code                           | Rule                                                               |

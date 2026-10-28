@@ -711,6 +711,14 @@ answer: under `unmatched: incorrect` (the default) it scores 0, and under
 `unmatched: manual` it is pending.
 
 
+## Public form
+
+The [public form](../public-form.md) replaces `lines` and `extra` with a `pool`: every line the student
+sorts, at level 0 under `lenient` and `strict`, in a fixed order that does not
+give away the answer. `accept`, `reject` and `incorrectFeedback` are private.
+The [correct responses](../public-form.md#correct-responses) are the `[ordering]` block and each `## [accept]` section.
+
+
 ## Additional Rules
 
 | Field                 | Level    | Code                         | Rule                                                              |

@@ -1,0 +1,484 @@
+# Vectors for the public form and the correct responses of a question
+# (docs/public-form.md).
+#
+# Document structure
+#
+# Case {
+#   name: string
+#
+#   // The question in its YAML form, with `type`.
+#   question: { type: string, ... }
+#
+#   // The public form: the question without its private fields, with the
+#   // derived values. JSON-like, absent fields omitted.
+#   public?: object
+#
+#   // The correct responses: a list of full responses, each in the shape
+#   // of docs/responses.md and each scoring 1. Fill-in: a mapping from
+#   // blank id to the correct responses of that blank.
+#   correctResponses?: list | object
+#
+#   // The question is not addressable: building its public form fails
+#   // with this error (docs/public-form.md, "Addressability"). Then
+#   // `public` and `correctResponses` are absent.
+#   error?: "MissingIdError"
+# }
+#
+# `public()` and `correct_responses()` are the Python names. They are not
+# normative.
+cases:
+  #
+  # Multiple choice
+  #
+  - name: multiple choice drops score, feedback, comment, author and meta
+    question:
+      type: multiple-choice
+      id: capital-do-brasil
+      title: Capital do Brasil
+      author: Darcy Ribeiro
+      meta: { banca: interna }
+      comment: Pergunta de aquecimento.
+      tags: [geografia]
+      locale: pt-BR
+      weight: 2
+      shuffle: true
+      stem: Qual cidade é a capital do Brasil?
+      choices:
+        - id: brasilia
+          text: Brasília
+          score: 1
+          feedback: Brasília é a capital desde 1960.
+        - id: rio-de-janeiro
+          text: Rio de Janeiro
+          comment: Foi a capital até 1960.
+        - id: salvador
+          text: Salvador
+          score: -0.5
+          feedback: Salvador foi a primeira capital, até 1763.
+    public:
+      type: multiple-choice
+      id: capital-do-brasil
+      title: Capital do Brasil
+      tags: [geografia]
+      locale: pt-BR
+      weight: 2
+      shuffle: true
+      stem: Qual cidade é a capital do Brasil?
+      choices:
+        - { id: brasilia, text: Brasília }
+        - { id: rio-de-janeiro, text: Rio de Janeiro }
+        - { id: salvador, text: Salvador }
+    correctResponses: [brasilia]
+
+  - name: multiple choice with no choice of score 1 has no correct response
+    question:
+      type: multiple-choice
+      grading: partial
+      stem: Qual destes rios nasce em Minas Gerais e deságua no Atlântico?
+      choices:
+        - { id: sao-francisco, text: São Francisco, score: 0.5 }
+        - { id: amazonas, text: Amazonas }
+        - { id: parana, text: Paraná }
+    public:
+      type: multiple-choice
+      grading: partial
+      stem: Qual destes rios nasce em Minas Gerais e deságua no Atlântico?
+      choices:
+        - { id: sao-francisco, text: São Francisco }
+        - { id: amazonas, text: Amazonas }
+        - { id: parana, text: Paraná }
+    correctResponses: []
+
+  - name: multiple choice with two choices of score 1
+    question:
+      type: multiple-choice
+      stem: Qual destes biomas existe no Brasil?
+      choices:
+        - { id: caatinga, text: Caatinga, score: 1 }
+        - { id: pampa, text: Pampa, score: 1 }
+        - { id: tundra, text: Tundra }
+    public:
+      type: multiple-choice
+      stem: Qual destes biomas existe no Brasil?
+      choices:
+        - { id: caatinga, text: Caatinga }
+        - { id: pampa, text: Pampa }
+        - { id: tundra, text: Tundra }
+    correctResponses: [caatinga, pampa]
+
+  - name: multiple choice with a choice without id is not addressable
+    question:
+      type: multiple-choice
+      stem: Qual ave é símbolo do Pantanal?
+      choices:
+        - { id: tuiuiu, text: Tuiuiú, score: 1 }
+        - { text: Pinguim }
+    error: MissingIdError
+
+  #
+  # Multiple selection
+  #
+  - name: multiple selection drops correct and feedback
+    question:
+      type: multiple-selection
+      grading: all-or-nothing
+      stem: Quais destes estados fazem parte da região Nordeste?
+      choices:
+        - { id: bahia, text: Bahia, correct: true }
+        - { id: goias, text: Goiás, correct: false, feedback: Goiás fica no Centro-Oeste. }
+        - { id: ceara, text: Ceará, correct: true }
+        - { id: parana, text: Paraná, correct: false }
+    public:
+      type: multiple-selection
+      grading: all-or-nothing
+      stem: Quais destes estados fazem parte da região Nordeste?
+      choices:
+        - { id: bahia, text: Bahia }
+        - { id: goias, text: Goiás }
+        - { id: ceara, text: Ceará }
+        - { id: parana, text: Paraná }
+    correctResponses: [[bahia, ceara]]
+
+  #
+  # True/false
+  #
+  - name: true/false drops correct and marker
+    question:
+      type: true-false
+      locale: pt-BR
+      stem: Julgue as afirmações sobre a Mata Atlântica.
+      choices:
+        - id: costa
+          text: Ocupava grande parte do litoral brasileiro.
+          correct: true
+          marker: V
+        - id: intacta
+          text: Mantém hoje mais da metade da cobertura original.
+          correct: false
+          marker: F
+          feedback: Restam cerca de 12% da cobertura original.
+    public:
+      type: true-false
+      locale: pt-BR
+      stem: Julgue as afirmações sobre a Mata Atlântica.
+      choices:
+        - { id: costa, text: Ocupava grande parte do litoral brasileiro. }
+        - { id: intacta, text: Mantém hoje mais da metade da cobertura original. }
+    correctResponses: [{ costa: true, intacta: false }]
+
+  #
+  # Numeric
+  #
+  - name: numeric with an inferred integer domain and a unit
+    question:
+      type: numeric
+      stem: Qual é a altitude do Pico da Neblina, em metros?
+      answer: 2995
+      unit: m
+      tolerance: { absolute: 5 }
+      incorrectFeedback: Ele é o ponto mais alto do Brasil.
+    public:
+      type: numeric
+      stem: Qual é a altitude do Pico da Neblina, em metros?
+      unit: m
+      domain: integer
+    correctResponses: [2995]
+
+  - name: numeric with inferred decimal domain and decimal places
+    question:
+      type: numeric
+      stem: Qual é a velocidade da luz no vácuo, em 10⁸ m/s?
+      answer: "2.998"
+      tolerance: { absolute: 0.01 }
+    public:
+      type: numeric
+      stem: Qual é a velocidade da luz no vácuo, em 10⁸ m/s?
+      domain: decimal
+      decimalPlaces: 3
+    correctResponses: ["2.998"]
+
+  - name: numeric with a declared domain keeps it
+    question:
+      type: numeric
+      stem: Que fração das espécies de plantas da Mata Atlântica é endêmica?
+      answer: "2/5"
+      domain: fraction
+    public:
+      type: numeric
+      stem: Que fração das espécies de plantas da Mata Atlântica é endêmica?
+      domain: fraction
+    correctResponses: ["2/5"]
+
+  - name: numeric with a fraction answer in a decimal domain gives its rounded decimal
+    question:
+      type: numeric
+      stem: Qual fração do território brasileiro é ocupada pela Amazônia Legal, aproximadamente?
+      answer: "3/5"
+      domain: decimal
+      decimalPlaces: 1
+    public:
+      type: numeric
+      stem: Qual fração do território brasileiro é ocupada pela Amazônia Legal, aproximadamente?
+      domain: decimal
+      decimalPlaces: 1
+    correctResponses: ["0.6"]
+
+  #
+  # Short answer
+  #
+  - name: short answer keeps pre-validation without comments
+    question:
+      type: short-answer
+      diacritics: keep
+      stem: Qual é a capital de Alagoas?
+      accept:
+        - Maceió
+        - "`MCZ`"
+        - pattern: "/macei[oó]/i"
+          feedback: Aceito com ou sem acento.
+      reject:
+        - pattern: Recife
+          feedback: Recife é a capital de Pernambuco.
+      preAccept:
+        - pattern: "/^[a-zà-ú ]+$/i"
+          feedback: Escreva só letras.
+          comment: Bloqueia números.
+      preReject:
+        - "/\\d/"
+        - pattern: "/^.$/"
+          comment: Uma letra só não é um nome.
+      incorrectFeedback: Pense no litoral nordestino.
+    public:
+      type: short-answer
+      diacritics: keep
+      stem: Qual é a capital de Alagoas?
+      preAccept:
+        - pattern: "/^[a-zà-ú ]+$/i"
+          feedback: Escreva só letras.
+      preReject:
+        - "/\\d/"
+        - "/^.$/"
+    correctResponses: [Maceió, MCZ]
+
+  - name: short answer with only regex accepts has no correct response
+    question:
+      type: short-answer
+      stem: Escreva o ano da Independência do Brasil.
+      accept: ["/1822/"]
+      unmatched: manual
+    public:
+      type: short-answer
+      stem: Escreva o ano da Independência do Brasil.
+      unmatched: manual
+    correctResponses: []
+
+  #
+  # Essay
+  #
+  - name: essay drops the answer key and gives it as the correct response
+    question:
+      type: essay
+      content: code
+      highlight: python
+      stem: Escreva uma função que converte graus Celsius em Fahrenheit.
+      answerKey: "`return c * 9 / 5 + 32`"
+    public:
+      type: essay
+      content: code
+      highlight: python
+      stem: Escreva uma função que converte graus Celsius em Fahrenheit.
+    correctResponses: ["`return c * 9 / 5 + 32`"]
+
+  - name: essay without answer key has no correct response
+    question:
+      type: essay
+      stem: Explique por que a Amazônia é chamada de "rios voadores".
+    public:
+      type: essay
+      stem: Explique por que a Amazônia é chamada de "rios voadores".
+    correctResponses: []
+
+  #
+  # Fill in the blanks
+  #
+  - name: fill-in with the three blank kinds
+    question:
+      type: fill-in
+      grading: partial
+      stem: >-
+        O Rio [^rio] tem cerca de [^km] km e deságua no oceano [^oceano].
+      blanks:
+        - id: rio
+          type: short-answer
+          accept: [Amazonas, "`Solimões`", "/amazon.*/i"]
+          preAccept:
+            - pattern: "/^[a-zà-ú]+$/i"
+              feedback: Uma palavra só.
+              comment: Sem números.
+          incorrectFeedback: É o maior rio do Brasil.
+        - id: km
+          type: numeric
+          answer: 6992
+          unit: km
+          tolerance: { relative: 0.05 }
+        - id: oceano
+          type: multiple-choice
+          choices:
+            - { id: atlantico, text: Atlântico, score: 1 }
+            - { id: pacifico, text: Pacífico, feedback: O Pacífico fica a oeste dos Andes. }
+    public:
+      type: fill-in
+      grading: partial
+      stem: >-
+        O Rio [^rio] tem cerca de [^km] km e deságua no oceano [^oceano].
+      blanks:
+        - id: rio
+          type: short-answer
+          preAccept:
+            - pattern: "/^[a-zà-ú]+$/i"
+              feedback: Uma palavra só.
+        - id: km
+          type: numeric
+          unit: km
+          domain: integer
+        - id: oceano
+          type: multiple-choice
+          choices:
+            - { id: atlantico, text: Atlântico }
+            - { id: pacifico, text: Pacífico }
+    correctResponses:
+      rio: [Amazonas, Solimões]
+      km: [6992]
+      oceano: [atlantico]
+
+  - name: fill-in blank with no correct response maps to an empty list
+    question:
+      type: fill-in
+      unmatched: manual
+      stem: A Semana de Arte Moderna aconteceu em [^ano] na cidade de [^cidade].
+      blanks:
+        - id: ano
+          type: numeric
+          answer: 1922
+        - id: cidade
+          type: short-answer
+          accept: ["/s[aã]o paulo/i"]
+    public:
+      type: fill-in
+      unmatched: manual
+      stem: A Semana de Arte Moderna aconteceu em [^ano] na cidade de [^cidade].
+      blanks:
+        - { id: ano, type: numeric, domain: integer }
+        - { id: cidade, type: short-answer }
+    correctResponses:
+      ano: [1922]
+      cidade: []
+
+  - name: fill-in choice blank with a choice without id is not addressable
+    question:
+      type: fill-in
+      stem: O guaraná é uma planta nativa da [^bioma].
+      blanks:
+        - id: bioma
+          type: multiple-choice
+          choices:
+            - { id: amazonia, text: Amazônia, score: 1 }
+            - { text: Caatinga }
+    error: MissingIdError
+
+  #
+  # Ordering
+  #
+  - name: ordering fixed keeps the authored levels and mixes extra lines into the pool
+    question:
+      type: ordering
+      content: text
+      stem: Ordene os períodos da história do Brasil.
+      lines:
+        - [0, Colônia]
+        - [1, Ciclo do açúcar]
+        - [1, Ciclo do ouro]
+        - [0, Império]
+        - [0, República]
+      extra:
+        - [0, Feudalismo]
+        - [1, Ciclo do ouro]
+      incorrectFeedback: Comece pela chegada dos portugueses.
+    public:
+      type: ordering
+      content: text
+      stem: Ordene os períodos da história do Brasil.
+      pool:
+        - [1, Ciclo do açúcar]
+        - [1, Ciclo do ouro]
+        - [1, Ciclo do ouro]
+        - [0, Colônia]
+        - [0, Feudalismo]
+        - [0, Império]
+        - [0, República]
+    correctResponses:
+      - [[0, Colônia], [1, Ciclo do açúcar], [1, Ciclo do ouro], [0, Império], [0, República]]
+
+  - name: ordering lenient zeroes the levels and lists the accepted orders
+    question:
+      type: ordering
+      content: code
+      highlight: python
+      indentation: lenient
+      stem: Ordene as linhas para somar a população das capitais.
+      lines:
+        - [0, "total = 0"]
+        - [0, "for capital in capitais:"]
+        - [1, "total += capital.populacao"]
+        - [0, "print(total)"]
+      extra:
+        - [1, "total -= capital.populacao"]
+      accept:
+        - lines:
+            - [0, "for capital in capitais:"]
+            - [0, "total = 0"]
+            - [0, "total += capital.populacao"]
+            - [0, "print(total)"]
+          feedback: Funciona por acaso, mas zere o total antes do laço.
+          comment: Com dedent, só a ordem conta.
+    public:
+      type: ordering
+      content: code
+      highlight: python
+      indentation: lenient
+      stem: Ordene as linhas para somar a população das capitais.
+      pool:
+        - [0, "for capital in capitais:"]
+        - [0, "print(total)"]
+        - [0, "total += capital.populacao"]
+        - [0, "total -= capital.populacao"]
+        - [0, "total = 0"]
+    correctResponses:
+      - [[0, "total = 0"], [0, "for capital in capitais:"], [1, "total += capital.populacao"], [0, "print(total)"]]
+      - [[0, "for capital in capitais:"], [0, "total = 0"], [0, "total += capital.populacao"], [0, "print(total)"]]
+
+  - name: ordering keeps blank lines in the pool under skip-blanks
+    question:
+      type: ordering
+      content: code
+      indentation: strict
+      normalizations: [skip-blanks]
+      unmatched: manual
+      stem: Ordene os comandos para listar os arquivos do projeto Sirius.
+      lines:
+        - [0, "cd sirius"]
+        - [0, ""]
+        - [0, "ls -la"]
+    public:
+      type: ordering
+      content: code
+      indentation: strict
+      normalizations: [skip-blanks]
+      unmatched: manual
+      stem: Ordene os comandos para listar os arquivos do projeto Sirius.
+      pool:
+        - [0, ""]
+        - [0, "cd sirius"]
+        - [0, "ls -la"]
+    correctResponses:
+      - [[0, "cd sirius"], [0, ""], [0, "ls -la"]]
