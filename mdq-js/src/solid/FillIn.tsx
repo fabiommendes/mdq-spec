@@ -339,6 +339,12 @@ interface ControlProps {
 
 /** The one control a blank is answered with, sized to sit in a sentence. */
 function Control(props: ControlProps): JSX.Element {
+	// A conditional written inside a JSX prop compiles to a memo that is
+	// created on every read. The controls read `value` in their event
+	// handlers, outside any owner, so the conditions live in plain functions.
+	const text = () => (typeof props.value === "string" ? props.value : "");
+	const choiceId = () =>
+		typeof props.value === "string" ? props.value : null;
 	return (
 		<Switch>
 			<Match when={props.blank.type === "multiple-choice" && props.blank}>
@@ -347,7 +353,7 @@ function Control(props: ControlProps): JSX.Element {
 						choices={
 							(blank() as Extract<PublicBlank, { choices: unknown }>).choices
 						}
-						value={typeof props.value === "string" ? props.value : null}
+						value={choiceId()}
 						onChange={props.onChange}
 						disabled={props.disabled}
 						placeholder={props.messages.selectPlaceholder}
@@ -375,7 +381,7 @@ function Control(props: ControlProps): JSX.Element {
 			</Match>
 			<Match when={props.blank.type === "short-answer"}>
 				<TextInput
-					value={typeof props.value === "string" ? props.value : ""}
+					value={text()}
 					onChange={(text) => props.onChange(text === "" ? null : text)}
 					disabled={props.disabled}
 					placeholder="?"
