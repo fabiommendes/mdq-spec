@@ -15,6 +15,9 @@ the whole shared corpus (`examples/`), as mdq-py does.
 
 ### Added
 
+- `mdq/solid`: SolidJS components, first the base ones (`Markdown`, `Score`, `Feedback`, `Mark`). They emit semantic `mdq-*` classes and keep state in `data-*` attributes. Text comes from a `Messages` dictionary (English by default, `ptBR` included), set by the optional `MdqProvider` or by the `messages` prop of each component. The `"solid"` export condition ships JSX for the consumer to compile.
+- `mdq/css/plain.css` (minimal, functional styles) and `mdq/css/daisyui.css` (daisyUI 5, through the consumer's Tailwind v4 build).
+- `package.json` has an `exports` map: `.`, `./solid` and `./css/*`.
 - `load(source, {format, kind})` returns `{document, diagnostics}` for YAML, JSON or Markdown text, or a mapping. `parse` returns the raw document, `assertValid` throws `InvalidDocumentError` on an error diagnostic.
 - Model rules beyond the Zod schemas (unique ids, regexes that compile, numeric answers, blank markers, ordering outlines, schedule fields). `validateDocument` and `load` report each one with its own diagnostic code.
 - `lint(document)`, `lintQuestion` and `lintExam` report the `warning` and `info` diagnostics. `load` adds them to a valid document.

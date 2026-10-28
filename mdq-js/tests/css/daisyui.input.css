@@ -1,0 +1,4 @@
+/* Compiles css/daisyui.css as a consumer would: `pnpm css:check`. */
+@import "tailwindcss" source(none);
+@import "../../css/daisyui.css";
+@plugin "daisyui";

@@ -1,0 +1,112 @@
+/*
+ * daisyUI 5 styles for the mdq/solid components.
+ *
+ * The rules use `@apply`, so this file must go through the consumer's
+ * Tailwind v4 build, with the daisyUI plugin loaded:
+ *
+ *     @import "tailwindcss";
+ *     @plugin "daisyui";
+ *     @import "mdq/css/daisyui.css";
+ *
+ * Markdown blocks (`.mdq-markdown`) get no typography here. Add
+ * `@tailwindcss/typography` and `@apply prose` to them if you want it.
+ */
+
+@layer components {
+	.mdq-sr-only {
+		@apply sr-only;
+	}
+
+	.mdq-question {
+		@apply flex flex-col gap-4;
+	}
+
+	.mdq-header {
+		@apply flex justify-end;
+	}
+
+	.mdq-preamble,
+	.mdq-epilogue {
+		@apply text-base-content/70;
+	}
+
+	.mdq-stem {
+		@apply text-base font-medium;
+	}
+
+	.mdq-score {
+		@apply badge;
+	}
+	.mdq-score[data-sign="positive"] {
+		@apply badge-success;
+	}
+	.mdq-score[data-sign="negative"] {
+		@apply badge-error;
+	}
+	.mdq-score[data-sign="zero"] {
+		@apply badge-neutral badge-ghost;
+	}
+
+	.mdq-choices {
+		@apply flex flex-col gap-2;
+	}
+
+	.mdq-choice {
+		@apply flex items-center gap-3 rounded-box border border-base-300 p-3;
+	}
+	.mdq-question[data-mode="answer"] .mdq-choice {
+		@apply cursor-pointer;
+	}
+	.mdq-question[data-mode="readonly"] .mdq-choice {
+		@apply text-base-content/60;
+	}
+	.mdq-question[data-mode="readonly"] .mdq-choice[data-selected] {
+		@apply border-primary bg-primary/5 font-medium text-base-content;
+	}
+	.mdq-choice[data-key="correct"] {
+		@apply border-success bg-success/10;
+	}
+	.mdq-choice[data-key="incorrect"] {
+		@apply border-error bg-error/10;
+	}
+
+	.mdq-choice-input[type="radio"] {
+		@apply radio;
+	}
+	.mdq-question[data-mode="readonly"] .mdq-choice-input {
+		@apply sr-only;
+	}
+
+	.mdq-choice-text {
+		@apply flex-1;
+	}
+
+	.mdq-mark {
+		@apply inline-flex shrink-0;
+	}
+	.mdq-mark svg {
+		@apply h-5 w-5;
+	}
+	.mdq-mark[data-mark="correct"] {
+		@apply text-success;
+	}
+	.mdq-mark[data-mark="incorrect"] {
+		@apply text-error;
+	}
+	.mdq-mark[data-mark="selected"] {
+		@apply text-primary;
+	}
+
+	.mdq-feedback {
+		@apply alert flex-col items-start;
+	}
+	.mdq-feedback[data-sign="positive"] {
+		@apply alert-success;
+	}
+	.mdq-feedback[data-sign="negative"] {
+		@apply alert-error;
+	}
+	.mdq-feedback[data-sign="zero"] {
+		@apply alert-info;
+	}
+}

@@ -11,7 +11,8 @@ The conventions of this package live in `docs/sync/`:
   `tests/not-ported.ts`.
 - `docs/sync/roadmap.md`: decisions and the history of the phases.
 
-Commands, from `mdq-js/`: `pnpm test`, `pnpm typecheck`, `pnpm lint`
+Commands, from `mdq-js/`: `pnpm test`, `pnpm typecheck`, `pnpm css:check`
+(compiles `css/daisyui.css` with Tailwind + daisyUI), `pnpm lint`
 (`biome check`; `--write` only on hand-written files, never on
 `src/mdq.schema.json` or `src/inexact-tables.json`).
 
