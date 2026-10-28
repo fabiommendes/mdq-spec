@@ -24,8 +24,13 @@ export const UUID_PATTERN =
  * `schema/numeric.yaml#/properties/unit` -- the `UNIT` terminal of
  * docs/references/grammar.md: any run of characters that are not a
  * `UNICODE_SPACE`, a parenthesis or a bracket (`µm`, `°C`, `m/s`, `km/h`).
+ *
+ * No `u` flag: a JSON Schema pattern has no flags, and a converter that
+ * prints `regex.toString()` would keep `/u`. Every character of the class is
+ * in the BMP, so the negated class takes both halves of a surrogate pair and
+ * matches the same strings without it.
  */
-export const UNIT_PATTERN = new RegExp(`^[^()\\[\\]${UNICODE_SPACE}]+$`, "u");
+export const UNIT_PATTERN = new RegExp(`^[^()\\[\\]${UNICODE_SPACE}]+$`);
 
 /**
  * `schema/numeric.yaml#/properties/answer`'s string form -- the bare `sign?
