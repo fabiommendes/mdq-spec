@@ -11,6 +11,7 @@ export * from "./Feedback.jsx";
 export * from "./Mark.jsx";
 export * from "./Markdown.jsx";
 export * from "./MultipleChoice.jsx";
+export * from "./MultipleSelection.jsx";
 export * from "./messages.jsx";
 export * from "./render-markdown.js";
 export * from "./Score.jsx";

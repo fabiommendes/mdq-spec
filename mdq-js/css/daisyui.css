@@ -73,6 +73,9 @@
 	.mdq-choice-input[type="radio"] {
 		@apply radio;
 	}
+	.mdq-choice-input[type="checkbox"] {
+		@apply checkbox;
+	}
 	.mdq-question[data-mode="readonly"] .mdq-choice-input {
 		@apply sr-only;
 	}
