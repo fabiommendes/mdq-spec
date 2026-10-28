@@ -44,6 +44,10 @@ export interface Messages {
 	yourAnswerLabel: string;
 	/** The title of the list of accepted answers. */
 	acceptedAnswers: (count: number) => string;
+	/** The warning for a numeric box whose text is not a valid response. */
+	numericInvalid: string;
+	/** The key of a numeric question, in review. `value` has its unit. */
+	expectedValue: (value: string) => string;
 }
 
 export const en: Messages = {
@@ -63,6 +67,8 @@ export const en: Messages = {
 	yourAnswerLabel: "Your answer:",
 	acceptedAnswers: (count) =>
 		count === 1 ? "Accepted answer" : "Accepted answers",
+	numericInvalid: "Enter a valid number. Use a point as the decimal separator.",
+	expectedValue: (value) => `Expected ${value}`,
 };
 
 export const ptBR: Messages = {
@@ -82,6 +88,8 @@ export const ptBR: Messages = {
 	yourAnswerLabel: "Sua resposta:",
 	acceptedAnswers: (count) =>
 		count === 1 ? "Resposta aceita" : "Respostas aceitas",
+	numericInvalid: "Digite um número válido. Use ponto como separador decimal.",
+	expectedValue: (value) => `Esperado ${value}`,
 };
 
 // An accessor, so a provider whose `messages` change updates its subtree.

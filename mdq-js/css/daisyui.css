@@ -21,6 +21,17 @@
 		@apply flex flex-col gap-4;
 	}
 
+	.mdq-markdown > :first-child {
+		margin-top: 0;
+	}
+	.mdq-markdown > :last-child {
+		margin-bottom: 0;
+	}
+
+	.mdq-feedback .mdq-markdown {
+		color: inherit;
+	}
+
 	.mdq-header {
 		@apply flex justify-end;
 	}
@@ -174,6 +185,26 @@
 	}
 	.mdq-accepted-item {
 		@apply badge badge-outline;
+	}
+
+	.mdq-numeric {
+		@apply inline-flex flex-col gap-1;
+	}
+	.mdq-numeric-box {
+		@apply input w-48;
+	}
+	.mdq-numeric-box[data-invalid] {
+		@apply input-warning;
+	}
+	.mdq-numeric-input {
+		@apply grow disabled:text-base-content;
+	}
+	.mdq-unit {
+		@apply label;
+	}
+
+	.mdq-expected {
+		@apply text-sm text-base-content/60;
 	}
 
 	.mdq-mark {
