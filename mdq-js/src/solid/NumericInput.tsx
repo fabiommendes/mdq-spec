@@ -7,7 +7,7 @@ import {
 	Show,
 } from "solid-js";
 import { ResponseError } from "../errors.js";
-import { scoreNumeric } from "../models/numeric.js";
+import { responseValue } from "../models/numeric.js";
 import type { NumericResponse } from "../responses.js";
 import type { NumericDomain } from "../schema/index.js";
 import type { Messages } from "./messages.jsx";
@@ -37,8 +37,8 @@ export interface NumericInputProps {
 /** Whether `text` is a numeric response the `domain` can represent. */
 export function isNumericText(text: string, domain: NumericDomain): boolean {
 	try {
-		// Grading owns the rules for a valid response; the key is a stand-in.
-		scoreNumeric({ answer: 0, domain }, text);
+		// Grading owns the rules for a valid response.
+		responseValue(text, domain, undefined);
 		return true;
 	} catch (error) {
 		if (error instanceof ResponseError) return false;

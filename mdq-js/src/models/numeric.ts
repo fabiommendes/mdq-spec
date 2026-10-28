@@ -387,7 +387,7 @@ function checkResponseUnit(
  *
  * @throws {ResponseError} The response is malformed.
  */
-function responseValue(
+export function responseValue(
 	original: unknown,
 	domain: NumericDomain,
 	unit: string | undefined,
