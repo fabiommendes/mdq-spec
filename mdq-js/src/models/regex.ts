@@ -10,7 +10,7 @@
  * `mdq-py/mdq/models/_regex.py`.
  */
 
-import tables from "../inexact-tables.json";
+import tables from "../inexact-tables.json" with { type: "json" };
 import { repr, UNICODE_SPACE } from "../parser/text.js";
 
 /** An MDQ regex pattern is malformed or uses unsupported syntax. */

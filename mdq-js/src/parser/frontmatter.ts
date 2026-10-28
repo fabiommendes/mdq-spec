@@ -24,7 +24,7 @@ import {
 import { type Diagnostic, diagnostic, type PathStep } from "../diagnostics.js";
 import { YamlSyntaxError } from "../errors.js";
 import { splitLines, stripBom } from "../markdown.js";
-import bundleJson from "../mdq.schema.json";
+import bundleJson from "../mdq.schema.json" with { type: "json" };
 import { QUESTION_TYPES } from "../schema/questions.js";
 import { repr, strip } from "./text.js";
 

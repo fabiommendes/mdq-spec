@@ -8,7 +8,7 @@
 import type { Diagnostic, PathStep } from "../diagnostics.js";
 import { NotAutoGradable, ResponseError } from "../errors.js";
 import { exactLiteral } from "../exact.js";
-import tables from "../inexact-tables.json";
+import tables from "../inexact-tables.json" with { type: "json" };
 import { hasVisibleCharacter, startsBlock } from "../markdown.js";
 import { findAnswerKeyForbiddenElements } from "../parser/blocks.js";
 import { repr, strip, typeName, UNICODE_SPACE } from "../parser/text.js";

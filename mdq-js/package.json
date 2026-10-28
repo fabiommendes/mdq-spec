@@ -30,7 +30,8 @@
 		"typecheck": "tsc -p tsconfig.json",
 		"lint": "biome check",
 		"prepare": "pnpm run build",
-		"css:check": "tailwindcss -i tests/css/daisyui.input.css -o /dev/null"
+		"css:check": "tailwindcss -i tests/css/daisyui.input.css -o /dev/null",
+		"node:check": "tsc -p tsconfig.build.json && node --input-type=module -e \"await import('mdq')\""
 	},
 	"keywords": [],
 	"author": "Fábio Macêdo Mendes",

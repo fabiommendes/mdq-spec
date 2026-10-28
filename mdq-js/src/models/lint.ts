@@ -20,7 +20,7 @@ import type { Diagnostic, PathStep } from "../diagnostics.js";
 import { md, SLUG_BODY_RE } from "../markdown.js";
 import { findStrayChoiceMarkers } from "../parser/blocks.js";
 import { repr, strip } from "../parser/text.js";
-import PYGMENTS_ALIASES from "../pygments-aliases.json";
+import PYGMENTS_ALIASES from "../pygments-aliases.json" with { type: "json" };
 import { lintDiagnostic } from "./lint-codes.js";
 
 /**
