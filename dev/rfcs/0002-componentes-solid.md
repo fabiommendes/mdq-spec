@@ -52,7 +52,7 @@ usa.
    consumidor que não compila Solid.
 7. **Integração.** A sessão codehood troca os componentes do codehood pelos
    de `mdq/solid`, um tipo por vez, na ordem: MultipleChoice, TrueFalse,
-   MultipleSelection, ShortAnswer, Numeric, Essay, FillIn. Os testes
+   MultipleSelection, ShortAnswer, Numeric, Essay, FillIn, Ordering. Os testes
    Playwright do codehood servem de oráculo de comportamento.
 
 ## Bugs do `MultipleChoiceView` do codehood
