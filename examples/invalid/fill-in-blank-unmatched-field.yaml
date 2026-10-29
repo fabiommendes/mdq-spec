@@ -1,0 +1,10 @@
+# `unmatched` is a field of the fill-in question, not of a blank: every short
+# answer blank takes the `unmatched` of the question or its own default.
+type: fill-in
+stem: The Pantanal lies in the [^region] region of Brazil.
+blanks:
+  - id: region
+    type: short-answer
+    accept:
+      - Center-West
+    unmatched: manual
