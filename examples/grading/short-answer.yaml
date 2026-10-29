@@ -228,6 +228,17 @@ questions:
       - response: "água"
         score: 1
 
+  # The literal text of the body is normalized to NFC, as for an exact
+  # literal (patterns.md, "Regex"). This body is written in NFD ("e" followed
+  # by U+0301), and the response is NFC.
+  - name: "Regex body in NFD"
+    question: { accept: ["/cafe\u0301 do Paran\u00e1/"] }
+    examples:
+      - response: "café do Paraná"
+        score: 1
+      - response: "cafe do Parana"
+        score: 0
+
   # An escape is the exact code point: `n` never strips it, so it cannot
   # match the stripped response (lint `unmatchable-regex-escape`).
   - name: "Regex n keeps escapes"

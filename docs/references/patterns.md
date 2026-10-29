@@ -568,6 +568,27 @@ the answer. An author who needs specific spaces at the ends can ask for the
 answer in string notation, such as `" a "`, and match the quotes.
 
 
+### Regex body
+
+An implementation MUST normalize the literal characters of the regex body to
+NFC before it compiles the body, the same rule as for an
+[exact literal](#exact-literals). An NFD body, such as `/café/` written as `e`
+followed by U+0301, then matches the NFC response `café`.
+
+An escape is a boundary. An implementation MUST normalize each run of literal
+text on its own, and MUST NOT normalize across a `\` escape. Otherwise
+`/\d/` followed by U+0307 would compose to `\ḋ`, which is an `invalid-regex`.
+An escape that denotes a code point (`\uXXXX`, `\xXX` and `\u{...}`) is
+always that exact code point, so `/cafe\u0301/` stays decomposed and does not
+match the NFC response `café`. The `n` flag works on the same runs, see
+[Regex flags](#regex-flags).
+
+In a class or before a quantifier the result follows what the reader sees.[^nfc]
+
+[^nfc]: An NFD `[é]` is two code points, `e` and U+0301, so the class matches
+    either of them. After the normalization it is one code point. An NFD `é+`
+    quantifies the mark only, and after the normalization it quantifies `é`.
+
 ### Regex flags
 
 Matching is **case-sensitive by default**; `i` turns that off. A regex, like an

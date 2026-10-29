@@ -411,7 +411,7 @@ cases:
       stem: "A Amazônia tem [^a] estados."
       blanks:
         - {id: a, answer: 9, domain: integer, type: numeric}
-  - name: normalize writes a string numeric answer with an exponent as the parser reads its rendering
+  - name: normalize keeps the float of a numeric answer with an exponent
     normalize: true
     input:
       type: numeric
@@ -420,10 +420,10 @@ cases:
     output:
       type: numeric
       stem: Quantos metros tem um quilômetro?
-      answer: "1000.0"
+      answer: 1000.0
       domain: decimal
-      decimalPlaces: 1
-  - name: normalize writes a large float numeric answer as the parser reads its rendering
+      decimalPlaces: 0
+  - name: normalize keeps a large float numeric answer
     normalize: true
     input:
       type: numeric
@@ -432,6 +432,5 @@ cases:
     output:
       type: numeric
       stem: Quantos metros tem 1e17 quilômetros?
-      answer: "100000000000000000000.0"
-      domain: decimal
-      decimalPlaces: 1
+      answer: 1.0e+20
+      domain: integer
