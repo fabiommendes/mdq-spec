@@ -52,8 +52,9 @@ Those need discussion and design.
   `UnresolvedInclude` on an exam that still holds an `include` entry
   (docs/responses.md). `with_ids()` makes a document addressable.
 * [ ] Per-blank weights in fill-in questions.
-* [ ] Per-blank feedback placement for fill-in questions. Feedback is currently a
-  flat list, which a UI cannot position next to the blank it belongs to.
+* [x] Per-blank feedback placement for fill-in questions. Feedback is currently a
+  flat list, which a UI cannot position next to the blank it belongs to. Done:
+  `QuestionScore.blanks` (fill-in.md, "Blank scores").
 * [ ] Associative (matching) question type.
 
 
