@@ -37,6 +37,14 @@ import {
 	scoreShortAnswer,
 } from "./text.js";
 
+/** What the response to one blank of a fill-in question was worth. */
+export interface BlankScore {
+	/** The raw value, in [-1, 1]. */
+	readonly score: number;
+	/** The feedback the blank's response triggers. */
+	readonly feedback: readonly string[];
+}
+
 /** What one response to one question was worth. */
 export interface QuestionScore {
 	/** The raw value, in [-1, 1], with no exam policy applied. */
@@ -50,7 +58,7 @@ export interface QuestionScore {
 	 * strategy combines the blanks; an empty blank is `{score: 0, feedback:
 	 * []}`; `null` marks a pending blank. Only fill-in sets it.
 	 */
-	readonly blanks?: Readonly<Record<string, QuestionScore | null>>;
+	readonly blanks?: Readonly<Record<string, BlankScore | null>>;
 }
 
 /** What one attempt at an exam was worth (`docs/exam.md`, "Exam score"). */

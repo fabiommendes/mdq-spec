@@ -37,7 +37,7 @@ import {
 	numericKeyModels,
 	scoreNumeric,
 } from "./numeric.js";
-import type { QuestionScore } from "./score.js";
+import type { BlankScore, QuestionScore } from "./score.js";
 import {
 	defaultUnmatched,
 	patternKeyFields,
@@ -295,7 +295,7 @@ function scoreBlank(
 		readonly diacritics: DiacriticsType;
 		readonly unmatched: Unmatched | undefined;
 	},
-): QuestionScore | undefined {
+): BlankScore | undefined {
 	switch (blank.type) {
 		case "multiple-choice": {
 			const choice =
@@ -388,9 +388,9 @@ function filledAnswer(
 function blankScores(
 	question: FillInQuestion,
 	answers: Readonly<Record<string, unknown>>,
-): Record<string, QuestionScore | null> {
+): Record<string, BlankScore | null> {
 	const symmetric = fillInGrading(question) === "symmetric";
-	const scores: Record<string, QuestionScore | null> = {};
+	const scores: Record<string, BlankScore | null> = {};
 	for (const blank of question.blanks) {
 		const answer = filledAnswer(answers, blank.id);
 		if (answer === undefined) {
@@ -422,7 +422,7 @@ function blankScores(
 export function scoreBlanks(
 	question: FillInQuestion,
 	response: unknown,
-): Record<string, QuestionScore | null> {
+): Record<string, BlankScore | null> {
 	return blankScores(question, parseFillIn(question, response));
 }
 
@@ -484,7 +484,7 @@ export function combineBlanks(
 function combineScores(
 	question: FillInQuestion,
 	answers: Readonly<Record<string, unknown>>,
-	blanks: Readonly<Record<string, QuestionScore | null>>,
+	blanks: Readonly<Record<string, BlankScore | null>>,
 	manual: Readonly<Record<string, number>>,
 ): QuestionScore {
 	const grading = fillInGrading(question);
@@ -515,7 +515,7 @@ function combineScores(
 			`the response to blank ${repr(pending[0] ?? "")} is pending: it matches no pattern and 'unmatched' is 'manual'`,
 		);
 	}
-	const settledBlanks: Record<string, QuestionScore> = {};
+	const settledBlanks: Record<string, BlankScore> = {};
 	for (const [id, result] of Object.entries(blanks)) {
 		settledBlanks[id] = result ?? { score: manual[id] as number, feedback: [] };
 	}
