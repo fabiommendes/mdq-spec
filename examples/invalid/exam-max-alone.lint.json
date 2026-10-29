@@ -1,5 +1,14 @@
 [
   {
+    "code": "invalid-frontmatter-field",
+    "severity": "error",
+    "path": [
+      "questions",
+      0,
+      "max"
+    ]
+  },
+  {
     "code": "parse-error",
     "severity": "error",
     "path": []

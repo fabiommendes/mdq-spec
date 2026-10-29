@@ -511,6 +511,12 @@ spaces, the source line `  \tc = 2` is the content line `\tc = 2`, 4 columns wid
 
 If no indented line exists, the unit is 4 spaces.
 
+A question whose indented lines all sit at levels with a common factor above 1
+(for example, only level 2 and no level 1 line anywhere) has no Markdown form:
+the unit inferred from its source would be that many times larger and every
+level would be read divided by that factor. It can be written in YAML or JSON
+only.
+
 A line's **indentation level** is its leading whitespace divided by that unit,
 and that level -- not the raw whitespace -- is what a response carries and
 what `"strict"` compares.
