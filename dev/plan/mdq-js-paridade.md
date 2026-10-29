@@ -209,6 +209,12 @@ Notas:
 - Sujeito da regex: NFC e trim de `UNICODE_SPACE` antes; flag `n` depois
   (tira `Mn` pela tabela `nonspacing`, da resposta e dos literais do corpo,
   nunca dos escapes).
+- Corpo da regex em NFD (mdq-py, pendente de port): normalizar o texto
+  literal do corpo para NFC antes de compilar, cada trecho literal à parte,
+  sem normalizar através de um escape `\x` (NFC de `\d` + U+0307 viraria
+  `\ḋ`). A flag `n` usa os mesmos trechos. Escapes de code point ficam como
+  escritos. Exemplo: `examples/grading/short-answer.yaml`, "Regex body in
+  NFD". Ver "Regex body" em `docs/references/patterns.md`.
 - Padrão sem caractere visível é `blank-text`; `has_visible_character` e
   `starts_block` vêm de `mdq-py/mdq/_markdown.py`.
 
