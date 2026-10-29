@@ -1,6 +1,6 @@
 ---
 type: spec
-status: draft
+status: review
 tags: [mdq, lint, diagnostics, conformance, spec-rules]
 relatedTo: [lint-on-models, unique-ids, dev/architecture-review.md]
 ---
@@ -135,3 +135,25 @@ check, or implement it as an error. Report which case applies.
   "implemented as <code>".
 - Spec rows that are ambiguous or cannot be implemented, and why.
 - Existing examples with new diagnostics.
+
+## Review notes (2026-10-29)
+
+Triage found the spec already implemented. The codes live in
+`mdq-py/mdq/models/_lint_codes.py`, and
+`mdq-py/tests/test_lint_codes_consistency.py` checks them against
+`docs/lint-codes.md`. Differences from the text above:
+
+- Renamed: `code-input-without-highlight` is `code-content-without-highlight`,
+  `multiple-choice-no-correct-choice` is `no-correct-choice`,
+  `multiple-choice-many-correct-choices` is `many-correct-choices` (info),
+  `non-nfc-true-false-marker` is `non-nfkc-true-false-marker`.
+- Removed: `stem-not-a-paragraph`, `unexpanded-stem-ellipsis`.
+- `blank-choice-text`, `blank-tag`, `blank-text-field`, `blank-choice-feedback`
+  and `blank-choice-comment` are one `blank-text` error.
+- Dropped with their spec rows: `accept-wildcard`, `unreachable-reject`.
+- Section D: every rule is enforced (`check_no_forbidden_block_elements`,
+  `check_blank_markers_are_in_plain_text`,
+  `check_markers_agree_with_correct`; short-answer `accept`/`reject` in the
+  frontmatter is an `invalid-frontmatter-field`).
+- The line references above are stale (`base.md` is now
+  `question-base.md`).
