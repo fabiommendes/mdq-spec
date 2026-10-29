@@ -274,6 +274,11 @@
 		@apply border-success;
 	}
 	.mdq-question
+		.mdq-blank[data-key="partial"]
+		:is(.mdq-input, .mdq-numeric-box, .mdq-select-button) {
+		@apply border-warning;
+	}
+	.mdq-question
 		.mdq-blank[data-key="incorrect"]
 		:is(.mdq-input, .mdq-numeric-box, .mdq-select-button) {
 		@apply border-error;
@@ -379,6 +384,9 @@
 	}
 	.mdq-mark[data-mark="correct"] {
 		@apply text-success;
+	}
+	.mdq-mark[data-mark="partial"] {
+		@apply text-warning;
 	}
 	.mdq-mark[data-mark="incorrect"] {
 		@apply text-error;

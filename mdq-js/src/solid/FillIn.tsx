@@ -16,7 +16,7 @@ import type { FillInResponse, NumericResponse } from "../responses.js";
 import { ChoiceSelect } from "./ChoiceSelect.jsx";
 import { Feedback } from "./Feedback.jsx";
 import { placedBlanks, type StemPart, splitStem } from "./fill-in-stem.js";
-import { Mark, type MarkKind } from "./Mark.jsx";
+import { Mark, type MarkKind, type Verdict, verdictOf } from "./Mark.jsx";
 import { Markdown } from "./Markdown.jsx";
 import { type Locale, type Messages, useMessages } from "./messages.jsx";
 import { NumericInput } from "./NumericInput.jsx";
@@ -88,8 +88,9 @@ export interface FillInProps {
  * question does not define, stays as written. See `splitStem`.
  *
  * `review` mode shows the score (or the pending badge). With `result.blanks`
- * each blank gets `data-key` on its `.mdq-blank`: `correct` (score 1) or
- * `incorrect` (answered, below 1) with a `Mark`, or `pending` with the
+ * each blank gets `data-key` on its `.mdq-blank`: `correct` (score 1),
+ * `partial` (between 0 and 1) or `incorrect` (answered, 0 or less) with a
+ * `Mark`, or `pending` with the
  * pending badge. An empty blank has no mark: it is neither right nor wrong.
  * The feedback of each blank is listed under the stem as
  * `.mdq-blank-feedback[data-blank]`, headed by the label of the blank;
@@ -148,14 +149,12 @@ export function FillIn(props: FillInProps): JSX.Element {
 	};
 
 	/** The mark of a blank in review, from its score. */
-	const verdict = (
-		blankId: string,
-	): "correct" | "incorrect" | "pending" | undefined => {
+	const verdict = (blankId: string): Verdict | "pending" | undefined => {
 		const entry = blankScores()?.[blankId];
 		if (entry === undefined) return undefined;
 		if (entry === null) return "pending";
 		if (answers()[blankId] == null) return undefined;
-		return entry.score >= 1 ? "correct" : "incorrect";
+		return verdictOf(entry.score);
 	};
 	const feedbackBlanks = () =>
 		order().filter((blankId) => hasBlankFeedback(blankId));
@@ -394,9 +393,7 @@ function Control(props: ControlProps): JSX.Element {
 }
 
 /** The mark of a verdict: a pending blank has a badge instead. */
-function markOf(
-	verdict: "correct" | "incorrect" | "pending",
-): MarkKind | undefined {
+function markOf(verdict: Verdict | "pending"): MarkKind | undefined {
 	return verdict === "pending" ? undefined : verdict;
 }
 

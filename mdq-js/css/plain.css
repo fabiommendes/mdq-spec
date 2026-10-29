@@ -382,6 +382,11 @@
 	border: 2px solid currentColor;
 }
 
+.mdq-blank[data-key="partial"]
+	:is(.mdq-input, .mdq-numeric-box, .mdq-select-button) {
+	border: 2px dotted currentColor;
+}
+
 .mdq-blank[data-key="incorrect"]
 	:is(.mdq-input, .mdq-numeric-box, .mdq-select-button) {
 	border: 2px dashed currentColor;

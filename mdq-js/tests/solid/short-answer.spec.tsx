@@ -175,6 +175,23 @@ describe("review mode", () => {
 		expect(input().hasAttribute("aria-describedby")).toBe(false);
 	});
 
+	it("marks a response that scores between 0 and 1 as partial", () => {
+		render(() => (
+			<ShortAnswer
+				question={question}
+				value="Brasilia DF"
+				mode="review"
+				result={{ score: 0.5, feedback: [] }}
+			/>
+		));
+		expect(
+			document.querySelector(".mdq-input-row")?.getAttribute("data-key"),
+		).toBe("partial");
+		expect(document.querySelector(".mdq-mark")?.textContent).toBe(
+			"Partially correct",
+		);
+	});
+
 	it("shows a pending badge and no verdict for a pending result", () => {
 		render(() => (
 			<ShortAnswer

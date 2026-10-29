@@ -2,7 +2,7 @@ import { createUniqueId, type JSX, Show } from "solid-js";
 import type { PublicNumericQuestion } from "../index.js";
 import type { NumericResponse } from "../responses.js";
 import { Feedback } from "./Feedback.jsx";
-import { Mark } from "./Mark.jsx";
+import { Mark, type Verdict, verdictOf } from "./Mark.jsx";
 import { Markdown } from "./Markdown.jsx";
 import { type Locale, type Messages, useMessages } from "./messages.jsx";
 import { NumericInput } from "./NumericInput.jsx";
@@ -41,7 +41,8 @@ function textOf(value: NumericResponse): string {
  * A numeric question: `.mdq-question[data-type="numeric"]`.
  *
  * One `NumericInput` in a `.mdq-input-row`. In `review` mode the row has
- * `data-key` from the score (1 is correct), because the tolerance is private
+ * `data-key` from the score (`correct` at 1, `partial` between 0 and 1,
+ * `incorrect` at 0 or less), because the tolerance is private
  * and the key alone cannot tell. `result.correct` is shown as the expected
  * value.
  */
@@ -53,10 +54,10 @@ export function Numeric(props: NumericProps): JSX.Element {
 	const feedbackId = `${id}-feedback`;
 
 	const review = () => (mode() === "review" ? props.result : undefined);
-	const verdict = (): "correct" | "incorrect" | undefined => {
+	const verdict = (): Verdict | undefined => {
 		const result = review();
 		if (result === undefined) return undefined;
-		return result.score >= 1 ? "correct" : "incorrect";
+		return verdictOf(result.score);
 	};
 	const hasFeedback = () => (review()?.feedback.length ?? 0) > 0;
 	const unit = () => props.question.unit;

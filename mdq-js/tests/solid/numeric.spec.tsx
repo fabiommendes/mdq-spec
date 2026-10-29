@@ -195,6 +195,20 @@ describe("review mode", () => {
 		);
 	});
 
+	it("marks a response that scores between 0 and 1 as partial", () => {
+		render(() => (
+			<Numeric
+				question={question}
+				value="9.7"
+				mode="review"
+				result={{ score: 0.5, feedback: [] }}
+			/>
+		));
+		expect(
+			document.querySelector(".mdq-input-row")?.getAttribute("data-key"),
+		).toBe("partial");
+	});
+
 	it("hides the score but keeps the mark", () => {
 		render(() => (
 			<Numeric

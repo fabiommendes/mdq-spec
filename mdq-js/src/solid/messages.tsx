@@ -26,6 +26,8 @@ export interface Messages {
 	score: (value: string) => string;
 	/** Read by a screen reader next to a choice the answer key marks right. */
 	correct: string;
+	/** Read by a screen reader next to an answer that scores above 0 and below 1. */
+	partial: string;
 	/** Read by a screen reader next to a picked choice the key marks wrong. */
 	incorrect: string;
 	/** Read by a screen reader next to the picked choice of a frozen question. */
@@ -111,6 +113,7 @@ export interface Messages {
 export const en: Messages = {
 	score: (value) => `Score ${value}`,
 	correct: "Correct",
+	partial: "Partially correct",
 	incorrect: "Incorrect",
 	yourAnswer: "Your answer",
 	noAnswer: "No answer submitted.",
@@ -164,6 +167,7 @@ export const en: Messages = {
 export const ptBR: Messages = {
 	score: (value) => `Nota ${value}`,
 	correct: "Correta",
+	partial: "Parcialmente correta",
 	incorrect: "Incorreta",
 	yourAnswer: "Sua resposta",
 	noAnswer: "Nenhuma resposta enviada.",

@@ -292,6 +292,17 @@ describe("review mode, per blank", () => {
 		expect(right.querySelector(".mdq-sr-only")?.textContent).toBe("Correct");
 	});
 
+	it("marks a blank that scores between 0 and 1 as partial", () => {
+		reviewBlanks({
+			blanks: { ...blanks, river: { score: 0.5, feedback: [] } },
+		});
+		const partial = blankOf("river");
+		expect(partial.getAttribute("data-key")).toBe("partial");
+		expect(partial.querySelector(".mdq-sr-only")?.textContent).toBe(
+			"Partially correct",
+		);
+	});
+
 	it("gives an empty blank no mark", () => {
 		reviewBlanks();
 		const empty = blankOf("size");

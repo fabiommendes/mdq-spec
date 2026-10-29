@@ -16,6 +16,7 @@ import {
 	ptBR,
 	Score,
 	useMessages,
+	verdictOf,
 } from "@mdq/solid/index.js";
 import { render, screen } from "@solidjs/testing-library";
 import type { JSX } from "solid-js";
@@ -145,5 +146,16 @@ describe("plainInline", () => {
 		["[Pantanal](https://example.org)", "Pantanal"],
 	])("reads %s as %s", (markdown, text) => {
 		expect(plainInline(markdown)).toBe(text);
+	});
+});
+
+describe("verdictOf", () => {
+	it.each([
+		[1, "correct"],
+		[0.5, "partial"],
+		[0, "incorrect"],
+		[-0.5, "incorrect"],
+	] as const)("gives %s the verdict %s", (score, verdict) => {
+		expect(verdictOf(score)).toBe(verdict);
 	});
 });

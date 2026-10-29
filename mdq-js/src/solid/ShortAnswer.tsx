@@ -10,7 +10,7 @@ import type { PublicShortAnswerQuestion } from "../index.js";
 import { prevalidateText } from "../models/text.js";
 import type { TextResponse } from "../responses.js";
 import { Feedback } from "./Feedback.jsx";
-import { Mark } from "./Mark.jsx";
+import { Mark, type Verdict, verdictOf } from "./Mark.jsx";
 import { Markdown } from "./Markdown.jsx";
 import { type Locale, type Messages, useMessages } from "./messages.jsx";
 import { Pending } from "./Pending.jsx";
@@ -47,7 +47,8 @@ export interface ShortAnswerProps {
  * checked.
  *
  * In `review` mode the verdict is `data-key` on `.mdq-input-row`, from the
- * score (1 is correct). A pending result shows the `Pending` badge and no verdict.
+ * score: `correct` at 1, `partial` between 0 and 1, `incorrect` at 0 or
+ * less. A pending result shows the `Pending` badge and no verdict.
  */
 export function ShortAnswer(props: ShortAnswerProps): JSX.Element {
 	const messages = useMessages(props);
@@ -62,10 +63,10 @@ export function ShortAnswer(props: ShortAnswerProps): JSX.Element {
 		props.value !== undefined ? (props.value ?? "") : typed();
 
 	const review = () => (mode() === "review" ? props.result : undefined);
-	const verdict = (): "correct" | "incorrect" | undefined => {
+	const verdict = (): Verdict | undefined => {
 		const result = review();
 		if (result === undefined || isPending(result)) return undefined;
-		return result.score >= 1 ? "correct" : "incorrect";
+		return verdictOf(result.score);
 	};
 	/** The review result, unless it is pending. */
 	const settled = () => {
