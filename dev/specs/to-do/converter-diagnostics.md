@@ -1,6 +1,6 @@
 ---
 type: spec
-status: draft
+status: todo
 tags: [mdq-py, convert, gift, moodle-xml, aiken, diagnostics, cli]
 relatedTo: [mdq-py/mdq/convert/_base.py, mdq-py/mdq/convert/_gift.py, mdq-py/mdq/convert/_moodle_xml.py, mdq-py/mdq/convert/_aiken.py, mdq-py/mdq/cli/_convert.py, mdq-py/README.md, dev/issues/converter-remaining-losses.md]
 ---
@@ -345,23 +345,10 @@ pass (the last one is not affected: no change in `docs/`, `schema/`,
 - Moodle auto-format line breaks (S19).
 - Grading parity between MDQ and Moodle beyond the reports above.
 
-## Open questions
+## Decisions (human, 2026-10-30)
 
-Q1. R12 changes the GIFT import: a lone `*` short answer becomes Moodle's
-wildcard (`/.*/` at 100%, `incorrectFeedback` at 0%) instead of a literal
-`*`. It matches what Moodle does with the same file and makes S1/S2 lossless.
-Recommended. Alternative: keep the literal and report `incorrectFeedback` as
-`feedback-dropped`.
-
-Q2. S7/S8: multiple selection to or from Moodle XML always changes the
-grading, so every such question reports `grading-changed`. Keep it as a
-warning (recommended: it is a real score difference, and `--strict` must
-catch it), or make it info?
-
-Q3. X2 (`inexact-answer`): exporting `1/3` with tolerance 0 accepts only
-`0.3333333333333333`. Warning (recommended, consistent with best effort) or
-keep it an error because the result is almost unanswerable?
-
-Q4. Names: `load_question`/`dump_question` (mirror `mdq.load`, and load/dump
-of `json`), plus `warnings.warn` in the simple calls. Alternative names:
-`import_converted`/`export_converted`.
+- Q1: a lone `*` in a GIFT short answer is Moodle's wildcard (R12), as the
+  Moodle XML importer already reads it.
+- Q2: `grading-changed` is a warning.
+- Q3: `inexact-answer` is a warning; the export writes the nearest float.
+- Q4: `load_question`/`dump_question`.
