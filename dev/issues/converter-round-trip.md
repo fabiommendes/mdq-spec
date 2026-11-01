@@ -32,5 +32,18 @@ different second export (the `reexport` entries of
 - `exponent-string-answer`: the import writes the float as a string answer
   that the export then rejects.
 
+## Export that does not import back
+
+The `import` entries with an error: the export writes a text that the
+importer of the same format rejects.
+
+| Format     | Question                                          | Import error                                   |
+| ---------- | ------------------------------------------------- | ---------------------------------------------- |
+| aiken      | `valid/multiple-choice/line-separators-in-choice-text` | `syntax-error`: a U+2028/U+2029 in a choice breaks the line |
+| gift       | `valid/fill-in/blank-in-code-span-is-text`        | `invalid-question`: `[^capital]` in code is read as a marker |
+| moodle-xml | `valid/fill-in/blank-in-code-is-text`             | `invalid-question`: same as above              |
+| moodle-xml | `valid/essay/form-feed-is-text`                   | `syntax-error`: a form feed is not valid XML   |
+| moodle-xml | `valid/multiple-choice/line-separators-in-choice-text` | `syntax-error`: invalid XML token         |
+
 Check each one against the inventory of `converter-diagnostics.md` before a
 fix: some may be losses that the spec turns into warnings.

@@ -9,6 +9,28 @@ relatedTo: [mdq-py/mdq/convert/_base.py, mdq-py/mdq/convert/_gift.py, mdq-py/mdq
 
 Python only (`mdq-py/`). mdq-js has no converters, so there is no port.
 
+## Status (2026-11-01)
+
+Done before the rest, with no change of behavior other than the exception
+class:
+
+- R2: `mdq.errors.ConversionError`, with `.diagnostics` and `.code`.
+- R6: `mdq.convert.CONVERTER_CODES` (`mdq/convert/_codes.py`). Every raise
+  site of the inventory raises `ConversionError` with the code of its row,
+  and the registry declares every code as an error for now. When a row
+  becomes a warning, its severity changes, not its name.
+- Codes not in the inventory, for raise sites it did not list:
+  `blank-line-after-blank` (X20, removed by R10), `missing-word-boolean`
+  (X27, removed when it is fixed), `blank-in-html-block` (`html_to_mdq`, a
+  blank inside an HTML block), `not-a-number` (a numeric answer text that is
+  not a number), `invalid-question` (the converter built a question the
+  models reject).
+- `import_question` raises `ConversionError` with `syntax-error` (and `line`)
+  for a `ParserError`, as R3 asks of `load_question`.
+- `mdq-py/tests/test_convert_snapshots.py` records what each converter does
+  with the valid corpus, through the public interface. A change of behavior
+  shows as a diff of `mdq-py/tests/snapshots/convert/*.json`.
+
 ## Problem
 
 - Every imperfect conversion raises `ValueError("cannot convert ...")`. One
