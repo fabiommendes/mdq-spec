@@ -136,23 +136,20 @@ that changed.
 
 ### Glossary
 
-Always read the list of definitions in the glossary using:
+`GLOSSARY.md` is managed by r2. Read and change it with `r2 glossary`, never
+with the editor:
 
 ```bash
- grep -oP "^### \K.+" GLOSSARY.md
+r2 glossary list              # one line per term
+r2 glossary show <TERM>       # the section of one term
+r2 glossary find <WORDS>      # terms matching the words, including words to avoid
+r2 glossary check             # report problems
 ```
 
-If you want to fetch the details of a definition, use:
-
-```bash
-awk  'BEGIN { IGNORECASE = 1 } /## <TERM>/{flag=1; next} /##/{flag=0} flag' GLOSSARY.md
-```
-
-replacing <TERM> with the term you want to look up.
-
-If a new concept or word is introduced in a conversation, ask the human if it
-should be added to the glossary. Be extremely succint when adding entries to the
-glossary. Add in alphabetical order.
+Before you choose a word for a new class, field or concept, run
+`r2 glossary find` and use the term it returns. If a new concept or word is
+introduced in a conversation, ask the human if it should be added to the
+glossary. Add it with `r2 glossary add`, with a short definition.
 
 
 ### Python vs Typescript conventions
