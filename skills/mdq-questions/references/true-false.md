@@ -70,19 +70,19 @@ left unjudged.
 * Statement texts must be unique.
 
 
-## How to write good true-false questions
+## How to write good true or false questions
 
 When writing any question, have a learning objective in mind. Questions may be
 used for assessment, practice, or discussion.
 
-An MDQ true-false question is a *multiple true-false* item: one stem followed
+An MDQ true or false question is a *multiple true-false* item: one stem followed
 by several statements, each judged on its own.
 
 ### When to use
 
-* Use true-false for content that fits a proposition: a claim that is clearly
-  true or false. Good fits are facts, definitions, predictions ("this code
-  prints `3`"), and common misconceptions
+* Use true or false questions for content that fits a proposition: a claim
+  that is clearly true or false. Good fits are facts, definitions,
+  predictions ("this code prints `3`"), and common misconceptions
   [Clay 2001](references.md#true-false-questions).
 * Students answer statements quickly, so one question covers a lot of content.
   A single statement is a coin flip for a guesser, so use several statements

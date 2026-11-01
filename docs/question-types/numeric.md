@@ -163,7 +163,7 @@ An integer number like `42` or `-1` SHOULD be coerced to an integral value.
 It SHOULD be kept as a string if it is not representable in the 32-bit signed
 integer range.
 
-The [number type/domain](#number-typedomain) field is unaffected by the
+The [domain](#domain) field is unaffected by the
 decision to coerce the string representation to a number or not.
 
 A document written directly as JSON/YAML/dict, rather than parsed from
@@ -176,7 +176,7 @@ When `domain` is `fraction`, such a document SHOULD give `answer` as a
 fraction string (`"3/4"`) or as an integer (`2` or `"2"`). A number that is
 not whole, such as `0.75`, is a decimal and contradicts the domain.
 
-## Number type/domain
+## Domain
 
 If not given in the frontmatter, the domain is inferred from how the value and
 the absolute tolerance are written, using coercion rules similar to C's:
@@ -286,7 +286,7 @@ These cases are flagged by a diagnostic, see
 * Implementations MAY report, at the info level, a declared `integer` or
   `fraction` domain with an absolute tolerance whose value is not whole
   (`domain-mismatch`), see
-  [Number type/domain](#number-typedomain).
+  [Domain](#domain).
 
 If both tolerances are defined, a response is accepted if it passes ANY of those
 criteria. When the domain is `decimal`, the response and the answer are first
@@ -327,7 +327,7 @@ In Markdown the places are the digits as written. In a YAML or JSON document:
   and `"1.5e-3"` has 4.
 * A number counts the places of its shortest decimal form, but a number of
   whole value has 0 places (`5` and `4.0`), see
-  [Number type/domain](#number-typedomain). The shortest form of a JSON
+  [Domain](#domain). The shortest form of a JSON
   number MAY have an exponent (`repr(1e-7)` is `'1e-07'` in Python), and
   the formula is the same: the places do not depend on how the platform
   writes the number. `1e-7` and `0.0000001` both have 7 places, and `1.5e-7`
@@ -447,11 +447,11 @@ answer, so only an exact 0 would be accepted.
 [^5]: `0.05` is 5%, not 0.05%; `5` would accept a response 500% off. In
 Markdown, `+- 150%` is also reported: a tolerance above 100% accepts responses
 of the opposite sign.
-[^6]: See [number type/domain](#number-typedomain). A tolerance is a
+[^6]: See [domain](#domain). A tolerance is a
 decimal when its value is not whole (`0.5`, not `1.0`). This lint reads the
 value in every form. The inference of the domain reads a Markdown tolerance by
 its spelling instead (`1.0` is a `DECIMAL`), see
-[number type/domain](#number-typedomain). A declared domain MAY be wider than
+[domain](#domain). A declared domain MAY be wider than
 the values need: `decimal` fits an integer answer, and `fraction` fits an
 integer (see [answer representation](#answer-representation)). A non-whole
 answer under a narrower domain is `answer-outside-domain`, not this code.

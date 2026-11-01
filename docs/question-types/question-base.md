@@ -422,13 +422,13 @@ and `[ * ]` have the values `T`, `x` and `*`:
 
 1. a value is `*` or a percentage: multiple choice;
 2. a value is `x` or `X`: multiple selection;
-3. a value is a [letter](true-false.md#body): true/false;
+3. a value is a [letter](true-false.md#body): true or false;
 4. otherwise: multiple selection. This covers a list whose values are all
    blank, and a list of blank and unknown values such as `[ ]` and `[?]`.
 
 Once the type is known, inferred or forced by `type`, every value MUST belong
 to the `value` rule of that type: `[x]` in a multiple choice list, `[ ]` in a
-true/false list, `[*]` in a list forced to multiple selection, or a `[?]`
+true or false list, `[*]` in a list forced to multiple selection, or a `[?]`
 anywhere is a `foreign-choice-marker` error. An implementation MUST NOT read
 such a value as an unmarked choice: the answer key would change in silence.
 
@@ -480,7 +480,7 @@ question settles without the instructor:
 | `semi-automatic` | some responses get a score, the others are pending |
 | `manual`         | every response is pending                          |
 
-Multiple choice, multiple selection, true/false and numeric questions are
+Multiple choice, multiple selection, true or false and numeric questions are
 `automatic`. Essay questions are `manual`. A [short answer](short-answer.md#automation)
 question, an [ordering](ordering.md#automation) question and a
 [fill in the blanks](fill-in.md#automation) question derive it from their

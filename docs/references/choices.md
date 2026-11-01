@@ -2,7 +2,7 @@
 
 The body of a [multiple choice](../question-types/multiple-choice.md),
 [multiple selection](../question-types/multiple-selection.md) or
-[true/false](../question-types/true-false.md) question is a **choice list**:
+[true or false](../question-types/true-false.md) question is a **choice list**:
 an unordered list whose every item is a choice. A
 [choice blank](../question-types/fill-in.md) of a fill-in question uses the
 same items. This document defines what these lists share. Each question type
@@ -39,7 +39,7 @@ always the same: normalize, then validate, then interpret. Type inference, the
 value all use the normalized value. The written text is never checked
 against the `value` rule. So `[Ｘ]` (U+FF38) is `x`, `[＊]` is `*` and `[Ｆ]`
 (U+FF26) is `f`. A type that keeps the written letter (`marker` in
-[true/false](../question-types/true-false.md#choices)) keeps the original
+[true or false](../question-types/true-false.md#choices)) keeps the original
 character.
 
 The `ws` of the `value` rule is read on the normalized value. A character
@@ -143,7 +143,7 @@ Write a code span (`` `ls` ``) inside the first paragraph instead.
 
 Each item becomes one object of the `choices` list in the AST. The question
 type adds the field that records the verdict of the choice (`score` in
-multiple choice, `correct` in multiple selection and true/false).
+multiple choice, `correct` in multiple selection and true or false).
 
 | Field      | Source in the item                                                  |
 | ---------- | ------------------------------------------------------------------- |

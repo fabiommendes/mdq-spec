@@ -97,7 +97,7 @@ A `[slug]` at the start of the first paragraph sets the id, as in
 | ------------------------------------------------------------ | --------------------------------- |
 | [Multiple choice](docs/question-types/multiple-choice.md)    | `* [ ]` / `* [*]` list            |
 | [Multiple selection](docs/question-types/multiple-selection.md) | `* [ ]` / `* [x]` list         |
-| [True/false](docs/question-types/true-false.md)              | `* [T]` / `* [F]` list            |
+| [True or false](docs/question-types/true-false.md)           | `* [T]` / `* [F]` list            |
 | [Short answer](docs/question-types/short-answer.md)          | `[short-answer]: ...`             |
 | [Numeric](docs/question-types/numeric.md)                    | `[numeric(unit)]: ...`            |
 | [Fill in the blanks](docs/question-types/fill-in.md)         | `[^slug]` markers and definitions |

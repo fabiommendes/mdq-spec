@@ -38,4 +38,4 @@ choice the student failed to tick. A perfect answer shows no feedback.
 ## Gotchas
 
 * There is no "leave it blank" for the student. If abstaining must be possible,
-  use a [true/false](true-false.md) question instead.
+  use a [true or false](true-false.md) question instead.

@@ -1,8 +1,8 @@
-# True/false
+# True or false
 
 ## Example
 
-True/False questions are represented by an unordered list with an ASCII-art
+True or false questions are represented by an unordered list with an ASCII-art
 rendition of a True or False marker. True statements are usually marked
 with `[T]` and false statements with `[F]`.
 
@@ -17,7 +17,7 @@ Judge the alternatives.
 
 ## Frontmatter
 
-True/False questions accept the following extra fields in the
+True or false questions accept the following extra fields in the
 frontmatter:
 
 | Field   | Type                 | Description                         |
@@ -84,7 +84,7 @@ Five consequences follow:
 * The `marker` field keeps the letter as written, before normalization and
   without the `ws` around it.
 * A value that normalizes to the empty string, such as `[` U+00A0 `]`, is a
-  blank value, and a blank value is a `foreign-choice-marker` in a true/false
+  blank value, and a blank value is a `foreign-choice-marker` in a true or false
   list.
 
 The letters are divided into 3 categories: TRUE, FALSE and WARNING. The
@@ -171,10 +171,10 @@ Three more notes:
 
 Choices follow [Choice lists](../references/choices.md): the item layout, the
 `text`, `id`, `feedback` and `comment` fields, and the rules for duplicate
-texts, duplicate ids and derived ids. Each choice of a true/false question is
+texts, duplicate ids and derived ids. Each choice of a true or false question is
 called a **statement**.
 
-A True/False choice records the bracket letter in two fields, which answer two
+A true or false choice records the bracket letter in two fields, which answer two
 different questions:
 
 | Field   | Type    | Description                                             |
@@ -224,7 +224,7 @@ When `marker` is present, these rules apply:
   around it (`malformed-true-false-marker`): `" T "` and `"T "` are errors.
 
 These rules check the `marker` field of model input (YAML, JSON, dict). In a
-markdown document a bracket value that is not allowed in a true/false list
+markdown document a bracket value that is not allowed in a true or false list
 (`[x]`, `[TF]`, `[✓]`, `[1]`) gets only `foreign-choice-marker`. It does not get
 `malformed-true-false-marker` or `reserved-true-false-marker`.
 
@@ -247,7 +247,7 @@ warnings below. The check reads `marker`, not `correct`: a `T` and a `V` are
 indistinguishable once reduced to a boolean.
 
 The table has one row for each language. It follows the spellings in
-[True/False spellings](../annex/true-false-spellings.md). The lower case forms
+[True or false spellings](../annex/true-false-spellings.md). The lower case forms
 of the letters are implied, as in the sets of [Body](#body).
 
 * **TRUE accepted** and **FALSE accepted** are the letters an author writing in
@@ -364,7 +364,7 @@ list. Write `O` for true, and `F` (or `偽` or `거`) for false.
 
 ## Feedback
 
-A true/false question shows feedback for every statement judged wrongly
+A true or false question shows feedback for every statement judged wrongly
 **and** for every abstention. A statement judged correctly shows nothing.
 
 Including abstentions is deliberate: a student who abstains on a statement
@@ -385,13 +385,13 @@ shows.
 
 The `grading` field of the frontmatter selects one of the four strategies
 below. It can be set in the question, or left as `"inherit"`, the default,
-which takes the strategy the exam's `grading` gives for true/false: its
+which takes the strategy the exam's `grading` gives for true or false: its
 `true-false` entry when it is a map, or the translation of a scalar by the
 table of [exam grading](../exam.md#grading). The strategy is `"symmetric"`
-outside an exam, and in an exam that does not set one for true/false (no
+outside an exam, and in an exam that does not set one for true or false (no
 `grading`, or a map without a `true-false` key).
 
-The [response](../responses.md#truefalse) holds a value for each statement the
+The [response](../responses.md#true-or-false) holds a value for each statement the
 student judged. Each statement is in exactly one of three states:
 
 * **judged correctly**: the response holds the `correct` value of the statement.
@@ -437,8 +437,8 @@ all have the same `correct` value (`uniform-true-false-answers`). Such a
 question can be answered without reading the statements, and it often
 means that the author forgot to change a marker.
 
-True/false does not reuse `no-correct-choice` and `all-choices-correct` of
-multiple selection. In a true/false question every statement has an answer:
+True or false does not reuse `no-correct-choice` and `all-choices-correct` of
+multiple selection. In a true or false question every statement has an answer:
 `[F]` is a verdict, not a missing mark. "No correct choice" has no meaning
 here. Only the uniform pattern is suspicious, so one code covers both the
 all true and the all false cases.
@@ -461,7 +461,7 @@ value.
 | choices[].correct  | error    | schema-error                             | must be declared in every statement (schema)               |
 | grading            | error    | schema-error                             | must be `partial`, `no-mistakes`, `all-or-nothing`, `symmetric` or `inherit` (schema) |
 | shuffle            | error    | schema-error                             | must be a boolean or `inherit` (schema)                    |
-| choices[]          | error    | foreign-choice-marker                    | must use a value allowed in a true/false list[^7]          |
+| choices[]          | error    | foreign-choice-marker                    | must use a value allowed in a true or false list[^7]       |
 | choices[].marker   | error    | malformed-true-false-marker              | must be a single letter, with no whitespace around it[^2][^6][^7] |
 | choices[].marker   | error    | reserved-true-false-marker               | must not be `X` or `x`[^2][^7]                             |
 | choices[].marker   | error    | true-false-marker-disagrees-with-correct | must agree with `correct` according to its category[^3][^7] |
@@ -498,6 +498,6 @@ frontmatter binds hosts and has no row.
     followed by U+0301, when its normalized value is one letter. So the length
     is part of the letter check, which is a lint rule only.
 [^7]: A `marker` rule applies to the `marker` field of model input. In a markdown
-    document, a bracket value that is not allowed in a true/false list gets only
+    document, a bracket value that is not allowed in a true or false list gets only
     `foreign-choice-marker`.
 [^8]: See [uniform answers](#uniform-answers).

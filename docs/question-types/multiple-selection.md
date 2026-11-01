@@ -149,7 +149,7 @@ minus the choices judged wrongly, over 4.
 For multiple-selection questions, an unticked choice always means **false**.
 The typical UI, which is a list of checkboxes, naturally enforces this
 convention. A student cannot abstain on a single choice: every choice gets a
-verdict. If abstention is necessary, use [true/false](true-false.md)
+verdict. If abstention is necessary, use [true or false](true-false.md)
 questions.
 
 ## Public form

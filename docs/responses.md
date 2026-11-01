@@ -28,7 +28,7 @@ document before it collects responses.
 
 An id in a response that is not present in the question MUST be rejected as a
 malformed response. This applies to every response that is keyed by id or
-refers to ids: multiple choice, multiple selection, true/false, fill in the
+refers to ids: multiple choice, multiple selection, true or false, fill in the
 blanks, and the choice blank of a fill in. An unknown id is always a logic
 error in the application, so it is never ignored and never scored as wrong.
 
@@ -77,7 +77,7 @@ An id not present in the question is a malformed response, see
 a mapping, is also a malformed response.
 
 
-### True/false
+### True or false
 
 A mapping from statement id to the judgement the student made. Unlike multiple
 selection, an absent key is **not** a false: it is an abstention, and the

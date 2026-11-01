@@ -1,6 +1,6 @@
 ---
 name: mdq-questions
-description: Write questions and exams in MDQ, a markdown format for quizzes and exams (.mdq.md files). Use when authoring, reviewing or converting questions - multiple choice, multiple selection, true/false, short answer, numeric, fill-in-the-blanks, essay, ordering - or when assembling them into an exam.
+description: Write questions and exams in MDQ, a markdown format for quizzes and exams (.mdq.md files). Use when authoring, reviewing or converting questions - multiple choice, multiple selection, true or false, short answer, numeric, fill-in-the-blanks, essay, ordering - or when assembling them into an exam.
 ---
 
 # Writing MDQ questions
@@ -67,7 +67,7 @@ optional.
 
 Set `type:` in the frontmatter only to disambiguate; otherwise let it be inferred.
 Every marker must belong to the inferred (or forced) type: `[x]` in a list with
-`[*]`, or `[ ]` in a true/false list, is a `foreign-choice-marker` error, never
+`[*]`, or `[ ]` in a true or false list, is a `foreign-choice-marker` error, never
 an unmarked choice.
 
 ## Feedback and comments
@@ -84,14 +84,14 @@ interleave `>` and `!` lines:
 
 ## Grading
 
-Choice-based types (multiple choice, multiple selection, true/false, fill-in)
+Choice-based types (multiple choice, multiple selection, true or false, fill-in)
 take `grading` in the frontmatter:
 
 * `inherit` (default) — take the exam's `grading`; `symmetric` outside an exam.
 * `symmetric` — wrong answers subtract, so guessing averages zero.
 * `partial` — credit per correct item, never negative.
 * `no-mistakes` — any wrong answer gives zero, otherwise credit per correct
-  item (true/false and fill-in only).
+  item (true or false and fill-in only).
 * `all-or-nothing` — everything right or zero (not for multiple choice).
 
 Short answer and numeric are always binary (1 or 0). Essay is always manual.

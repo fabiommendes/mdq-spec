@@ -41,7 +41,7 @@ derived value.
 
 A student answers a choice by its id, see
 [Addressability](responses.md#addressability). So the public form requires an
-id on each choice of a multiple choice, multiple selection or true/false
+id on each choice of a multiple choice, multiple selection or true or false
 question, and on each choice of a choice blank. If a choice has no id, an
 implementation MUST fail with `MissingIdError`, as grading does.
 
@@ -79,7 +79,7 @@ The fields are defined in [question-base.md](question-types/question-base.md).
 
 Each table lists the fields of the type, in addition to the base fields.
 
-### Multiple choice, multiple selection and true/false
+### Multiple choice, multiple selection and true or false
 
 | Field   | Public form                                   |
 | ------- | --------------------------------------------- |
@@ -88,7 +88,7 @@ Each table lists the fields of the type, in addition to the base fields.
 | choices | each choice with only its `id` and `text`     |
 
 The other fields of a choice are private: `score` (multiple choice), `correct`
-(multiple selection and true/false), `marker` (true/false), `feedback` and
+(multiple selection and true or false), `marker` (true or false), `feedback` and
 `comment`. The order of the choices is the order of the document. A host
 shuffles them if `shuffle` asks for it.
 
@@ -104,7 +104,7 @@ shuffles them if `shuffle` asks for it.
 | incorrectFeedback | private                                          |
 
 The effective `domain` is the declared domain, or else the domain inferred
-from the answer, see [Number type/domain](question-types/numeric.md#number-typedomain).
+from the answer, see [Domain](question-types/numeric.md#domain).
 The effective `decimalPlaces` is the declared value, or else the inferred
 value, see [Decimal places](question-types/numeric.md#decimal-places). When
 there is neither, the field is omitted. The parser of the Markdown form
@@ -276,7 +276,7 @@ The rules for each type:
   correct response: the list is empty.
 * **Multiple selection**: the list holds one response, the list of the ids of
   the choices with `correct: true`, in document order.
-* **True/false**: the list holds one response, a mapping with every
+* **True or false**: the list holds one response, a mapping with every
   statement id.
 * **Numeric**: the list holds one response, the `answer` as a number or a
   string, as the document holds it. It has no unit: a number with no unit is

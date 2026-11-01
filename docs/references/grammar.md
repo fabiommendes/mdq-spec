@@ -163,7 +163,7 @@ CHOICE_ID    : /\[[a-zA-Z0-9]+([-_][a-zA-Z0-9]+)*\](?![(\[])/
 
 Several bodies attach feedback for the student and a comment for other
 instructors to an element: a choice of a [choice list](choices.md) (multiple
-choice, multiple selection and true/false), a choice of a fill-in
+choice, multiple selection and true or false), a choice of a fill-in
 [choice blank](../question-types/fill-in.md), a [pattern item](patterns.md#pattern-items)
 and a section of [ordering](../question-types/ordering.md). All of them use
 the rules below.

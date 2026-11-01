@@ -110,7 +110,7 @@ runs.
 
 Other question types trigger feedback differently: see
 [multiple selection](multiple-selection.md#feedback),
-[true/false](true-false.md#feedback) and [fill in the blanks](fill-in.md#feedback).
+[true or false](true-false.md#feedback) and [fill in the blanks](fill-in.md#feedback).
 
 
 ## Grading

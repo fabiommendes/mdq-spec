@@ -1,4 +1,4 @@
-# True/False spellings
+# True or false spellings
 
 This document is a reference for the spelling of True and False in many different
 world languages. It is the source data of the letter sets and of the locale table
@@ -10,7 +10,7 @@ of [true-false.md](../question-types/true-false.md).
   references). Gujarati, Kannada, Polish, Ukrainian and Malay are cited because they
   are in the locale table or in the classification, or have a Moodle pack.
 * Words: the language packs of Moodle 4.5, file `qtype_truefalse.php`, which
-  holds the strings of the true/false question. When a pack has no such
+  holds the strings of the true or false question. When a pack has no such
   string, the table uses a `correct`/`incorrect` string of another component.
 * Test convention: the letters or marks that authors use in tests, textbooks
   and learning platforms. It is the practice that decides a letter, not the

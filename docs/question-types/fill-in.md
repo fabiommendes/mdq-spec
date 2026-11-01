@@ -130,7 +130,7 @@ blanks:
 ```
 
 A blank without an entry takes the inferred values, see
-[numeric](numeric.md#number-typedomain). This is the only way to write in
+[numeric](numeric.md#domain). This is the only way to write in
 Markdown a numeric blank with a declared `domain`, for example a `decimal`
 blank with an integer answer.
 
