@@ -33,11 +33,11 @@ usa.
    opcional.
 3. **CSS semântico.** Os componentes emitem classes `mdq-*` e o estado em
    atributos `data-*` (`data-mode`, `data-state`). Nenhuma classe de
-   framework no JSX. Entregamos dois arquivos:
-   - `mdq/css/plain.css`: estilo mínimo, focado em função (layout, foco,
-     estado visível), não em aparência.
-   - `mdq/css/daisyui.css`: mapeia as classes semânticas para daisyUI 5 com
-     `@apply`. Exige Tailwind v4 + daisyUI 5 no consumidor.
+   framework no JSX. Entregamos um arquivo, `mdq/css/plain.css`: estilo
+   mínimo, focado em função (layout, foco, estado visível), não em
+   aparência. Um consumidor em daisyUI (ou outro framework) mantém a própria
+   folha de estilo para as classes `mdq-*`. Um `mdq/css/daisyui.css` chegou a
+   existir e foi removido: amarrava o pacote a Tailwind v4 + daisyUI 5.
 4. **i18n.** Um dicionário global `Messages` para todos os componentes, com
    inglês por padrão. Cada componente de topo aceita uma prop `messages`
    parcial, mesclada sobre o padrão; `<MdqProvider>` é opcional. Motivo: o
@@ -79,4 +79,4 @@ usa.
 ## Fora de escopo
 
 - `ChoiceSelect` (usado só pelo fill-in). Entra com o fill-in.
-- Outros frameworks CSS além de daisyUI.
+- Folhas de estilo para frameworks CSS (daisyUI, outros).
