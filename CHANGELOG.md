@@ -13,10 +13,14 @@ The specification uses [Semantic Versioning](https://semver.org/). Before
 
 First version of the specification.
 
+### Added
+
+- Presented form (`docs/public-form.md`, "Presented form"): the public form of a choice question with the choices in a seeded order and an opaque label in the place of each choice id. The label is the shortest prefix (8, 16, 32 or 64 hex digits) of SHA-256 of the seed and the key parts (question id, blank id, choice id) joined by U+0000, as long as needed so that no other choice of the scope shares it; `shuffle` sorts the choices by label. A presented response carries labels in the place of ids, and an unknown label is a malformed response (`docs/responses.md`, "Addressability"). The `shuffle` notes of the choice types, fill-in and `docs/exam.md` point to it. New vectors in `examples/presentation.yaml`.
+
 ### Changed
 
-- The prose of `docs/` and `skills/` calls the true-false type "true or false"; `true-false` stays the value of `type`. The numeric section "Number type/domain" is now "Domain" (anchor `#domain`).
 - `GLOSSARY.md` is in the r2 format: one `##` section per term, with `tags`, `avoid`, `related` and `code` fields. Read it with `r2 glossary`. New terms for the question types, `Blank`, `Body`, `Epilogue`, `Statement`, `Tolerance`, `Numeric domain`, `Shuffle`, `Seed`, `Query` and `Question bank`; `Accept and reject` is now two terms.
+- The prose of `docs/` and `skills/` calls the true-false type "true or false"; `true-false` stays the value of `type`. The numeric section "Number type/domain" is now "Domain" (anchor `#domain`).
 - Every schema node with a `pattern` has `examples` that match it (exam `uuid`, numeric and fill-in string `answer` and `unit`, ordering line text, short-answer pattern string). `scripts/spec_audit.py` step 15 checks it.
 - Fill-in instructor scores (`docs/question-types/fill-in.md`, "Blank scores"): an implementation provides an operation that scores a response with the instructor score, in `[0, 1]`, of each pending blank. The strategy combines them with the other blank scores; under `no-mistakes` an instructor score below 1 is a mistake. A key that is not a pending blank, or a score outside `[0, 1]`, is a host error (`docs/responses.md`, "Errors"); a pending blank without a score stays pending. `examples/grading/fill-in.yaml` gets an optional `manual` field per example and the score `"invalid"`.
 - Fill-in blank scores (`docs/question-types/fill-in.md`, "Blank scores"): the score of a fill-in question carries the score and feedback of each blank, keyed by blank id, as the question's strategy scores it; an empty blank scores 0, a pending blank has no score. An implementation provides an operation that returns the blank scores also for a pending response. `examples/grading/fill-in.yaml` gets an optional `blanks` field per example.

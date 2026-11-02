@@ -44,6 +44,8 @@ exam. See [exam inheritance](../exam.md#inheritance).
 With `shuffle: true`, an implementation MAY present the choices in any
 order. With `shuffle: false`, it MUST NOT change their order. This rule is
 for implementations that present the question: it has no diagnostic.
+A host MAY shuffle the choices in another way, but the
+[presented form](../public-form.md#presented-form) is the portable one.
 [^2]: Applies to every [short answer blank](#short-answer-blanks) of
 the question, with the same meaning as in a standalone short answer question.
 See [short answer diacritics](short-answer.md#diacritics).

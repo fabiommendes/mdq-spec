@@ -409,7 +409,9 @@ ignored if the question declares a strategy of its own.
 
 The optional `shuffle` field works the same way for the `shuffle` field of the
 questions: a question with `shuffle: "inherit"` (the default) takes the exam's
-value, and the exam's value defaults to `false`.
+value, and the exam's value defaults to `false`. The
+[presented form](public-form.md#presented-form) shuffles the choices of each
+question by this value.
 
 ## Exam score
 

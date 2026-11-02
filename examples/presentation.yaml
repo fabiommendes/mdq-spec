@@ -1,0 +1,606 @@
+# Vectors for the presented form of a question and for the translation of
+# its responses (docs/public-form.md, "Presented form").
+#
+# Document structure
+#
+# Case {
+#   name: string
+#
+#   // The host seed. A string without U+0000.
+#   seed: string
+#
+#   // The question in its YAML form, with `type`. Every choice has an id.
+#   question: { type: string, ... }
+#
+#   // The `shuffle` of the presentation. When absent, the effective
+#   // `shuffle` of the question applies (`inherit` is false).
+#   shuffle?: boolean
+#
+#   // The presented form: the public form with the choices of each scope
+#   // in the presented order and the labels in place of the choice ids.
+#   presented: object
+#
+#   // Pairs of a response and its presented form. `real` is the response
+#   // of docs/responses.md (ids), `presented` the same response with
+#   // labels. Both directions must hold: real -> presented and
+#   // presented -> real. An entry with `error` has only one of them, and
+#   // translating it in its direction fails with that error: `presented`
+#   // goes to the real response, `real` goes to the presented form.
+#   responses: { real?: any, presented?: any, error?: "ResponseError" }[]
+#
+#   // The name of another case. Every choice id that both questions share
+#   // has the same label in both (same seed, same question id), except
+#   // the ids in `changed`, whose labels differ.
+#   stableWith?: string
+#   changed?: string[]
+# }
+#
+# The labels are computed with `hashlib` from the seed, the key parts and
+# the choice id, joined by U+0000, as the rules of the document say. For
+# example, the label of `correct` in the first case is the first 8 digits of
+#
+#   sha256("s3cr3t\0encontro-das-aguas\0correct")
+#
+# The case "only the colliding labels grow to 16 digits" uses
+# the seed `colisao` and the question id `prefixo-de-oito`. Its first two
+# choice ids were found by trying `c0`, `c1`, `c2`, ... in order, until two
+# of them gave digests with the same first 8 digits. The search stopped at
+# the first collision. The other choices of the question keep 8 digits.
+cases:
+
+  - name: multiple choice with shuffle true sorts the choices by label
+    seed: s3cr3t
+    question:
+      type: multiple-choice
+      id: encontro-das-aguas
+      stem: Which two rivers meet near Manaus without mixing for several kilometers?
+      choices:
+      - {id: correct, text: Negro and Solimões, score: 1}
+      - {id: wrong-1, text: Madeira and Tapajós, feedback: They meet farther south.}
+      - {id: wrong-2, text: Xingu and Araguaia}
+      - {id: wrong-3, text: Tocantins and São Francisco}
+      shuffle: true
+    presented:
+      type: multiple-choice
+      id: encontro-das-aguas
+      stem: Which two rivers meet near Manaus without mixing for several kilometers?
+      shuffle: true
+      choices:
+      - {id: 16a68ed6, text: Tocantins and São Francisco}
+      - {id: 7589d676, text: Madeira and Tapajós}
+      - {id: 78426fb7, text: Xingu and Araguaia}
+      - {id: f412a138, text: Negro and Solimões}
+    responses:
+    - {real: correct, presented: f412a138}
+    - {real: wrong-2, presented: 78426fb7}
+
+  - name: multiple choice with shuffle false keeps the document order
+    seed: s3cr3t
+    question:
+      type: multiple-choice
+      id: encontro-das-aguas
+      stem: Which two rivers meet near Manaus without mixing for several kilometers?
+      choices:
+      - {id: correct, text: Negro and Solimões, score: 1}
+      - {id: wrong-1, text: Madeira and Tapajós, feedback: They meet farther south.}
+      - {id: wrong-2, text: Xingu and Araguaia}
+      - {id: wrong-3, text: Tocantins and São Francisco}
+      shuffle: false
+    presented:
+      type: multiple-choice
+      id: encontro-das-aguas
+      stem: Which two rivers meet near Manaus without mixing for several kilometers?
+      shuffle: false
+      choices:
+      - {id: f412a138, text: Negro and Solimões}
+      - {id: 7589d676, text: Madeira and Tapajós}
+      - {id: 78426fb7, text: Xingu and Araguaia}
+      - {id: 16a68ed6, text: Tocantins and São Francisco}
+    responses:
+    - {real: wrong-1, presented: 7589d676}
+
+  - name: shuffle in the case overrides the question and gives the sorted order
+    seed: s3cr3t
+    question:
+      type: multiple-choice
+      id: encontro-das-aguas
+      stem: Which two rivers meet near Manaus without mixing for several kilometers?
+      choices:
+      - {id: correct, text: Negro and Solimões, score: 1}
+      - {id: wrong-1, text: Madeira and Tapajós, feedback: They meet farther south.}
+      - {id: wrong-2, text: Xingu and Araguaia}
+      - {id: wrong-3, text: Tocantins and São Francisco}
+    shuffle: true
+    presented:
+      type: multiple-choice
+      id: encontro-das-aguas
+      stem: Which two rivers meet near Manaus without mixing for several kilometers?
+      choices:
+      - {id: 16a68ed6, text: Tocantins and São Francisco}
+      - {id: 7589d676, text: Madeira and Tapajós}
+      - {id: 78426fb7, text: Xingu and Araguaia}
+      - {id: f412a138, text: Negro and Solimões}
+    responses:
+    - {real: correct, presented: f412a138}
+
+  - name: shuffle inherit reads as false
+    seed: s3cr3t
+    question:
+      type: multiple-choice
+      id: encontro-das-aguas
+      stem: Which two rivers meet near Manaus without mixing for several kilometers?
+      choices:
+      - {id: correct, text: Negro and Solimões, score: 1}
+      - {id: wrong-1, text: Madeira and Tapajós, feedback: They meet farther south.}
+      - {id: wrong-2, text: Xingu and Araguaia}
+      - {id: wrong-3, text: Tocantins and São Francisco}
+      shuffle: inherit
+    presented:
+      type: multiple-choice
+      id: encontro-das-aguas
+      stem: Which two rivers meet near Manaus without mixing for several kilometers?
+      choices:
+      - {id: f412a138, text: Negro and Solimões}
+      - {id: 7589d676, text: Madeira and Tapajós}
+      - {id: 78426fb7, text: Xingu and Araguaia}
+      - {id: 16a68ed6, text: Tocantins and São Francisco}
+    responses:
+    - {real: correct, presented: f412a138}
+
+  - name: multiple selection translates a list of ticked ids
+    seed: ana.souza:prova-biomas
+    question:
+      type: multiple-selection
+      id: biomas-do-brasil
+      shuffle: true
+      stem: Which of these are biomes of Brazil?
+      choices:
+      - {id: cerrado, text: Cerrado, correct: true}
+      - {id: caatinga, text: Caatinga, correct: true}
+      - {id: tundra, text: Tundra, correct: false}
+      - {id: pantanal, text: Pantanal, correct: true}
+      - {id: taiga, text: Taiga, correct: false}
+    presented:
+      type: multiple-selection
+      id: biomas-do-brasil
+      stem: Which of these are biomes of Brazil?
+      shuffle: true
+      choices:
+      - {id: 4a647806, text: Tundra}
+      - {id: 6031b96f, text: Cerrado}
+      - {id: 63ca9718, text: Taiga}
+      - {id: 73e14ed9, text: Caatinga}
+      - {id: cccec1bc, text: Pantanal}
+    responses:
+    - real: [cerrado, pantanal]
+      presented: [6031b96f, cccec1bc]
+    - real: []
+      presented: []
+    - {real: null, presented: null}
+
+  - name: true false translates the keys and keeps the values
+    seed: s3cr3t
+    question:
+      type: true-false
+      id: tempo-geologico
+      shuffle: true
+      stem: Judge each statement about the history of the Earth.
+      choices:
+      - {id: idade, text: The Earth is billions of years old., correct: true}
+      - {id: plana, text: The Earth is flat., correct: false}
+      - {id: dinossauros, text: Humans and non-avian dinosaurs coexisted., correct: false}
+      - {id: evolucao, text: Species change by natural selection., correct: true}
+    presented:
+      type: true-false
+      id: tempo-geologico
+      stem: Judge each statement about the history of the Earth.
+      shuffle: true
+      choices:
+      - {id: 478e6412, text: The Earth is billions of years old.}
+      - {id: 5c77bab3, text: The Earth is flat.}
+      - {id: a690c843, text: Species change by natural selection.}
+      - {id: d69cdd00, text: Humans and non-avian dinosaurs coexisted.}
+    responses:
+    - real: {idade: true, plana: false, dinossauros: null}
+      presented: {478e6412: true, 5c77bab3: false, d69cdd00: null}
+    - real: {}
+      presented: {}
+
+  - name: fill-in labels each choice blank and keeps the numeric blank
+    seed: s3cr3t
+    question:
+      type: fill-in
+      id: rio-sao-francisco
+      shuffle: true
+      stem: O rio São Francisco nasce em [^estado], tem cerca de [^km] km e deságua no oceano [^oceano].
+      blanks:
+      - id: estado
+        type: multiple-choice
+        choices:
+        - {id: mg, text: Minas Gerais, score: 1}
+        - {id: ba, text: Bahia}
+        - {id: pe, text: Pernambuco}
+      - id: km
+        type: numeric
+        answer: 2830
+        unit: km
+        tolerance: {relative: 0.05}
+      - id: oceano
+        type: multiple-choice
+        choices:
+        - {id: atlantico, text: Atlântico, score: 1}
+        - {id: pacifico, text: Pacífico}
+        - {id: indico, text: Índico}
+    presented:
+      type: fill-in
+      id: rio-sao-francisco
+      shuffle: true
+      stem: O rio São Francisco nasce em [^estado], tem cerca de [^km] km e deságua no oceano [^oceano].
+      blanks:
+      - id: estado
+        type: multiple-choice
+        choices:
+        - {id: 0d471e13, text: Minas Gerais}
+        - {id: f6b664d6, text: Bahia}
+        - {id: ff769063, text: Pernambuco}
+      - {id: km, type: numeric, unit: km, domain: integer}
+      - id: oceano
+        type: multiple-choice
+        choices:
+        - {id: c2044a5f, text: Índico}
+        - {id: d59ee361, text: Atlântico}
+        - {id: fca31c4b, text: Pacífico}
+    responses:
+    - real: {estado: mg, km: 2830, oceano: atlantico}
+      presented: {estado: 0d471e13, km: 2830, oceano: d59ee361}
+    - real: {estado: ba, km: null}
+      presented: {estado: f6b664d6, km: null}
+    - real: {oceano: pacifico}
+      presented: {oceano: fca31c4b}
+
+  - name: fill-in with shuffle false keeps the order and labels the choices
+    seed: s3cr3t
+    question:
+      type: fill-in
+      id: rio-sao-francisco
+      shuffle: false
+      stem: O rio São Francisco nasce em [^estado], tem cerca de [^km] km e deságua no oceano [^oceano].
+      blanks:
+      - id: estado
+        type: multiple-choice
+        choices:
+        - {id: mg, text: Minas Gerais, score: 1}
+        - {id: ba, text: Bahia}
+        - {id: pe, text: Pernambuco}
+      - id: km
+        type: numeric
+        answer: 2830
+        unit: km
+        tolerance: {relative: 0.05}
+      - id: oceano
+        type: multiple-choice
+        choices:
+        - {id: atlantico, text: Atlântico, score: 1}
+        - {id: pacifico, text: Pacífico}
+        - {id: indico, text: Índico}
+    presented:
+      type: fill-in
+      id: rio-sao-francisco
+      shuffle: false
+      stem: O rio São Francisco nasce em [^estado], tem cerca de [^km] km e deságua no oceano [^oceano].
+      blanks:
+      - id: estado
+        type: multiple-choice
+        choices:
+        - {id: 0d471e13, text: Minas Gerais}
+        - {id: f6b664d6, text: Bahia}
+        - {id: ff769063, text: Pernambuco}
+      - {id: km, type: numeric, unit: km, domain: integer}
+      - id: oceano
+        type: multiple-choice
+        choices:
+        - {id: d59ee361, text: Atlântico}
+        - {id: fca31c4b, text: Pacífico}
+        - {id: c2044a5f, text: Índico}
+    responses:
+    - real: {estado: pe}
+      presented: {estado: ff769063}
+
+  - name: question without id uses the empty string as qid
+    seed: s3cr3t
+    question:
+      type: multiple-choice
+      shuffle: true
+      stem: Which Brazilian state has the largest area?
+      choices:
+      - {id: am, text: Amazonas, score: 1}
+      - {id: pa, text: Pará}
+      - {id: mt, text: Mato Grosso}
+    presented:
+      type: multiple-choice
+      stem: Which Brazilian state has the largest area?
+      shuffle: true
+      choices:
+      - {id: 274a794d, text: Pará}
+      - {id: b3a4a483, text: Amazonas}
+      - {id: c0ddc6d3, text: Mato Grosso}
+    responses:
+    - {real: am, presented: b3a4a483}
+
+  - name: non ASCII seed is encoded in UTF-8
+    seed: ana.souza:prova-geografia-ç
+    question:
+      type: multiple-choice
+      id: encontro-das-aguas
+      stem: Which two rivers meet near Manaus without mixing for several kilometers?
+      choices:
+      - {id: correct, text: Negro and Solimões, score: 1}
+      - {id: wrong-1, text: Madeira and Tapajós, feedback: They meet farther south.}
+      - {id: wrong-2, text: Xingu and Araguaia}
+      - {id: wrong-3, text: Tocantins and São Francisco}
+      shuffle: true
+    presented:
+      type: multiple-choice
+      id: encontro-das-aguas
+      stem: Which two rivers meet near Manaus without mixing for several kilometers?
+      shuffle: true
+      choices:
+      - {id: 31be6466, text: Madeira and Tapajós}
+      - {id: 7fed64ca, text: Negro and Solimões}
+      - {id: a708e41a, text: Xingu and Araguaia}
+      - {id: d271619f, text: Tocantins and São Francisco}
+    responses:
+    - {real: correct, presented: 7fed64ca}
+
+  - name: only the colliding labels grow to 16 digits
+    seed: colisao
+    question:
+      type: multiple-choice
+      id: prefixo-de-oito
+      shuffle: true
+      stem: Which gas makes up most of the Earth's atmosphere?
+      choices:
+      - {id: c6070, text: Nitrogen, score: 1}
+      - {id: c62516, text: Oxygen}
+      - {id: outro, text: Argon}
+      - {id: mais, text: Carbon dioxide}
+    presented:
+      type: multiple-choice
+      id: prefixo-de-oito
+      stem: Which gas makes up most of the Earth's atmosphere?
+      shuffle: true
+      choices:
+      - {id: 93e45b7c, text: Argon}
+      - {id: a8d55671, text: Carbon dioxide}
+      - {id: cf344ffe1fb7698a, text: Nitrogen}
+      - {id: cf344ffeaae0d86c, text: Oxygen}
+    responses:
+    - {real: c62516, presented: cf344ffeaae0d86c}
+
+  - name: 'stability: a question without a collision'
+    seed: colisao
+    question:
+      type: multiple-choice
+      id: prefixo-de-oito
+      shuffle: true
+      stem: Which gas makes up most of the Earth's atmosphere?
+      choices:
+      - {id: c6070, text: Nitrogen, score: 1}
+      - {id: outro, text: Argon}
+      - {id: mais, text: Carbon dioxide}
+    presented:
+      type: multiple-choice
+      id: prefixo-de-oito
+      stem: Which gas makes up most of the Earth's atmosphere?
+      shuffle: true
+      choices:
+      - {id: 93e45b7c, text: Argon}
+      - {id: a8d55671, text: Carbon dioxide}
+      - {id: cf344ffe, text: Nitrogen}
+    responses:
+    - {real: c6070, presented: cf344ffe}
+
+  - name: 'stability: a choice that collides at 8 digits changes only the two labels'
+    seed: colisao
+    question:
+      type: multiple-choice
+      id: prefixo-de-oito
+      shuffle: true
+      stem: Which gas makes up most of the Earth's atmosphere?
+      choices:
+      - {id: c6070, text: Nitrogen, score: 1}
+      - {id: c62516, text: Oxygen}
+      - {id: outro, text: Argon}
+      - {id: mais, text: Carbon dioxide}
+    stableWith: 'stability: a question without a collision'
+    changed: [c6070, c62516]
+    presented:
+      type: multiple-choice
+      id: prefixo-de-oito
+      stem: Which gas makes up most of the Earth's atmosphere?
+      shuffle: true
+      choices:
+      - {id: 93e45b7c, text: Argon}
+      - {id: a8d55671, text: Carbon dioxide}
+      - {id: cf344ffe1fb7698a, text: Nitrogen}
+      - {id: cf344ffeaae0d86c, text: Oxygen}
+    responses:
+    - {real: c6070, presented: cf344ffe1fb7698a}
+
+  - name: 'stability: the same question with one choice more keeps the other labels'
+    seed: s3cr3t
+    question:
+      type: multiple-choice
+      id: encontro-das-aguas
+      stem: Which two rivers meet near Manaus without mixing for several kilometers?
+      choices:
+      - {id: correct, text: Negro and Solimões, score: 1}
+      - {id: wrong-1, text: Madeira and Tapajós, feedback: They meet farther south.}
+      - {id: wrong-2, text: Xingu and Araguaia}
+      - {id: wrong-3, text: Tocantins and São Francisco}
+      - {id: wrong-4, text: Paraná and Uruguai}
+      shuffle: true
+    stableWith: multiple choice with shuffle true sorts the choices by label
+    presented:
+      type: multiple-choice
+      id: encontro-das-aguas
+      stem: Which two rivers meet near Manaus without mixing for several kilometers?
+      shuffle: true
+      choices:
+      - {id: 16a68ed6, text: Tocantins and São Francisco}
+      - {id: 7589d676, text: Madeira and Tapajós}
+      - {id: 78426fb7, text: Xingu and Araguaia}
+      - {id: f412a138, text: Negro and Solimões}
+      - {id: fdff0d79, text: Paraná and Uruguai}
+    responses:
+    - {real: correct, presented: f412a138}
+
+  - name: 'stability: removing a choice keeps the other labels'
+    seed: s3cr3t
+    question:
+      type: multiple-choice
+      id: encontro-das-aguas
+      stem: Which two rivers meet near Manaus without mixing for several kilometers?
+      choices:
+      - {id: correct, text: Negro and Solimões, score: 1}
+      - {id: wrong-1, text: Madeira and Tapajós, feedback: They meet farther south.}
+      - {id: wrong-3, text: Tocantins and São Francisco}
+      shuffle: true
+    stableWith: multiple choice with shuffle true sorts the choices by label
+    presented:
+      type: multiple-choice
+      id: encontro-das-aguas
+      stem: Which two rivers meet near Manaus without mixing for several kilometers?
+      shuffle: true
+      choices:
+      - {id: 16a68ed6, text: Tocantins and São Francisco}
+      - {id: 7589d676, text: Madeira and Tapajós}
+      - {id: f412a138, text: Negro and Solimões}
+    responses:
+    - {real: correct, presented: f412a138}
+
+  - name: an unknown label is a malformed response
+    seed: s3cr3t
+    question:
+      type: multiple-choice
+      id: encontro-das-aguas
+      stem: Which two rivers meet near Manaus without mixing for several kilometers?
+      choices:
+      - {id: correct, text: Negro and Solimões, score: 1}
+      - {id: wrong-1, text: Madeira and Tapajós, feedback: They meet farther south.}
+      - {id: wrong-2, text: Xingu and Araguaia}
+      - {id: wrong-3, text: Tocantins and São Francisco}
+      shuffle: true
+    presented:
+      type: multiple-choice
+      id: encontro-das-aguas
+      stem: Which two rivers meet near Manaus without mixing for several kilometers?
+      shuffle: true
+      choices:
+      - {id: 16a68ed6, text: Tocantins and São Francisco}
+      - {id: 7589d676, text: Madeira and Tapajós}
+      - {id: 78426fb7, text: Xingu and Araguaia}
+      - {id: f412a138, text: Negro and Solimões}
+    responses:
+    - {presented: deadbeef, error: ResponseError}
+    - {presented: correct, error: ResponseError}
+    - {presented: 7, error: ResponseError}
+    - {real: unknown, error: ResponseError}
+
+  - name: an unknown label in a list, a mapping or a blank is malformed
+    seed: ana.souza:prova-biomas
+    question:
+      type: multiple-selection
+      id: biomas-do-brasil
+      shuffle: true
+      stem: Which of these are biomes of Brazil?
+      choices:
+      - {id: cerrado, text: Cerrado, correct: true}
+      - {id: caatinga, text: Caatinga, correct: true}
+      - {id: tundra, text: Tundra, correct: false}
+      - {id: pantanal, text: Pantanal, correct: true}
+      - {id: taiga, text: Taiga, correct: false}
+    presented:
+      type: multiple-selection
+      id: biomas-do-brasil
+      stem: Which of these are biomes of Brazil?
+      shuffle: true
+      choices:
+      - {id: 4a647806, text: Tundra}
+      - {id: 6031b96f, text: Cerrado}
+      - {id: 63ca9718, text: Taiga}
+      - {id: 73e14ed9, text: Caatinga}
+      - {id: cccec1bc, text: Pantanal}
+    responses:
+    - presented: [6031b96f, deadbeef]
+      error: ResponseError
+    - {presented: deadbeef, error: ResponseError}
+    - real: [cerrado, 6031b96f]
+      error: ResponseError
+
+  - name: fill-in with an unknown label in a choice blank is malformed
+    seed: s3cr3t
+    question:
+      type: fill-in
+      id: rio-sao-francisco
+      shuffle: true
+      stem: O rio São Francisco nasce em [^estado], tem cerca de [^km] km e deságua no oceano [^oceano].
+      blanks:
+      - id: estado
+        type: multiple-choice
+        choices:
+        - {id: mg, text: Minas Gerais, score: 1}
+        - {id: ba, text: Bahia}
+        - {id: pe, text: Pernambuco}
+      - id: km
+        type: numeric
+        answer: 2830
+        unit: km
+        tolerance: {relative: 0.05}
+      - id: oceano
+        type: multiple-choice
+        choices:
+        - {id: atlantico, text: Atlântico, score: 1}
+        - {id: pacifico, text: Pacífico}
+        - {id: indico, text: Índico}
+    presented:
+      type: fill-in
+      id: rio-sao-francisco
+      shuffle: true
+      stem: O rio São Francisco nasce em [^estado], tem cerca de [^km] km e deságua no oceano [^oceano].
+      blanks:
+      - id: estado
+        type: multiple-choice
+        choices:
+        - {id: 0d471e13, text: Minas Gerais}
+        - {id: f6b664d6, text: Bahia}
+        - {id: ff769063, text: Pernambuco}
+      - {id: km, type: numeric, unit: km, domain: integer}
+      - id: oceano
+        type: multiple-choice
+        choices:
+        - {id: c2044a5f, text: Índico}
+        - {id: d59ee361, text: Atlântico}
+        - {id: fca31c4b, text: Pacífico}
+    responses:
+    - presented: {estado: deadbeef}
+      error: ResponseError
+    - presented: {oceano: 0d471e13}
+      error: ResponseError
+    - real: {estado: sp}
+      error: ResponseError
+
+  - name: a question without choices has no scope
+    seed: s3cr3t
+    question:
+      type: numeric
+      id: pico-da-neblina
+      stem: Qual é a altitude do Pico da Neblina, em metros?
+      answer: 2995
+      unit: m
+      tolerance: {absolute: 5}
+    presented: {type: numeric, id: pico-da-neblina, stem: 'Qual é a altitude do Pico da Neblina, em metros?',
+      unit: m, domain: integer}
+    responses:
+    - {real: 2995, presented: 2995}
+    - {real: null, presented: null}

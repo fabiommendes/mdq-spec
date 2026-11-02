@@ -14,6 +14,11 @@ whole specification. The Python implementation offers them as the methods
 `public()` and `correct_responses()` of each question class. These names are
 not normative.
 
+The **presented form** of a question is its public form with the choices in a
+seeded order and an opaque label in the place of each choice id, see
+[Presented form](#presented-form). Without it, an id such as `correct` gives the
+answer away to anyone who reads the traffic between the client and the host.
+
 The public form of an exam is not defined.
 
 
@@ -89,8 +94,8 @@ Each table lists the fields of the type, in addition to the base fields.
 
 The other fields of a choice are private: `score` (multiple choice), `correct`
 (multiple selection and true or false), `marker` (true or false), `feedback` and
-`comment`. The order of the choices is the order of the document. A host
-shuffles them if `shuffle` asks for it.
+`comment`. The order of the choices is the order of the document. The
+[presented form](#presented-form) shuffles them if `shuffle` asks for it.
 
 ### Numeric
 
@@ -308,6 +313,156 @@ The rules for each type:
 A correct response scores 1 unless an earlier pattern or section of the same
 question shadows it. The lint warnings of the question report these cases,
 for example `duplicate-alternative-lines`.
+
+
+## Presented form
+
+The **presented form** of a question is its public form for one student: the
+choices are in an order that depends on a **seed**, and each choice id is
+replaced by a **presentation label**, an opaque value derived from the seed.
+The ids of authoring, such as `correct` or `c1`, do not reach the client.
+
+The threat is a student who reads the API or the network traffic. The screen
+does not matter, because a client does not show ids. The labels also make the
+order of the choices repeatable: the host builds the same presented form from
+the same seed at each request, and keeps no state.
+
+The seed is a string that the host chooses for each student and exam. It MUST
+be unpredictable for the student: the host derives it with a secret, for
+example `HMAC(secret, username + ":" + exam_id)`. An implementation does not
+handle secrets.
+
+### Scopes
+
+A **scope** is a set of choices that get their labels together. Only the types
+below have a scope.
+
+| Type                  | Scope                         | Key parts                    |
+| --------------------- | ----------------------------- | ---------------------------- |
+| multiple-choice       | the choices of the question   | `[qid, choice id]`           |
+| multiple-selection    | the choices of the question   | `[qid, choice id]`           |
+| true-false            | the statements of the question | `[qid, choice id]`          |
+| fill-in, choice blank | the choices of the blank      | `[qid, blank id, choice id]` |
+
+`qid` is the `id` of the question, or the empty string when it has none. The
+other types (numeric, short answer, essay and ordering) and the blanks that are
+not choice blanks have no scope: their presented form is their public form.
+An ordering question has no scope because its lines have no id and its pool is
+public and canonical, see [Pool](#pool). The host still shuffles the pool.
+
+### Label
+
+| Rule     | Presented form                                                                          |
+| -------- | --------------------------------------------------------------------------------------- |
+| Input    | The seed and the key parts, joined by U+0000, in UTF-8.                                 |
+| Digest   | The SHA-256 of the input, as 64 lowercase hex digits.                                   |
+| Label    | The first 8, 16, 32 or 64 digits of the digest: the shortest of these prefixes that no other digest of the scope shares. |
+| Length   | Per choice. A choice that collides with no other keeps 8 digits, even when two others collide. |
+| Seed     | A seed that holds U+0000 is rejected (`ValueError`). A key part is a `SLUG` and never holds it. |
+| Syntax   | A label is hex, so it matches `SLUG`: the presented form is a valid public form.        |
+| Stable   | A label depends only on the seed, the key parts and the digests of the other choices of the scope. Adding a choice changes at most the label of the choice that collides with it (and gives the new one a longer label). Removing or rewriting a choice does not change the others, except that a label may become shorter when its collision goes away. |
+
+### Order
+
+| `shuffle` | Order of the choices of a scope                                             |
+| --------- | --------------------------------------------------------------------------- |
+| `true`    | Sorted by label, as strings. It is the order of the digests.                |
+| `false`   | The order of the document. The labels still replace the ids.                |
+
+The sort by label equals the sort by digest: if `n1 < n2`, the label of length
+`n1` is unique among the `n1`-prefixes of the scope, so two labels always differ
+within the shorter length.
+
+The effective `shuffle` is the one the question gets in its exam (see
+[Inheritance](exam.md#inheritance)), or the question's own value outside an
+exam, with `inherit` read as `false`. In a fill-in question, it applies to
+every choice blank. The order of the questions of an exam is not shuffled.
+
+### Presentation
+
+| Rule      | Presented form                                                                      |
+| --------- | ----------------------------------------------------------------------------------- |
+| Fields    | The public form, with no other change. The ids of the question and of the blanks stay. |
+| Choices   | In each scope, in the order above, each with its label in the place of its `id`.     |
+| Ids       | Like the public form, it requires an [addressable](#addressability) question.       |
+| Exam      | The presented form of each question, in the order of the exam.                      |
+
+A host SHOULD write the derived ids into the document before it presents it,
+see [Addressability](responses.md#addressability): derived ids change between
+implementations and versions, and the labels change with them.
+
+### Presented responses
+
+A **presented response** is a response of [responses.md](responses.md) with the
+labels in the place of the choice ids. The client sends it, and the host
+translates it before it grades and stores it.
+
+| Type               | Presented response                                                          |
+| ------------------ | --------------------------------------------------------------------------- |
+| multiple-choice    | the label of the chosen choice                                              |
+| multiple-selection | the list of the labels of the ticked choices                                |
+| true-false         | a mapping of label to boolean (or `null`)                                   |
+| fill-in            | a mapping of blank id to response, with a label as the value of a choice blank |
+| other types        | the response, without change                                                |
+
+| Translation                     | Rule                                                                         |
+| ------------------------------- | ---------------------------------------------------------------------------- |
+| Presented to real               | Each label becomes its id. A label that is not in its scope is a malformed response (`ResponseError`), also when the choice was removed after the student answered. |
+| Real to presented               | Each id becomes its label, to show a stored response again. An id that is not in the question is a `ResponseError`. |
+| `null`, other types, other blanks | Not changed, in both directions.                                           |
+| Exam                            | Each response is translated by the question of its key. A key that names no question is a `ResponseError`. |
+| Stored response                 | The host always stores the real response. Grading does not change.           |
+
+### Presented form example
+
+The question below has `shuffle: true`. The seed is `s3cr3t` and the question
+id is `encontro-das-aguas`.
+
+```yaml
+id: encontro-das-aguas
+type: multiple-choice
+stem: Which two rivers meet near Manaus without mixing for several kilometers?
+shuffle: true
+choices:
+  - { id: correct, text: Negro and Solimões, score: 1 }
+  - { id: wrong-1, text: Madeira and Tapajós }
+  - { id: wrong-2, text: Xingu and Araguaia }
+  - { id: wrong-3, text: Tocantins and São Francisco }
+```
+
+The input of the first choice is `s3cr3t`, U+0000, `encontro-das-aguas`,
+U+0000 and `correct`. In Python, `hashlib.sha256("s3cr3t\0encontro-das-aguas\0correct".encode()).hexdigest()`
+gives the digests below. The first 8 digits of each are distinct, so every label
+has 8 digits.
+
+| Choice id | Digest                                                             | Label      |
+| --------- | ------------------------------------------------------------------ | ---------- |
+| `correct` | `f412a1389066f23b987db02fad237220c460afeb883bd03fc09e675c87f93d6f` | `f412a138` |
+| `wrong-1` | `7589d6762b56b4ac54ebe0f76b75fe8c401e2ee6cf2749a03a43be16316a506e` | `7589d676` |
+| `wrong-2` | `78426fb7a20e80de37151833eaf95266fc83afb4559f4fbeab55a1c47f226085` | `78426fb7` |
+| `wrong-3` | `16a68ed68ba568067ecc40491ef6a6307a532336d1c6dc4d32f3261296854642` | `16a68ed6` |
+
+The labels sorted as strings are `16a68ed6`, `7589d676`, `78426fb7` and
+`f412a138`, so the presented form is:
+
+```yaml
+id: encontro-das-aguas
+type: multiple-choice
+stem: Which two rivers meet near Manaus without mixing for several kilometers?
+shuffle: true
+choices:
+  - { id: 16a68ed6, text: Tocantins and São Francisco }
+  - { id: 7589d676, text: Madeira and Tapajós }
+  - { id: 78426fb7, text: Xingu and Araguaia }
+  - { id: f412a138, text: Negro and Solimões }
+```
+
+A student who picks the last choice sends `f412a138`. The host translates it
+into `correct` and grades it as usual. The cases of
+[`examples/presentation.yaml`](../examples/presentation.yaml) are the vectors of
+this section. The Python implementation offers `question.presentation(seed)` and
+`exam.presentation(seed)`, with the methods `public()`, `to_response()` and
+`to_presented()`. These names are not normative.
 
 
 ## Example

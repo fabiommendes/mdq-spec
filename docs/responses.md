@@ -32,6 +32,13 @@ refers to ids: multiple choice, multiple selection, true or false, fill in the
 blanks, and the choice blank of a fill in. An unknown id is always a logic
 error in the application, so it is never ignored and never scored as wrong.
 
+A host that shows the [presented form](public-form.md#presented-form) of a
+question receives **presented responses** from the client: the same responses,
+with the label of each choice in the place of its id. The host translates them
+into the responses of this document before it grades and stores them. A label
+that is not in the question is a malformed response, like an unknown id. Grading
+takes only the responses of this document.
+
 ## Response by question type
 
 | Question type      | Response                                           |

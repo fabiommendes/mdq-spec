@@ -39,7 +39,9 @@ exam. See [exam inheritance](../exam.md#inheritance).
 
 **Shuffle.** With `shuffle: true`, an implementation that presents the question
 MAY show the choices in any order. With `shuffle: false`, it MUST NOT change
-their order. This rule is for hosts: no lint checks it.
+their order. This rule is for hosts: no lint checks it. A host MAY shuffle the
+choices in another way, but the
+[presented form](../public-form.md#presented-form) is the portable one.
 
 
 ## Body
