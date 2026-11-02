@@ -11,11 +11,14 @@ The conventions of this package live in `docs/sync/`:
   `tests/not-ported.ts`.
 - `docs/sync/roadmap.md`: decisions and the history of the phases.
 
-Commands, from `mdq-js/`: `pnpm test`, `pnpm typecheck`, `pnpm css:check`
-(compiles `css/daisyui.css` with Tailwind + daisyUI), `pnpm node:check`
+Commands, from `mdq-js/`: `pnpm test`, `pnpm typecheck`, `pnpm node:check`
 (builds and imports the package in plain Node ESM), `pnpm lint`
 (`biome check`; `--write` only on hand-written files, never on
 `src/mdq.schema.json` or `src/inexact-tables.json`).
+
+`playground/` is a separate Vite app, with its own lockfile, to see and
+e2e-test the `src/solid/` components. It is not published. See
+`playground/README.md`.
 
 Rules:
 

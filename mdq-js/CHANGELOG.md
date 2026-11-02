@@ -13,6 +13,10 @@ that it implements.
 Implements part of the unreleased MDQ specification. The library now passes
 the whole shared corpus (`examples/`), as mdq-py does.
 
+### Removed
+
+- `css/daisyui.css`. The package ships only `css/plain.css`; a consumer on daisyUI keeps its own stylesheet for the `mdq-*` classes.
+
 ### Changed
 
 - The JSON files are imported with `with { type: "json" }`, so the built package loads in plain Node ESM, not only through a bundler.

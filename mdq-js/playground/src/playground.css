@@ -1,0 +1,85 @@
+/* The frame of the playground only. The components get `css/plain.css`. */
+
+body {
+	margin: 0;
+	font-family: system-ui, sans-serif;
+}
+
+.app {
+	display: grid;
+	grid-template-columns: 16rem 1fr;
+	min-height: 100vh;
+}
+
+.sidebar {
+	border-right: 1px solid #ddd;
+	padding: 0.5rem;
+	overflow-y: auto;
+	max-height: 100vh;
+	position: sticky;
+	top: 0;
+	font-size: 0.875rem;
+}
+
+.sidebar ul {
+	list-style: none;
+	margin: 0;
+	padding-left: 1rem;
+}
+
+.sidebar a[aria-current="page"] {
+	font-weight: bold;
+}
+
+main {
+	padding: 1rem;
+	min-width: 0;
+}
+
+main h1 {
+	font-size: 1rem;
+	font-family: monospace;
+	margin-top: 0;
+}
+
+.workbench {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+	gap: 1rem;
+}
+
+.pane {
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	padding: 0.75rem;
+	min-width: 0;
+}
+
+.pane h2 {
+	font-size: 0.75rem;
+	text-transform: uppercase;
+	color: #666;
+	margin: 0 0 0.5rem;
+}
+
+.source textarea {
+	width: 100%;
+	box-sizing: border-box;
+	min-height: 18rem;
+	font-family: monospace;
+	font-size: 0.8125rem;
+}
+
+.diagnostics {
+	font-size: 0.8125rem;
+	padding-left: 1rem;
+}
+
+.diagnostics [data-severity="error"] {
+	color: #b00020;
+}
+
+.note {
+	color: #666;
+	font-style: italic;
+}

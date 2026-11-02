@@ -1,0 +1,30 @@
+{
+	"name": "mdq-playground",
+	"private": true,
+	"type": "module",
+	"description": "A place to see and test the mdq/solid components. Not published.",
+	"packageManager": "pnpm@10.15.1",
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"preview": "vite preview",
+		"e2e": "playwright test",
+		"e2e:ui": "playwright test --ui",
+		"typecheck": "tsc -p tsconfig.json"
+	},
+	"dependencies": {
+		"solid-js": "^1.9.9"
+	},
+	"devDependencies": {
+		"@playwright/test": "^1.56.0",
+		"@types/node": "^25.9.9",
+		"typescript": "^5.9.3",
+		"vite": "^7.1.0",
+		"vite-plugin-solid": "^2.11.9"
+	},
+	"pnpm": {
+		"onlyBuiltDependencies": [
+			"esbuild"
+		]
+	}
+}
