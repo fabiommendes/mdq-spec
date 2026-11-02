@@ -1,6 +1,6 @@
 ---
 type: issue
-status: backlog
+status: todo
 tags: [spec, questions, randomization]
 relatedTo: [docs/question-types/question-base.md, docs/exam.md]
 ---
