@@ -1,9 +1,8 @@
 ---
 type: issue
-status: wont_fix
+status: backlog
 tags: [spec, convert, feedback]
 relatedTo: [docs/question-types/question-base.md, mdq-py/mdq/convert/_base.py]
-closed: 2026-10-29
 ---
 
 # A spec field for general feedback

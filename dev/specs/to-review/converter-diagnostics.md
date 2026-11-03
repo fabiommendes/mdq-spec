@@ -190,8 +190,10 @@ changed value.
 R9. A field of the MDQ question with a non-default value that the target has
 no place for reports `field-dropped` (warning) when it changes what the
 student sees or how the response is graded, and `metadata-dropped` (info)
-otherwise (`comment`, `author`, `uuid`, `locale`, `meta` keys other than
-`generalFeedback`). One diagnostic per field, at its path. The per-format
+otherwise (`id`, `comment`, `author`, `uuid`, `locale`, `meta` keys other than
+`generalFeedback`). Decisão humana (2026-11-03): `id` é `metadata-dropped`,
+porque quase toda questão tem um e o aluno não o vê; a CLI só mostra um info
+com `-v`/`--verbose`. One diagnostic per field, at its path. The per-format
 lists are in the inventory (rows S20 to S22).
 
 ### GIFT
