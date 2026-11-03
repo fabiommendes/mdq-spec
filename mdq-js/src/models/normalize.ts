@@ -7,7 +7,9 @@
 
 import { parseNumericAnswer } from "../parser/numeric.js";
 import { strip } from "../parser/text.js";
+import type { Tolerance } from "../schema/common.js";
 import type { Question } from "../schema/index.js";
+import { effectiveNumericDomain } from "./numeric.js";
 
 const ASCII_WS = " \t\r\n";
 
@@ -60,22 +62,27 @@ function isIntegerAnswer(value: number): boolean {
 	return Number.isInteger(value) && Math.abs(value) <= INT32_MAX;
 }
 
-/** Python's `_format_number`: plain notation, and `.0` on a whole float. */
+/**
+ * Python's `_format_number`. An integer is plain. A whole float is written as
+ * `d[.ddd]eN` (`1000.0` is `1e3`), because `1000.0` reads back as a decimal
+ * string and `1e3` as the float. A fractional float is positional (`0.25`),
+ * unless it is below `1e-4`, which gets the same exponent form (`1e-7`). The
+ * mantissa is the shortest digit string that reads back as the same float.
+ */
 function formatNumber(value: number, isFloat: boolean): string {
 	if (!isFloat) return String(value);
-	const text = String(value);
-	if (!/e/iu.test(text)) return text.includes(".") ? text : `${text}.0`;
-	const [mantissa = "", exponent = "0"] = text.toLowerCase().split("e");
-	const negative = mantissa.startsWith("-");
-	const [whole = "", fraction = ""] = mantissa.replace("-", "").split(".");
-	const digits = whole + fraction;
-	const point = whole.length + Number(exponent);
-	let plain: string;
-	if (point <= 0) plain = `0.${"0".repeat(-point)}${digits}`;
-	else if (point >= digits.length) {
-		plain = `${digits}${"0".repeat(point - digits.length)}.0`;
-	} else plain = `${digits.slice(0, point)}.${digits.slice(point)}`;
-	return negative ? `-${plain}` : plain;
+	const negative = value < 0 || Object.is(value, -0);
+	const [mantissa = "", exponent = "0"] = Math.abs(value)
+		.toExponential()
+		.split("e");
+	const digits = mantissa.replace(".", "");
+	const scientific = digits === "0" ? 0 : Number(exponent);
+	const lastDigit = scientific - (digits.length - 1);
+	const text =
+		lastDigit < 0 && digits !== "0" && scientific >= -4
+			? String(Math.abs(value))
+			: `${digits[0]}${digits.length > 1 ? `.${digits.slice(1)}` : ""}e${scientific}`;
+	return negative ? `-${text}` : text;
 }
 
 /** Python's `_format_tolerance`: a whole value is written as an integer. */
@@ -121,11 +128,15 @@ function writtenDomainAndPlaces(
  * Put `answer`, `domain` and `decimalPlaces` of a numeric question or blank in
  * the form a render and parse keep. The answer is read again from the
  * spelling a render writes, until it is the value its own spelling reads
- * (`"1e3"` reads as the float 1000, written `1000.0` and read as the string
- * `"1000.0"`). A declared `domain` or `decimalPlaces` stays.
+ * (`"1000.0"` is a string, so it reads as itself; the float 1000 is written
+ * `1e3`). A declared `domain` or `decimalPlaces` stays.
  */
 function normalizeNumericKey(key: Entries): void {
 	let answer = key.answer as number | string;
+	const tolerance = key.tolerance as Tolerance | undefined;
+	// The inferred domain, which a render writes when the tag reads back as
+	// another one (a whole float is an integer, but its tag `1e3` is a decimal).
+	const inferred = effectiveNumericDomain(answer, undefined, tolerance);
 	let isFloat = typeof answer === "number" && !isIntegerAnswer(answer);
 	let spelling: string;
 	for (;;) {
@@ -137,12 +148,8 @@ function normalizeNumericKey(key: Entries): void {
 		isFloat = typeof reread === "number" && /[.eE]/u.test(spelling);
 	}
 	key.answer = answer;
-	const tolerance = key.tolerance as { absolute?: number } | undefined;
-	const { domain, places } = writtenDomainAndPlaces(
-		spelling,
-		tolerance?.absolute,
-	);
-	if (key.domain === undefined) key.domain = domain;
+	const { places } = writtenDomainAndPlaces(spelling, tolerance?.absolute);
+	if (key.domain === undefined) key.domain = inferred;
 	if (
 		key.decimalPlaces === undefined &&
 		key.domain === "decimal" &&

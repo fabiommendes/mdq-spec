@@ -13,7 +13,7 @@ import {
 	type PathStep,
 	prefixPath,
 } from "../diagnostics.js";
-import { MissingFieldError, ParseError } from "../errors.js";
+import { MdqError, MissingFieldError, ParseError } from "../errors.js";
 import { includeKeyHint, misspelledIncludeKey } from "../include-keys.js";
 import { md, splitLines } from "../markdown.js";
 import { canonicalDuration, canonicalStart } from "../schedule.js";
@@ -538,16 +538,10 @@ function parseExamBlock(
 	const hint = includeKeyHint(front);
 	const blockWarnings: Diagnostic[] | undefined =
 		warnings === undefined ? undefined : [];
-	let question: RawDocument;
-	try {
-		question = parseQuestionDocument(source, blockWarnings);
-	} catch (error) {
-		if (error instanceof MissingFieldError && hint) {
-			throw new MissingFieldError(error.field, error.message + hint);
+	const reportBlockWarnings = (): void => {
+		if (warnings === undefined || blockWarnings === undefined) {
+			return;
 		}
-		throw error;
-	}
-	if (warnings !== undefined && blockWarnings !== undefined) {
 		const misspelled = misspelledIncludeKey(front);
 		for (const w of blockWarnings) {
 			const hinted =
@@ -559,7 +553,22 @@ function parseExamBlock(
 					: w;
 			warnings.push(prefixPath(hinted, ["questions", index]));
 		}
+	};
+	let question: RawDocument;
+	try {
+		question = parseQuestionDocument(source, blockWarnings);
+	} catch (error) {
+		// The frontmatter errors of the block do not depend on its body:
+		// report them along with the error that stops the parse.
+		if (error instanceof MdqError) {
+			reportBlockWarnings();
+		}
+		if (error instanceof MissingFieldError && hint) {
+			throw new MissingFieldError(error.field, error.message + hint);
+		}
+		throw error;
 	}
+	reportBlockWarnings();
 	inherit(question, exam);
 	return question;
 }

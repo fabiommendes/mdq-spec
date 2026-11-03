@@ -518,6 +518,38 @@ export function compileRegex(
 	}
 }
 
+function nfc(text: string): string {
+	return text.normalize("NFC");
+}
+
+/**
+ * Apply `transform` to each run of literal text of `body`. A backslash and
+ * the code point after it are an escape: it is a boundary and is kept as
+ * written, so a mark after `\\d` never composes with the `d`.
+ */
+function mapLiteralText(
+	body: string,
+	transform: (text: string) => string,
+): string {
+	const parts: string[] = [];
+	let runStart = 0;
+	let index = 0;
+	while (index < body.length) {
+		if (body[index] !== "\\") {
+			index += 1;
+			continue;
+		}
+		parts.push(transform(body.slice(runStart, index)));
+		const next = body.codePointAt(index + 1);
+		const end = index + 1 + (next === undefined ? 0 : next > 0xffff ? 2 : 1);
+		parts.push(body.slice(index, end));
+		index = end;
+		runStart = index;
+	}
+	parts.push(transform(body.slice(runStart)));
+	return parts.join("");
+}
+
 /**
  * Return the canonical `/body/flags` form of `pattern`.
  *
@@ -526,8 +558,9 @@ export function compileRegex(
  */
 export function normalizeRegex(pattern: string): string {
 	const [body, rawFlags] = parseRegex(pattern);
-	validateRegexBody(body);
-	compileRegex(body, "", body);
+	const nfcBody = mapLiteralText(body, nfc);
+	validateRegexBody(nfcBody);
+	compileRegex(nfcBody, "", body);
 	return `/${body}/${flagString(effectiveFlags(rawFlags))}`;
 }
 
@@ -555,12 +588,15 @@ export class RegexPattern {
 			...effectiveFlags(rawFlags),
 			...effectiveFlags(extra),
 		]);
-		validateRegexBody(body);
-
-		// The 'n' flag normalizes the body's literal text, not its escape
-		// sequences: normalizeText only sees the characters written in the
-		// source, so a literal "á" is normalized but "á" is not.
-		const compileBody = effective.has("n") ? normalizeText(body) : body;
+		// The literal text of the body is NFC (patterns.md, "Regex"), then
+		// the 'n' flag strips its diacritics. Both act on the literal text,
+		// never on an escape sequence: a literal "e" + U+0301 changes, but
+		// the escape "\\u0301" does not.
+		let compileBody = mapLiteralText(body, nfc);
+		validateRegexBody(compileBody);
+		if (effective.has("n")) {
+			compileBody = mapLiteralText(body, normalizeText);
+		}
 		const jsFlags = effective.has("i") ? "i" : "";
 		this.compiled = {
 			start: compileRegex(compileBody, jsFlags, body, ["^(?:", ")"]),

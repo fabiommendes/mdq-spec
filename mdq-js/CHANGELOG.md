@@ -87,6 +87,9 @@ the whole shared corpus (`examples/`), as mdq-py does.
 
 ### Fixed
 
+- An exam block with a frontmatter error and a parse error reports both: the frontmatter errors of the block (path `questions.<i>.<key>`) come with the parse error.
+- The literal text of a regex body is normalized to NFC, run by run between escapes, so a body written in NFD matches an NFC response.
+- `normalize` keeps a float numeric answer a float: a whole float is written `1e3`, not `1000.0`, and a missing `domain` is the inferred one (`"1e3"` is `decimal`, `1.0e+20` is `integer`).
 - `isExam` ignores lines inside code blocks, so `# comment` in a fenced block no longer makes a question load as an exam.
 - A trailing code line of Unicode whitespace (NBSP) is kept in the reconstructed text.
 - An `[essay]` tag followed by `## [answer-key]` with no blank line in between is still an answer key.
