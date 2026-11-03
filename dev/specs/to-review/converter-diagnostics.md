@@ -1,6 +1,6 @@
 ---
 type: spec
-status: todo
+status: review
 tags: [mdq-py, convert, gift, moodle-xml, aiken, diagnostics, cli]
 relatedTo: [mdq-py/mdq/convert/_base.py, mdq-py/mdq/convert/_gift.py, mdq-py/mdq/convert/_moodle_xml.py, mdq-py/mdq/convert/_aiken.py, mdq-py/mdq/cli/_convert.py, mdq-py/README.md, dev/issues/converter-remaining-losses.md]
 ---
@@ -9,7 +9,35 @@ relatedTo: [mdq-py/mdq/convert/_base.py, mdq-py/mdq/convert/_gift.py, mdq-py/mdq
 
 Python only (`mdq-py/`). mdq-js has no converters, so there is no port.
 
-## Status (2026-11-01)
+## Status (2026-11-03)
+
+Implementado em `mdq-py/` (todos os requisitos R1 a R18 e os critérios A1 a
+A10). Falta só a revisão. Testes novos: `mdq-py/tests/test_convert_diagnostics.py`;
+os snapshots passaram a registrar os diagnósticos (`export_diagnostics`,
+`import_diagnostics`).
+
+Escolhas técnicas, onde a spec deixa espaço:
+
+- `invalid-xml-character` continua erro: descartar o caractere mudaria uma
+  resposta ou um enunciado, e o Moodle rejeitaria o arquivo.
+- Caminhos: relativos ao `Report.under(...)` (`("blanks", i, ...)` dentro de um
+  blank); itens de `accept`/`reject` por índice na lista da pergunta; o que não
+  tem campo no MDQ (elementos `<hint>`, arquivos) usa `()`.
+- `grading` de múltipla escolha não é reportado (vira o score de cada
+  alternativa); o `grading-changed` do XML vale para toda seleção múltipla,
+  também com `grading` padrão.
+- `field-dropped` extra, fora do inventário: `feedback` de afirmações de
+  verdadeiro ou falso (GIFT e XML), `unit` de blank numérico no XML (cloze),
+  `<usecase>1` (`case-sensitivity-dropped`, e o regex do curinga respeita).
+- Diretriz de mensagens: aviso sem o prefixo `cannot convert ...`; o erro
+  mantém o prefixo.
+- Sem alternativa `*` literal no GIFT: `=*` é "qualquer outra resposta"; o
+  literal é `\*`.
+- `ConversionError(diagnostics, raise_on)` e `ConversionWarning` em `mdq.errors`.
+- `ValueError` simples de um parser ou de `to_mdq` (fração que não é número)
+  vira `syntax-error` (parser) ou `invalid-question`.
+
+Feito antes, sem mudança de comportamento além da classe da exceção:
 
 Done before the rest, with no change of behavior other than the exception
 class:
