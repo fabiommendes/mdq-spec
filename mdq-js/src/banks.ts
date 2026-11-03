@@ -18,6 +18,7 @@
 import { type Diagnostic, diagnostic } from "./diagnostics.js";
 import { IncludeNotFoundError, MdqError } from "./errors.js";
 import { load } from "./loading.js";
+import { digest } from "./models/presentation.js";
 import { parseQuery, QuerySyntaxError, type TagIndex } from "./models/query.js";
 import { INHERITED_FIELDS } from "./parser/exam.js";
 import { parseQuestionDocument } from "./parser/question.js";
@@ -149,6 +150,32 @@ export function selectRandom(
 	}
 	const chosen = new Set(indices.slice(0, max));
 	return candidates.filter((_, i) => chosen.has(i));
+}
+
+/**
+ * A `Select` that keeps the same questions for the same `seed` in every
+ * implementation (docs/exam.md, "Seeded selection"): every candidate when
+ * `max` is `undefined` or not smaller than the number of candidates, the
+ * `max` candidates with the smallest `digest(seed, id)` otherwise. The result
+ * keeps the order of `candidates`.
+ *
+ * @throws {RangeError} `seed` holds U+0000 (Python raises `ValueError`).
+ */
+export function selectSeeded(seed: string): Select {
+	digest(seed); // Reject a bad seed now, not at the first `max`.
+	return (candidates, max) => {
+		if (max === undefined || max >= candidates.length) {
+			return [...candidates];
+		}
+		const digests = new Map(candidates.map((id) => [id, digest(seed, id)]));
+		const byDigest = [...candidates].sort((a, b) => {
+			const da = digests.get(a) ?? "";
+			const db = digests.get(b) ?? "";
+			return da < db ? -1 : da > db ? 1 : 0;
+		});
+		const chosen = new Set(byDigest.slice(0, max));
+		return candidates.filter((id) => chosen.has(id));
+	};
 }
 
 /** Options of `resolveExam`. */

@@ -27,6 +27,7 @@ the whole shared corpus (`examples/`), as mdq-py does.
 
 ### Added
 
+- `selectSeeded(seed)`: a `Select` for `resolveExam` that keeps the same questions of an `includeAll` for the same seed, as `select_seeded` in mdq-py (`docs/exam.md`, "Seeded selection"). A seed with U+0000 is a `RangeError`.
 - The presented form (`docs/public-form.md`, "Presented form"): `presentation(question, seed, { shuffle? })` returns a `Presentation` (`publicForm()`, `toResponse()`, `toPresented()`) and `examPresentation(exam, seed)` an `ExamPresentation` (`publicForm()`, `toResponses()`, `toPresentedResponses()`). They are the free functions that stand for `BaseQuestion.presentation` and `Exam.presentation`. The labels come from a synchronous SHA-256 (`@noble/hashes`, a new dependency) that runs in the browser and in plain Node ESM. A seed with U+0000 is a `RangeError` (Python raises `ValueError`). The suite runs `examples/presentation.yaml`.
 - A review mark has a third state, `partial`, for a score between 0 and 1: `ShortAnswer`, `Numeric` and each blank of `FillIn` set `data-key="partial"` and show a `Mark` of kind `partial` ("Partially correct", message `partial`). Before, any score below 1 was marked incorrect. `verdictOf(score)` gives the verdict of a score.
 - `Ordering` shows the pool until the student answers, with a "Keep this order" button that takes the untouched order as the response. Its indent controls stop at the `maxLevel` of the public form, and its control names read text lines without their Markdown markup.
