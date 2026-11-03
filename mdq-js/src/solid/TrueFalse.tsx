@@ -36,7 +36,7 @@ export interface TrueFalseProps {
 type Judgement = boolean | undefined;
 
 /**
- * A true/false question: `.mdq-question[data-type="true-false"]`.
+ * A true or false question: `.mdq-question[data-type="true-false"]`.
  *
  * Each statement is a `.mdq-statement` row with one three-state toggle,
  * `.mdq-toggle[data-state="true" | "false" | "unmarked"]`, because a

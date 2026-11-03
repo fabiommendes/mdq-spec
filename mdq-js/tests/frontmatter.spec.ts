@@ -31,7 +31,7 @@ describe("loadYaml -- YAML 1.2 Core scalars", () => {
 		["n", "value: n", "n"],
 
 		//
-		// true/false, three spellings each.
+		// true or false, three spellings each.
 		//
 		["true", "value: true", true],
 		["True", "value: True", true],

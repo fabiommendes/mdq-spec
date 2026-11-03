@@ -193,7 +193,7 @@ describe("multiple selection", () => {
 	}
 });
 
-describe("true/false", () => {
+describe("true or false", () => {
 	for (const testCase of questionsOf("true-false")) {
 		for (const example of testCase.examples as Plain[]) {
 			corpusIt(

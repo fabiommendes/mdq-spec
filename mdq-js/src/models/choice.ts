@@ -255,7 +255,7 @@ function checkTrueFalseUniformAnswers(
 		lintDiagnostic(
 			"uniform-true-false-answers",
 			["choices"],
-			`every statement is ${first.correct ? "true" : "false"}; a true/false question should mix true and false statements`,
+			`every statement is ${first.correct ? "true" : "false"}; a true or false question should mix true and false statements`,
 		),
 	];
 }
@@ -308,14 +308,14 @@ export function markerDiagnostic(
 	if (!isLetter(normalizeValue(marker)) || marker !== strip(marker)) {
 		return modelError(
 			"malformed-true-false-marker",
-			`${repr(marker)} is not a true/false marker: a marker is a single letter, with no whitespace around it`,
+			`${repr(marker)} is not a true or false marker: a marker is a single letter, with no whitespace around it`,
 			path,
 		);
 	}
 	if (normalizeValue(marker) === "x") {
 		return modelError(
 			"reserved-true-false-marker",
-			`${repr(marker)} marks a selected multiple-selection choice and has no true/false meaning`,
+			`${repr(marker)} marks a selected multiple-selection choice and has no true or false meaning`,
 			path,
 		);
 	}
@@ -495,8 +495,8 @@ export function scoreMultipleSelection(
 }
 
 /**
- * Check a true/false response: a mapping whose keys are statement ids and
- * whose values are booleans or `null` (responses.md, "True/false").
+ * Check a true or false response: a mapping whose keys are statement ids and
+ * whose values are booleans or `null` (responses.md, "True or false").
  *
  * @throws {ResponseError} The response is malformed.
  */
@@ -505,7 +505,7 @@ function parseTrueFalse(
 	response: unknown,
 ): Readonly<Record<string, unknown>> {
 	const notAMapping = new ResponseError(
-		`A true/false response must be a mapping of statement ids, found ${typeName(response)}`,
+		`A true or false response must be a mapping of statement ids, found ${typeName(response)}`,
 	);
 	if (typeof response !== "object" || response === null) throw notAMapping;
 	const known = new Set(question.choices.map((statement) => statement.id));

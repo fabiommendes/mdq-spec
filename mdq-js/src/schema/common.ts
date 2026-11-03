@@ -198,7 +198,7 @@ export const TrueFalseGrading = z.enum([
 ]);
 export type TrueFalseGrading = z.infer<typeof TrueFalseGrading>;
 
-/** `schema/fill-in.yaml#/allOf/1/properties/grading`: the same strategies as true/false. */
+/** `schema/fill-in.yaml#/allOf/1/properties/grading`: the same strategies as true or false. */
 export const FillInGradingType = GradingType;
 export type FillInGradingType = GradingType;
 
@@ -322,7 +322,7 @@ export const BooleanChoice = z.strictObject({
 export type BooleanChoice = z.infer<typeof BooleanChoice>;
 
 /**
- * A true/false statement -- `schema/true-false.yaml#/$defs/Choice`.
+ * A true or false statement -- `schema/true-false.yaml#/$defs/Choice`.
  *
  * `marker` keeps the letter written between the brackets verbatim: `correct`
  * carries the meaning, but the letter is what lets the linter warn about

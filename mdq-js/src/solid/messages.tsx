@@ -34,11 +34,11 @@ export interface Messages {
 	yourAnswer: string;
 	/** The note of a frozen question the student left empty. */
 	noAnswer: string;
-	/** The label of the true end of a true/false toggle. */
+	/** The label of the true end of a true or false toggle. */
 	trueLabel: string;
-	/** The label of the false end of a true/false toggle. */
+	/** The label of the false end of a true or false toggle. */
 	falseLabel: string;
-	/** Read by a screen reader to explain the three states of a true/false toggle. */
+	/** Read by a screen reader to explain the three states of a true or false toggle. */
 	trueFalseHint: string;
 	/** The badge of a response that waits for an instructor. */
 	pending: string;

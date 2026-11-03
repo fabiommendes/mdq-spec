@@ -411,7 +411,7 @@ export function resolveQuestion(exam: Exam, question: Question): Question {
 /**
  * How much of the grading the library does without an instructor
  * (`docs/question-types/base.md`, "Automation"): `automatic` for choice,
- * true/false and numeric questions, `manual` for an essay, and a rule of
+ * true or false and numeric questions, `manual` for an essay, and a rule of
  * their own for short answer, fill-in and ordering.
  */
 export function automation(question: Question): Automation {
