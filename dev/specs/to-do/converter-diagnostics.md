@@ -24,7 +24,8 @@ class:
   (X27, removed when it is fixed), `blank-in-html-block` (`html_to_mdq`, a
   blank inside an HTML block), `not-a-number` (a numeric answer text that is
   not a number), `invalid-question` (the converter built a question the
-  models reject).
+  models reject), `invalid-xml-character` (the Moodle XML export of
+  a character that XML 1.0 forbids, such as a form feed).
 - `import_question` raises `ConversionError` with `syntax-error` (and `line`)
   for a `ParserError`, as R3 asks of `load_question`.
 - `mdq-py/tests/test_convert_snapshots.py` records what each converter does

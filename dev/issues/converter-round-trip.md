@@ -5,45 +5,22 @@ tags: [mdq-py, convert, gift, moodle-xml]
 relatedTo: [mdq-py/tests/test_convert_snapshots.py, dev/specs/to-do/converter-diagnostics.md]
 ---
 
-# Export of an imported question is not the same text
+# Moodle XML: a literal `[^id]` of a fill-in imports as a blank
 
 `mdq-py/tests/test_convert_snapshots.py` exports each valid question of the
-corpus, imports the text back and exports again. These cases give a
-different second export (the `reexport` entries of
-`mdq-py/tests/snapshots/convert/*.json`):
+corpus, imports the text back and exports again. One case still fails:
 
-| Format     | Question                                         | Second export          |
-| ---------- | ------------------------------------------------ | ---------------------- |
-| gift       | `valid/fill-in/nbsp-after-blank-definition`      | differs                |
-| gift       | `valid/multiple-choice/nbsp-after-choice-marker` | differs                |
-| gift       | `valid/short-answer/em-space-starts-pattern-line`| differs                |
-| gift       | `valid/short-answer/nbsp-on-tag-line`            | differs                |
-| gift       | `valid/short-answer/nbsp-starts-pattern-line`    | differs                |
-| gift       | `valid/numeric/exponent-string-answer`           | error: no exact float  |
-| moodle-xml | `valid/fill-in/incorrect-feedback`               | `*` becomes `\*`       |
-| moodle-xml | `valid/numeric/exponent-string-answer`           | error: no exact float  |
+| Format     | Question                           | Import error                                  |
+| ---------- | ---------------------------------- | --------------------------------------------- |
+| moodle-xml | `valid/fill-in/blank-in-code-is-text` | `invalid-question`: `undefined-blank` capital |
 
-- GIFT: the export keeps a Unicode space (NBSP, em space) at the start of an
-  answer (`{=\u00a0Brasília}`); the import strips it.
-- Moodle XML: the export writes the `incorrectFeedback` of a cloze short
-  answer as the catch-all `~*#...`. The import reads it back as something
-  that the second export writes as the literal `~\*#...`, so the catch-all
-  becomes a literal answer.
-- `exponent-string-answer`: the import writes the float as a string answer
-  that the export then rejects.
+The cloze export joins the stem and the epilogue in one `<questiontext>`. The
+`[^capital]` of the epilogue is text there, but on import it is in the stem,
+outside code, so it reads as a blank.
 
-## Export that does not import back
-
-The `import` entries with an error: the export writes a text that the
-importer of the same format rejects.
-
-| Format     | Question                                          | Import error                                   |
-| ---------- | ------------------------------------------------- | ---------------------------------------------- |
-| aiken      | `valid/multiple-choice/line-separators-in-choice-text` | `syntax-error`: a U+2028/U+2029 in a choice breaks the line |
-| gift       | `valid/fill-in/blank-in-code-span-is-text`        | `invalid-question`: `[^capital]` in code is read as a marker |
-| moodle-xml | `valid/fill-in/blank-in-code-is-text`             | `invalid-question`: same as above              |
-| moodle-xml | `valid/essay/form-feed-is-text`                   | `syntax-error`: a form feed is not valid XML   |
-| moodle-xml | `valid/multiple-choice/line-separators-in-choice-text` | `syntax-error`: invalid XML token         |
-
-Check each one against the inventory of `converter-diagnostics.md` before a
-fix: some may be losses that the spec turns into warnings.
+The importer cannot write it as literal text: by `fill-in.md`, a `[^id]` in
+the plain text of a paragraph is always a blank, also as `\[^id]` or
+`&#91;^id]` (both give `undefined-blank` in mdq-py). CommonMark reads `\[` as
+a literal `[`. Spec decision: should `\[^id]` be literal text in a stem? If
+yes, the importer escapes every `[^id]` of the Moodle text that is not a
+cloze, and the GIFT importer does the same.
