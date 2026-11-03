@@ -1,22 +1,18 @@
 ---
 type: issue
-status: backlog
-tags: [shuffle, seed]
+status: todo
+tags: [mdq-js, shuffle, seed]
 relatedTo: [dev/specs/to-review/presentation.md, docs/exam.md]
 kind: enhancement
 created: 2026-11-01
 creator: Fábio Macêdo Mendes
 ---
 
-# Seleção seedada no include-all
+# Portar a seleção seedada do includeAll para mdq-js
 
-`select_random` (`mdq-py/mdq/models/_exam.py`) escolhe as questões de um
-`includeAll` com `random`. Dois hosts, ou duas requisições do mesmo aluno,
-não chegam à mesma seleção.
+A spec (`docs/exam.md`, "Seeded selection") e mdq-py (`select_seeded`, e5e4772
+e 9a6975c) já estão prontos. Falta o port para mdq-js: `selectSeeded(seed)`
+para o `resolveExam`, usando o mesmo SHA-256 síncrono da forma apresentada,
+e um teste que rode `examples/selection.yaml` (os casos e `rejectedSeeds`).
 
-Usar o mesmo digest da forma apresentada (`docs/public-form.md`, "Presented
-form"): ordenar os candidatos por SHA-256(seed, partes) e tomar os `max`
-primeiros. Isso exige definir a seed do exame e as partes da chave, e
-acrescentar vetores ao corpus.
-
-Saiu de fora do escopo da spec `presentation`.
+Depende do port da forma apresentada para mdq-js, que traz o SHA-256.
