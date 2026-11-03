@@ -66,13 +66,13 @@ cases:
       stem: Which two rivers meet near Manaus without mixing for several kilometers?
       shuffle: true
       choices:
-      - {id: 16a68ed6, text: Tocantins and São Francisco}
-      - {id: 7589d676, text: Madeira and Tapajós}
-      - {id: 78426fb7, text: Xingu and Araguaia}
-      - {id: f412a138, text: Negro and Solimões}
+      - {id: "16a68ed6", text: Tocantins and São Francisco}
+      - {id: "7589d676", text: Madeira and Tapajós}
+      - {id: "78426fb7", text: Xingu and Araguaia}
+      - {id: "f412a138", text: Negro and Solimões}
     responses:
-    - {real: correct, presented: f412a138}
-    - {real: wrong-2, presented: 78426fb7}
+    - {real: correct, presented: "f412a138"}
+    - {real: wrong-2, presented: "78426fb7"}
 
   - name: multiple choice with shuffle false keeps the document order
     seed: s3cr3t
@@ -92,12 +92,12 @@ cases:
       stem: Which two rivers meet near Manaus without mixing for several kilometers?
       shuffle: false
       choices:
-      - {id: f412a138, text: Negro and Solimões}
-      - {id: 7589d676, text: Madeira and Tapajós}
-      - {id: 78426fb7, text: Xingu and Araguaia}
-      - {id: 16a68ed6, text: Tocantins and São Francisco}
+      - {id: "f412a138", text: Negro and Solimões}
+      - {id: "7589d676", text: Madeira and Tapajós}
+      - {id: "78426fb7", text: Xingu and Araguaia}
+      - {id: "16a68ed6", text: Tocantins and São Francisco}
     responses:
-    - {real: wrong-1, presented: 7589d676}
+    - {real: wrong-1, presented: "7589d676"}
 
   - name: shuffle in the case overrides the question and gives the sorted order
     seed: s3cr3t
@@ -116,12 +116,12 @@ cases:
       id: encontro-das-aguas
       stem: Which two rivers meet near Manaus without mixing for several kilometers?
       choices:
-      - {id: 16a68ed6, text: Tocantins and São Francisco}
-      - {id: 7589d676, text: Madeira and Tapajós}
-      - {id: 78426fb7, text: Xingu and Araguaia}
-      - {id: f412a138, text: Negro and Solimões}
+      - {id: "16a68ed6", text: Tocantins and São Francisco}
+      - {id: "7589d676", text: Madeira and Tapajós}
+      - {id: "78426fb7", text: Xingu and Araguaia}
+      - {id: "f412a138", text: Negro and Solimões}
     responses:
-    - {real: correct, presented: f412a138}
+    - {real: correct, presented: "f412a138"}
 
   - name: shuffle inherit reads as false
     seed: s3cr3t
@@ -140,12 +140,12 @@ cases:
       id: encontro-das-aguas
       stem: Which two rivers meet near Manaus without mixing for several kilometers?
       choices:
-      - {id: f412a138, text: Negro and Solimões}
-      - {id: 7589d676, text: Madeira and Tapajós}
-      - {id: 78426fb7, text: Xingu and Araguaia}
-      - {id: 16a68ed6, text: Tocantins and São Francisco}
+      - {id: "f412a138", text: Negro and Solimões}
+      - {id: "7589d676", text: Madeira and Tapajós}
+      - {id: "78426fb7", text: Xingu and Araguaia}
+      - {id: "16a68ed6", text: Tocantins and São Francisco}
     responses:
-    - {real: correct, presented: f412a138}
+    - {real: correct, presented: "f412a138"}
 
   - name: multiple selection translates a list of ticked ids
     seed: ana.souza:prova-biomas
@@ -166,14 +166,14 @@ cases:
       stem: Which of these are biomes of Brazil?
       shuffle: true
       choices:
-      - {id: 4a647806, text: Tundra}
-      - {id: 6031b96f, text: Cerrado}
-      - {id: 63ca9718, text: Taiga}
-      - {id: 73e14ed9, text: Caatinga}
-      - {id: cccec1bc, text: Pantanal}
+      - {id: "4a647806", text: Tundra}
+      - {id: "6031b96f", text: Cerrado}
+      - {id: "63ca9718", text: Taiga}
+      - {id: "73e14ed9", text: Caatinga}
+      - {id: "cccec1bc", text: Pantanal}
     responses:
     - real: [cerrado, pantanal]
-      presented: [6031b96f, cccec1bc]
+      presented: ["6031b96f", "cccec1bc"]
     - real: []
       presented: []
     - {real: null, presented: null}
@@ -196,13 +196,13 @@ cases:
       stem: Judge each statement about the history of the Earth.
       shuffle: true
       choices:
-      - {id: 478e6412, text: The Earth is billions of years old.}
-      - {id: 5c77bab3, text: The Earth is flat.}
-      - {id: a690c843, text: Species change by natural selection.}
-      - {id: d69cdd00, text: Humans and non-avian dinosaurs coexisted.}
+      - {id: "478e6412", text: The Earth is billions of years old.}
+      - {id: "5c77bab3", text: The Earth is flat.}
+      - {id: "a690c843", text: Species change by natural selection.}
+      - {id: "d69cdd00", text: Humans and non-avian dinosaurs coexisted.}
     responses:
     - real: {idade: true, plana: false, dinossauros: null}
-      presented: {478e6412: true, 5c77bab3: false, d69cdd00: null}
+      presented: {"478e6412": true, "5c77bab3": false, "d69cdd00": null}
     - real: {}
       presented: {}
 
@@ -240,23 +240,23 @@ cases:
       - id: estado
         type: multiple-choice
         choices:
-        - {id: 0d471e13, text: Minas Gerais}
-        - {id: f6b664d6, text: Bahia}
-        - {id: ff769063, text: Pernambuco}
+        - {id: "0d471e13", text: Minas Gerais}
+        - {id: "f6b664d6", text: Bahia}
+        - {id: "ff769063", text: Pernambuco}
       - {id: km, type: numeric, unit: km, domain: integer}
       - id: oceano
         type: multiple-choice
         choices:
-        - {id: c2044a5f, text: Índico}
-        - {id: d59ee361, text: Atlântico}
-        - {id: fca31c4b, text: Pacífico}
+        - {id: "c2044a5f", text: Índico}
+        - {id: "d59ee361", text: Atlântico}
+        - {id: "fca31c4b", text: Pacífico}
     responses:
     - real: {estado: mg, km: 2830, oceano: atlantico}
-      presented: {estado: 0d471e13, km: 2830, oceano: d59ee361}
+      presented: {estado: "0d471e13", km: 2830, oceano: "d59ee361"}
     - real: {estado: ba, km: null}
-      presented: {estado: f6b664d6, km: null}
+      presented: {estado: "f6b664d6", km: null}
     - real: {oceano: pacifico}
-      presented: {oceano: fca31c4b}
+      presented: {oceano: "fca31c4b"}
 
   - name: fill-in with shuffle false keeps the order and labels the choices
     seed: s3cr3t
@@ -292,19 +292,19 @@ cases:
       - id: estado
         type: multiple-choice
         choices:
-        - {id: 0d471e13, text: Minas Gerais}
-        - {id: f6b664d6, text: Bahia}
-        - {id: ff769063, text: Pernambuco}
+        - {id: "0d471e13", text: Minas Gerais}
+        - {id: "f6b664d6", text: Bahia}
+        - {id: "ff769063", text: Pernambuco}
       - {id: km, type: numeric, unit: km, domain: integer}
       - id: oceano
         type: multiple-choice
         choices:
-        - {id: d59ee361, text: Atlântico}
-        - {id: fca31c4b, text: Pacífico}
-        - {id: c2044a5f, text: Índico}
+        - {id: "d59ee361", text: Atlântico}
+        - {id: "fca31c4b", text: Pacífico}
+        - {id: "c2044a5f", text: Índico}
     responses:
     - real: {estado: pe}
-      presented: {estado: ff769063}
+      presented: {estado: "ff769063"}
 
   - name: question without id uses the empty string as qid
     seed: s3cr3t
@@ -321,11 +321,11 @@ cases:
       stem: Which Brazilian state has the largest area?
       shuffle: true
       choices:
-      - {id: 274a794d, text: Pará}
-      - {id: b3a4a483, text: Amazonas}
-      - {id: c0ddc6d3, text: Mato Grosso}
+      - {id: "274a794d", text: Pará}
+      - {id: "b3a4a483", text: Amazonas}
+      - {id: "c0ddc6d3", text: Mato Grosso}
     responses:
-    - {real: am, presented: b3a4a483}
+    - {real: am, presented: "b3a4a483"}
 
   - name: non ASCII seed is encoded in UTF-8
     seed: ana.souza:prova-geografia-ç
@@ -345,12 +345,12 @@ cases:
       stem: Which two rivers meet near Manaus without mixing for several kilometers?
       shuffle: true
       choices:
-      - {id: 31be6466, text: Madeira and Tapajós}
-      - {id: 7fed64ca, text: Negro and Solimões}
-      - {id: a708e41a, text: Xingu and Araguaia}
-      - {id: d271619f, text: Tocantins and São Francisco}
+      - {id: "31be6466", text: Madeira and Tapajós}
+      - {id: "7fed64ca", text: Negro and Solimões}
+      - {id: "a708e41a", text: Xingu and Araguaia}
+      - {id: "d271619f", text: Tocantins and São Francisco}
     responses:
-    - {real: correct, presented: 7fed64ca}
+    - {real: correct, presented: "7fed64ca"}
 
   - name: only the colliding labels grow to 16 digits
     seed: colisao
@@ -370,12 +370,12 @@ cases:
       stem: Which gas makes up most of the Earth's atmosphere?
       shuffle: true
       choices:
-      - {id: 93e45b7c, text: Argon}
-      - {id: a8d55671, text: Carbon dioxide}
-      - {id: cf344ffe1fb7698a, text: Nitrogen}
-      - {id: cf344ffeaae0d86c, text: Oxygen}
+      - {id: "93e45b7c", text: Argon}
+      - {id: "a8d55671", text: Carbon dioxide}
+      - {id: "cf344ffe1fb7698a", text: Nitrogen}
+      - {id: "cf344ffeaae0d86c", text: Oxygen}
     responses:
-    - {real: c62516, presented: cf344ffeaae0d86c}
+    - {real: c62516, presented: "cf344ffeaae0d86c"}
 
   - name: 'stability: a question without a collision'
     seed: colisao
@@ -394,11 +394,11 @@ cases:
       stem: Which gas makes up most of the Earth's atmosphere?
       shuffle: true
       choices:
-      - {id: 93e45b7c, text: Argon}
-      - {id: a8d55671, text: Carbon dioxide}
-      - {id: cf344ffe, text: Nitrogen}
+      - {id: "93e45b7c", text: Argon}
+      - {id: "a8d55671", text: Carbon dioxide}
+      - {id: "cf344ffe", text: Nitrogen}
     responses:
-    - {real: c6070, presented: cf344ffe}
+    - {real: c6070, presented: "cf344ffe"}
 
   - name: 'stability: a choice that collides at 8 digits changes only the two labels'
     seed: colisao
@@ -420,12 +420,12 @@ cases:
       stem: Which gas makes up most of the Earth's atmosphere?
       shuffle: true
       choices:
-      - {id: 93e45b7c, text: Argon}
-      - {id: a8d55671, text: Carbon dioxide}
-      - {id: cf344ffe1fb7698a, text: Nitrogen}
-      - {id: cf344ffeaae0d86c, text: Oxygen}
+      - {id: "93e45b7c", text: Argon}
+      - {id: "a8d55671", text: Carbon dioxide}
+      - {id: "cf344ffe1fb7698a", text: Nitrogen}
+      - {id: "cf344ffeaae0d86c", text: Oxygen}
     responses:
-    - {real: c6070, presented: cf344ffe1fb7698a}
+    - {real: c6070, presented: "cf344ffe1fb7698a"}
 
   - name: 'stability: the same question with one choice more keeps the other labels'
     seed: s3cr3t
@@ -447,13 +447,13 @@ cases:
       stem: Which two rivers meet near Manaus without mixing for several kilometers?
       shuffle: true
       choices:
-      - {id: 16a68ed6, text: Tocantins and São Francisco}
-      - {id: 7589d676, text: Madeira and Tapajós}
-      - {id: 78426fb7, text: Xingu and Araguaia}
-      - {id: f412a138, text: Negro and Solimões}
-      - {id: fdff0d79, text: Paraná and Uruguai}
+      - {id: "16a68ed6", text: Tocantins and São Francisco}
+      - {id: "7589d676", text: Madeira and Tapajós}
+      - {id: "78426fb7", text: Xingu and Araguaia}
+      - {id: "f412a138", text: Negro and Solimões}
+      - {id: "fdff0d79", text: Paraná and Uruguai}
     responses:
-    - {real: correct, presented: f412a138}
+    - {real: correct, presented: "f412a138"}
 
   - name: 'stability: removing a choice keeps the other labels'
     seed: s3cr3t
@@ -473,11 +473,11 @@ cases:
       stem: Which two rivers meet near Manaus without mixing for several kilometers?
       shuffle: true
       choices:
-      - {id: 16a68ed6, text: Tocantins and São Francisco}
-      - {id: 7589d676, text: Madeira and Tapajós}
-      - {id: f412a138, text: Negro and Solimões}
+      - {id: "16a68ed6", text: Tocantins and São Francisco}
+      - {id: "7589d676", text: Madeira and Tapajós}
+      - {id: "f412a138", text: Negro and Solimões}
     responses:
-    - {real: correct, presented: f412a138}
+    - {real: correct, presented: "f412a138"}
 
   - name: an unknown label is a malformed response
     seed: s3cr3t
@@ -497,12 +497,12 @@ cases:
       stem: Which two rivers meet near Manaus without mixing for several kilometers?
       shuffle: true
       choices:
-      - {id: 16a68ed6, text: Tocantins and São Francisco}
-      - {id: 7589d676, text: Madeira and Tapajós}
-      - {id: 78426fb7, text: Xingu and Araguaia}
-      - {id: f412a138, text: Negro and Solimões}
+      - {id: "16a68ed6", text: Tocantins and São Francisco}
+      - {id: "7589d676", text: Madeira and Tapajós}
+      - {id: "78426fb7", text: Xingu and Araguaia}
+      - {id: "f412a138", text: Negro and Solimões}
     responses:
-    - {presented: deadbeef, error: ResponseError}
+    - {presented: "deadbeef", error: ResponseError}
     - {presented: correct, error: ResponseError}
     - {presented: 7, error: ResponseError}
     - {real: unknown, error: ResponseError}
@@ -526,16 +526,16 @@ cases:
       stem: Which of these are biomes of Brazil?
       shuffle: true
       choices:
-      - {id: 4a647806, text: Tundra}
-      - {id: 6031b96f, text: Cerrado}
-      - {id: 63ca9718, text: Taiga}
-      - {id: 73e14ed9, text: Caatinga}
-      - {id: cccec1bc, text: Pantanal}
+      - {id: "4a647806", text: Tundra}
+      - {id: "6031b96f", text: Cerrado}
+      - {id: "63ca9718", text: Taiga}
+      - {id: "73e14ed9", text: Caatinga}
+      - {id: "cccec1bc", text: Pantanal}
     responses:
-    - presented: [6031b96f, deadbeef]
+    - presented: ["6031b96f", "deadbeef"]
       error: ResponseError
-    - {presented: deadbeef, error: ResponseError}
-    - real: [cerrado, 6031b96f]
+    - {presented: "deadbeef", error: ResponseError}
+    - real: [cerrado, "6031b96f"]
       error: ResponseError
 
   - name: fill-in with an unknown label in a choice blank is malformed
@@ -572,20 +572,20 @@ cases:
       - id: estado
         type: multiple-choice
         choices:
-        - {id: 0d471e13, text: Minas Gerais}
-        - {id: f6b664d6, text: Bahia}
-        - {id: ff769063, text: Pernambuco}
+        - {id: "0d471e13", text: Minas Gerais}
+        - {id: "f6b664d6", text: Bahia}
+        - {id: "ff769063", text: Pernambuco}
       - {id: km, type: numeric, unit: km, domain: integer}
       - id: oceano
         type: multiple-choice
         choices:
-        - {id: c2044a5f, text: Índico}
-        - {id: d59ee361, text: Atlântico}
-        - {id: fca31c4b, text: Pacífico}
+        - {id: "c2044a5f", text: Índico}
+        - {id: "d59ee361", text: Atlântico}
+        - {id: "fca31c4b", text: Pacífico}
     responses:
-    - presented: {estado: deadbeef}
+    - presented: {estado: "deadbeef"}
       error: ResponseError
-    - presented: {oceano: 0d471e13}
+    - presented: {oceano: "0d471e13"}
       error: ResponseError
     - real: {estado: sp}
       error: ResponseError

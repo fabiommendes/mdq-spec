@@ -106,6 +106,43 @@ cases:
         - { id: tundra, text: Tundra }
     correctResponses: [caatinga, pampa]
 
+  - name: multiple choice omits a configuration written with its default value
+    question:
+      type: multiple-choice
+      stem: Qual destes biomas existe no Brasil?
+      shuffle: inherit
+      grading: inherit
+      weight: 1
+      choices:
+        - { id: caatinga, text: Caatinga, score: 1 }
+        - { id: tundra, text: Tundra }
+    public:
+      type: multiple-choice
+      stem: Qual destes biomas existe no Brasil?
+      choices:
+        - { id: caatinga, text: Caatinga }
+        - { id: tundra, text: Tundra }
+    correctResponses: [caatinga]
+
+  - name: multiple choice copies a configuration without resolving it
+    question:
+      type: multiple-choice
+      stem: Qual destes biomas existe no Brasil?
+      shuffle: false
+      grading: partial
+      choices:
+        - { id: caatinga, text: Caatinga, score: 1 }
+        - { id: tundra, text: Tundra }
+    public:
+      type: multiple-choice
+      stem: Qual destes biomas existe no Brasil?
+      shuffle: false
+      grading: partial
+      choices:
+        - { id: caatinga, text: Caatinga }
+        - { id: tundra, text: Tundra }
+    correctResponses: [caatinga]
+
   - name: multiple choice with a choice without id is not addressable
     question:
       type: multiple-choice

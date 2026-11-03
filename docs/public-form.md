@@ -34,8 +34,8 @@ private fields and adds a few derived values.
 | Public field      | Copied as the document holds it.                                     |
 | Private field     | Removed, at every depth.                                             |
 | Absent field      | Omitted. It is never `null`.                                         |
-| Configuration     | Copied as written, not resolved: `grading: inherit` stays `inherit`. |
-| Default value     | Not added, except for the derived values of this document.           |
+| Configuration     | Copied, not resolved: `grading: partial` stays `partial`, whatever the exam says. |
+| Default value     | Not added, except for the derived values of this document. A field written with its default value is omitted: `grading: inherit`, `shuffle: inherit` and `weight: 1` do not appear. |
 | Choice without id | The public form is not defined (`MissingIdError`).                   |
 
 The public form MUST hold no private field. The tables below list every field
@@ -359,7 +359,7 @@ public and canonical, see [Pool](#pool). The host still shuffles the pool.
 | Label    | The first 8, 16, 32 or 64 digits of the digest: the shortest of these prefixes that no other digest of the scope shares. |
 | Length   | Per choice. A choice that collides with no other keeps 8 digits, even when two others collide. |
 | Seed     | A seed that holds U+0000 is rejected (`ValueError`). A key part is a `SLUG` and never holds it. |
-| Syntax   | A label is hex, so it matches `SLUG`: the presented form is a valid public form.        |
+| Syntax   | A label is hex, so it matches `SLUG`: the presented form is a valid public form. YAML can read a label as a number (`12345678`, `478e6412`), so a label written in YAML is quoted. |
 | Stable   | A label depends only on the seed, the key parts and the digests of the other choices of the scope. Adding a choice changes at most the label of the choice that collides with it (and gives the new one a longer label). Removing or rewriting a choice does not change the others, except that a label may become shorter when its collision goes away. |
 
 ### Order

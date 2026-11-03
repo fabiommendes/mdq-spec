@@ -20,6 +20,7 @@ First version of the specification.
 
 ### Changed
 
+- `docs/public-form.md` says that a field written with its default value (`grading: inherit`, `shuffle: inherit`, `weight: 1`) is omitted from the public form, as mdq-py does, and that a presentation label written in YAML is quoted. The labels of `examples/presentation.yaml` are quoted, so a YAML 1.2 reader reads them as strings.
 - The descriptions of `schema/true-false.yaml` say "true or false", the name of the type in prose (glossary).
 - `GLOSSARY.md` is in the r2 format: one `##` section per term, with `tags`, `avoid`, `related` and `code` fields. Read it with `r2 glossary`. New terms for the question types, `Blank`, `Body`, `Epilogue`, `Statement`, `Tolerance`, `Numeric domain`, `Shuffle`, `Seed`, `Query` and `Question bank`; `Accept and reject` is now two terms.
 - The prose of `docs/` and `skills/` calls the true-false type "true or false"; `true-false` stays the value of `type`. The numeric section "Number type/domain" is now "Domain" (anchor `#domain`).
