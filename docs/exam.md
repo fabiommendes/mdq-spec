@@ -273,9 +273,29 @@ declared `id`, or a question added by an earlier `includeAll`. This lets an
 author include some questions explicitly and fill the remaining positions with
 a query. `max` applies after these questions are removed.
 
-The source of the questions (the question bank), the order of the matched
-questions, and which questions `max` keeps are implementation-defined. A host
-system MAY, for example, draw a different random subset for each student.
+The source of the questions (the question bank) and the order of the matched
+questions are implementation-defined. Which questions `max` keeps is also
+implementation-defined, unless the host gives a seed: a host system MAY, for
+example, draw a different random subset for each student.
+
+#### Seeded selection
+
+With a [seed](public-form.md#presented-form), the questions that `max` keeps
+are the same in every implementation, so the host builds the same exam for a
+student at each request and keeps no state. An implementation that accepts a
+seed MUST select as below.
+
+| Rule       | Seeded selection                                                                 |
+| ---------- | -------------------------------------------------------------------------------- |
+| Candidates | The questions that match the query, without those the exam already contains.    |
+| Digest     | Of each candidate: the SHA-256 of the seed and the question id, joined by U+0000, in UTF-8, as 64 lowercase hex digits. It is the digest of a [label](public-form.md#label) with one key part. |
+| Kept       | Every candidate when there is no `max` or when `max` is at least their number. Otherwise the `max` candidates with the smallest digests, compared as strings. |
+| Order      | The order of the candidates without a seed. The seed changes which questions stay, never their order. |
+| Seed       | A seed that holds U+0000 is rejected (`ValueError`).                             |
+| Stable     | A question stays or goes by its digest and the digests of the other candidates only. Adding a question to the bank removes at most one question from the selection. |
+
+The digest of a question never reaches the client: a presentation label has
+two or more key parts, so no label is a prefix of a selection digest.
 
 ## Question ids
 

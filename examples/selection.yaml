@@ -1,0 +1,129 @@
+# Vectors for the seeded selection of an `includeAll` block (docs/exam.md,
+# "Seeded selection").
+#
+# Document structure
+#
+# Case {
+#   name: string
+#
+#   // The host seed. A string without U+0000.
+#   seed: string
+#
+#   // The ids of the candidates, in the order the exam shows them.
+#   candidates: string[]
+#
+#   // The `max` of the block. When absent, the block has no `max`.
+#   max?: integer
+#
+#   // The ids that stay, in the order of `candidates`.
+#   selected: string[]
+#
+#   // The digest of each candidate, to check an implementation step by
+#   // step: sha256(seed + "\0" + id) in UTF-8, as 64 lowercase hex digits.
+#   digests: {[id: string]: string}
+# }
+#
+# The case "a new candidate removes at most one question" is the first case
+# with `pampa-2` added: its digest is among the 3 smallest, so `pampa-1`,
+# the largest of the 3 that stayed, goes.
+#
+# `rejectedSeeds` lists seeds that a seeded selection rejects (`ValueError`).
+cases:
+
+  - name: keeps the max candidates with the smallest digests
+    seed: "s3cr3t"
+    candidates: [amazonia-1, caatinga-1, cerrado-1, cerrado-2, mata-atlantica-1, pampa-1, pantanal-1]
+    max: 3
+    selected: [cerrado-1, mata-atlantica-1, pampa-1]
+    digests:
+      amazonia-1: 6bf8e2cc62f366d21e21cd7b81843825effc93651df6a3518ec34f2b25462d73
+      caatinga-1: 7ec79f6cf55740d39659964c1d282b7d4dbb242806edb07d4e7c5452eea8996d
+      cerrado-1: 1d443e269ef57da4b8c142692911ebbaa16a628274f833777a79e0a605a5b3a2
+      cerrado-2: a47ccacd1b6e35505a96ec2c57fc121018019837e79549136e0a9cdf934453ed
+      mata-atlantica-1: 3bad6cbc34868e0c8cdcc2d7134a0c438bca1937c2339a168d1e1be68e840567
+      pampa-1: 50f86273cfb921221588ac1ba397b4266ffb4de6497552f16ceed58e0304c1ad
+      pantanal-1: f9fb922154c89274ee3d67647250292b236cd091f4b659fe3e760caf4f47f948
+
+  - name: another seed keeps other candidates
+    seed: "outra-seed"
+    candidates: [amazonia-1, caatinga-1, cerrado-1, cerrado-2, mata-atlantica-1, pampa-1, pantanal-1]
+    max: 3
+    selected: [cerrado-2, pampa-1, pantanal-1]
+    digests:
+      amazonia-1: 79d5326be0d9cc486f3bb033548dfef9185a05c49f48bda25e9b5c2492f25d76
+      caatinga-1: f07aadf2922863fcce9e4f9a85da33d5431bf772ccda883790c10fdd80522b2d
+      cerrado-1: 9d1270ab1c60bfb98e59190c51e1d2decdb9203022f2260d3cf3668aec5cb490
+      cerrado-2: 1f77d3a141fed8c9721d16d42681de9328b6bb7a2c308720672eb169d8986233
+      mata-atlantica-1: dc8a4b026e7707f0f64fa1495571ec0f4bcfe19026d690a5623c583a3f7f2434
+      pampa-1: 02dd7e8bdd7221de6c343be754d2cd4504a746f45813ec1f76ff823bdf3710bb
+      pantanal-1: 27a3b51ce797010cc7679c0fcbe19e36ac1794bd9c11ba5d2b58bf2dc2d57b2e
+
+  - name: no max keeps every candidate
+    seed: "s3cr3t"
+    candidates: [amazonia-1, caatinga-1, cerrado-1, cerrado-2, mata-atlantica-1, pampa-1, pantanal-1]
+    selected: [amazonia-1, caatinga-1, cerrado-1, cerrado-2, mata-atlantica-1, pampa-1, pantanal-1]
+    digests:
+      amazonia-1: 6bf8e2cc62f366d21e21cd7b81843825effc93651df6a3518ec34f2b25462d73
+      caatinga-1: 7ec79f6cf55740d39659964c1d282b7d4dbb242806edb07d4e7c5452eea8996d
+      cerrado-1: 1d443e269ef57da4b8c142692911ebbaa16a628274f833777a79e0a605a5b3a2
+      cerrado-2: a47ccacd1b6e35505a96ec2c57fc121018019837e79549136e0a9cdf934453ed
+      mata-atlantica-1: 3bad6cbc34868e0c8cdcc2d7134a0c438bca1937c2339a168d1e1be68e840567
+      pampa-1: 50f86273cfb921221588ac1ba397b4266ffb4de6497552f16ceed58e0304c1ad
+      pantanal-1: f9fb922154c89274ee3d67647250292b236cd091f4b659fe3e760caf4f47f948
+
+  - name: a max equal to the number of candidates keeps every candidate
+    seed: "s3cr3t"
+    candidates: [amazonia-1, caatinga-1, cerrado-1, cerrado-2, mata-atlantica-1, pampa-1, pantanal-1]
+    max: 7
+    selected: [amazonia-1, caatinga-1, cerrado-1, cerrado-2, mata-atlantica-1, pampa-1, pantanal-1]
+    digests:
+      amazonia-1: 6bf8e2cc62f366d21e21cd7b81843825effc93651df6a3518ec34f2b25462d73
+      caatinga-1: 7ec79f6cf55740d39659964c1d282b7d4dbb242806edb07d4e7c5452eea8996d
+      cerrado-1: 1d443e269ef57da4b8c142692911ebbaa16a628274f833777a79e0a605a5b3a2
+      cerrado-2: a47ccacd1b6e35505a96ec2c57fc121018019837e79549136e0a9cdf934453ed
+      mata-atlantica-1: 3bad6cbc34868e0c8cdcc2d7134a0c438bca1937c2339a168d1e1be68e840567
+      pampa-1: 50f86273cfb921221588ac1ba397b4266ffb4de6497552f16ceed58e0304c1ad
+      pantanal-1: f9fb922154c89274ee3d67647250292b236cd091f4b659fe3e760caf4f47f948
+
+  - name: a new candidate removes at most one question
+    seed: "s3cr3t"
+    candidates: [amazonia-1, caatinga-1, cerrado-1, cerrado-2, mata-atlantica-1, pampa-1, pampa-2, pantanal-1]
+    max: 3
+    selected: [cerrado-1, mata-atlantica-1, pampa-2]
+    digests:
+      amazonia-1: 6bf8e2cc62f366d21e21cd7b81843825effc93651df6a3518ec34f2b25462d73
+      caatinga-1: 7ec79f6cf55740d39659964c1d282b7d4dbb242806edb07d4e7c5452eea8996d
+      cerrado-1: 1d443e269ef57da4b8c142692911ebbaa16a628274f833777a79e0a605a5b3a2
+      cerrado-2: a47ccacd1b6e35505a96ec2c57fc121018019837e79549136e0a9cdf934453ed
+      mata-atlantica-1: 3bad6cbc34868e0c8cdcc2d7134a0c438bca1937c2339a168d1e1be68e840567
+      pampa-1: 50f86273cfb921221588ac1ba397b4266ffb4de6497552f16ceed58e0304c1ad
+      pampa-2: 0bbe73a98d653112d4dbc398cb92774314f04aad77edb138798d04c5c8711da9
+      pantanal-1: f9fb922154c89274ee3d67647250292b236cd091f4b659fe3e760caf4f47f948
+
+  - name: the seed and the ids are UTF-8
+    seed: "pororoca-ã"
+    candidates: [questão-1, questão-2, questão-3]
+    max: 1
+    selected: [questão-1]
+    digests:
+      questão-1: 5399e7d549fb880e167239b2f19887d97667ee7ca43c3b3dbf241e696f9badb8
+      questão-2: ccab18cee1ff8153e50d51658581c72d650971d794f92f69bddda9d80cc472fd
+      questão-3: ac4ecc0e0e85e2828785b1b753ab309e31437424f40464b41e83132b9a508566
+
+  - name: an empty seed is a seed
+    seed: ""
+    candidates: [amazonia-1, caatinga-1, cerrado-1, cerrado-2, mata-atlantica-1, pampa-1, pantanal-1]
+    max: 2
+    selected: [pampa-1, pantanal-1]
+    digests:
+      amazonia-1: 46b9ebea73a55df7ea5dad0e53266220e5bafa561199d23d56c199e3fe1773dc
+      caatinga-1: aa352af9e2e9a7cea73e2466f552388dd2e81fd508b9b0da277bd8ffb8544eab
+      cerrado-1: 8a08371de9bedaa3181c8852449a1e9fb728d0f1333c18779d6b0555952f8bde
+      cerrado-2: 2fc93a33300cbd72da0bc68153eabb0a8e578820d455e72845d476c48cce4146
+      mata-atlantica-1: aa25ec1149e64906fb9429faae0c28ed6d025304673e20d7f526f2b068fcf4b1
+      pampa-1: 17d57eb41c578c899a67a453b6ff10baad3609de6a7c7df48272f83578cc8a3a
+      pantanal-1: 12c2d25216e4d1db64929b8d58b196ad81379eb9452b149356c1bd3f1f650dc7
+
+rejectedSeeds:
+  - "s3cr3t\0"
+  - "\0"
