@@ -19,6 +19,7 @@ First version of the specification.
 
 ### Changed
 
+- The descriptions of `schema/true-false.yaml` say "true or false", the name of the type in prose (glossary).
 - `GLOSSARY.md` is in the r2 format: one `##` section per term, with `tags`, `avoid`, `related` and `code` fields. Read it with `r2 glossary`. New terms for the question types, `Blank`, `Body`, `Epilogue`, `Statement`, `Tolerance`, `Numeric domain`, `Shuffle`, `Seed`, `Query` and `Question bank`; `Accept and reject` is now two terms.
 - The prose of `docs/` and `skills/` calls the true-false type "true or false"; `true-false` stays the value of `type`. The numeric section "Number type/domain" is now "Domain" (anchor `#domain`).
 - Every schema node with a `pattern` has `examples` that match it (exam `uuid`, numeric and fill-in string `answer` and `unit`, ordering line text, short-answer pattern string). `scripts/spec_audit.py` step 15 checks it.
