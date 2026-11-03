@@ -19,6 +19,7 @@ the whole shared corpus (`examples/`), as mdq-py does.
 
 ### Changed
 
+- `publicForm` omits `weight: 1`, the default, as mdq-py does.
 - `publicForm` leaves out `shuffle` and `grading` when they are `inherit`, the default, as mdq-py does. Before, an explicit `inherit` was copied.
 - Diagnostic messages and comments say "true or false" for the question type; `true-false` stays the value of `type`.
 - The JSON files are imported with `with { type: "json" }`, so the built package loads in plain Node ESM, not only through a bundler.

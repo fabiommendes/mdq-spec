@@ -48,21 +48,8 @@ interface Case {
 	readonly changed?: string[];
 }
 
-/**
- * The cases, read without the exponent floats of YAML 1.2. The file does not
- * quote the labels, and a label of digits with one `e` (`47e86412`) is
- * `Infinity` there, but a string for `yaml.safe_load` in
- * `mdq-py/tests/test_presentation.py` (YAML 1.1 wants a dot in a float).
- */
 const CASES = (
-	parse(readFileSync(PRESENTATION_FILE, "utf-8"), {
-		customTags: (tags) =>
-			tags.filter(
-				(tag) =>
-					typeof tag === "string" ||
-					(tag as { format?: string }).format !== "EXP",
-			),
-	}) as { cases: Case[] }
+	parse(readFileSync(PRESENTATION_FILE, "utf-8")) as { cases: Case[] }
 ).cases;
 const BY_NAME = new Map(CASES.map((c) => [c.name, c]));
 const LENGTHS = [8, 16, 32, 64];

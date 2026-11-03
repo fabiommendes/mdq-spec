@@ -416,6 +416,8 @@ export function publicForm(question: OrderingQuestion): PublicOrderingQuestion;
 export function publicForm(question: Question): PublicQuestion;
 export function publicForm(question: Question): PublicQuestion {
 	const base = copy(question, BASE_KEYS);
+	// A `weight` of 1 is the default: mdq-py leaves it out, as of `to_dict()`.
+	if (base.weight === 1) delete base.weight;
 	switch (question.type) {
 		case "multiple-choice":
 		case "multiple-selection":
