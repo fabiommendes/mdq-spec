@@ -54,6 +54,7 @@ const PYTHON_CORE_RULES = [
 	"block",
 	"inline",
 	"linkify",
+	"mdq_hide_escaped_brackets",
 	"text_join",
 ];
 const PYTHON_BLOCK_RULES = [

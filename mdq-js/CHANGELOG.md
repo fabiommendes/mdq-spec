@@ -19,6 +19,7 @@ the whole shared corpus (`examples/`), as mdq-py does.
 
 ### Changed
 
+- An escaped `\[^slug]` and `&#91;^slug]` in a fill-in stem are text, not blanks, as in mdq-py.
 - `publicForm` omits `weight: 1`, the default, as mdq-py does.
 - `publicForm` leaves out `shuffle` and `grading` when they are `inherit`, the default, as mdq-py does. Before, an explicit `inherit` was copied.
 - Diagnostic messages and comments say "true or false" for the question type; `true-false` stays the value of `type`.

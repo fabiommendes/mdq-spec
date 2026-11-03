@@ -32,6 +32,7 @@
 
 import MarkdownIt, { type Options } from "markdown-it";
 import type StateBlock from "markdown-it/lib/rules_block/state_block.mjs";
+import type StateCore from "markdown-it/lib/rules_core/state_core.mjs";
 import type StateInline from "markdown-it/lib/rules_inline/state_inline.mjs";
 import type Token from "markdown-it/lib/token.mjs";
 import { rstrip, SPACE, strip, UNICODE_SPACE } from "./parser/text.js";
@@ -174,6 +175,40 @@ function noteBlankPosition(state: StateInline, _silent: boolean): boolean {
 
 md.inline.ruler.before("link", "mdq_blank_position", noteBlankPosition);
 
+/**
+ * What `hideEscapedBrackets` writes in place of an escaped `[`. The
+ * `normalize` rule of markdown-it replaces U+0000 in the source, so it never
+ * comes from the text, and it never starts a marker.
+ */
+const ESCAPED_BRACKET = "\0";
+
+/**
+ * fill-in.md, "Where blanks may appear": a `[` written as a backslash escape
+ * (`\[^id]`) or a character reference (`&#91;^id]`) is a literal `[`, as in
+ * CommonMark, so it starts no marker. Before `text_join` merges it into the
+ * text around it, the `[` of such a token is replaced, only when `env` asks
+ * for the markers.
+ */
+function hideEscapedBrackets(state: StateCore): void {
+	if (!(POSITIONS_KEY in (state.env as Record<string, unknown>))) return;
+	const stack: Token[] = state.tokens.filter((token) => token.children);
+	for (let token = stack.pop(); token !== undefined; token = stack.pop()) {
+		for (const child of token.children ?? []) {
+			if (child.type === "text_special" && child.content === "[") {
+				child.content = ESCAPED_BRACKET;
+			} else if (child.children) {
+				stack.push(child);
+			}
+		}
+	}
+}
+
+md.core.ruler.before(
+	"text_join",
+	"mdq_hide_escaped_brackets",
+	hideEscapedBrackets,
+);
+
 /** One `[^id]` marker of a stem, as `locateBlankMarkers` reports it. */
 export interface BlankMarker {
 	readonly id: string;
@@ -181,7 +216,7 @@ export interface BlankMarker {
 	readonly misplaced: boolean;
 	/**
 	 * `[start, end)` offsets (UTF-16 code units) of the marker in the text.
-	 * `null` when the marker cannot be located (an escaped `\[^id]`).
+	 * `null` when the marker cannot be located in the text.
 	 */
 	readonly span: readonly [number, number] | null;
 }
@@ -195,7 +230,8 @@ export interface BlankMarker {
  * inside emphasis, a strong span, link text or image alt text. Code (fenced,
  * indented or a code span) and the text of an autolink (`<https://...>`, a
  * bare URL, a `www.` address) are literal: they hold no marker. `[^x](url)`
- * and `[^x][ref]` are links, not markers.
+ * and `[^x][ref]` are links, not markers. An escaped `\[^x]` and `&#91;^x]`
+ * are literal text.
  *
  * @param text A fill-in question's stem.
  * @returns A `BlankMarker` for every marker, in source order (an id may
