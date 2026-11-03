@@ -1,0 +1,11 @@
+# A `[` written as a backslash escape or a character reference is a literal
+# `[`, as in CommonMark: `\[^capital]` and `&#91;^estado]` are text, not
+# blanks, so `estado` needs no definition (fill-in.md, "Where blanks may
+# appear").
+type: fill-in
+stem: Em MDQ, um blank se escreve \[^capital] e o seu estado, &#91;^estado]. A capital do Brasil é [^capital].
+blanks:
+- id: capital
+  type: short-answer
+  accept:
+  - Brasília

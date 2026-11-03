@@ -184,12 +184,17 @@ A `[^slug]` has one outcome in each context of the stem:
 | --------------------------------------------------------------- | -------------------------- |
 | Plain text of an ordinary paragraph                             | A blank                    |
 | Fenced code, indented code, code span                           | Literal text, not a blank  |
+| `\[^slug]`, or `[` as a character reference (`&#91;^slug]`)    | Literal text, not a blank  |
 | Autolink: `<https://...>`, bare URL or `www.` address[^7]      | Literal text, not a blank  |
 | `[^slug](url)` and `[^slug][ref]`                               | A link, not a blank        |
 | Heading, list item, table cell, blockquote                      | `misplaced-blank` (error)  |
 | Emphasis, strong, strikethrough, link text, image alt text      | `misplaced-blank` (error)  |
 | HTML block                                                      | Literal text, not a blank  |
 | Text between inline HTML tags, as in `<span>[^slug]</span>`     | A blank                    |
+
+A backslash escape and a character reference give a literal `[`, as in
+CommonMark, so `\[^slug]` is the way to write the text `[^slug]` in a stem. A
+definition of that id is an `unreferenced-blank`.
 
 [^7]: The URL of an autolink is one token, like a code span. A `[^slug]` inside
 it stays as written, and a definition of that id is an `unreferenced-blank`.

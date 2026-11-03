@@ -20,6 +20,7 @@ First version of the specification.
 
 ### Changed
 
+- A `[` written as a backslash escape or a character reference is a literal `[` in a fill-in stem, as in CommonMark: `\[^slug]` and `&#91;^slug]` are text, not blanks (`docs/question-types/fill-in.md`, "Where blanks may appear"). Before, they were blanks. New example `valid/fill-in/escaped-blank-marker-is-text`.
 - `docs/public-form.md` says that a field written with its default value (`grading: inherit`, `shuffle: inherit`, `weight: 1`) is omitted from the public form, as mdq-py does, and that a presentation label written in YAML is quoted. The labels of `examples/presentation.yaml` are quoted, so a YAML 1.2 reader reads them as strings.
 - The descriptions of `schema/true-false.yaml` say "true or false", the name of the type in prose (glossary).
 - `GLOSSARY.md` is in the r2 format: one `##` section per term, with `tags`, `avoid`, `related` and `code` fields. Read it with `r2 glossary`. New terms for the question types, `Blank`, `Body`, `Epilogue`, `Statement`, `Tolerance`, `Numeric domain`, `Shuffle`, `Seed`, `Query` and `Question bank`; `Accept and reject` is now two terms.
