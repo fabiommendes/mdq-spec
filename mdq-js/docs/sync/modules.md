@@ -37,6 +37,7 @@ differs states the reason in its header comment.
 | `mdq/models/_lint.py` (common rules) | `src/models/lint.ts` (the `lint` of a family is its `FamilyRules.lint`; `baseLint` is in `base.ts`) |
 | `mdq/models/_lint_codes.py`         | `src/models/lint-codes.ts` (`SEVERITY`, `lintDiagnostic`) |
 | Pygments lexer aliases (`unknown-highlight-language`) | `src/pygments-aliases.json` (Pygments 2.21.0) |
+| `mdq/models/_presentation.py`       | `src/models/presentation.ts` (`presentation`, `examPresentation`, `Presentation`, `ExamPresentation`; `digest` is internal) |
 | `mdq/models/_regex.py`              | `src/models/regex.ts`                    |
 | `mdq/models/_query.py`              | `src/models/query.ts`                    |
 | `mdq/models/_slugify.py`            | `src/models/slugify.ts`                  |

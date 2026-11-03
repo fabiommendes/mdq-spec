@@ -19,12 +19,14 @@ the whole shared corpus (`examples/`), as mdq-py does.
 
 ### Changed
 
+- `publicForm` leaves out `shuffle` and `grading` when they are `inherit`, the default, as mdq-py does. Before, an explicit `inherit` was copied.
 - Diagnostic messages and comments say "true or false" for the question type; `true-false` stays the value of `type`.
 - The JSON files are imported with `with { type: "json" }`, so the built package loads in plain Node ESM, not only through a bundler.
 - `zod` is a peer dependency (`^4.3.6`), so a consumer that builds schemas over the exported ones shares one zod copy. The diagnostics of `load` for an exam no longer depend on how zod reports union issues: the `grading` union and each entry of `questions` are validated member by member. Verified with zod 4.3.6, 4.4.3 and 4.6.7.
 
 ### Added
 
+- The presented form (`docs/public-form.md`, "Presented form"): `presentation(question, seed, { shuffle? })` returns a `Presentation` (`publicForm()`, `toResponse()`, `toPresented()`) and `examPresentation(exam, seed)` an `ExamPresentation` (`publicForm()`, `toResponses()`, `toPresentedResponses()`). They are the free functions that stand for `BaseQuestion.presentation` and `Exam.presentation`. The labels come from a synchronous SHA-256 (`@noble/hashes`, a new dependency) that runs in the browser and in plain Node ESM. A seed with U+0000 is a `RangeError` (Python raises `ValueError`). The suite runs `examples/presentation.yaml`.
 - A review mark has a third state, `partial`, for a score between 0 and 1: `ShortAnswer`, `Numeric` and each blank of `FillIn` set `data-key="partial"` and show a `Mark` of kind `partial` ("Partially correct", message `partial`). Before, any score below 1 was marked incorrect. `verdictOf(score)` gives the verdict of a score.
 - `Ordering` shows the pool until the student answers, with a "Keep this order" button that takes the untouched order as the response. Its indent controls stop at the `maxLevel` of the public form, and its control names read text lines without their Markdown markup.
 - Every Zod string schema with a pattern carries the `examples` of `schema/*.yaml` (`.meta({ examples })`), so a generated JSON Schema or OpenAPI document has an example that matches each pattern.

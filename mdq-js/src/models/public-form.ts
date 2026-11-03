@@ -10,7 +10,6 @@
  * function is `publicForm`.
  */
 
-import { MissingIdError } from "../errors.js";
 import { exactLiteral } from "../exact.js";
 import { strip } from "../parser/text.js";
 import type {
@@ -34,7 +33,7 @@ import type {
 	Unmatched,
 } from "../schema/index.js";
 import { effectiveGrading } from "./base.js";
-import { unspecifiedChoiceScore } from "./choice.js";
+import { requireChoiceId, unspecifiedChoiceScore } from "./choice.js";
 import { blankEffectiveUnmatched } from "./fill-in.js";
 import {
 	effectiveNumericDomain,
@@ -170,6 +169,22 @@ const BASE_KEYS = [
 	"weight",
 ] as const;
 
+/**
+ * The `shuffle` and `grading` of `source`, unless they are `inherit`, the
+ * default: mdq-py leaves a defaulted field out of `public()`, as of
+ * `to_dict()`.
+ */
+function copyConfig(
+	source: object,
+	keys: readonly string[],
+): Record<string, unknown> {
+	return Object.fromEntries(
+		Object.entries(copy(source, keys)).filter(
+			([, value]) => value !== "inherit",
+		),
+	);
+}
+
 /** The entries of `source` for `keys` that are defined: an absent field is omitted. */
 function copy(
 	source: object,
@@ -181,25 +196,6 @@ function copy(
 		if (record[key] !== undefined) copied[key] = record[key];
 	}
 	return copied;
-}
-
-/**
- * The id of `choice`.
- *
- * @throws {MissingIdError} The choice has no id. Neither `publicForm` nor
- *   `correctResponses` derives one: grading does not either, so the host calls
- *   `withIds` and stores the result.
- */
-function requireChoiceId(choice: {
-	readonly id?: string | undefined;
-	readonly text: string;
-}): string {
-	if (choice.id === undefined) {
-		throw new MissingIdError(
-			`choice ${JSON.stringify(choice.text)} has no id; call withIds() and store the result`,
-		);
-	}
-	return choice.id;
 }
 
 function publicChoices(
@@ -426,7 +422,7 @@ export function publicForm(question: Question): PublicQuestion {
 		case "true-false":
 			return {
 				...base,
-				...copy(question, ["shuffle", "grading"]),
+				...copyConfig(question, ["shuffle", "grading"]),
 				choices: publicChoices(question.choices),
 			} as PublicQuestion;
 		case "numeric":
@@ -446,7 +442,8 @@ export function publicForm(question: Question): PublicQuestion {
 		case "fill-in":
 			return {
 				...base,
-				...copy(question, ["shuffle", "grading", "diacritics"]),
+				...copyConfig(question, ["shuffle", "grading"]),
+				...copy(question, ["diacritics"]),
 				blanks: question.blanks.map((blank) =>
 					publicBlank(blank, question.unmatched),
 				),

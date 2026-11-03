@@ -37,6 +37,7 @@
 	"license": "MIT",
 	"packageManager": "pnpm@10.15.1",
 	"dependencies": {
+		"@noble/hashes": "^2.4.0",
 		"fraction.js": "^5.3.4",
 		"markdown-it": "^14.1.1",
 		"unidecode": "^1.1.0",

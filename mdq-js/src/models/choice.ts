@@ -8,7 +8,7 @@
  */
 
 import type { Diagnostic, PathStep } from "../diagnostics.js";
-import { ResponseError } from "../errors.js";
+import { MissingIdError, ResponseError } from "../errors.js";
 import {
 	FALSE_LETTERS,
 	isLetter,
@@ -35,6 +35,25 @@ import type { QuestionScore } from "./score.js";
 import { loose } from "./slugify.js";
 
 type Choice = { readonly id?: string; readonly text: string };
+
+/**
+ * The id of `choice`.
+ *
+ * @throws {MissingIdError} The choice has no id. Neither `publicForm` nor
+ *   `correctResponses` derives one: grading does not either, so the host calls
+ *   `withIds` and stores the result.
+ */
+export function requireChoiceId(choice: {
+	readonly id?: string | undefined;
+	readonly text: string;
+}): string {
+	if (choice.id === undefined) {
+		throw new MissingIdError(
+			`choice ${JSON.stringify(choice.text)} has no id; call withIds() and store the result`,
+		);
+	}
+	return choice.id;
+}
 
 /**
  * multiple-choice.md, "Choices": a choice SHOULD declare its own `id` rather

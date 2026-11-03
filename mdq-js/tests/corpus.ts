@@ -152,6 +152,7 @@ export const MATCHING_DIR = join(EXAMPLES_ROOT, "matching");
 export const GRADING_DIR = join(EXAMPLES_ROOT, "grading");
 export const NORMALIZE_FILE = join(EXAMPLES_ROOT, "normalize.yaml");
 export const PUBLIC_FILE = join(EXAMPLES_ROOT, "public.yaml");
+export const PRESENTATION_FILE = join(EXAMPLES_ROOT, "presentation.yaml");
 export const VALID_EXAMS = VALID_PARSED.filter((path) =>
 	path.startsWith(VALID_EXAMS_DIR + sep),
 );

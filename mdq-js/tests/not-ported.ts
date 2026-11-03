@@ -84,6 +84,9 @@ export const GRADING: Manifest = {};
 /** Cases of `examples/public.yaml` (`tests/public-form.spec.ts`). */
 export const PUBLIC_FORM: Manifest = {};
 
+/** Cases of `examples/presentation.yaml` (`tests/presentation.spec.ts`). */
+export const PRESENTATION: Manifest = {};
+
 /** The reason `name` is not ported, or `undefined` if it is. */
 export function notPorted(
 	manifest: Manifest,
