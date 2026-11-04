@@ -115,8 +115,6 @@ for the undefined rules and terminals.
 | GLOSSARY          | `GLOSSARY.md`          | Glossary of terms                                          |
 | BACKLOG           | `BACKLOG.md`           | List of pending tasks and features for the project         |
 | Issue tracker     | `dev/issues/`          | Issue tracker of the project. Delete issue when done.      |
-| Specs             | `dev/specs/to-do`      | Specifications for features that should be implemented     |
-| Review            | `dev/specs/to-review/` | Specs that were implemented, but need review               |
 | Skills            | `skills/`              | Tell agents how to write mdq documents correctly           |
 | Scripts           | `scripts/`             | Maintenance scripts. Run with `uv run scripts/<name>.py`   |
 | Changelogs        | `CHANGELOG.md`         | One per repo: spec at root, one in each subtree            |
@@ -173,12 +171,9 @@ and have some guidelines to convert it to Typescript in a second step.
 
 ### Workflows
 
-A common workflow is: human writes a prompt at `prompt.md` or a spec at
-`dev/specs/to-do`. If human just ask "implement the spec" or "spec" or "the
-spec", or "the prompt", "prompt" or something along those lines. You should look
-for either of those files, read the spec, and then implement it accordingly.
-
-After done, delete `prompt.md` or move spec to `dev/specs/to-review/`.
+A common workflow is: human writes a prompt at `prompt.md`. If human just asks
+"the prompt", "prompt" or something along those lines, read that file and
+implement it accordingly. After done, delete `prompt.md`.
 
 
 ### Git layout
