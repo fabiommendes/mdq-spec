@@ -20,14 +20,14 @@ Vocabulary: module, interface, depth, seam, adapter, leverage, locality
 | Id | Candidate                                   | Strength        | Status |
 | -- | ------------------------------------------- | --------------- | ------ |
 | C1 | One loading module                          | Strong          | Done (`a929489`, `8fae079`) |
-| C2 | Lint rules onto the Question models         | Strong          | Done (uncommitted, 2026-09-25): `dev/specs/to-review/lint-on-models.md`. Follow-up: `dev/specs/to-do/rule-conformance.md` |
+| C2 | Lint rules onto the Question models         | Strong          | Done (2026-09-25, specs lint-on-models and rule-conformance closed 2026-11-03) |
 | C3 | One seam per question type                  | Worth exploring | Open |
 | C4 | Exam parsing into `MDQParser`               | Worth exploring | Open |
 | C5 | One numeric module for converters + models  | Worth exploring | Open |
 | C6 | Delete modules that fail the deletion test  | Strong          | Done (uncommitted, 2026-09-25): `grading.py`, `mdit/`, `render.common_frontmatter` deleted; test-only helpers out of `models.__all__`. `types.py` kept (the parser uses it). `MissingIdError`/`UnresolvedInclude` kept (`docs/responses.md`) |
 
-Related work done in the same session: `dev/specs/to-review/loading-module.md`,
-`unique-ids.md`, `derived-ids.md`.
+Related work done in the same session: the specs loading-module, unique-ids and
+derived-ids (closed 2026-11-03).
 
 ## C2. Lint rules onto the Question models
 

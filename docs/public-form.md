@@ -451,10 +451,10 @@ type: multiple-choice
 stem: Which two rivers meet near Manaus without mixing for several kilometers?
 shuffle: true
 choices:
-  - { id: 16a68ed6, text: Tocantins and São Francisco }
-  - { id: 7589d676, text: Madeira and Tapajós }
-  - { id: 78426fb7, text: Xingu and Araguaia }
-  - { id: f412a138, text: Negro and Solimões }
+  - { id: "16a68ed6", text: Tocantins and São Francisco }
+  - { id: "7589d676", text: Madeira and Tapajós }
+  - { id: "78426fb7", text: Xingu and Araguaia }
+  - { id: "f412a138", text: Negro and Solimões }
 ```
 
 A student who picks the last choice sends `f412a138`. The host translates it

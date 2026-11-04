@@ -45,7 +45,7 @@ Those need discussion and design.
   filename stem, by title slug). For now grading simply raises on a document
   that is not addressable.
 * [ ] mdq-js: move id derivation from the parser to the models, as in mdq-py
-  (dev/specs/to-do/derived-ids.md): the parser keeps only explicit ids, and a
+  (`docs/exam.md`, "Question ids"): the parser keeps only explicit ids, and a
   `withIds()` on every question model and the exam derives the rest.
 * [ ] Scoring on the models (`score_response`, and exam scoring) must require
   an addressable document and raise `MissingIdError` otherwise, and raise
@@ -98,6 +98,11 @@ Those need discussion and design.
   (U+FEFF, U+0085, U+001C to U+001F). Candidate: `UNICODE_SPACE` from
   `docs/references/grammar.md`. The answer matching itself is done
   (patterns.md, "Inexact literals" and "Exact literals").
+* [ ] Inexact comparison with `diacritics: fold` removes every `Mn` code
+  point (patterns.md, "Inexact literals", step 3). In scripts such as
+  Devanagari this also strips the vowel signs, so `fold` conflates distinct
+  words. Today the workaround is `diacritics: keep`. Decide whether `fold`
+  should limit itself to the combining marks of Latin, Greek and Cyrillic.
 * [ ] `incorrectFeedback` for ordering questions. Ordering has `unmatched` but
   no feedback for a response that matches no answer key. Same semantics as in
   short-answer.
