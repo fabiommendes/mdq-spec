@@ -60,12 +60,17 @@ Avoid these expressions and reword with more specific alternatives:
 
 - "load bearing", "gate" (as a a verb), "pivotal". 
 
-## Idiom
+## Language
+
+This repository is level 3 of the language ADR of the method
+(`~/git/tools/tooling-root/dev/adr/0002-idioma-dos-repositorios.md`): a
+library of general use, everything in English, except the development
+records.
 
 The human may talk to you in English or another language. Keep your responses in
-the same language as the human's input. Files in `dev/*/` should also follow
-this idiom since they are not public facing. Public facing strings are always
-in english. This includes:
+the same language as the human's input. Files in `dev/*/` follow the language
+of the conversation that created them, since they are not public facing (today,
+Portuguese). Public facing strings are always in English. This includes:
 
 - Public facing strings in the code and documentation.
 - User-facing messages and prompts in the application.
@@ -112,21 +117,37 @@ for the undefined rules and terminals.
 | JSON Schema       | `schema/*`             | JSON schema definitions for MDQ questions and exams        |
 | Python            | `mdq-py/`              | Python implementation of the MDQ parser and CLI tool       |
 | Typescript        | `mdq-js/`              | Typescript implementation of the MDQ parser and Components |
-| GLOSSARY          | `GLOSSARY.md`          | Glossary of terms                                          |
-| BACKLOG           | `BACKLOG.md`           | List of pending tasks and features for the project         |
-| Issue tracker     | `dev/issues/`          | Issue tracker of the project. Delete issue when done.      |
+| GLOSSARY          | `GLOSSARY.md`          | Glossary of terms, managed by `r2 glossary`                |
+| Issues            | `dev/issues/`          | Open work, managed by `r2 issue`                           |
+| Decisions         | `dev/adr/`             | Decision records, managed by `r2 adr`                      |
+| Designs           | `dev/rfc/`             | Feature designs under discussion, managed by `r2 rfc`      |
+| Notes             | `dev/notes/`           | Research, investigations and ideas, managed by `r2 note`   |
 | Skills            | `skills/`              | Tell agents how to write mdq documents correctly           |
 | Scripts           | `scripts/`             | Maintenance scripts. Run with `uv run scripts/<name>.py`   |
 | Changelogs        | `CHANGELOG.md`         | One per repo: spec at root, one in each subtree            |
 | CI                | `.github/workflows/`   | Runs the checks of the spec and of both implementations    |
 
-After you change `docs/`, `schema/` or `examples/`, run
-`uv run scripts/spec_audit.py`. It first regenerates the bundle
-(`scripts/schema_bundle.py`) in `schema/` and in each subtree that is present.
-Then it checks that the schemas, the docs, the "Additional Rules" tables,
-`docs/lint-codes.md` and the corpus agree, and runs the schema agreement test
-of `mdq-py/`. The CI runs it with `--check`: it fails if a bundle copy is out
-of date.
+### Commands
+
+Declared in `r2.toml`; `r2 help` lists them. The root has no `pyproject.toml`,
+so the built-in `r2 test` does not run here.
+
+```bash
+r2 check        # everything CI runs: the change is done when this passes
+r2 check-spec   # spec audit only (after a change in docs/, schema/ or examples/)
+r2 check-py     # mdq-py: pytest, mypy, ruff
+r2 check-js     # mdq-js: vitest, tsc, biome
+r2 audit        # regenerate the schema bundles, then audit
+cd mdq-py && uv run pytest -q tests/<file>.py -k <expr>   # one Python test
+cd mdq-js && pnpm vitest run tests/<file>.spec.ts         # one TypeScript test
+```
+
+After you change `docs/`, `schema/` or `examples/`, run `r2 audit`. It first
+regenerates the bundle (`scripts/schema_bundle.py`) in `schema/` and in each
+subtree that is present. Then it checks that the schemas, the docs, the
+"Additional Rules" tables, `docs/lint-codes.md` and the corpus agree, and runs
+the schema agreement test of `mdq-py/`. The CI runs it with `--check`: it fails
+if a bundle copy is out of date.
 
 Record user-visible changes under `[Unreleased]` in the changelog of each repo
 that changed.
@@ -169,11 +190,41 @@ Python implementation.
 The Typescript implementation is a port: we first write and validate in Python
 and have some guidelines to convert it to Typescript in a second step.
 
-### Workflows
+### Development records
 
-A common workflow is: human writes a prompt at `prompt.md`. If human just asks
-"the prompt", "prompt" or something along those lines, read that file and
-implement it accordingly. After done, delete `prompt.md`.
+The state of the project lives in `dev/` and is managed by r2. Read and change
+these files with the r2 commands, never with the editor: r2 writes the strict
+format and takes the folder lock.
+
+```bash
+r2 context                      # overview: module map, ADRs, glossary
+r2 issue list | show | new | status | comment
+r2 adr list | show | new | status
+r2 rfc list | show | new | status | comment
+r2 note list | show | new
+r2 refs <slug>                  # where a document is cited
+```
+
+- Work starts from an issue. "Implement X" or "the issue" means `r2 issue
+  show X`. When the work is done and `r2 check` passes, move it with
+  `r2 issue status <slug> completed`; do not delete the file.
+- A feature that needs design goes to an RFC first; a decision with a story
+  behind it, taken in a conversation, becomes an ADR (`r2 adr new`) in the same
+  session. Cite the ADR from the code with a marker comment
+  (`# r2: adr-NNNN`).
+- A finding that is not work yet (research, a friction, an idea) is a note.
+- `prompt.md`, when present, is a one-off instruction from the human: read it,
+  implement it, delete it.
+
+Standing orders, maintenance an agent may do without an issue:
+
+- Fix a lint or type warning, and remove a `# type: ignore` or an `Any` that
+  is no longer needed. One that stays gets a comment with the reason.
+- Review an `xfail` or an `it.fails` entry: fix it if the codebase now
+  allows; otherwise make sure it says why it fails and what blocks it.
+- Resolve a `TODO` or `FIXME` comment when the fix is small. Otherwise
+  replace it with an issue and a marker (`# r2: issue/<slug>`).
+- Regenerate a generated file (`r2 audit`, `scripts/inexact_tables.py`).
 
 
 ### Git layout
@@ -237,9 +288,9 @@ The `base` CLI hooks inject some requests in this session. Ignore these ones:
 Add the Markdown Ontology Protocol (MOP) frontmatter (`type`, `status`, `tags`,
 `relatedTo`) only to markdown about the development process:
 
-- `dev/**` (issues, specs, handoffs).
-- `GLOSSARY.md`, `BACKLOG.md`, `prompt.md`.
-- `mdq-js/docs/handoffs/` and `mdq-js/docs/sync/`.
+- `dev/**` (r2 writes it for issues, ADRs, RFCs and notes).
+- `GLOSSARY.md` and `prompt.md`.
+- `mdq-js/docs/sync/`.
 
 Never add it to other markdown: `README.md`, `docs/`, `AGENTS.md`, `skills/`
 and, most important, `examples/`. The parser reads the frontmatter of a

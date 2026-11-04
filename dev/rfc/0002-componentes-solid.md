@@ -2,7 +2,7 @@
 type: rfc
 status: draft
 tags: [mdq-js, solid, componentes, css, i18n]
-relatedTo: [dev/rfcs/0001-mdq-js-paridade.md, mdq-js/docs/sync/roadmap.md]
+relatedTo: [dev/rfc/0001-mdq-js-paridade.md, mdq-js/docs/sync/roadmap.md]
 ---
 
 # RFC 0002: componentes SolidJS da mdq-js

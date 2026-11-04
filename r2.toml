@@ -3,3 +3,32 @@
 
 [web]
 # name = "a better name than the directory"
+
+# The root has no pyproject.toml, so the built-in `r2 test` does not run
+# here. These project commands are the entry points: `r2 check` is what CI
+# runs (.github/workflows/ci.yml).
+
+[commands.check]
+run = "uv run scripts/inexact_tables.py --check && uv run scripts/spec_audit.py --check && (cd mdq-py && uv run pytest -q && uv run mypy mdq && uv run ruff check) && (cd mdq-js && pnpm test && pnpm typecheck && pnpm lint)"
+help = "Spec audit, mdq-py and mdq-js tests, types and lint: the change is done when this passes."
+timeout = 1200
+
+[commands.check-spec]
+run = "uv run scripts/inexact_tables.py --check && uv run scripts/spec_audit.py --check"
+help = "Spec, schema bundles and corpus agreement only (after a change in docs/, schema/ or examples/)."
+timeout = 600
+
+[commands.check-py]
+run = "cd mdq-py && uv run pytest -q && uv run mypy mdq && uv run ruff check"
+help = "mdq-py tests, types and lint."
+timeout = 600
+
+[commands.check-js]
+run = "cd mdq-js && pnpm test && pnpm typecheck && pnpm lint"
+help = "mdq-js tests, types and lint."
+timeout = 600
+
+[commands.audit]
+run = "uv run scripts/spec_audit.py"
+help = "Regenerate the schema bundles, then audit the spec, the schemas and the corpus."
+timeout = 600

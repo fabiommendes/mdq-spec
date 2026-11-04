@@ -1,8 +1,9 @@
 ---
-type: plan
-status: to-review
+type: note
+kind: investigation
+status: archived
 tags: [mdq, mdq-py, tests, corpus, coverage]
-relatedTo: [mdq-py-restructure]
+relatedTo: [mdq-py/tests, examples]
 ---
 
 # Enxugar a suíte de testes da mdq-py

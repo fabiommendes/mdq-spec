@@ -1,6 +1,7 @@
 ---
 type: note
-status: complete
+kind: research
+status: archived
 tags: [mdq-js, temporal, exam, start, duration, yaml, research]
 relatedTo:
   - mdq-js/docs/handoffs/09-parser-exam.md

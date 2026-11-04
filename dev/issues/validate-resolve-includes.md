@@ -29,5 +29,3 @@ Proposal, found in the review of `loading-module.md` (2026-11-03):
   `ParseError` and `ValidationError` of an included question into
   diagnostics with the path prefix `("questions", i)`.
 * `mdq show` then stops building `FileLoader(src.parent)` itself.
-
-Related: `dev/refactor/mdq-py-restructure.md`, item F2.

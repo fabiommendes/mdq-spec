@@ -2,7 +2,7 @@
 type: rfc
 status: accepted
 tags: [mdq-js, port, sync, arquitetura, testes]
-relatedTo: [mdq-js/docs/sync/README.md, mdq-js/docs/sync/roadmap.md, mdq-js/docs/sync/schemas.md, mdq-js/docs/sync/testing.md, dev/handoffs/mdq-js-port-pendente.md, dev/handoffs/mdq-js-corpus-slim.md]
+relatedTo: [mdq-js/docs/sync/README.md, mdq-js/docs/sync/roadmap.md, mdq-js/docs/sync/schemas.md, mdq-js/docs/sync/testing.md]
 ---
 
 # RFC 0001: paridade da mdq-js com a mdq-py
@@ -133,7 +133,7 @@ Aceitas em 2026-10-27: D1 (b), D2 (b), D3, D4, D5.
   enxugamento da mdq-py. Proposta: em cada fase, teste unitário que quebra
   por mudança de comportamento vai para o corpus ou é apagado, nunca
   corrigido no lugar. Na última fase, enxugamento por cobertura, como em
-  `dev/refactor/mdq-py-test-suite-slim.md`.
+  `dev/notes/mdq-py-test-suite-slim.md`.
 - **D3. Testes Python que são fatos do formato.** Antes de cada fase, os
   testes da mdq-py da área que ainda não estão no corpus vão para
   `examples/` (ex.: `test_ordering_scoring.py`, `test_inherited_grading.py`,
