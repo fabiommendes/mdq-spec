@@ -8,6 +8,7 @@
 #   "mdit-py-plugins>=0.4",
 # ]
 # ///
+# r2: adr-0002
 """
 Audit the consistency of the specification: the schemas, the documents in
 `docs/`, the "Additional Rules" tables, `docs/lint-codes.md` and the example

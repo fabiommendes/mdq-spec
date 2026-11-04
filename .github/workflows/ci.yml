@@ -1,3 +1,4 @@
+# r2: adr-0004
 # The subtree repositories (mdq-py, mdq-js) cannot run their tests on their
 # own: they read docs/, schema/ and examples/ from this repository. So the
 # tests of both implementations run here.

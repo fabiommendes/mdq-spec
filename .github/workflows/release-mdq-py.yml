@@ -1,3 +1,4 @@
+# r2: adr-0004
 # Publish mdq-py to PyPI. Push a tag like `mdq-py-v0.1.0` from this
 # repository. The subtree repository cannot run the tests, so the release runs
 # here, after the tests pass.

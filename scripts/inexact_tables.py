@@ -2,6 +2,7 @@
 # requires-python = ">=3.13"
 # dependencies = []
 # ///
+# r2: adr-0009
 """
 Generate the tables of the inexact comparison of short-answer patterns
 (docs/references/patterns.md, "Inexact literals").
