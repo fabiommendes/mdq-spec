@@ -169,6 +169,7 @@ function constructNode(
  *   `DuplicateKeyError`), has a key that is not a scalar, or has a tag
  *   outside the Core schema.
  */
+// r2: adr-0011
 export function loadYaml(text: string): unknown {
 	// A lone CR is a line break in YAML 1.2, which `yaml` does not accept.
 	const doc = parseDocument(text.replace(/\r\n?/gu, "\n"), {

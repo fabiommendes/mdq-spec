@@ -28,6 +28,7 @@ export type MdqDocument = Question | Exam;
  * result here -- the CLI reports every problem it finds, and an editor wants
  * to show them as it types.
  */
+// r2: adr-0013
 export type ValidationResult<T> =
 	| { success: true; data: T; error?: undefined }
 	| { success: false; data?: undefined; error: z.ZodError };
@@ -87,6 +88,7 @@ export function uniqueDiagnostics(
  * recognized by an H1 title, which a question can never carry, and the parsed
  * form keeps that distinction as a field a question never has.
  */
+// r2: adr-0015
 export function validateDocument(
 	document: unknown,
 ): ValidationResult<MdqDocument> {

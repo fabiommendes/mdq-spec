@@ -244,6 +244,7 @@ export const OrderingQuestion = z
 export type OrderingQuestion = z.infer<typeof OrderingQuestion>;
 
 /** Any question document, discriminated by `type`. */
+// r2: adr-0015
 export const Question = z.discriminatedUnion("type", [
 	MultipleChoiceQuestion,
 	MultipleSelectionQuestion,

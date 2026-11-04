@@ -1,3 +1,4 @@
+// r2: adr-0016
 /**
  * The text every component shows, in one dictionary.
  *

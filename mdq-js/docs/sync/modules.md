@@ -2,7 +2,7 @@
 type: reference
 status: active
 tags: [mdq, mdq-js, port, sync, modules]
-relatedTo: [mdq-js/docs/sync/README.md, mdq-js/docs/sync/schemas.md, dev/rfcs/0001-mdq-js-paridade.md]
+relatedTo: [mdq-js/docs/sync/README.md, mdq-js/docs/sync/schemas.md, dev/rfc/0001-mdq-js-paridade.md]
 ---
 
 # Module and API map

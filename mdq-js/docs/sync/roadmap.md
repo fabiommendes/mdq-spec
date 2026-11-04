@@ -2,7 +2,7 @@
 type: plan
 status: active
 tags: [mdq, mdq-js, port, sync]
-relatedTo: [mdq-js/docs/sync/README.md, mdq-js/docs/sync/testing.md, dev/plan/mdq-js-paridade.md]
+relatedTo: [mdq-js/docs/sync/README.md, mdq-js/docs/sync/testing.md]
 ---
 
 # Roadmap of the TypeScript port
@@ -60,7 +60,7 @@ done: the TypeScript suites run the whole shared corpus with no entry in
    step, so Temporal can replace the internals later without an API change.
    Revisit when Node 26 is the CI minimum, Safari ships Temporal and the
    repository uses TypeScript 6. See
-   `dev/research/temporal-for-exam-schedule.md` (local).
+   `dev/notes/temporal-for-exam-schedule.md` (local).
 
 ## Phases
 
@@ -79,9 +79,8 @@ done: the TypeScript suites run the whole shared corpus with no entry in
 | P6 | Scoring | done |
 | P7 | `normalize`, `withIds`, `automation`, slimmer unit tests, docs | done |
 
-The P phases are the ones of the parity plan in the root repository
-(`dev/plan/mdq-js-paridade.md`, `dev/rfcs/0001-mdq-js-paridade.md`), which
-keeps the details and the history. The SolidJS components get their own plan.
+The P phases are the ones of RFC 0001 in the root repository
+(`dev/rfc/0001-mdq-js-paridade.md`), which keeps the details and the history. The SolidJS components get their own plan.
 
 The CLI, format conversions (Moodle XML, GIFT, Aiken), `show`, `scaffold`,
 `render()` and the file-system question bank stay in Python.

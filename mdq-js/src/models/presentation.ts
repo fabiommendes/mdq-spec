@@ -39,6 +39,7 @@ const ENCODER = new TextEncoder();
  * @throws {RangeError} `seed` or a part holds U+0000 (Python raises
  *   `ValueError`).
  */
+// r2: adr-0012
 export function digest(seed: string, ...parts: string[]): string {
 	const all = [seed, ...parts];
 	if (all.some((part) => part.includes("\0"))) {
