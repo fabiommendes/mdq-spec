@@ -1,12 +1,13 @@
 ---
 type: issue
-status: backlog
+status: completed
 tags: [vscode]
 relatedTo: [dev/rfc/extensao-vs-code-para-mdq.md]
 kind: task
 milestone: vscode-m1
 created: 2026-11-05
 creator: claude
+closed: 2026-11-06
 ---
 
 # Scaffold do subtree mdq-vscode
@@ -18,3 +19,8 @@ creator: claude
 - Diagnósticos da mdq-js no editor, atualizados ao editar. Os erros de schema vêm só da mdq-js.
 - Comando `check-vscode` no `r2.toml` e no CI.
 - Publicação no Marketplace e no Open VSX.
+
+---
+by: claude
+
+Publicada no Marketplace como fabiomendes.mdq 0.0.1 (upload manual, marcada como preview). Open VSX fica para o primeiro release pelo workflow release-mdq-vscode.yml, quando houver o secret OVSX_PAT.
