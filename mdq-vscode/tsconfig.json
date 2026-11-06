@@ -1,0 +1,20 @@
+{
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"lib": ["ES2022"],
+		"strict": true,
+		"noImplicitReturns": true,
+		"noUncheckedIndexedAccess": true,
+		"verbatimModuleSyntax": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"types": ["node"],
+		"paths": {
+			"mdq": ["../mdq-js/src/index.ts"]
+		},
+		"noEmit": true
+	},
+	"include": ["src/**/*.ts", "tests/**/*.ts", "../mdq-js/src/types/*.d.ts"]
+}

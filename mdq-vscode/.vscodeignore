@@ -1,0 +1,12 @@
+src/**
+tests/**
+node_modules/**
+*.ts
+tsconfig.json
+biome.json
+build.mjs
+vitest.config.ts
+.gitignore
+pnpm-lock.yaml
+dist/*.map
+AGENTS.md

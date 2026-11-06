@@ -1,0 +1,95 @@
+{
+	"name": "mdq-vscode",
+	"displayName": "MDQ",
+	"description": "Validation and preview of MDQ documents: questions and exams written in Markdown, YAML or JSON.",
+	"version": "0.0.1",
+	"publisher": "fabiommendes",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/fabiommendes/mdq-vscode.git"
+	},
+	"engines": {
+		"vscode": "^1.90.0"
+	},
+	"categories": [
+		"Linters",
+		"Education"
+	],
+	"keywords": [
+		"mdq",
+		"quiz",
+		"exam",
+		"markdown",
+		"questions"
+	],
+	"main": "./dist/extension.cjs",
+	"activationEvents": [
+		"onLanguage:markdown",
+		"onLanguage:yaml",
+		"onLanguage:json"
+	],
+	"extensionDependencies": [
+		"redhat.vscode-yaml"
+	],
+	"contributes": {
+		"jsonValidation": [
+			{
+				"fileMatch": "*.mdq.json",
+				"url": "./dist/mdq.schema.json"
+			}
+		],
+		"yamlValidation": [
+			{
+				"fileMatch": [
+					"*.mdq.yaml",
+					"*.mdq.yml"
+				],
+				"url": "./dist/mdq.schema.json"
+			}
+		],
+		"configuration": {
+			"title": "MDQ",
+			"properties": {
+				"mdq.diagnostics.info": {
+					"type": "string",
+					"enum": [
+						"information",
+						"hint",
+						"off"
+					],
+					"enumDescriptions": [
+						"Show info diagnostics with a squiggle and in the Problems panel.",
+						"Show info diagnostics as faint dots, not in the Problems panel.",
+						"Do not show info diagnostics."
+					],
+					"default": "hint",
+					"description": "How to show diagnostics of the `info` level, such as a missing id or title."
+				}
+			}
+		}
+	},
+	"scripts": {
+		"build": "node build.mjs",
+		"watch": "node build.mjs --watch",
+		"test": "vitest run",
+		"typecheck": "tsc -p tsconfig.json",
+		"lint": "biome check",
+		"package": "node build.mjs --production && vsce package --no-dependencies"
+	},
+	"packageManager": "pnpm@10.15.1",
+	"devDependencies": {
+		"@biomejs/biome": "^2.4.0",
+		"@types/node": "^22.0.0",
+		"@types/vscode": "~1.90.0",
+		"@vscode/vsce": "^3.2.0",
+		"esbuild": "^0.25.0",
+		"typescript": "^5.9.3",
+		"vitest": "^3.2.4"
+	},
+	"pnpm": {
+		"onlyBuiltDependencies": [
+			"esbuild"
+		]
+	}
+}
