@@ -1,0 +1,67 @@
+# Publish the VS Code extension. Push a tag like `mdq-vscode-v0.1.0` from
+# this repository. The extension builds mdq-js from its sources, which the
+# subtree repository does not have, so the release runs here.
+#
+# Each registry is published only when its secret is set:
+#
+# - VSCE_PAT: an Azure DevOps personal access token with the scope
+#   "Marketplace (Manage)", for the VS Code Marketplace.
+# - OVSX_PAT: an access token of open-vsx.org, for Open VSX.
+#
+# The .vsix is always attached to a GitHub release of the tag, so it can be
+# installed or uploaded by hand.
+name: Release mdq-vscode
+
+on:
+  push:
+    tags:
+      - "mdq-vscode-v*.*.*"
+
+jobs:
+  release:
+    name: Test, package and publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      OVSX_PAT: ${{ secrets.OVSX_PAT }}
+    defaults:
+      run:
+        working-directory: mdq-vscode
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: mdq-vscode/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: |
+            mdq-js/pnpm-lock.yaml
+            mdq-vscode/pnpm-lock.yaml
+      - name: Check that the tag matches the package version
+        run: |
+          version="$(node -p 'require("./package.json").version')"
+          if [ "${GITHUB_REF_NAME}" != "mdq-vscode-v${version}" ]; then
+            echo "tag ${GITHUB_REF_NAME} does not match version ${version}" >&2
+            exit 1
+          fi
+      - run: pnpm install --frozen-lockfile
+        working-directory: mdq-js
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm package
+      - name: Publish to the VS Code Marketplace
+        if: env.VSCE_PAT != ''
+        run: pnpm exec vsce publish --no-dependencies --packagePath *.vsix
+      - name: Publish to Open VSX
+        if: env.OVSX_PAT != ''
+        run: pnpm dlx ovsx publish *.vsix --pat "$OVSX_PAT"
+      - name: Attach the package to a GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" *.vsix --title "$GITHUB_REF_NAME" --notes "See mdq-vscode/CHANGELOG.md."
