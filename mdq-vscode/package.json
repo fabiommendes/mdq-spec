@@ -73,18 +73,18 @@
 			"editor/title": [
 				{
 					"command": "mdq.showPreviewToSide",
-					"when": "resourceLangId == mdq || resourceFilename =~ /\\.mdq(\\.(md|ya?ml|json))?$/",
+					"when": "mdq.isMdqEditor",
 					"group": "navigation"
 				}
 			],
 			"commandPalette": [
 				{
 					"command": "mdq.showPreview",
-					"when": "resourceLangId == mdq || resourceFilename =~ /\\.mdq(\\.(md|ya?ml|json))?$/"
+					"when": "mdq.isMdqEditor"
 				},
 				{
 					"command": "mdq.showPreviewToSide",
-					"when": "resourceLangId == mdq || resourceFilename =~ /\\.mdq(\\.(md|ya?ml|json))?$/"
+					"when": "mdq.isMdqEditor"
 				}
 			]
 		},
@@ -93,7 +93,7 @@
 				"command": "mdq.showPreviewToSide",
 				"key": "ctrl+k v",
 				"mac": "cmd+k v",
-				"when": "editorTextFocus && (resourceLangId == mdq || resourceFilename =~ /\\.mdq(\\.(md|ya?ml|json))?$/)"
+				"when": "editorTextFocus && mdq.isMdqEditor"
 			}
 		],
 		"jsonValidation": [
@@ -114,6 +114,15 @@
 		"configuration": {
 			"title": "MDQ",
 			"properties": {
+				"mdq.files": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"default": [],
+					"scope": "resource",
+					"markdownDescription": "Globs of Markdown files to read as MDQ, relative to the workspace folder, such as `questoes/**/*.md`. The files stay Markdown for the editor. A Markdown file whose frontmatter declares an MDQ `type` is read as MDQ without a glob."
+				},
 				"mdq.diagnostics.info": {
 					"type": "string",
 					"enum": [

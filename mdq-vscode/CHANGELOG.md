@@ -12,3 +12,4 @@ All notable changes to the MDQ extension are recorded here. The format follows
 - Setting `mdq.diagnostics.info`: show `info` diagnostics as information, as hints or not at all.
 - Preview of a question in the student view and in the answer key view: commands `MDQ: Open Preview` and `MDQ: Open Preview to the Side`.
 - `*.mdq` files, and an MDQ language: any file in it is read as MDQ Markdown. Pick it with "Change Language Mode" or with `files.associations`.
+- A Markdown file is read as MDQ when its frontmatter declares an MDQ `type`, or when a glob of the new setting `mdq.files` matches it.

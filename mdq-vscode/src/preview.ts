@@ -8,7 +8,7 @@
  */
 
 import * as vscode from "vscode";
-import { mdqFormat } from "./documents.js";
+import type { Format } from "./documents.js";
 import {
 	localeOf,
 	type ReadyMessage,
@@ -16,6 +16,9 @@ import {
 } from "./webview/protocol.js";
 
 const VIEW_TYPE = "mdq.preview";
+
+/** The format of a document, or `undefined` if it is not MDQ. */
+type FormatOf = (document: vscode.TextDocument) => Format | undefined;
 
 /** Wait this long after the last keystroke before sending the text again. */
 const DEBOUNCE_MS = 250;
@@ -32,6 +35,7 @@ export class PreviewPanel {
 		context: vscode.ExtensionContext,
 		document: vscode.TextDocument,
 		column: vscode.ViewColumn,
+		formatOf: FormatOf,
 	): void {
 		if (PreviewPanel.current !== undefined) {
 			PreviewPanel.current.panel.reveal(column, true);
@@ -47,13 +51,14 @@ export class PreviewPanel {
 				localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, "dist")],
 			},
 		);
-		PreviewPanel.current = new PreviewPanel(context, panel, document);
+		PreviewPanel.current = new PreviewPanel(context, panel, document, formatOf);
 	}
 
 	private constructor(
 		context: vscode.ExtensionContext,
 		private readonly panel: vscode.WebviewPanel,
 		document: vscode.TextDocument,
+		private readonly formatOf: FormatOf,
 	) {
 		this.document = document;
 		panel.webview.html = page(panel.webview, context.extensionUri);
@@ -67,7 +72,10 @@ export class PreviewPanel {
 				if (event.document === this.document) this.sendLater();
 			}),
 			vscode.window.onDidChangeActiveTextEditor((editor) => {
-				if (editor !== undefined && mdqFormat(editor.document) !== undefined) {
+				if (
+					editor !== undefined &&
+					this.formatOf(editor.document) !== undefined
+				) {
 					this.follow(editor.document);
 				}
 			}),
@@ -91,7 +99,7 @@ export class PreviewPanel {
 	}
 
 	private send(): void {
-		const format = mdqFormat(this.document);
+		const format = this.formatOf(this.document);
 		if (format === undefined) return;
 		const message: ShowMessage = {
 			type: "show",

@@ -9,7 +9,7 @@
 
 import { load, type Diagnostic as MdqDiagnostic } from "mdq";
 import * as vscode from "vscode";
-import { mdqFormat } from "./documents.js";
+import { type Format, mdqFormat } from "./documents.js";
 import { PreviewPanel } from "./preview.js";
 import { editorRange } from "./ranges.js";
 
@@ -28,9 +28,18 @@ export function activate(context: vscode.ExtensionContext): void {
 	const collection = vscode.languages.createDiagnosticCollection("mdq");
 	const timers = new Map<string, ReturnType<typeof setTimeout>>();
 
+	// The menus and the key binding of the preview show for an MDQ editor.
+	const updateContext = () => {
+		const editor = vscode.window.activeTextEditor;
+		const isMdq =
+			editor !== undefined && formatOf(editor.document) !== undefined;
+		void vscode.commands.executeCommand("setContext", "mdq.isMdqEditor", isMdq);
+	};
+
 	const refresh = (document: vscode.TextDocument) => {
-		const format = mdqFormat(document);
-		// A document leaves MDQ when its language changes to another one.
+		const format = formatOf(document);
+		if (document === vscode.window.activeTextEditor?.document) updateContext();
+		// A document leaves MDQ when its language or its frontmatter changes.
 		if (format === undefined) {
 			collection.delete(document.uri);
 			return;
@@ -66,18 +75,20 @@ export function activate(context: vscode.ExtensionContext): void {
 				vscode.workspace.textDocuments.forEach(refresh);
 			}
 		}),
+		vscode.window.onDidChangeActiveTextEditor(updateContext),
 	);
 	vscode.workspace.textDocuments.forEach(refresh);
+	updateContext();
 
 	const preview = (column: vscode.ViewColumn) => () => {
 		const editor = vscode.window.activeTextEditor;
-		if (editor === undefined || mdqFormat(editor.document) === undefined) {
+		if (editor === undefined || formatOf(editor.document) === undefined) {
 			void vscode.window.showInformationMessage(
 				"Open an MDQ document to preview it.",
 			);
 			return;
 		}
-		PreviewPanel.show(context, editor.document, column);
+		PreviewPanel.show(context, editor.document, column, formatOf);
 	};
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
@@ -92,6 +103,30 @@ export function activate(context: vscode.ExtensionContext): void {
 }
 
 export function deactivate(): void {}
+
+/** The format of `document`, or `undefined` if it is not MDQ (`documents.ts`). */
+function formatOf(document: vscode.TextDocument): Format | undefined {
+	return mdqFormat(document, inMdqFiles(document));
+}
+
+/**
+ * Whether a glob of the setting `mdq.files` matches `document`. A glob is
+ * relative to the workspace folder of the document.
+ */
+function inMdqFiles(document: vscode.TextDocument): boolean {
+	const globs = vscode.workspace
+		.getConfiguration("mdq", document.uri)
+		.get<string[]>("files", []);
+	if (globs.length === 0) return false;
+	const folder = vscode.workspace.getWorkspaceFolder(document.uri);
+	return globs.some(
+		(glob) =>
+			vscode.languages.match(
+				{ pattern: folder ? new vscode.RelativePattern(folder, glob) : glob },
+				document,
+			) > 0,
+	);
+}
 
 function toEditorDiagnostics(
 	diagnostics: readonly MdqDiagnostic[],

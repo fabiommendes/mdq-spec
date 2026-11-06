@@ -29,15 +29,17 @@ The extension reads these files:
 A `*.mdq.md` file stays a Markdown file: the editor keeps its Markdown
 features. A `*.mdq` file is in the MDQ language, with Markdown highlight.
 
-Any other file is MDQ Markdown when its language is MDQ: run **Change
-Language Mode** and pick MDQ, or set it for a set of files in
-`settings.json`:
+A plain Markdown file is read as MDQ when:
 
-```json
-"files.associations": {
-	"questoes/**/*.md": "mdq"
-}
-```
+- Its frontmatter declares an MDQ `type`, such as `type: multiple-choice` or
+  `type: exam`. Only the frontmatter is read: a question that takes its type
+  from the body needs one of the other ways.
+- A glob of the setting `mdq.files` matches it, for example
+  `"mdq.files": ["questoes/**/*.md"]`. The file stays Markdown for the editor.
+- Its language is MDQ: run **Change Language Mode** and pick MDQ, or set it
+  for a set of files with `"files.associations": {"questoes/**/*.md": "mdq"}`.
+  The editor then highlights the file as Markdown, but the other Markdown
+  features, such as the outline, do not apply.
 
 YAML support uses the [YAML extension by Red Hat](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml),
 which is installed with this extension.
@@ -46,6 +48,7 @@ which is installed with this extension.
 
 | Setting                | Default | Description                                                     |
 | ---------------------- | ------- | --------------------------------------------------------------- |
+| `mdq.files`            | `[]`    | Globs of Markdown files to read as MDQ.                         |
 | `mdq.diagnostics.info` | `hint`  | How to show `info` diagnostics: `information`, `hint` or `off`. |
 
 The codes of the diagnostics are explained in
