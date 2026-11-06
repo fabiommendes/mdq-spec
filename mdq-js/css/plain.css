@@ -576,6 +576,48 @@
 	opacity: 0.4;
 }
 
+.mdq-ordering-grip {
+	flex-shrink: 0;
+	min-width: 2rem;
+	min-height: 2rem;
+	border: 0;
+	border-radius: 0.25rem;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	cursor: grab;
+	touch-action: none;
+}
+
+.mdq-ordering-grip:focus-visible {
+	outline: 2px solid currentColor;
+	outline-offset: 2px;
+}
+
+.mdq-ordering-line[data-dragging] {
+	position: relative;
+	z-index: 10;
+	background: Canvas;
+	box-shadow: 0 0.25rem 0.75rem rgb(0 0 0 / 0.3);
+	cursor: grabbing;
+	pointer-events: none;
+}
+
+.mdq-ordering-drop {
+	/* Its height and margins cancel the gaps it adds, so the rows do not shift. */
+	height: 3px;
+	margin: calc(-0.25rem - 1.5px) 0;
+	border-radius: 2px;
+	background: Highlight;
+	list-style: none;
+	pointer-events: none;
+}
+
+.mdq-question[data-dragging] {
+	cursor: grabbing;
+	user-select: none;
+}
+
 .mdq-ordering-keep {
 	display: flex;
 	flex-wrap: wrap;

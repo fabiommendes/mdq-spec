@@ -19,6 +19,7 @@ the whole shared corpus (`examples/`), as mdq-py does.
 
 ### Changed
 
+- `Ordering` reorders by drag and drop. A handle (`.mdq-ordering-grip`) replaces the move up and move down buttons: drag it, or drag the whole line with a mouse or pen, and use the arrow keys on it (up and down move the line, left and right change its level). A touch drags from the handle only, so the page still scrolls over the text. While a line is dragged the "Not used" list shows as a target, even when empty, and the page scrolls near the top and bottom of the window. `Esc` cancels. The messages `orderingMoveUp` and `orderingMoveDown` are gone; `orderingGrip`, `orderingGripHint` and `orderingDropUnused` are new.
 - An escaped `\[^slug]` and `&#91;^slug]` in a fill-in stem are text, not blanks, as in mdq-py.
 - `publicForm` omits `weight: 1`, the default, as mdq-py does.
 - `publicForm` leaves out `shuffle` and `grading` when they are `inherit`, the default, as mdq-py does. Before, an explicit `inherit` was copied.

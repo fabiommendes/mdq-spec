@@ -62,6 +62,16 @@ function button(name: string): HTMLElement {
 	return screen.getByRole("button", { name });
 }
 
+/** The drag handle of a line, which also moves it by keyboard. */
+function grip(text: string): HTMLElement {
+	return button(`Move: ${text}`);
+}
+
+/** Presses `key` on the handle of a line; `false` when the key was handled. */
+function press(text: string, key: string): boolean {
+	return fireEvent.keyDown(grip(text), { key });
+}
+
 async function settle(): Promise<void> {
 	await Promise.resolve();
 }
@@ -114,10 +124,30 @@ describe("answer mode", () => {
 	it("gives every control a name with the text of its line", () => {
 		render(() => <Ordering question={fixed} />);
 		for (const text of ["x = 0", "print(i)", "y = 1"]) {
-			expect(button(`Move up: ${text}`)).toBeTruthy();
-			expect(button(`Move down: ${text}`)).toBeTruthy();
+			expect(grip(text)).toBeTruthy();
 			expect(button(`Leave out: ${text}`)).toBeTruthy();
 		}
+	});
+
+	it("gives every line a handle in place of move up and move down buttons", () => {
+		render(() => <Ordering question={fixed} />);
+		const handle = grip("x = 0");
+		expect(handle.tagName).toBe("BUTTON");
+		expect(handle.classList.contains("mdq-ordering-grip")).toBe(true);
+		expect(handle.getAttribute("data-action")).toBe("grip");
+		expect(screen.queryByRole("button", { name: /^Move up/ })).toBeNull();
+		expect(screen.queryByRole("button", { name: /^Move down/ })).toBeNull();
+		expect(document.querySelector('[data-action="up"]')).toBeNull();
+		expect(document.querySelector('[data-action="down"]')).toBeNull();
+	});
+
+	it("describes how to use the handle", () => {
+		render(() => <Ordering question={fixed} />);
+		const hint = grip("x = 0").getAttribute("aria-describedby");
+		expect(hint).toBeTruthy();
+		expect(document.getElementById(hint ?? "")?.textContent).toBe(
+			"Drag, or use the arrow keys, to move the line.",
+		);
 	});
 
 	it("tells a screen reader the level of an indented line", () => {
@@ -134,14 +164,14 @@ describe("reordering", () => {
 		render(() => (
 			<Ordering question={fixed} onChange={(lines) => seen.push(lines)} />
 		));
-		fireEvent.click(button("Move down: x = 0"));
+		expect(press("x = 0", "ArrowDown")).toBe(false);
 		expect(lines()).toEqual([
 			"print(i)",
 			"x = 0",
 			"for i in range(3):",
 			"y = 1",
 		]);
-		fireEvent.click(button("Move up: for i in range(3):"));
+		expect(press("for i in range(3):", "ArrowUp")).toBe(false);
 		expect(seen.at(-1)).toEqual([
 			[1, "print(i)"],
 			[0, "for i in range(3):"],
@@ -150,16 +180,27 @@ describe("reordering", () => {
 		]);
 	});
 
-	it("does nothing at the ends, and keeps the control focusable", () => {
+	it("does nothing at the ends", () => {
 		const seen: OrderingResponse[] = [];
 		render(() => (
 			<Ordering question={fixed} onChange={(lines) => seen.push(lines)} />
 		));
-		const up = button("Move up: x = 0");
-		expect(up.getAttribute("aria-disabled")).toBe("true");
-		expect((up as HTMLButtonElement).disabled).toBe(false);
-		fireEvent.click(up);
-		fireEvent.click(button("Move down: y = 1"));
+		press("x = 0", "ArrowUp");
+		press("y = 1", "ArrowDown");
+		expect(seen).toEqual([]);
+		expect(lines()[0]).toBe("x = 0");
+	});
+
+	it("ignores the keys it does not use", () => {
+		const seen: OrderingResponse[] = [];
+		render(() => (
+			<Ordering question={fixed} onChange={(lines) => seen.push(lines)} />
+		));
+		expect(press("x = 0", "a")).toBe(true);
+		expect(press("x = 0", "Tab")).toBe(true);
+		// Levels are fixed: the side arrows have nothing to do.
+		press("print(i)", "ArrowLeft");
+		press("x = 0", "ArrowRight");
 		expect(seen).toEqual([]);
 	});
 
@@ -167,10 +208,10 @@ describe("reordering", () => {
 		render(() => <Ordering question={fixed} />);
 		const live = screen.getByRole("status");
 		expect(live.getAttribute("aria-live")).toBe("polite");
-		button("Move down: x = 0").focus();
-		fireEvent.click(button("Move down: x = 0"));
+		grip("x = 0").focus();
+		press("x = 0", "ArrowDown");
 		await settle();
-		expect(document.activeElement).toBe(button("Move down: x = 0"));
+		expect(document.activeElement).toBe(grip("x = 0"));
 		expect(
 			document.activeElement?.closest("li")?.getAttribute("data-index"),
 		).toBe("1");
@@ -203,6 +244,22 @@ describe("reordering", () => {
 		expect(seen.at(-1)).toHaveLength(4);
 		expect(document.querySelector('[data-list="unused"]')).toBeNull();
 		expect(document.activeElement).toBe(button("Leave out: print(i)"));
+	});
+
+	it("gives unused lines a handle that the arrows do not move", () => {
+		const seen: OrderingResponse[] = [];
+		render(() => (
+			<Ordering question={fixed} onChange={(lines) => seen.push(lines)} />
+		));
+		fireEvent.click(button("Leave out: print(i)"));
+		fireEvent.click(button("Leave out: y = 1"));
+		const handle = document.querySelector<HTMLElement>(
+			'[data-list="unused"] > li .mdq-ordering-grip',
+		);
+		expect(handle?.getAttribute("aria-label")).toBe("Move: print(i)");
+		fireEvent.keyDown(handle as HTMLElement, { key: "ArrowDown" });
+		expect(seen).toHaveLength(2);
+		expect(lines("unused")).toEqual(["print(i)", "y = 1"]);
 	});
 
 	it("says when the answer holds no line", () => {
@@ -240,7 +297,7 @@ describe("reordering", () => {
 			],
 		};
 		render(() => <Ordering question={blank} />);
-		expect(button("Move up: (blank line)")).toBeTruthy();
+		expect(grip("(blank line)")).toBeTruthy();
 		expect(document.querySelector(".mdq-empty")?.textContent).toBe(
 			"(blank line)",
 		);
@@ -278,6 +335,26 @@ describe("indentation", () => {
 		expect(button("Outdent: print(i)").getAttribute("aria-disabled")).toBe(
 			"true",
 		);
+	});
+
+	it("indents and outdents with the side arrows on the handle", async () => {
+		const seen: OrderingResponse[] = [];
+		render(() => (
+			<Ordering question={strictCode} onChange={(lines) => seen.push(lines)} />
+		));
+		grip("x = 0").focus();
+		expect(press("x = 0", "ArrowRight")).toBe(false);
+		await settle();
+		expect(seen.at(-1)?.[0]).toEqual([1, "x = 0"]);
+		expect(screen.getByRole("status").textContent).toBe(
+			"x = 0 is at indentation level 1.",
+		);
+		expect(document.activeElement).toBe(grip("x = 0"));
+		expect(press("x = 0", "ArrowLeft")).toBe(false);
+		expect(seen.at(-1)?.[0]).toEqual([0, "x = 0"]);
+		// Not below level 0.
+		press("x = 0", "ArrowLeft");
+		expect(seen).toHaveLength(2);
 	});
 
 	it("keeps a text answer a valid outline", () => {
@@ -318,7 +395,7 @@ describe("indentation", () => {
 	it("refits the levels of a text answer after a move", () => {
 		render(() => <Ordering question={outline} />);
 		fireEvent.click(button("Indent: Mosses"));
-		fireEvent.click(button("Move up: Mosses"));
+		press("Mosses", "ArrowUp");
 		expect(lines().slice(0, 2)).toEqual(["Mosses", "Lichens"]);
 		expect(levels()).toEqual(["0", "0", "0", "0"]);
 	});
@@ -335,8 +412,8 @@ describe("indentation", () => {
 describe("controlled and uncontrolled", () => {
 	it("keeps its own state without value", () => {
 		render(() => <Ordering question={fixed} />);
-		fireEvent.click(button("Move down: x = 0"));
-		fireEvent.click(button("Move down: x = 0"));
+		press("x = 0", "ArrowDown");
+		press("x = 0", "ArrowDown");
 		expect(lines().slice(0, 3)).toEqual([
 			"print(i)",
 			"for i in range(3):",
@@ -357,7 +434,7 @@ describe("controlled and uncontrolled", () => {
 		render(() => (
 			<Ordering question={fixed} value={value()} onChange={setValue} />
 		));
-		fireEvent.click(button("Move down: x = 0"));
+		press("x = 0", "ArrowDown");
 		expect(value()).toEqual([
 			[0, "for i in range(3):"],
 			[0, "x = 0"],
@@ -380,7 +457,7 @@ describe("controlled and uncontrolled", () => {
 				onChange={(next) => seen.push(next)}
 			/>
 		));
-		fireEvent.click(button("Move down: x = 0"));
+		press("x = 0", "ArrowDown");
 		expect(seen).toHaveLength(1);
 		expect(lines()).toEqual(["x = 0", "y = 1"]);
 	});
@@ -528,7 +605,7 @@ describe("manual grading note", () => {
 describe("messages", () => {
 	it("translates the controls and the announcements", () => {
 		render(() => <Ordering question={outline} messages={ptBR} />);
-		fireEvent.click(button("Mover para baixo: Lichens"));
+		fireEvent.keyDown(button("Mover: Lichens"), { key: "ArrowDown" });
 		expect(screen.getByRole("status").textContent).toBe(
 			"Lichens movida para a posição 2 de 4.",
 		);
@@ -556,7 +633,7 @@ describe("keep this order", () => {
 
 	it("goes away after the first move", () => {
 		render(() => <Ordering question={fixed} />);
-		fireEvent.click(button("Move down: x = 0"));
+		press("x = 0", "ArrowDown");
 		expect(
 			screen.queryByRole("button", { name: "Keep this order" }),
 		).toBeNull();

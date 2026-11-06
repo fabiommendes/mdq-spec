@@ -89,10 +89,12 @@ export interface Messages {
 	orderingBlankLine: string;
 	/** Read by a screen reader before a line that is indented. */
 	orderingLevel: (level: number) => string;
-	/** The name of the button that moves a line up. `text` is the line. */
-	orderingMoveUp: (text: string) => string;
-	/** The name of the button that moves a line down. */
-	orderingMoveDown: (text: string) => string;
+	/** The name of the handle that drags a line. `text` is the line. */
+	orderingGrip: (text: string) => string;
+	/** Describes how to use the handle of a line. */
+	orderingGripHint: string;
+	/** The note of the left out lines while a line is dragged. */
+	orderingDropUnused: string;
 	/** The name of the button that indents a line. */
 	orderingIndent: (text: string) => string;
 	/** The name of the button that outdents a line. */
@@ -150,8 +152,9 @@ export const en: Messages = {
 		count === 1 ? "Correct order" : "Correct orders",
 	orderingBlankLine: "(blank line)",
 	orderingLevel: (level) => `Indentation level ${level}.`,
-	orderingMoveUp: (text) => `Move up: ${text}`,
-	orderingMoveDown: (text) => `Move down: ${text}`,
+	orderingGrip: (text) => `Move: ${text}`,
+	orderingGripHint: "Drag, or use the arrow keys, to move the line.",
+	orderingDropUnused: "Drop a line here to leave it out.",
 	orderingIndent: (text) => `Indent: ${text}`,
 	orderingOutdent: (text) => `Outdent: ${text}`,
 	orderingRemove: (text) => `Leave out: ${text}`,
@@ -205,8 +208,9 @@ export const ptBR: Messages = {
 		count === 1 ? "Ordem correta" : "Ordens corretas",
 	orderingBlankLine: "(linha em branco)",
 	orderingLevel: (level) => `Nível de indentação ${level}.`,
-	orderingMoveUp: (text) => `Mover para cima: ${text}`,
-	orderingMoveDown: (text) => `Mover para baixo: ${text}`,
+	orderingGrip: (text) => `Mover: ${text}`,
+	orderingGripHint: "Arraste, ou use as setas do teclado, para mover a linha.",
+	orderingDropUnused: "Solte uma linha aqui para deixá-la de fora.",
 	orderingIndent: (text) => `Indentar: ${text}`,
 	orderingOutdent: (text) => `Recuar: ${text}`,
 	orderingRemove: (text) => `Deixar de fora: ${text}`,

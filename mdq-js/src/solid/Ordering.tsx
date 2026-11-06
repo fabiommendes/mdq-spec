@@ -1,10 +1,12 @@
 import {
+	batch,
 	createMemo,
 	createSignal,
 	createUniqueId,
 	For,
 	Index,
 	type JSX,
+	onCleanup,
 	type ParentProps,
 	Show,
 } from "solid-js";
@@ -14,6 +16,7 @@ import type { OrderingLine } from "../schema/questions.js";
 import { Feedback } from "./Feedback.jsx";
 import { Markdown } from "./Markdown.jsx";
 import { type Locale, type Messages, useMessages } from "./messages.jsx";
+import { dropIndex, relocate, type Slot } from "./ordering-drag.js";
 import { Pending } from "./Pending.jsx";
 import { plainInline } from "./render-markdown.js";
 import { Score } from "./Score.jsx";
@@ -47,7 +50,35 @@ export interface OrderingProps {
 	locale?: Locale;
 }
 
-type Action = "up" | "down" | "indent" | "outdent" | "remove" | "add";
+type Action = "grip" | "indent" | "outdent" | "remove" | "add";
+
+/// Pixels the pointer must travel before a press becomes a drag.
+const DRAG_THRESHOLD = 4;
+/// Distance from the top or bottom of the window where a drag scrolls the page.
+const SCROLL_EDGE = 48;
+/// Pixels per frame the page scrolls at the very edge of the window.
+const SCROLL_SPEED = 24;
+
+/// A drag in progress: the line, the slot it would take, and its offset.
+interface Drag {
+	from: Slot;
+	target: Slot | null;
+	offset: number;
+}
+
+/// The pointer state between `pointerdown` and the end of the gesture.
+interface Session {
+	pointerId: number;
+	element: HTMLElement;
+	from: Slot;
+	startX: number;
+	startY: number;
+	startScroll: number;
+	x: number;
+	y: number;
+	active: boolean;
+	frame: number | undefined;
+}
 
 /**
  * An ordering question: `.mdq-question[data-type="ordering"]`.
@@ -55,9 +86,12 @@ type Action = "up" | "down" | "indent" | "outdent" | "remove" | "add";
  * In `answer` mode the student builds the response in a list (`.mdq-ordering-list`
  * with `data-list="used"`), starting from the whole pool. A line the student
  * leaves out goes to a second list (`data-list="unused"`), which is how a
- * distractor is dropped: the spec lets a response omit lines. Every line has
- * buttons, so reordering never needs a pointer: move up, move down, leave out
- * or use, and under `lenient` and `strict` indent and outdent. A polite live
+ * distractor is dropped: the spec lets a response omit lines. A line moves by
+ * dragging its handle (`.mdq-ordering-grip`); a mouse or pen drags from the
+ * whole line, a finger from the handle only, so the page still scrolls over the
+ * text. Reordering never needs a pointer: the arrow keys on the handle move a
+ * line up and down and, under `lenient` and `strict`, change its level, and
+ * buttons leave a line out, use it, and indent or outdent it. A polite live
  * region announces each change, and the focus follows the line that moved.
  *
  * Under `fixed` the lines keep the levels of the pool. Under `lenient` and
@@ -77,6 +111,7 @@ export function Ordering(props: OrderingProps): JSX.Element {
 	const feedbackId = `${id}-feedback`;
 	const usedTitleId = `${id}-used`;
 	const unusedTitleId = `${id}-unused`;
+	const gripHintId = `${id}-grip-hint`;
 
 	const content = () => props.question.content;
 	const indentation = () => props.question.indentation ?? "fixed";
@@ -130,6 +165,8 @@ export function Ordering(props: OrderingProps): JSX.Element {
 
 	const [announcement, setAnnouncement] = createSignal("");
 	let root: HTMLDivElement | undefined;
+	const [drag, setDrag] = createSignal<Drag | null>(null);
+	let session: Session | undefined;
 
 	// A text line is Markdown; its markup is not read out in a control name.
 	const name = (text: string) => {
@@ -191,7 +228,7 @@ export function Ordering(props: OrderingProps): JSX.Element {
 		commit(lines);
 		const placed = used()[target];
 		if (placed !== undefined && placed[1] === line[1]) {
-			focusControl("used", target, delta < 0 ? "up" : "down");
+			focusControl("used", target, "grip");
 		}
 		announceMove(line, placed, target);
 	}
@@ -253,10 +290,15 @@ export function Ordering(props: OrderingProps): JSX.Element {
 		const lines = [...used()];
 		lines.splice(index, 1);
 		commit(lines);
+		announceLeftOut(line, "add");
+	}
+
+	/** Announces a line that left the answer and focuses `action` of its row in the unused list. */
+	function announceLeftOut(line: OrderingLine, action: Action = "grip"): void {
 		const position = unused().findIndex(
 			(left) => identity(left) === identity(line),
 		);
-		if (position >= 0) focusControl("unused", position, "add");
+		if (position >= 0) focusControl("unused", position, action);
 		setAnnouncement(messages().orderingRemoved(name(line[1])));
 	}
 
@@ -270,6 +312,223 @@ export function Ordering(props: OrderingProps): JSX.Element {
 			messages().orderingAdded(name(line[1]), lines.length, lines.length),
 		);
 	}
+
+	/** Moves a line with the arrow keys of its handle. */
+	function onGripKey(event: KeyboardEvent, index: number): void {
+		if (event.key === "ArrowUp") move(index, -1);
+		else if (event.key === "ArrowDown") move(index, 1);
+		else if (event.key === "ArrowLeft" && editsLevels()) shift(index, -1);
+		else if (event.key === "ArrowRight" && editsLevels()) shift(index, 1);
+		else return;
+		event.preventDefault();
+	}
+
+	/** The slot under the pointer, or `null` when it is over neither list. */
+	function locate(x: number, y: number, from: Slot): Slot | null {
+		for (const list of ["used", "unused"] as const) {
+			const element = root?.querySelector<HTMLElement>(`[data-list="${list}"]`);
+			const box = element?.closest(".mdq-panel")?.getBoundingClientRect();
+			if (element === null || element === undefined || box === undefined) {
+				continue;
+			}
+			if (x < box.left || x > box.right || y < box.top || y > box.bottom) {
+				continue;
+			}
+			const centers: number[] = [];
+			for (const row of Array.from(element.children)) {
+				const index = (row as HTMLElement).dataset.index;
+				if (index === undefined) continue;
+				if (from.list === list && Number(index) === from.index) continue;
+				const rect = row.getBoundingClientRect();
+				centers.push(rect.top + rect.height / 2);
+			}
+			return { list, index: dropIndex(centers, y) };
+		}
+		return null;
+	}
+
+	/** Follows the pointer: moves the dragged line and finds the drop slot. */
+	function update(): void {
+		if (session === undefined || !session.active) return;
+		const { x, y, from } = session;
+		const offset = y - session.startY + (window.scrollY - session.startScroll);
+		const target = locate(x, y, from) ?? drag()?.target ?? null;
+		setDrag({ from, target, offset });
+	}
+
+	/** Scrolls the page while the pointer rests near an edge of the window. */
+	function autoscroll(): void {
+		if (session === undefined) return;
+		const { y } = session;
+		const up = Math.min(1, (SCROLL_EDGE - y) / SCROLL_EDGE);
+		const down = Math.min(
+			1,
+			(y - (window.innerHeight - SCROLL_EDGE)) / SCROLL_EDGE,
+		);
+		const speed = up > 0 ? -up : Math.max(0, down);
+		if (speed !== 0) {
+			const before = window.scrollY;
+			const top = Math.sign(speed) * Math.ceil(Math.abs(speed) * SCROLL_SPEED);
+			window.scrollBy({ top, behavior: "instant" });
+			if (window.scrollY !== before) update();
+		}
+		session.frame = requestAnimationFrame(autoscroll);
+	}
+
+	function onPointerMove(event: PointerEvent): void {
+		if (session === undefined || event.pointerId !== session.pointerId) return;
+		session.x = event.clientX;
+		session.y = event.clientY;
+		if (!session.active) {
+			const travelled = Math.hypot(
+				session.x - session.startX,
+				session.y - session.startY,
+			);
+			if (travelled < DRAG_THRESHOLD) return;
+			session.active = true;
+			session.element.setPointerCapture?.(session.pointerId);
+			setDrag({ from: session.from, target: null, offset: 0 });
+			session.frame = requestAnimationFrame(autoscroll);
+		}
+		update();
+	}
+
+	function onPointerUp(event: PointerEvent): void {
+		if (event.pointerId === session?.pointerId) finishDrag(true);
+	}
+
+	function onPointerCancel(event: PointerEvent): void {
+		if (event.pointerId === session?.pointerId) finishDrag(false);
+	}
+
+	/** A touch holds an implicit capture that `setPointerCapture` moves, so only the line's own loss counts. */
+	function onCaptureLost(event: PointerEvent): void {
+		if (event.target === session?.element) onPointerCancel(event);
+	}
+
+	function onDragKey(event: KeyboardEvent): void {
+		if (event.key !== "Escape") return;
+		event.preventDefault();
+		finishDrag(false);
+	}
+
+	function onPointerDown(
+		event: PointerEvent & { currentTarget: HTMLElement },
+		list: Slot["list"],
+		index: number,
+	): void {
+		if (mode() !== "answer" || session !== undefined || !event.isPrimary) {
+			return;
+		}
+		if (event.pointerType === "mouse" && event.button !== 0) return;
+		const target = event.target as Element;
+		if (target.closest(".mdq-ordering-button")) return;
+		const touch = event.pointerType === "touch";
+		if (touch && !target.closest(".mdq-ordering-grip")) return;
+		session = {
+			pointerId: event.pointerId,
+			element: event.currentTarget,
+			from: { list, index },
+			startX: event.clientX,
+			startY: event.clientY,
+			startScroll: window.scrollY,
+			x: event.clientX,
+			y: event.clientY,
+			active: false,
+			frame: undefined,
+		};
+		if (!touch) event.preventDefault();
+		window.addEventListener("pointermove", onPointerMove);
+		window.addEventListener("pointerup", onPointerUp);
+		window.addEventListener("pointercancel", onPointerCancel);
+		window.addEventListener("lostpointercapture", onCaptureLost);
+		window.addEventListener("keydown", onDragKey, true);
+	}
+
+	/** Ends the gesture; `drop` applies the move, otherwise nothing changes. */
+	function finishDrag(drop: boolean): void {
+		const ended = session;
+		if (ended === undefined) return;
+		session = undefined;
+		window.removeEventListener("pointermove", onPointerMove);
+		window.removeEventListener("pointerup", onPointerUp);
+		window.removeEventListener("pointercancel", onPointerCancel);
+		window.removeEventListener("lostpointercapture", onCaptureLost);
+		window.removeEventListener("keydown", onDragKey, true);
+		if (ended.frame !== undefined) cancelAnimationFrame(ended.frame);
+		if (ended.element.hasPointerCapture?.(ended.pointerId)) {
+			ended.element.releasePointerCapture(ended.pointerId);
+		}
+		const target = drag()?.target;
+		batch(() => {
+			setDrag(null);
+			if (drop && ended.active && target) dropLine(ended.from, target);
+		});
+	}
+
+	/** Applies a drop and announces it. */
+	function dropLine(from: Slot, to: Slot): void {
+		const line = (from.list === "used" ? used() : unused())[from.index];
+		const next = relocate(used(), unused(), from, to);
+		if (line === undefined || next === null) return;
+		const total = used().length;
+		commit(next);
+		if (to.list === "unused") {
+			announceLeftOut(line);
+			return;
+		}
+		const last = from.list === "used" ? total - 1 : total;
+		const at = Math.min(to.index, last);
+		const placed = used()[at];
+		if (placed !== undefined && placed[1] === line[1]) {
+			focusControl("used", at, "grip");
+		}
+		if (from.list === "used") announceMove(line, placed, at);
+		else {
+			setAnnouncement(
+				messages().orderingAdded(name(line[1]), at + 1, used().length),
+			);
+		}
+	}
+
+	onCleanup(() => finishDrag(false));
+
+	/** Whether the drop marker goes before the row `index` of `list`. */
+	function markerBefore(list: Slot["list"], index: number): boolean {
+		const current = drag();
+		const target = current?.target;
+		if (current === null || !target || target.list !== list) return false;
+		if (current.from.list === "unused" && list === "unused") return false;
+		if (current.from.list === list && current.from.index === index) {
+			return false;
+		}
+		const skipped = current.from.list === list && index > current.from.index;
+		return (skipped ? index - 1 : index) === target.index;
+	}
+
+	/** Whether the drop marker goes after the last row of `list`. */
+	function markerLast(list: Slot["list"], rows: number): boolean {
+		const current = drag();
+		const target = current?.target;
+		if (current === null || !target || target.list !== list) return false;
+		if (current.from.list === "unused" && list === "unused") return false;
+		return target.index >= (current.from.list === list ? rows - 1 : rows);
+	}
+
+	/** The props of a row that can be dragged. */
+	const rowProps = (list: Slot["list"], index: number) => {
+		const current = drag();
+		const dragged = current?.from.list === list && current.from.index === index;
+		return {
+			"data-dragging": dragged ? "" : undefined,
+			style: dragged
+				? { transform: `translateY(${current?.offset ?? 0}px)` }
+				: undefined,
+			onPointerDown: (event: PointerEvent & { currentTarget: HTMLElement }) =>
+				onPointerDown(event, list, index),
+			onDragStart: (event: DragEvent) => event.preventDefault(),
+		};
+	};
 
 	const lineProps = () => ({
 		content: content(),
@@ -286,6 +545,7 @@ export function Ordering(props: OrderingProps): JSX.Element {
 			data-mode={mode()}
 			data-content={content()}
 			data-indentation={indentation()}
+			data-dragging={drag() !== null ? "" : undefined}
 		>
 			<Show when={!props.hideScore && review()}>
 				<div class="mdq-header">
@@ -342,48 +602,50 @@ export function Ordering(props: OrderingProps): JSX.Element {
 					>
 						<Index each={used()}>
 							{(line, index) => (
-								<li
-									class="mdq-ordering-line"
-									data-index={index}
-									data-level={line()[0]}
-								>
-									<LineBody line={line()} {...lineProps()} />
-									<span class="mdq-ordering-controls">
-										<Control
-											action="up"
-											label={messages().orderingMoveUp(name(line()[1]))}
-											disabled={index === 0}
-											onAct={() => move(index, -1)}
+								<>
+									<Show when={markerBefore("used", index)}>
+										<DropMarker />
+									</Show>
+									<li
+										class="mdq-ordering-line"
+										data-index={index}
+										data-level={line()[0]}
+										{...rowProps("used", index)}
+									>
+										<Grip
+											label={messages().orderingGrip(name(line()[1]))}
+											hintId={gripHintId}
+											onKeyDown={(event) => onGripKey(event, index)}
 										/>
-										<Control
-											action="down"
-											label={messages().orderingMoveDown(name(line()[1]))}
-											disabled={index === used().length - 1}
-											onAct={() => move(index, 1)}
-										/>
-										<Show when={editsLevels()}>
+										<LineBody line={line()} {...lineProps()} />
+										<span class="mdq-ordering-controls">
+											<Show when={editsLevels()}>
+												<Control
+													action="outdent"
+													label={messages().orderingOutdent(name(line()[1]))}
+													disabled={!canOutdent(used(), index)}
+													onAct={() => shift(index, -1)}
+												/>
+												<Control
+													action="indent"
+													label={messages().orderingIndent(name(line()[1]))}
+													disabled={!canIndent(used(), index)}
+													onAct={() => shift(index, 1)}
+												/>
+											</Show>
 											<Control
-												action="outdent"
-												label={messages().orderingOutdent(name(line()[1]))}
-												disabled={!canOutdent(used(), index)}
-												onAct={() => shift(index, -1)}
+												action="remove"
+												label={messages().orderingRemove(name(line()[1]))}
+												onAct={() => leaveOut(index)}
 											/>
-											<Control
-												action="indent"
-												label={messages().orderingIndent(name(line()[1]))}
-												disabled={!canIndent(used(), index)}
-												onAct={() => shift(index, 1)}
-											/>
-										</Show>
-										<Control
-											action="remove"
-											label={messages().orderingRemove(name(line()[1]))}
-											onAct={() => leaveOut(index)}
-										/>
-									</span>
-								</li>
+										</span>
+									</li>
+								</>
 							)}
 						</Index>
+						<Show when={markerLast("used", used().length)}>
+							<DropMarker />
+						</Show>
 					</ol>
 					<Show when={!answered()}>
 						<p class="mdq-ordering-keep">
@@ -399,7 +661,7 @@ export function Ordering(props: OrderingProps): JSX.Element {
 					</Show>
 				</section>
 
-				<Show when={unused().length > 0}>
+				<Show when={unused().length > 0 || drag() !== null}>
 					<section
 						class="mdq-panel"
 						data-tone="unused"
@@ -408,6 +670,9 @@ export function Ordering(props: OrderingProps): JSX.Element {
 						<h4 id={unusedTitleId} class="mdq-panel-title">
 							{messages().orderingUnused}
 						</h4>
+						<Show when={unused().length === 0}>
+							<p class="mdq-empty">{messages().orderingDropUnused}</p>
+						</Show>
 						<ol
 							class="mdq-ordering-list"
 							data-list="unused"
@@ -415,7 +680,15 @@ export function Ordering(props: OrderingProps): JSX.Element {
 						>
 							<Index each={unused()}>
 								{(line, index) => (
-									<li class="mdq-ordering-line" data-index={index}>
+									<li
+										class="mdq-ordering-line"
+										data-index={index}
+										{...rowProps("unused", index)}
+									>
+										<Grip
+											label={messages().orderingGrip(name(line()[1]))}
+											hintId={gripHintId}
+										/>
 										<LineBody line={[0, line()[1]]} {...lineProps()} />
 										<span class="mdq-ordering-controls">
 											<Control
@@ -427,9 +700,16 @@ export function Ordering(props: OrderingProps): JSX.Element {
 									</li>
 								)}
 							</Index>
+							<Show when={markerLast("unused", unused().length)}>
+								<DropMarker />
+							</Show>
 						</ol>
 					</section>
 				</Show>
+
+				<span id={gripHintId} class="mdq-sr-only">
+					{messages().orderingGripHint}
+				</span>
 
 				<output class="mdq-sr-only" aria-live="polite" aria-atomic="true">
 					{announcement()}
@@ -530,13 +810,43 @@ function LineBody(props: {
 	);
 }
 
+/** The marker of the place where a dragged line would land. */
+function DropMarker(): JSX.Element {
+	return (
+		<li class="mdq-ordering-drop" role="presentation" aria-hidden="true" />
+	);
+}
+
+/**
+ * The handle of a line: it starts a drag, and its arrow keys move the line.
+ * The drag itself is handled by the line.
+ */
+function Grip(props: {
+	label: string;
+	hintId: string;
+	onKeyDown?: (event: KeyboardEvent) => void;
+}): JSX.Element {
+	return (
+		<button
+			type="button"
+			class="mdq-ordering-grip"
+			data-action="grip"
+			aria-label={props.label}
+			aria-describedby={props.hintId}
+			onKeyDown={props.onKeyDown}
+		>
+			<span aria-hidden="true">⠿</span>
+		</button>
+	);
+}
+
 /**
  * A button of a line. A control that cannot act uses `aria-disabled`, not
  * `disabled`: the button that just moved a line to the top is still the
  * focused one, and a disabled button would drop the focus.
  */
 function Control(props: {
-	action: Action;
+	action: Exclude<Action, "grip">;
 	label: string;
 	disabled?: boolean;
 	onAct: () => void;
@@ -557,9 +867,7 @@ function Control(props: {
 	);
 }
 
-const GLYPHS: Record<Action, string> = {
-	up: "↑",
-	down: "↓",
+const GLYPHS: Record<Exclude<Action, "grip">, string> = {
 	indent: "⇥",
 	outdent: "⇤",
 	remove: "×",
