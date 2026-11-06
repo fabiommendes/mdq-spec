@@ -63,6 +63,15 @@ export function splitFrontmatter(input: string): [string | null, string] {
 	return [null, text];
 }
 
+/**
+ * The number of lines of `source` before `body`, the second part of
+ * `splitFrontmatter(source)`: the frontmatter block, `---` lines included.
+ */
+export function bodyLineOffset(source: string, body: string): number {
+	const text = stripBom(source);
+	return splitLines(text.slice(0, text.length - body.length), true).length;
+}
+
 function stripEol(line: string): string {
 	return line.replace(/[\r\n]+$/u, "");
 }

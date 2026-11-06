@@ -47,6 +47,7 @@ import { parseFillInBody } from "./fill-in.js";
 import {
 	anyQuestionFrontmatterField,
 	article,
+	bodyLineOffset,
 	commonFrontmatter,
 	extractComment,
 	GRADED_QUESTION_TYPES,
@@ -61,6 +62,7 @@ import {
 } from "./numeric.js";
 import { checkOrderingTag, parseOrderingBody } from "./ordering.js";
 import { parseShortAnswerBody } from "./short-answer.js";
+import { SourceMap } from "./source-map.js";
 import {
 	checkBareTagAlone,
 	checkNoTagInContent,
@@ -105,6 +107,9 @@ const ANSWER_KEY_RE = /^\[answer-key\]$/u;
  *   in the frontmatter table of the question's type, and the warnings about
  *   the source layout. Parsing never fails because of them; the caller checks
  *   the severity.
+ * @param sourceMap When given, the parser records where each part of the
+ *   document is in the source (`SourceMap`), and the `line` of a thrown
+ *   `ParseError` counts from the first line of the map, not of the body.
  * @returns The parsed question document.
  * @throws {MissingFieldError} If the question has no stem.
  * @throws {ParseError} If the body does not match any known question shape.
@@ -112,12 +117,20 @@ const ANSWER_KEY_RE = /^\[answer-key\]$/u;
 export function parseQuestionDocument(
 	source: string,
 	warnings?: Diagnostic[],
+	sourceMap?: SourceMap,
 ): RawDocument {
-	const parser = new MDQParser(source);
+	const parser = new MDQParser(source, sourceMap);
 	let doc: RawDocument;
 	try {
 		doc = parser.parseQuestion();
 	} catch (error) {
+		if (
+			sourceMap !== undefined &&
+			error instanceof ParseError &&
+			error.line !== undefined
+		) {
+			error.line = parser.bodyMap.fileLine(error.line);
+		}
 		// The frontmatter errors do not depend on the body: report them along
 		// with the error that stops the parse.
 		if (error instanceof MdqError) {
@@ -276,15 +289,22 @@ export class MDQParser {
 	readonly cursor: BlockCursor;
 	/** Warnings the parser found in the source layout. */
 	readonly diagnostics: Diagnostic[] = [];
+	/** Where the parts of the body are, in lines relative to the body. */
+	readonly bodyMap: SourceMap;
 	/**
 	 * The type the body implies, once the parser knows it. Set before the body
 	 * is parsed, so it is available when the body fails.
 	 */
 	bodyType: string | undefined;
 
-	constructor(readonly src: string) {
+	constructor(
+		readonly src: string,
+		sourceMap: SourceMap = SourceMap.create(),
+	) {
 		const [frontmatterText, bodyText] = splitFrontmatter(src);
+		this.bodyMap = sourceMap.view([], bodyLineOffset(src, bodyText));
 		if (frontmatterText !== null) {
+			sourceMap.addFrontmatter(frontmatterText, 1);
 			this.frontmatter = loadFrontmatterYaml(frontmatterText);
 			this.comment = extractComment(frontmatterText);
 		} else {
@@ -292,7 +312,7 @@ export class MDQParser {
 			this.comment = null;
 		}
 		this.reader = new BlockReader(bodyText);
-		this.cursor = new BlockCursor(this.reader, this.diagnostics);
+		this.cursor = new BlockCursor(this.reader, this.diagnostics, this.bodyMap);
 	}
 
 	//
@@ -404,6 +424,16 @@ export class MDQParser {
 	}
 
 	parseNumericBody(tag: NumericTag, tagNode: Node): void {
+		// The tag line holds the whole answer expression.
+		for (const field of [
+			"answer",
+			"unit",
+			"tolerance",
+			"domain",
+			"decimalPlaces",
+		]) {
+			this.cursor.mark([field], tagNode);
+		}
 		checkNoTagInContent(this.reader.rawLines(tagNode).slice(1));
 		const parsed: NumericExpression = parseNumericExpression(tag.rest);
 		const front = this.frontmatter;
@@ -500,7 +530,14 @@ export class MDQParser {
 						}
 					}
 					const answerText = this.reader.joinBlocks(answerBlocks);
-					if (answerText) this.state.answerKey = answerText;
+					if (answerText) {
+						this.state.answerKey = answerText;
+						this.cursor.mark(
+							["answerKey"],
+							answerBlocks[0] as Node,
+							answerBlocks.at(-1),
+						);
+					}
 					return remaining.slice(0, i);
 				}
 			}
@@ -558,6 +595,8 @@ export class MDQParser {
 			this.state.id = inlineSlug;
 		}
 		this.state.stem = stemText;
+		this.cursor.mark(["stem"], introBlocks[0] as Node, introBlocks.at(-1));
+		if (inlineSlug !== null) this.cursor.mark(["id"], introBlocks[0] as Node);
 
 		// A falsy `type` (by Python rules) is inferred from the body.
 		let questionType: unknown = isPythonTruthy(this.frontmatter.type)
@@ -566,6 +605,7 @@ export class MDQParser {
 		// An ordering body ends its own epilogue at the first section.
 		let orderingEpilogue: readonly Node[] | null = null;
 		const node = this.cursor.peek();
+		if (node !== null) this.cursor.mark(["type"], node);
 
 		if (node === null) {
 			// `findBodyStart` found no body: a fill-in stem with no blank. The
@@ -584,6 +624,8 @@ export class MDQParser {
 				"bullet_list",
 				"malformed choice list",
 			);
+			this.cursor.mark(["choices"], bodyNode);
+			this.cursor.markItems(["choices"], bodyNode);
 			const rawChoices = parseItemList(this.reader, bodyNode);
 			questionType =
 				questionType ?? inferChoiceType(rawChoices.map((c) => c.value));
@@ -656,7 +698,14 @@ export class MDQParser {
 		this.reportDetachedTags(epilogueBlocks, questionType === "fill-in");
 		if (epilogueBlocks.length > 0) {
 			const epilogueText = this.reader.joinBlocks(epilogueBlocks);
-			if (epilogueText) this.state.epilogue = epilogueText;
+			if (epilogueText) {
+				this.state.epilogue = epilogueText;
+				this.cursor.mark(
+					["epilogue"],
+					epilogueBlocks[0] as Node,
+					epilogueBlocks.at(-1),
+				);
+			}
 		}
 
 		this.applyTypeSpecificFrontmatter(questionType);

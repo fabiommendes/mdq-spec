@@ -26,11 +26,13 @@ export {
 	parseQuestionDocument,
 	type RawDocument,
 } from "./question.js";
+export { SourceMap } from "./source-map.js";
 export { findUnicodeSpaces } from "./spaces.js";
 
 import type { Diagnostic } from "../diagnostics.js";
 import { isExam, parseExamDocument } from "./exam.js";
 import { parseQuestionDocument, type RawDocument } from "./question.js";
+import type { SourceMap } from "./source-map.js";
 
 /**
  * Parse a document of either kind into its unvalidated JSON shape: an exam
@@ -39,8 +41,9 @@ import { parseQuestionDocument, type RawDocument } from "./question.js";
 export function parseDocument(
 	source: string,
 	warnings?: Diagnostic[],
+	sourceMap?: SourceMap,
 ): RawDocument {
 	return isExam(source)
-		? parseExamDocument(source, warnings)
-		: parseQuestionDocument(source, warnings);
+		? parseExamDocument(source, warnings, sourceMap)
+		: parseQuestionDocument(source, warnings, sourceMap);
 }

@@ -25,8 +25,12 @@ export class ParseError extends MdqError {
 	readonly code: string = "parse-error";
 	/** Where the problem is, as a path from the document's root. */
 	readonly path: readonly (string | number)[];
-	/** The 1-based source line of the node the problem is about, if known. */
-	readonly line: number | undefined;
+	/**
+	 * The 1-based source line of the node the problem is about, if known. The
+	 * parser of a body counts it from the body; `parseQuestionDocument` moves
+	 * it to the line of the file when it has a `SourceMap`.
+	 */
+	line: number | undefined;
 
 	constructor(
 		message: string,

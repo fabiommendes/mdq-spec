@@ -8,7 +8,7 @@
  */
 
 import MarkdownIt from "markdown-it";
-import type { Diagnostic } from "../diagnostics.js";
+import type { Diagnostic, PathStep } from "../diagnostics.js";
 import { ParseError } from "../errors.js";
 import { joinPatternLines } from "../exact.js";
 import { md, span, splitLines } from "../markdown.js";
@@ -23,6 +23,7 @@ import {
 	type RawChoice,
 	splitItem,
 } from "./choices.js";
+import { SourceMap } from "./source-map.js";
 import { isReservedLabel, tagLines } from "./tags.js";
 import { lstrip, repr, rstrip, strip } from "./text.js";
 import { buildTree, type Node } from "./tree.js";
@@ -219,6 +220,8 @@ export class BlockReader {
  *
  * `diagnostics` holds the warnings found while reading, appended in order;
  * `pos` is the index of the next unread node in `reader.children`.
+ * `sourceMap` records where the parts of the body are, in lines relative to
+ * the body text.
  */
 export class BlockCursor {
 	pos = 0;
@@ -226,7 +229,29 @@ export class BlockCursor {
 	constructor(
 		readonly reader: BlockReader,
 		readonly diagnostics: Diagnostic[] = [],
+		readonly sourceMap: SourceMap = SourceMap.create(),
 	) {}
+
+	/**
+	 * Record that `path` is in the lines from `first` to `last`, both
+	 * inclusive. The blank lines at the end of `last` are not part of it
+	 * (markdown-it counts them in a list).
+	 */
+	mark(path: readonly PathStep[], first: Node, last: Node = first): void {
+		const [start] = span(first);
+		let end = span(last)[1];
+		while (end > start + 1 && !strip(this.reader.lines[end - 1] ?? "", " \t")) {
+			end--;
+		}
+		this.sourceMap.markLines(path, start, end);
+	}
+
+	/** Record each item of the list `node` as `[...path, index]`. */
+	markItems(path: readonly PathStep[], node: Node): void {
+		for (const [index, item] of node.children.entries()) {
+			this.mark([...path, index], item);
+		}
+	}
 
 	/**
 	 * Consume and return the current node, advancing the cursor.

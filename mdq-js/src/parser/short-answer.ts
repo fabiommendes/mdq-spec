@@ -188,6 +188,8 @@ export function parseAnswerBlock(
 		const [tagLine, ...otherLines] = tagLines;
 		const first = TAG_REST_RE.exec(tagLine ?? "");
 		const contentLines = [first?.groups?.rest ?? "", ...otherLines];
+		cursor.mark(path, tagNode);
+		cursor.mark([...path, 0], tagNode);
 		warnMultiLinePattern(
 			cursor.diagnostics,
 			[...path, 0],
@@ -199,6 +201,8 @@ export function parseAnswerBlock(
 	if (node === null) throw new Error("attached implies a node");
 	cursor.read();
 	cursor.checkNoAdjacentList(node);
+	cursor.mark(path, tagNode, node);
+	cursor.markItems(path, node);
 	for (const item of node.children) {
 		reader.checkNoSetextItem(item);
 		checkPatternItemParagraph(reader, item);

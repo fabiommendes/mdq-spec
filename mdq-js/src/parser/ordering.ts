@@ -8,6 +8,7 @@
  * A port of `mdq-py/mdq/_parser/_ordering.py`.
  */
 
+import type { PathStep } from "../diagnostics.js";
 import { ParseError } from "../errors.js";
 import { md, span, startsAfter } from "../markdown.js";
 import {
@@ -138,6 +139,8 @@ function collectItemDepths(
  * @param firstLine The 0-based source line of `rawLines[0]`.
  * @param parents The source lines of the items that hold a nested list. An
  *   item with no text of its own among them is not a line.
+ * @param sourceLines When given, filled with the 0-based source line of each
+ *   returned pair.
  * @throws {ParseError} A non-blank line is not a bullet list item (an item
  *   has a continuation line or a second paragraph, or a nested list is
  *   ordered: an ordering item is exactly one line), or an item has no text
@@ -148,6 +151,7 @@ export function orderingUlLines(
 	depths: ReadonlyMap<number, number>,
 	firstLine: number,
 	parents?: ReadonlySet<number>,
+	sourceLines?: number[],
 ): RawLine[] {
 	const items: RawLine[] = [];
 	for (const [offset, line] of rawLines.entries()) {
@@ -182,6 +186,7 @@ export function orderingUlLines(
 			);
 		}
 		items.push([depth, text]);
+		sourceLines?.push(firstLine + offset);
 	}
 	return items;
 }
@@ -286,9 +291,9 @@ export function parseOrderingBody(
 	front: Readonly<Record<string, unknown>>,
 	tagNode: Node,
 ): [Record<string, unknown>, Node[]] {
-	const [mainKind, mainHighlight, mainRaw] = parseOrderingContent(cursor, {
-		tagNode,
-	});
+	const [mainKind, mainHighlight, mainRaw, mainNode, mainSource] =
+		parseOrderingContent(cursor, { tagNode });
+	markContent(cursor, ["lines"], tagNode, mainNode, mainSource);
 
 	const children = cursor.reader.children;
 	let firstSection = children.length;
@@ -311,14 +316,16 @@ export function parseOrderingBody(
 		const name = ORDERING_SECTION_RE.exec(cursor.reader.rawText(node))?.groups
 			?.name;
 		if (name === undefined) break;
-		cursor.read();
+		const heading = cursor.read();
 		if (name === "extra") {
 			if (extraRaw !== null) {
 				throw new ParseError("a question defines at most one [extra] section");
 			}
-			const [kind, highlight, raw] = parseOrderingContent(cursor, {
-				section: name,
-			});
+			const [kind, highlight, raw, content, sourceLines] = parseOrderingContent(
+				cursor,
+				{ section: name },
+			);
+			markContent(cursor, ["extra"], heading, content, sourceLines);
 			extraRaw = raw;
 			if (kind !== mainKind) {
 				throw new ParseError(
@@ -328,9 +335,14 @@ export function parseOrderingBody(
 			checkSectionHighlight(name, highlight, mainHighlight);
 		} else {
 			const [feedback, comment] = parseOrderingObservations(cursor);
-			const [kind, highlight, raw] = parseOrderingContent(cursor, {
-				section: name,
-			});
+			const [kind, highlight, raw, content, sourceLines] = parseOrderingContent(
+				cursor,
+				{ section: name },
+			);
+			const entry = [name, (name === "accept" ? acceptRaw : rejectRaw).length];
+			cursor.mark(entry, heading, content);
+			cursor.mark([name], heading, content);
+			markContent(cursor, [...entry, "lines"], heading, content, sourceLines);
 			if (kind !== mainKind) {
 				throw new ParseError(
 					`[${name}] must use the same content type as [ordering]`,
@@ -386,6 +398,24 @@ export function parseOrderingBody(
 }
 
 /**
+ * Record the lines of an ordering block. `path` is the path of its list of
+ * lines: the whole block (from `first` to `content`, the tag or heading
+ * included) and each line, by its 0-based source line.
+ */
+function markContent(
+	cursor: BlockCursor,
+	path: readonly PathStep[],
+	first: Node,
+	content: Node,
+	sourceLines: readonly number[],
+): void {
+	cursor.mark(path, first, content);
+	for (const [index, line] of sourceLines.entries()) {
+		cursor.sourceMap.markLines([...path, index], line, line + 1);
+	}
+}
+
+/**
  * A section's fence MUST name the language of the `[ordering]` fence or
  * none, which inherits it (ordering.md, "Body").
  *
@@ -428,7 +458,7 @@ function isOrderingSection(reader: BlockReader, node: Node): boolean {
 function parseOrderingContent(
 	cursor: BlockCursor,
 	options: { tagNode?: Node; section?: string },
-): ["code" | "text", string | null, RawLine[]] {
+): ["code" | "text", string | null, RawLine[], Node, number[]] {
 	const node = cursor.peek();
 	if (node === null || (node.type !== "fence" && node.type !== "bullet_list")) {
 		if (options.section !== undefined) {
@@ -453,16 +483,22 @@ function parseOrderingContent(
 	cursor.read();
 	if (node.type === "bullet_list") cursor.checkNoAdjacentList(node);
 	if (node.type === "fence") {
+		const lines = orderingCodeLines(node.content ?? "");
+		// The code lines start right after the opening fence.
+		const first = span(node)[0] + 1;
 		return [
 			"code",
 			fenceLanguage(node.info ?? ""),
-			orderingCodeLines(node.content ?? ""),
+			lines,
+			node,
+			lines.map((_, i) => first + i),
 		];
 	}
 	checkOrderingItemBlocks(cursor.reader, node);
 	const depths = new Map<number, number>();
 	const parents = new Set<number>();
 	collectItemDepths(node, 0, depths, parents);
+	const sourceLines: number[] = [];
 	return [
 		"text",
 		null,
@@ -471,7 +507,10 @@ function parseOrderingContent(
 			depths,
 			span(node)[0],
 			parents,
+			sourceLines,
 		),
+		node,
+		sourceLines,
 	];
 }
 

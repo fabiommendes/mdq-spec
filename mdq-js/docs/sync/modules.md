@@ -57,6 +57,9 @@ Only in TypeScript:
   provides and markdown-it JS does not.
 - `src/validate.ts`: `validateDocument` and friends. Python validates when
   it builds the Pydantic model.
+- `src/positions.ts` and `src/parser/source-map.ts`: the source position of
+  a diagnostic (`line`, `column`, `endLine`, `endColumn`). mdq-py does not
+  report positions yet (issue `numeros-de-linha-nos-diagnosticos`).
 
 Not exported by `src/index.ts`: `models/choice.ts`, `numeric.ts`, `ordering.ts`,
 `regex.ts`, `lint.ts`, `lint-codes.ts`, `exact.ts`, `letters.ts`, `markdown.ts`,

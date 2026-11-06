@@ -28,6 +28,7 @@ the whole shared corpus (`examples/`), as mdq-py does.
 
 ### Added
 
+- A diagnostic of a `.mdq.md` document (question or exam) has its source position too. A frontmatter field has the exact span of its YAML node, with columns. A part of the body (`stem`, `epilogue`, `answerKey`, the tag, `choices` and each choice, each blank, each pattern or ordering line, `instructions`, each `questions[i]`) has the lines of its block, with no columns. The parser fills a `SourceMap` (`parseQuestionDocument` and `parseExamDocument` take it as an optional last argument). A `ParseError` line counts from the first line of the file, not of the body, when the parser has a `SourceMap`.
 - A diagnostic of a YAML or JSON document has its source position: `line`, `column`, `endLine` and `endColumn`, 1-based, the end exclusive. A path with no position of its own points at its closest ancestor, and the root at line 1. A YAML syntax error has the line and column of the YAML parser, a JSON one the line and column of `JSON.parse` when the engine writes them in the message.
 - A question or an exam in YAML or JSON may hold a `$schema` string, as in mdq-py. `loadText` drops it from the document; the Zod schemas accept it (`SchemaUri`).
 - `selectSeeded(seed)`: a `Select` for `resolveExam` that keeps the same questions of an `includeAll` for the same seed, as `select_seeded` in mdq-py (`docs/exam.md`, "Seeded selection"). A seed with U+0000 is a `RangeError`.

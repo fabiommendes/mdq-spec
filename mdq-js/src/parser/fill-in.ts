@@ -81,6 +81,7 @@ export function parseFillInBody(
 					}
 					cursor.read();
 					cursor.checkNoAdjacentList(next);
+					cursor.markItems(["blanks", blankIndex(blanks, id), "choices"], next);
 					const rawChoices = parseItemList(cursor.reader, next);
 					// The choices of a multiple-choice blank are scored choices.
 					const choices = buildChoices("multiple-choice", rawChoices, [
@@ -145,6 +146,15 @@ export function parseFillInBody(
 				break;
 			}
 		}
+
+		// The lines of the blank: its tag and what the tag consumed.
+		const consumed = cursor.reader.children[cursor.pos - 1] ?? tagNode;
+		cursor.mark(
+			["blanks", [...blanks.keys()].indexOf(tag.id)],
+			tagNode,
+			consumed,
+		);
+		cursor.mark(["blanks"], tagNode, consumed);
 
 		const node = cursor.peek();
 		cursor.reader.checkNoSetextTag(node, BLANK_RE);

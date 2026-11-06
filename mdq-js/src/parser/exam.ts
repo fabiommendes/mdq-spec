@@ -21,6 +21,7 @@ import type { Exam } from "../schema/exam.js";
 import { validateExam } from "../validate.js";
 import { SLUG_PREFIX_RE } from "./choices.js";
 import {
+	bodyLineOffset,
 	commonFrontmatter,
 	DuplicateKeyError,
 	extractComment,
@@ -34,6 +35,7 @@ import {
 	parseQuestionDocument,
 	type RawDocument,
 } from "./question.js";
+import { SourceMap } from "./source-map.js";
 import { readBodyTag } from "./tags.js";
 import { rstrip, strip } from "./text.js";
 
@@ -137,6 +139,9 @@ export function codeLineIndices(lines: readonly string[]): Set<number> {
  *   warnings about the source layout (`malformed-separator`,
  *   `setext-heading`, `separator-before-include`, and those of each
  *   question). Parsing never fails because of them.
+ * @param sourceMap When given, the parser records where each part of the
+ *   document is in the source (`SourceMap`): the title, the instructions,
+ *   each block, and the fields of each question under `["questions", i]`.
  * @throws {MissingFieldError} If no line outside a code block is an H1
  *   (`field` is `"title"`).
  * @throws {ParseError} If a question's epilogue uses `---` as a thematic
@@ -145,8 +150,12 @@ export function codeLineIndices(lines: readonly string[]): Set<number> {
 export function parseExamDocument(
 	source: string,
 	warnings?: Diagnostic[],
+	sourceMap?: SourceMap,
 ): RawDocument {
 	const [frontmatterText, body] = splitFrontmatter(source);
+	const map = sourceMap ?? SourceMap.create();
+	const bodyOffset = bodyLineOffset(source, body);
+	if (frontmatterText !== null) map.addFrontmatter(frontmatterText, 1);
 	const front =
 		frontmatterText === null ? {} : loadFrontmatterYaml(frontmatterText);
 	warnings?.push(...invalidFrontmatterFields(front, "exam"));
@@ -169,8 +178,11 @@ export function parseExamDocument(
 		throw new MissingFieldError("title");
 	}
 
+	const titleLine = bodyOffset + titleIndex;
+	map.markLines(["title"], titleLine, titleLine + 1);
 	const slugMatch = SLUG_PREFIX_RE.exec(heading);
 	if (slugMatch) {
+		map.markLines(["id"], titleLine, titleLine + 1);
 		doc.id = slugMatch.groups?.slug;
 		heading = strip(heading.slice(slugMatch[0].length), " \t");
 	}
@@ -192,11 +204,20 @@ export function parseExamDocument(
 		doc.duration = canonicalOrAsWritten(canonicalDuration, front.duration);
 	}
 
-	const [instructions, blocks, glued, malformed] = splitExamBlocks(
+	const [instructions, blocks, glued, malformed, starts] = splitExamBlocks(
 		lines.slice(titleIndex + 1),
 	);
+	// The line of the body where the text after the title starts.
+	const afterTitle = bodyOffset + titleIndex + 1;
+	const firstStart = starts[0] ?? lines.length - titleIndex - 1;
 	if (instructions !== undefined) {
 		doc.instructions = instructions;
+		const [first, end] = trimmedRange(
+			lines,
+			titleIndex + 1,
+			titleIndex + 1 + firstStart,
+		);
+		map.markLines(["instructions"], bodyOffset + first, bodyOffset + end);
 	}
 	if (warnings !== undefined) {
 		for (const [path, lineNumber] of malformed) {
@@ -231,10 +252,44 @@ export function parseExamDocument(
 		}
 	}
 
-	doc.questions = blocks.map((block, index) =>
-		parseExamBlock(block, doc, index, warnings),
-	);
+	doc.questions = blocks.map((block, index) => {
+		const start = afterTitle + (starts[index] ?? 0);
+		const end = start + block.length;
+		const [first, last] = trimmedRange(
+			lines,
+			start - bodyOffset,
+			end - bodyOffset,
+		);
+		map.markLines(["questions", index], bodyOffset + first, bodyOffset + last);
+		return parseExamBlock(block, doc, index, start, map, warnings);
+	});
+	if (blocks.length > 0) {
+		const [first, last] = trimmedRange(
+			lines,
+			titleIndex + 1 + (starts[0] ?? 0),
+			lines.length,
+		);
+		map.markLines(["questions"], bodyOffset + first, bodyOffset + last);
+	}
 	return doc;
+}
+
+/**
+ * The range `[start, end)` of `lines`, without the blank lines at its ends.
+ * A range of only blank lines stays as it is.
+ */
+function trimmedRange(
+	lines: readonly string[],
+	start: number,
+	end: number,
+): [number, number] {
+	const blank = (index: number): boolean =>
+		strip(lines[index] ?? "", " \t") === "";
+	let first = start;
+	let last = end;
+	while (first < last && blank(first)) first++;
+	while (last > first && blank(last - 1)) last--;
+	return first === last ? [start, end] : [first, last];
 }
 
 /**
@@ -348,6 +403,7 @@ function splitExamBlocks(
 	string[][],
 	Map<number, PathStep[]>,
 	[PathStep[], number][],
+	number[],
 ] {
 	const starts: number[] = [];
 	const glued: [number, PathStep[]][] = [];
@@ -450,6 +506,7 @@ function splitExamBlocks(
 			[],
 			new Map(),
 			near.map((i): [PathStep[], number] => [["instructions"], i + 1]),
+			[],
 		];
 	}
 	const instructions = cleanBlock(lines.slice(0, first).join("\n"));
@@ -479,7 +536,7 @@ function splitExamBlocks(
 			lineIndex + 1,
 		];
 	});
-	return [instructions, blocks, gluedByBlock, malformed];
+	return [instructions, blocks, gluedByBlock, malformed, starts];
 }
 
 /** The stripped text, or `undefined` when it is empty. */
@@ -494,11 +551,15 @@ function cleanBlock(text: string): string | undefined {
  * as written. Any other block is a question that takes the exam's `locale`
  * and `author` when it has none. `index` is the block's 0-based position,
  * which prefixes the path of its warnings as `["questions", index, ...]`.
+ * `firstLine` is the 0-based line of the file where the block starts, and
+ * `map` records where the parts of the block are.
  */
 function parseExamBlock(
 	block: readonly string[],
 	exam: RawDocument,
 	index: number,
+	firstLine: number,
+	map: SourceMap,
 	warnings?: Diagnostic[],
 ): RawDocument {
 	// Drop a leading `===`; what follows is ordinary question source.
@@ -509,6 +570,13 @@ function parseExamBlock(
 		lines = lines.slice(1);
 	}
 	const source = stripNewlines(lines.join("\n"));
+	// The lines that `===` and the newlines stripped from the start took.
+	let skipped = hasSeparator ? 1 : 0;
+	for (const line of lines) {
+		if (line !== "") break;
+		skipped++;
+	}
+	const blockMap = map.view(["questions", index], firstLine + skipped);
 	const [frontmatterText] = splitFrontmatter(`${source}\n`);
 	const front = frontmatterText ? loadFrontmatterYaml(frontmatterText) : {};
 
@@ -529,6 +597,7 @@ function parseExamBlock(
 	// extra field is a model error (`unknown-include-field`), and the schema
 	// checks the value.
 	if (isInclude) {
+		if (frontmatterText) blockMap.addFrontmatter(frontmatterText, 1);
 		return { ...front };
 	}
 
@@ -556,7 +625,7 @@ function parseExamBlock(
 	};
 	let question: RawDocument;
 	try {
-		question = parseQuestionDocument(source, blockWarnings);
+		question = parseQuestionDocument(source, blockWarnings, blockMap);
 	} catch (error) {
 		// The frontmatter errors of the block do not depend on its body:
 		// report them along with the error that stops the parse.

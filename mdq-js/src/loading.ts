@@ -41,6 +41,7 @@ import {
 	parseQuestionDocument,
 	YamlLoadError,
 } from "./parser/index.js";
+import { SourceMap } from "./parser/source-map.js";
 import { findUnicodeSpaces } from "./parser/spaces.js";
 import { repr } from "./parser/text.js";
 import { type Locator, withSpan, yamlLocator } from "./positions.js";
@@ -348,24 +349,32 @@ function loadMdqText(text: string, kind: Kind | undefined): Loaded {
 	// Reported even when parsing fails: a Unicode space before a tag is a
 	// common reason for the failure.
 	const collected: Diagnostic[] = findUnicodeSpaces(text);
+	const sourceMap = SourceMap.create();
+	// The map fills while the parser runs, so it also locates a failure.
+	const locate = sourceMap.toLocator();
 	let data: Data;
 	try {
 		data = {
 			...(isExamDocument
-				? parseExamDocument(text, collected)
-				: parseQuestionDocument(text, collected)),
+				? parseExamDocument(text, collected, sourceMap)
+				: parseQuestionDocument(text, collected, sourceMap)),
 		};
 	} catch (error) {
 		if (error instanceof MdqError) {
-			return failed([...collected, parseErrorDiagnostic(error)]);
+			return located(
+				failed([...collected, parseErrorDiagnostic(error)]),
+				locate,
+			);
 		}
 		throw error;
 	}
 
 	// A key the frontmatter may not hold is an error of the parser: the
 	// document it built is not the one the source describes.
-	if (collected.some((d) => d.severity === "error")) return failed(collected);
-	return validated(data, collected, isExamDocument);
+	if (collected.some((d) => d.severity === "error")) {
+		return located(failed(collected), locate);
+	}
+	return located(validated(data, collected, isExamDocument), locate);
 }
 
 function loadData(data: unknown, kind: Kind | undefined): Loaded {
