@@ -1,12 +1,13 @@
 ---
 type: issue
-status: backlog
+status: completed
 tags: [spec, schema, mdq-py, mdq-js]
 relatedTo: [dev/rfc/extensao-vs-code-para-mdq.md]
 kind: enhancement
 milestone: vscode-m1
 created: 2026-11-05
 creator: claude
+closed: 2026-11-05
 ---
 
 # Chave $schema opcional em documentos JSON e YAML
