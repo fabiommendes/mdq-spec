@@ -106,3 +106,8 @@ Decidido: o pacote npm da mdq-js passa a ser `@mdq/core`, com subpath `@mdq/core
 by: claude
 
 Revisado: a org `@mdq` não está disponível no npm. Os pacotes ficam sem escopo: `mdq` (mdq-js, subpath `mdq/solid`, mesmo nome do PyPI) e `mdq-schema`. O `$id` oficial passa a ser `https://cdn.jsdelivr.net/npm/mdq-schema@1/mdq.schema.json`. Substitui o comentário anterior sobre `@mdq/core` e o nome `@mdq/schema` da decisão 6. Org de terceiro (`@codehood`) descartada: o MDQ não deve ficar preso ao codehood.
+
+---
+by: claude
+
+Detecção de MDQ em .md antecipada para o M1, combinando três vias: (1) linguagem mdq (Change Language Mode ou files.associations), (2) setting mdq.files com globs, mantendo o arquivo como markdown, (3) heurística: só o type: de topo no frontmatter, com um tipo de questão ou exam, sem parsear o corpo. Também *.mdq passou a ser reconhecido, como no FileLoader da mdq-py.
