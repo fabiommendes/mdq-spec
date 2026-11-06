@@ -1,0 +1,4 @@
+# `$schema` must be a string with the URI of the JSON Schema.
+$schema: 1
+type: essay
+stem: Explique por que o Pantanal alaga todo ano.

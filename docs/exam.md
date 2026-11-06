@@ -98,6 +98,9 @@ and `questions` (the question and include blocks), and `comment` (the `#` lines
 at the start of the frontmatter). The rule is for Markdown;
 an exam written in YAML or JSON may use all the fields of its schema.
 
+An exam written in YAML or JSON MAY hold a `$schema` key, with the same rules
+as a question, see [Frontmatter](question-types/question-base.md#frontmatter).
+
 As for a question, a mapping MUST NOT repeat a key, in the exam frontmatter
 and in the frontmatter of every block (`yaml-syntax-error`). A value keeps its
 YAML type and is never converted: `id`, and the `include` and `includeAll` of

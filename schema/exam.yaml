@@ -9,6 +9,18 @@ description: >-
 
 type: object
 properties:
+  "$schema":
+    type: string
+    format: uri-reference
+    description: >-
+      URI of the JSON Schema of the document, for editors and tools. Any
+      URI is valid, also a relative path to a local copy. Parsers ignore
+      it: it is not part of the parsed document, and a serializer does not
+      write it. Only a document in YAML or JSON may hold it; in a Markdown
+      frontmatter it is an `invalid-frontmatter-field`.
+    examples:
+      - https://cdn.jsdelivr.net/npm/mdq-schema@1/mdq.schema.json
+
   type:
     const: exam
     description: >-

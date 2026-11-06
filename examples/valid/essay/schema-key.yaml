@@ -1,0 +1,7 @@
+# A YAML or JSON document may hold `$schema`, the URI of its JSON Schema,
+# for editors and tools. The parser ignores it.
+$schema: https://cdn.jsdelivr.net/npm/mdq-schema@1/mdq.schema.json
+type: essay
+id: pantanal-cheias
+title: Cheias do Pantanal
+stem: Explique por que o Pantanal alaga todo ano.

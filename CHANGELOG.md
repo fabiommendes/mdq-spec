@@ -15,6 +15,7 @@ First version of the specification.
 
 ### Added
 
+- A question or an exam in YAML or JSON may hold a `$schema` key: a string with the URI of its JSON Schema, for editors and tools (`docs/question-types/question-base.md`, "Frontmatter"; `docs/exam.md`). The parser ignores it, and it is not part of the parsed document. In a Markdown frontmatter it is an `invalid-frontmatter-field`. New examples `valid/essay/schema-key`, `invalid/essay-schema-key-not-string`, `invalid/essay-schema-key-frontmatter` and cases in `examples/normalize.yaml`.
 - Seeded selection of an `includeAll` block (`docs/exam.md`, "Seeded selection"): with a seed, `max` keeps the candidates with the smallest SHA-256 of the seed and the question id, so every implementation selects the same questions. Vectors in `examples/selection.yaml`.
 - Presented form (`docs/public-form.md`, "Presented form"): the public form of a choice question with the choices in a seeded order and an opaque label in the place of each choice id. The label is the shortest prefix (8, 16, 32 or 64 hex digits) of SHA-256 of the seed and the key parts (question id, blank id, choice id) joined by U+0000, as long as needed so that no other choice of the scope shares it; `shuffle` sorts the choices by label. A presented response carries labels in the place of ids, and an unknown label is a malformed response (`docs/responses.md`, "Addressability"). The `shuffle` notes of the choice types, fill-in and `docs/exam.md` point to it. New vectors in `examples/presentation.yaml`.
 

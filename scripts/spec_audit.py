@@ -159,7 +159,9 @@ POLYMORPHIC_PROPERTIES: dict[str, str] = {
 }
 
 #: Property names that are not camelCase on purpose, with the reason.
-NAMING_EXCEPTIONS: dict[str, str] = {}
+NAMING_EXCEPTIONS: dict[str, str] = {
+    "$schema": "the JSON Schema keyword editors read to find the schema of a document",
+}
 
 #: Literal that questions accept for `grading` and `shuffle`, to take the value
 #: of the exam. The exam is the top of the chain, so its schema lacks it.

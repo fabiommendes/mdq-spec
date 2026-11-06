@@ -82,6 +82,16 @@ This rule is for Markdown. A question written in YAML or JSON has no
 frontmatter: all the fields of its schema are valid, and an unknown key is a
 `schema-error`.
 
+A question written in YAML or JSON MAY hold a `$schema` key: a string with the
+URI of the JSON Schema of the document (`format: uri-reference`), for editors
+and tools. Any URI is valid, also a relative path to a local copy of the
+schema. A parser ignores the key: it is not part of the parsed document, and a
+serializer does not write it. This applies to every question object, also to a
+question inside an exam. `$schema` is not a field of the frontmatter table, so
+in Markdown it is an `invalid-frontmatter-field`. In YAML, editors that use
+`yaml-language-server` also read the schema from a comment, which is not part
+of the data: `# yaml-language-server: $schema=<uri>`.
+
 | Field  | Type               | Description                                                          |
 | ------ | ------------------ | -------------------------------------------------------------------- |
 | type   | string             | Force a question type (instead of inferring it)[^1]                  |

@@ -434,3 +434,35 @@ cases:
       stem: Quantos metros tem 1e17 quilômetros?
       answer: 1.0e+20
       domain: integer
+  - name: $schema of a question is ignored
+    format: yaml
+    input: |
+      $schema: https://cdn.jsdelivr.net/npm/mdq-schema@1/mdq.schema.json
+      type: essay
+      stem: Explique por que o Pantanal alaga todo ano.
+    output:
+      type: essay
+      stem: Explique por que o Pantanal alaga todo ano.
+  - name: null $schema is absent
+    input:
+      $schema: null
+      type: essay
+      stem: Explique por que o Pantanal alaga todo ano.
+    output:
+      type: essay
+      stem: Explique por que o Pantanal alaga todo ano.
+  - name: $schema of an exam and of its inline question is ignored
+    input:
+      $schema: ./mdq.schema.json
+      type: exam
+      title: Biomas do Brasil
+      questions:
+        - $schema: ./mdq.schema.json
+          type: essay
+          stem: Compare o Cerrado e a Caatinga.
+    output:
+      type: exam
+      title: Biomas do Brasil
+      questions:
+        - type: essay
+          stem: Compare o Cerrado e a Caatinga.
