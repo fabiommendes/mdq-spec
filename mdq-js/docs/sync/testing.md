@@ -33,6 +33,10 @@ Four file shapes appear under `valid/`:
   one; a clean document pins `[]`. The `.mdq.md` and the `.yaml` of a pair
   share it, and the `.yaml` side ignores the codes only the Markdown
   parser produces (`PARSER_ONLY_CODES` in `mdq-py/tests/_corpus.py`).
+  An entry may also pin `line` and `column`, 1-based: the position of the
+  diagnostic in the `.mdq.md`, or in the `.yaml`/`.json` when the example
+  has no `.mdq.md` (`tests/positions.spec.ts`). mdq-py ignores them until
+  it reports positions.
   Python writes these files with its lint snapshot script (see
   `mdq-py/AGENTS.md`); do not edit them by hand.
 * `exam/<name>.resolved.yaml` -- for an exam with `include`/`includeAll`:

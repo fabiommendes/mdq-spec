@@ -28,6 +28,7 @@ the whole shared corpus (`examples/`), as mdq-py does.
 
 ### Added
 
+- A diagnostic of a YAML or JSON document has its source position: `line`, `column`, `endLine` and `endColumn`, 1-based, the end exclusive. A path with no position of its own points at its closest ancestor, and the root at line 1. A YAML syntax error has the line and column of the YAML parser, a JSON one the line and column of `JSON.parse` when the engine writes them in the message.
 - A question or an exam in YAML or JSON may hold a `$schema` string, as in mdq-py. `loadText` drops it from the document; the Zod schemas accept it (`SchemaUri`).
 - `selectSeeded(seed)`: a `Select` for `resolveExam` that keeps the same questions of an `includeAll` for the same seed, as `select_seeded` in mdq-py (`docs/exam.md`, "Seeded selection"). A seed with U+0000 is a `RangeError`.
 - The presented form (`docs/public-form.md`, "Presented form"): `presentation(question, seed, { shuffle? })` returns a `Presentation` (`publicForm()`, `toResponse()`, `toPresented()`) and `examPresentation(exam, seed)` an `ExamPresentation` (`publicForm()`, `toResponses()`, `toPresentedResponses()`). They are the free functions that stand for `BaseQuestion.presentation` and `Exam.presentation`. The labels come from a synchronous SHA-256 (`@noble/hashes`, a new dependency) that runs in the browser and in plain Node ESM. A seed with U+0000 is a `RangeError` (Python raises `ValueError`). The suite runs `examples/presentation.yaml`.

@@ -168,11 +168,18 @@ export const VALID_QUESTIONS = VALID_PARSED.filter(
  */
 export const INVALID_SOURCES = collectSources(INVALID_DIR);
 
-/** One expected diagnostic of a `.lint.json` file. */
+/**
+ * One expected diagnostic of a `.lint.json` file. `line` and `column`, when
+ * present, are the 1-based position of the diagnostic in the source: the
+ * `.mdq.md` when the example has one, else the `.yaml` or `.json` document
+ * (`tests/positions.spec.ts`).
+ */
 export interface ExpectedDiagnostic {
 	readonly severity: "error" | "warning" | "info";
 	readonly code: string;
 	readonly path: readonly (string | number)[];
+	readonly line?: number;
+	readonly column?: number;
 }
 
 /** The diagnostics a `.lint.json` pins for a source or parsed document. */

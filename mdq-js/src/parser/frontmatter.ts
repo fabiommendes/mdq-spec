@@ -91,6 +91,15 @@ export function extractComment(frontmatterText: string): string | null {
 /** The error of `loadYaml`: the text is not YAML that MDQ accepts. */
 export class YamlLoadError extends Error {
 	override name = "YamlLoadError";
+
+	/** Where the problem is, 1-based, when the YAML parser knows it. */
+	constructor(
+		message: string,
+		readonly line?: number,
+		readonly column?: number,
+	) {
+		super(message);
+	}
 }
 
 /**
@@ -179,7 +188,10 @@ export function loadYaml(text: string): unknown {
 		merge: false,
 	});
 	const problem = doc.errors[0] ?? doc.warnings[0];
-	if (problem !== undefined) throw new YamlLoadError(problem.message);
+	if (problem !== undefined) {
+		const position = problem.linePos?.[0];
+		throw new YamlLoadError(problem.message, position?.line, position?.col);
+	}
 	return constructNode(doc.contents, doc, new Map());
 }
 

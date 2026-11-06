@@ -43,6 +43,7 @@ import {
 } from "./parser/index.js";
 import { findUnicodeSpaces } from "./parser/spaces.js";
 import { repr } from "./parser/text.js";
+import { type Locator, withSpan, yamlLocator } from "./positions.js";
 import { canonicalDuration, canonicalStart } from "./schedule.js";
 import { GradingType } from "./schema/common.js";
 import type { Exam } from "./schema/exam.js";
@@ -147,11 +148,18 @@ function loadSource(source: Source, options: LoadOptions): Loaded {
 				data = loadYaml(source);
 			} catch (error) {
 				if (error instanceof YamlLoadError) {
-					return failed([syntaxError("yaml-syntax-error", error.message)]);
+					return failed([
+						syntaxError(
+							"yaml-syntax-error",
+							error.message,
+							error.line,
+							error.column,
+						),
+					]);
 				}
 				throw error;
 			}
-			return loadData(data, kind);
+			return located(loadData(data, kind), yamlLocator(source));
 		}
 		case "json": {
 			let data: unknown;
@@ -165,11 +173,14 @@ function loadSource(source: Source, options: LoadOptions): Loaded {
 				}
 			} catch (error) {
 				if (error instanceof SyntaxError) {
-					return failed([syntaxError("json-syntax-error", error.message)]);
+					const [line, column] = jsonErrorPosition(error.message);
+					return failed([
+						syntaxError("json-syntax-error", error.message, line, column),
+					]);
 				}
 				throw error;
 			}
-			return loadData(data, kind);
+			return located(loadData(data, kind), yamlLocator(source));
 		}
 		default:
 			throw new RangeError(
@@ -236,8 +247,34 @@ function failed(diagnostics: readonly Diagnostic[]): Loaded {
 	return { document: undefined, diagnostics };
 }
 
-function syntaxError(code: string, message: string): Diagnostic {
-	return diagnostic("error", code, message);
+function syntaxError(
+	code: string,
+	message: string,
+	line?: number,
+	column?: number,
+): Diagnostic {
+	const found = diagnostic("error", code, message, [], line);
+	return column === undefined ? found : { ...found, column };
+}
+
+/**
+ * The 1-based line and column of a `JSON.parse` error. V8 writes them in the
+ * message (`... (line 2 column 5)`); another engine may not.
+ */
+function jsonErrorPosition(
+	message: string,
+): [number | undefined, number | undefined] {
+	const match = /\(line (\d+) column (\d+)\)/u.exec(message);
+	if (match === null) return [undefined, undefined];
+	return [Number(match[1]), Number(match[2])];
+}
+
+/** `loaded` with the source span of each diagnostic (`positions.ts`). */
+function located(loaded: Loaded, locate: Locator): Loaded {
+	return {
+		...loaded,
+		diagnostics: loaded.diagnostics.map((d) => withSpan(d, locate)),
+	};
 }
 
 /**

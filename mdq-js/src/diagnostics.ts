@@ -20,8 +20,10 @@ export type PathStep = string | number;
  * One problem found while loading a document.
  *
  * `path` locates the offending value as a list of keys and indices from the
- * document's root, like a JSON Schema error path. `line` is set only for a
- * parse failure tied to a source node whose position is known.
+ * document's root, like a JSON Schema error path. When the document came from
+ * text, `line`, `column`, `endLine` and `endColumn` locate it in the source:
+ * 1-based, the end exclusive. Without columns, the diagnostic covers the
+ * lines from `line` to `endLine`. See `positions.ts`.
  */
 export interface Diagnostic {
 	readonly severity: Severity;
@@ -29,6 +31,9 @@ export interface Diagnostic {
 	readonly message: string;
 	readonly path: readonly PathStep[];
 	readonly line?: number;
+	readonly column?: number;
+	readonly endLine?: number;
+	readonly endColumn?: number;
 }
 
 /** Build a `Diagnostic`; `path` defaults to the document root. */
