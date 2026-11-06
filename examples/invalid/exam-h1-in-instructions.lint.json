@@ -4,6 +4,7 @@
     "severity": "error",
     "path": [
       "instructions"
-    ]
+    ],
+    "line": 3
   }
 ]

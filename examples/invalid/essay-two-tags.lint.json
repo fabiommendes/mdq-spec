@@ -4,6 +4,7 @@
     "severity": "error",
     "path": [
       "epilogue"
-    ]
+    ],
+    "line": 5
   }
 ]

@@ -4,6 +4,7 @@
     "severity": "error",
     "path": [
       "lines"
-    ]
+    ],
+    "line": 3
   }
 ]

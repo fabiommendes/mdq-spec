@@ -4,6 +4,7 @@
     "severity": "error",
     "path": [
       "unit"
-    ]
+    ],
+    "line": 7
   }
 ]

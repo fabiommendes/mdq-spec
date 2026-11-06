@@ -4,6 +4,8 @@
     "severity": "error",
     "path": [
       "duration"
-    ]
+    ],
+    "line": 2,
+    "column": 1
   }
 ]

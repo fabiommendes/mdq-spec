@@ -4,6 +4,7 @@
     "severity": "error",
     "path": [
       "answerKey"
-    ]
+    ],
+    "line": 6
   }
 ]
