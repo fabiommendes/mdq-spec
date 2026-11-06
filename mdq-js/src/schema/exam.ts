@@ -15,6 +15,7 @@ import {
 	MultipleChoiceGradingType,
 	MultipleSelectionGradingType,
 	PenaltyPolicy,
+	SchemaUri,
 	TrueFalseGradingType,
 	Uuid,
 	uniqueArray,
@@ -85,6 +86,7 @@ export const DURATION_PATTERN =
 
 /** `schema/exam.yaml`. */
 export const Exam = z.strictObject({
+	$schema: SchemaUri.optional(),
 	type: z.literal("exam").optional(),
 	id: DocumentId.optional(),
 	uuid: Uuid.optional(),

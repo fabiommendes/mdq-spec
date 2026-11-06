@@ -397,6 +397,23 @@ function canonicalSchedule(exam: Data, diagnostics: Diagnostic[]): void {
 	}
 }
 
+/**
+ * base.md, "Frontmatter": the parser ignores `$schema`, so it is not part of
+ * the document. An exam may hold it, and so may each of its inline questions.
+ */
+function withoutSchemaKey(document: MdqDocument): MdqDocument {
+	const { $schema: _, ...rest } = document;
+	if (!("questions" in rest)) return rest as MdqDocument;
+	return {
+		...rest,
+		questions: rest.questions.map((entry) => {
+			if (!("$schema" in entry)) return entry;
+			const { $schema: _, ...question } = entry;
+			return question;
+		}),
+	} as MdqDocument;
+}
+
 function validated(
 	raw: Data,
 	collected: readonly Diagnostic[],
@@ -428,7 +445,7 @@ function validated(
 	if (diagnostics.some((d) => d.severity === "error"))
 		return failed(diagnostics);
 
-	const document = result.data as MdqDocument;
+	const document = withoutSchemaKey(result.data as MdqDocument);
 	diagnostics.push(...modelDiagnostics(document));
 	if (diagnostics.some((d) => d.severity === "error")) {
 		return failed(diagnostics);

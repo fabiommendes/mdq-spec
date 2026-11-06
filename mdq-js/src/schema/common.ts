@@ -270,6 +270,13 @@ export const DiacriticsType = z.enum(["fold", "keep"]);
 export type DiacriticsType = z.infer<typeof DiacriticsType>;
 
 /**
+ * `$schema`: the URI of the JSON Schema of a YAML or JSON document, for
+ * editors and tools (base.md, "Frontmatter"). `loadText` drops it from the
+ * document.
+ */
+export const SchemaUri = z.string();
+
+/**
  * Fields common to every question type -- `schema/question-base.yaml`.
  *
  * Exposed as a shape rather than a schema because the per-type schemas
@@ -278,6 +285,7 @@ export type DiacriticsType = z.infer<typeof DiacriticsType>;
  * the Zod equivalent of that composition.
  */
 export const questionBaseShape = {
+	$schema: SchemaUri.optional(),
 	id: DocumentId.optional(),
 	uuid: Uuid.optional(),
 	title: z.string().optional(),
