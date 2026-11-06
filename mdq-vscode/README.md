@@ -16,17 +16,28 @@ questions and exams written in Markdown, YAML or JSON.
 
 ## Files
 
-The extension reads files with a double extension:
+The extension reads these files:
 
 | File         | Format   |
 | ------------ | -------- |
+| `*.mdq`      | Markdown |
 | `*.mdq.md`   | Markdown |
 | `*.mdq.yaml` | YAML     |
 | `*.mdq.yml`  | YAML     |
 | `*.mdq.json` | JSON     |
 
-A `*.mdq.md` file stays a Markdown file: the editor keeps its highlight and
-Markdown features.
+A `*.mdq.md` file stays a Markdown file: the editor keeps its Markdown
+features. A `*.mdq` file is in the MDQ language, with Markdown highlight.
+
+Any other file is MDQ Markdown when its language is MDQ: run **Change
+Language Mode** and pick MDQ, or set it for a set of files in
+`settings.json`:
+
+```json
+"files.associations": {
+	"questoes/**/*.md": "mdq"
+}
+```
 
 YAML support uses the [YAML extension by Red Hat](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml),
 which is installed with this extension.

@@ -67,10 +67,7 @@ export class PreviewPanel {
 				if (event.document === this.document) this.sendLater();
 			}),
 			vscode.window.onDidChangeActiveTextEditor((editor) => {
-				if (
-					editor !== undefined &&
-					mdqFormat(editor.document.fileName) !== undefined
-				) {
+				if (editor !== undefined && mdqFormat(editor.document) !== undefined) {
 					this.follow(editor.document);
 				}
 			}),
@@ -94,7 +91,7 @@ export class PreviewPanel {
 	}
 
 	private send(): void {
-		const format = mdqFormat(this.document.fileName);
+		const format = mdqFormat(this.document);
 		if (format === undefined) return;
 		const message: ShowMessage = {
 			type: "show",

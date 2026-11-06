@@ -29,8 +29,12 @@ export function activate(context: vscode.ExtensionContext): void {
 	const timers = new Map<string, ReturnType<typeof setTimeout>>();
 
 	const refresh = (document: vscode.TextDocument) => {
-		const format = mdqFormat(document.fileName);
-		if (format === undefined) return;
+		const format = mdqFormat(document);
+		// A document leaves MDQ when its language changes to another one.
+		if (format === undefined) {
+			collection.delete(document.uri);
+			return;
+		}
 		const { diagnostics } = load(document.getText(), { format });
 		collection.set(document.uri, toEditorDiagnostics(diagnostics, document));
 	};
@@ -67,7 +71,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
 	const preview = (column: vscode.ViewColumn) => () => {
 		const editor = vscode.window.activeTextEditor;
-		if (editor === undefined || !mdqFormat(editor.document.fileName)) {
+		if (editor === undefined || mdqFormat(editor.document) === undefined) {
 			void vscode.window.showInformationMessage(
 				"Open an MDQ document to preview it.",
 			);
