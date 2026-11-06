@@ -1,12 +1,13 @@
 ---
 type: issue
-status: backlog
+status: completed
 tags: [mdq-js, diagnostics, vscode]
 relatedTo: [dev/rfc/extensao-vs-code-para-mdq.md, numeros-de-linha-nos-diagnosticos]
 kind: enhancement
 milestone: vscode-m1
 created: 2026-11-05
 creator: claude
+closed: 2026-11-05
 ---
 
 # Posições da fonte nos diagnósticos da mdq-js
