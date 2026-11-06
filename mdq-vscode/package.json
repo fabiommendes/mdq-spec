@@ -1,9 +1,10 @@
 {
-	"name": "mdq-vscode",
+	"name": "mdq",
 	"displayName": "MDQ",
 	"description": "Validation and preview of MDQ documents: questions and exams written in Markdown, YAML or JSON.",
 	"version": "0.0.1",
-	"publisher": "fabiommendes",
+	"publisher": "fabiomendes",
+	"preview": true,
 	"license": "MIT",
 	"repository": {
 		"type": "git",
