@@ -4,6 +4,8 @@
     "severity": "info",
     "path": [
       "locale"
-    ]
+    ],
+    "line": 8,
+    "column": 1
   }
 ]
