@@ -117,6 +117,7 @@ for the undefined rules and terminals.
 | JSON Schema       | `schema/*`             | JSON schema definitions for MDQ questions and exams        |
 | Python            | `mdq-py/`              | Python implementation of the MDQ parser and CLI tool       |
 | Typescript        | `mdq-js/`              | Typescript implementation of the MDQ parser and Components |
+| VS Code extension | `mdq-vscode/`          | Diagnostics and preview of MDQ documents in VS Code         |
 | GLOSSARY          | `GLOSSARY.md`          | Glossary of terms, managed by `r2 glossary`                |
 | Issues            | `dev/issues/`          | Open work, managed by `r2 issue`                           |
 | Decisions         | `dev/adr/`             | Decision records, managed by `r2 adr`                      |
@@ -229,7 +230,7 @@ Standing orders, maintenance an agent may do without an issue:
 
 ### Git layout
 
-This directory is one git repository that contains two
+This directory is one git repository that contains three
 [git subtrees](https://git-scm.com/book/en/v2/Git-Tools-Advanced-Merging#_subtree_merge).
 Every repository uses the `main` branch.
 
@@ -238,6 +239,7 @@ Every repository uses the `main` branch.
 | `/`       | `origin`   | `fabiommendes/mdq-spec` |
 | `mdq-py/` | `mdq-py`   | `fabiommendes/mdq-py`   |
 | `mdq-js/` | `mdq-js`   | `fabiommendes/mdq-js`   |
+| `mdq-vscode/` | `mdq-vscode` | `fabiommendes/mdq-vscode` |
 
 Rules:
 
@@ -257,6 +259,7 @@ Rules:
   git push origin main
   git subtree push --prefix=mdq-py mdq-py main
   git subtree push --prefix=mdq-js mdq-js main
+  git subtree push --prefix=mdq-vscode mdq-vscode main
   ```
 
 - To bring in commits made directly in a subtree repository, pull without
