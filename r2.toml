@@ -9,8 +9,8 @@
 # runs (.github/workflows/ci.yml).
 
 [commands.check]
-run = "uv run scripts/inexact_tables.py --check && uv run scripts/spec_audit.py --check && (cd mdq-py && uv run pytest -q && uv run mypy mdq && uv run ruff check) && (cd mdq-js && pnpm test && pnpm typecheck && pnpm lint)"
-help = "Spec audit, mdq-py and mdq-js tests, types and lint: the change is done when this passes."
+run = "uv run scripts/inexact_tables.py --check && uv run scripts/spec_audit.py --check && (cd mdq-py && uv run pytest -q && uv run mypy mdq && uv run ruff check) && (cd mdq-js && pnpm test && pnpm typecheck && pnpm lint) && (cd mdq-vscode && pnpm test && pnpm typecheck && pnpm lint && pnpm build)"
+help = "Spec audit, mdq-py, mdq-js and mdq-vscode tests, types and lint: the change is done when this passes."
 timeout = 1200
 
 [commands.check-spec]
@@ -26,6 +26,11 @@ timeout = 600
 [commands.check-js]
 run = "cd mdq-js && pnpm test && pnpm typecheck && pnpm lint"
 help = "mdq-js tests, types and lint."
+timeout = 600
+
+[commands.check-vscode]
+run = "cd mdq-vscode && pnpm test && pnpm typecheck && pnpm lint && pnpm build"
+help = "mdq-vscode tests, types, lint and build."
 timeout = 600
 
 [commands.audit]

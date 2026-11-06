@@ -1,7 +1,7 @@
 # r2: adr-0004
-# The subtree repositories (mdq-py, mdq-js) cannot run their tests on their
+# The subtree repositories (mdq-py, mdq-js, mdq-vscode) cannot run their tests on their
 # own: they read docs/, schema/ and examples/ from this repository. So the
-# tests of both implementations run here.
+# tests of every subtree run here.
 name: CI
 
 on:
@@ -62,3 +62,32 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm node:check
+
+  vscode:
+    name: mdq-vscode
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: mdq-vscode/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: |
+            mdq-js/pnpm-lock.yaml
+            mdq-vscode/pnpm-lock.yaml
+      # The extension builds mdq-js from its sources, with its dependencies.
+      - run: pnpm install --frozen-lockfile
+        working-directory: mdq-js
+      - run: pnpm install --frozen-lockfile
+        working-directory: mdq-vscode
+      - run: pnpm test
+        working-directory: mdq-vscode
+      - run: pnpm typecheck
+        working-directory: mdq-vscode
+      - run: pnpm lint
+        working-directory: mdq-vscode
+      - run: pnpm build
+        working-directory: mdq-vscode
