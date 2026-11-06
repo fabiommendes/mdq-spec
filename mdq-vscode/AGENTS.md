@@ -15,6 +15,12 @@ the schema bundle of the root), `pnpm test`, `pnpm typecheck`, `pnpm lint`,
 Rules:
 
 - Code that does not need `vscode` lives in its own module and has vitest
-  tests (`documents.ts`, `ranges.ts`). `extension.ts` only wires it to the
-  editor API.
+  tests (`documents.ts`, `ranges.ts`, `webview/grade.ts`). `extension.ts`
+  and `preview.ts` only wire it to the editor API.
+- `src/webview/` is the preview page, bundled for the browser with the Solid
+  components of mdq-js. It loads the document itself; the extension only
+  sends the text (`webview/protocol.ts`). `build.mjs` makes every import of
+  `solid-js` resolve from this package: two copies break reactivity. Do not
+  add `solid-js` to the `paths` of `tsconfig.json`: esbuild reads them and
+  then picks the server build of `solid-js/web`.
 - Public strings, comments and docs in English.

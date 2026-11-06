@@ -1,0 +1,50 @@
+/* The frame of the preview. The question itself uses mdq-js `plain.css`. */
+
+body {
+	padding: 0 1rem 1rem;
+	color: var(--vscode-editor-foreground);
+	background: var(--vscode-editor-background);
+	font-family: var(--vscode-font-family);
+	font-size: var(--vscode-font-size);
+}
+
+.mdq-preview-toolbar {
+	position: sticky;
+	top: 0;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	padding: 0.5rem 0;
+	margin-bottom: 1rem;
+	background: var(--vscode-editor-background);
+	border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.mdq-preview-modes {
+	padding: 0;
+	margin: 0;
+	border: none;
+}
+
+.mdq-preview-name {
+	opacity: 0.8;
+}
+
+.mdq-preview-toolbar button {
+	padding: 0.25rem 0.75rem;
+	color: var(--vscode-button-secondaryForeground);
+	background: var(--vscode-button-secondaryBackground);
+	border: none;
+	cursor: pointer;
+}
+
+.mdq-preview-toolbar button[aria-pressed="true"] {
+	color: var(--vscode-button-foreground);
+	background: var(--vscode-button-background);
+}
+
+.mdq-preview-note {
+	opacity: 0.8;
+	font-style: italic;
+}

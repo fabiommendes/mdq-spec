@@ -3,7 +3,7 @@
 		"target": "ES2022",
 		"module": "ESNext",
 		"moduleResolution": "bundler",
-		"lib": ["ES2022"],
+		"lib": ["ES2022", "DOM"],
 		"strict": true,
 		"noImplicitReturns": true,
 		"noUncheckedIndexedAccess": true,
@@ -12,9 +12,17 @@
 		"skipLibCheck": true,
 		"types": ["node"],
 		"paths": {
-			"mdq": ["../mdq-js/src/index.ts"]
+			"mdq": ["../mdq-js/src/index.ts"],
+			"mdq/solid": ["../mdq-js/src/solid/index.ts"]
 		},
-		"noEmit": true
+		"noEmit": true,
+		"jsx": "preserve",
+		"jsxImportSource": "solid-js"
 	},
-	"include": ["src/**/*.ts", "tests/**/*.ts", "../mdq-js/src/types/*.d.ts"]
+	"include": [
+		"src/**/*.ts",
+		"src/**/*.tsx",
+		"tests/**/*.ts",
+		"../mdq-js/src/types/*.d.ts"
+	]
 }

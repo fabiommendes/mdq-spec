@@ -33,6 +33,47 @@
 		"redhat.vscode-yaml"
 	],
 	"contributes": {
+		"commands": [
+			{
+				"command": "mdq.showPreview",
+				"title": "Open Preview",
+				"category": "MDQ",
+				"icon": "$(open-preview)"
+			},
+			{
+				"command": "mdq.showPreviewToSide",
+				"title": "Open Preview to the Side",
+				"category": "MDQ",
+				"icon": "$(open-preview)"
+			}
+		],
+		"menus": {
+			"editor/title": [
+				{
+					"command": "mdq.showPreviewToSide",
+					"when": "resourceFilename =~ /\\.mdq\\.(md|ya?ml|json)$/",
+					"group": "navigation"
+				}
+			],
+			"commandPalette": [
+				{
+					"command": "mdq.showPreview",
+					"when": "resourceFilename =~ /\\.mdq\\.(md|ya?ml|json)$/"
+				},
+				{
+					"command": "mdq.showPreviewToSide",
+					"when": "resourceFilename =~ /\\.mdq\\.(md|ya?ml|json)$/"
+				}
+			]
+		},
+		"keybindings": [
+			{
+				"command": "mdq.showPreviewToSide",
+				"key": "ctrl+k v",
+				"mac": "cmd+k v",
+				"when": "editorTextFocus && resourceFilename =~ /\\.mdq\\.(md|ya?ml|json)$/"
+			}
+		],
 		"jsonValidation": [
 			{
 				"fileMatch": "*.mdq.json",
@@ -84,6 +125,8 @@
 		"@types/vscode": "~1.90.0",
 		"@vscode/vsce": "^3.2.0",
 		"esbuild": "^0.25.0",
+		"esbuild-plugin-solid": "^0.6.0",
+		"solid-js": "^1.9.18",
 		"typescript": "^5.9.3",
 		"vitest": "^3.2.4"
 	},

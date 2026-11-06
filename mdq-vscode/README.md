@@ -8,6 +8,11 @@ questions and exams written in Markdown, YAML or JSON.
 - Errors and warnings in the editor and in the Problems panel, updated as you
   type. The extension uses the same validator as the `mdq` npm package.
 - Completion and hover in YAML and JSON documents, from the MDQ JSON Schema.
+- A preview of the question, as the student sees it and with its answer key.
+  Run **MDQ: Open Preview to the Side** (`Ctrl+K V`), or use the button in
+  the editor title. A response you give in the student view is graded in the
+  answer key view; with no response, the answer key view shows a correct one.
+  Exams are not previewed yet.
 
 ## Files
 

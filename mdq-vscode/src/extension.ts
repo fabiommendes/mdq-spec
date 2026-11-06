@@ -1,15 +1,16 @@
 /**
- * Entry point of the MDQ extension: diagnostics of MDQ documents.
+ * Entry point of the MDQ extension: diagnostics and preview of MDQ documents.
  *
  * Every open MDQ document (see `documents.ts`) is loaded with mdq-js on open
  * and on each change, and its diagnostics go to the editor and the Problems
  * panel. The JSON Schema registration (completion and hover in YAML and JSON)
- * is in `package.json`, not here.
+ * is in `package.json`, not here. The preview is in `preview.ts`.
  */
 
 import { load, type Diagnostic as MdqDiagnostic } from "mdq";
 import * as vscode from "vscode";
 import { mdqFormat } from "./documents.js";
+import { PreviewPanel } from "./preview.js";
 import { editorRange } from "./ranges.js";
 
 /** Where the codes of the diagnostics are explained. */
@@ -63,6 +64,27 @@ export function activate(context: vscode.ExtensionContext): void {
 		}),
 	);
 	vscode.workspace.textDocuments.forEach(refresh);
+
+	const preview = (column: vscode.ViewColumn) => () => {
+		const editor = vscode.window.activeTextEditor;
+		if (editor === undefined || !mdqFormat(editor.document.fileName)) {
+			void vscode.window.showInformationMessage(
+				"Open an MDQ document to preview it.",
+			);
+			return;
+		}
+		PreviewPanel.show(context, editor.document, column);
+	};
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			"mdq.showPreview",
+			preview(vscode.ViewColumn.Active),
+		),
+		vscode.commands.registerCommand(
+			"mdq.showPreviewToSide",
+			preview(vscode.ViewColumn.Beside),
+		),
+	);
 }
 
 export function deactivate(): void {}
