@@ -48,6 +48,14 @@ A grading strategy scoring 1 only when every part is correct, and 0 otherwise.
 - avoid: binary
 - related: Grading strategy
 
+## Annotation
+
+A comment line of a test source that holds the marker `mdq:` and declares a rubric item, or its feedback or comment.
+
+- tags: code
+- avoid: directive, pragma, marker line
+- related: Region, Rubric item
+
 ## Answer key
 
 What an instructor declared as correct for a question, whether a machine can
@@ -70,6 +78,14 @@ document.
 - avoid: auto-gradable, manually-graded, open-ended, objective, subjective
 - related: Pending response, Settled response
 - code: mdq.types.Automation
+
+## Binding
+
+What applies a rubric item: the test cases of a region, or the instructor, written `{manual}`.
+
+- tags: code
+- avoid: link, association, selector
+- related: Rubric item
 
 ## Blank
 
@@ -106,6 +122,14 @@ followed by `(` or `[`. Its content is the value.
 - tags: documents
 - avoid: checkbox, checkmark
 - related: Choice list
+
+## Code
+
+A question type whose student submits one source file, scored by a rubric that test cases and the instructor apply.
+
+- tags: code
+- avoid: e-judge, programming question
+- related: Rubric, Test source, Runner
 
 ## Content
 
@@ -267,6 +291,14 @@ never a wrong answer.
 
 - tags: answering
 - avoid: invalid answer, bad input
+
+## Modifier
+
+A name in braces on a rubric item, such as `{public}`, `{example}` or `{manual}`, that changes how the item is shown or applied.
+
+- tags: code
+- avoid: flag, attribute, option
+- related: Rubric item, Binding
 
 ## Multiple choice
 
@@ -442,6 +474,22 @@ the exam including it.
 - avoid: question field, inherent field
 - related: Exam-context field
 
+## Reference solution
+
+The first fenced block of the `## [answer-key]` section of a code question: a submission that passes every test case.
+
+- tags: code
+- avoid: model solution, solution file
+- related: Answer key, Code
+
+## Region
+
+The lines of a test source from the annotation line of one rubric item to the line before the annotation line of the next item, or to the end. The feedback and comment lines of an item are inside its region and do not start one. Every test case defined in a region belongs to the rubric item of that region.
+
+- tags: code
+- avoid: section, block, group
+- related: Annotation, Test case
+
 ## Reject
 
 A field that declares responses known to be incorrect. In short answer and
@@ -470,6 +518,38 @@ What a student marked for a question. Never the correct value.
 - tags: answering
 - avoid: submission, attempt
 - code: mdq.types.QuestionResponse
+
+## Rubric
+
+The list of items that decides the score of a question. In a code question it joins the items of `## [rubric]` and the items that the annotations declare.
+
+- tags: code
+- avoid: grading scheme, marking scheme
+- related: Rubric item
+
+## Rubric item
+
+One criterion of a rubric, with a value in relative points, applied by test cases or by the instructor.
+
+- tags: code
+- avoid: criterion, rubric entry, rubric line
+- related: Rubric, Binding, Region
+
+## Runner
+
+A program outside MDQ that executes the test sources of a code question against a submission and returns a runner report. MDQ never executes code.
+
+- tags: code
+- avoid: judge, grader, executor
+- related: Runner report, Test source
+
+## Runner report
+
+The JSON document a runner returns: a status and one verdict for each test case. MDQ turns it into a score through the rubric.
+
+- tags: code
+- avoid: result file, test results
+- related: Runner, Test case
 
 ## Score
 
@@ -547,6 +627,38 @@ wrongly subtracts from judging another rightly.
 - tags: grading
 - avoid: penalised, negative marking, right-minus-wrong
 - related: Grading strategy
+
+## Template
+
+The starting code a student receives for a code question, declared in the `## [template]` section.
+
+- tags: code
+- avoid: starter code, skeleton, boilerplate
+- related: Code
+
+## Test case
+
+One unit a runner executes and reports with a verdict, tied to a test source by the line where it is defined.
+
+- tags: code
+- avoid: test, check
+- related: Runner report, Region
+
+## Test format
+
+The identifier of the language of a test source: the first word of the info string of a fence, or the extension of a linked file.
+
+- tags: code
+- avoid: test language, test type
+- related: Test source
+
+## Test source
+
+One block of test text in the `## [tests]` section of a code question, either a fenced block or a link to a file, kept as a format, a text and an origin. MDQ does not interpret the text.
+
+- tags: code
+- avoid: test file, test block, test suite
+- related: Test format, Region, Runner
 
 ## Tolerance
 

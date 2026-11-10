@@ -57,3 +57,13 @@ Explique a força que age sobre o corpo.
 - Forma no JSON: o lugar no documento privado e o que a forma pública
   remove (a rubrica inteira, até a liberação das notas).
 - Schema, lints, exemplos no corpus, suporte no mdq-py e no mdq-js.
+
+---
+by: claude
+
+A RFC `questoes-de-codigo-com-correcao-automatica-tipo-code` depende desta issue e assume três mudanças na proposta: (1) a rubrica é uma seção `## [rubric]`, não a tag `[rubric]:`, porque fica depois do epílogo como `## [answer-key]`; (2) os valores são pontos relativos, normalizados pela soma dos itens positivos, e não frações da nota; (3) todo item tem um vínculo explícito, `{manual}` para correção à mão. Decidir aqui se (2) e (3) valem também para o essay.
+
+---
+by: claude
+
+O RFC `questoes-de-codigo-com-correcao-automatica-tipo-code` foi aceito e fixa, para a rubrica de todo tipo: seção `## [rubric]` antes de `## [answer-key]`; valor `[+3]`, `[3]`, `[-2]`, `[0]` em pontos relativos, sem espaço nos colchetes, omitido vale 1; modificadores em chaves, um por par, com `{manual}` obrigatório nos itens de `## [rubric]`; nenhum id de item na v1, e um critério que começa com `[slug]` é erro; a rubrica é privada na forma pública. Ficam para esta issue: grupos de itens que se excluem e a pontuação base.
