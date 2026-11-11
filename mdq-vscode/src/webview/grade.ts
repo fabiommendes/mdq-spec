@@ -33,6 +33,11 @@ export function review(
 	if (shown === undefined) {
 		return { error: "Answer the question to see its review." };
 	}
+	if (question.type === "code") {
+		// The preview has no runner, so it has no runner report: the response
+		// of a code question is always pending here.
+		return { response: shown, result: { pending: true, correct } };
+	}
 	try {
 		return {
 			response: shown,
