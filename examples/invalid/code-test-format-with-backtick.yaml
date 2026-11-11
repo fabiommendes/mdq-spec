@@ -1,0 +1,5 @@
+type: code
+stem: Escreva a função `tabuada(n)`.
+tests:
+  - format: 'a`b'
+    text: x

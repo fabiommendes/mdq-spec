@@ -194,11 +194,13 @@ holds exactly one fenced code block. In a Markdown source, a second block, any
 other block, or an indented code block is a `parse-error`. The `template` field
 is the Markdown source of the block, with its fences, as the `answerKey` field
 is the Markdown source of its section. The info string of the fence is not
-compared with `language`.
+compared with `language`. The fence MUST be closed: in a Markdown source an
+unclosed fence swallows the sections after it, and a `template` with no closing
+fence is a `forbidden-block-element` error in every form.
 
 The rule holds in every form. In a document written as YAML or JSON, a
 `template` that is not exactly one fenced code block, such as code with no
-fence, prose around the block or two blocks, is a `forbidden-block-element`
+fence, with no closing fence, prose around the block or two blocks, is a `forbidden-block-element`
 error at `template`. A `template` that is empty or has no visible character is a
 `blank-text` error. The model checks it, as it checks the `answerKey`. A
 Markdown source keeps the `parse-error` of the grammar: the section is
@@ -252,6 +254,16 @@ with nothing after the last `.`, has no format: it is a `parse-error`. Case is
 kept, so `py` and `python` are two formats for MDQ. An unknown format is not an
 error. MDQ does not interpret the format: each runner declares the formats it
 accepts, and the host chooses the runner from `language` and the format.
+
+A format is one word: it is not empty, and it has no Unicode space and no
+backtick, in every form. The rule is the same in the YAML form (`format`), so a
+fence can always write the format back. A tilde fence such as `~~~a`b` reads the
+format ``a`b``, which breaks the rule: it is a `schema-error` at `tests[i].format`.
+A source with an `origin` has the extension of the origin as its `format`: any
+other value is a `test-format-disagrees-with-origin` error at `tests[i].format`.
+The `origin` of the YAML form has the shape of the `ORIGIN` rule above, plus no
+line break: a path with no scheme, no `?`, no `#`, no leading `/` and an
+extension in the last segment.
 
 #### JSON form
 
@@ -523,8 +535,10 @@ fraction of the discount that applies. Let `G` be the sum of the credits and
 score = max(-1, (G - D) / P)
 ```
 
-The score is in `[-1, 1]` as the score of every question. When `P = 0`, the
-score is 0. The `penalty` of the exam decides the rest, as for a multiple choice
+The score is in `[-1, 1]` as the score of every question. The score is computed
+exactly from the decimal values of the items and of the scores of the instructor
+(`0.1` is one tenth, not the nearest binary double), and then rounded once to the
+nearest double. When `P = 0`, the score is 0. The `penalty` of the exam decides the rest, as for a multiple choice
 question: with the default `"none"`, the question never falls below 0. See
 [Penalty](../exam.md#penalty).
 
@@ -612,8 +626,9 @@ solution, when there is one.
 | file                 | error    | schema-error              | must be a plain name: not only Unicode spaces, not `.` or `..`, with no `/` and no `\` (schema) |
 | tests                | error    | schema-error              | must have at least one test source (schema)                       |
 | tests[]              | error    | schema-error              | must have a `text` or an `origin` (schema)                        |
-| tests[].format       | error    | schema-error              | must not be empty (schema)                                        |
-| tests[].origin       | error    | schema-error              | must be a relative path with no scheme, query or fragment (schema) |
+| tests[].format       | error    | schema-error              | must be a word: not empty, with no Unicode space and no backtick (schema) |
+| tests[].format       | error    | test-format-disagrees-with-origin | with an `origin`, must be the extension of the origin     |
+| tests[].origin       | error    | schema-error              | must be a relative path with no scheme, query, fragment or line break, and a file name with an extension (schema) |
 | rubric               | error    | schema-error              | must have at least one item (schema)                              |
 | rubric[].binding     | error    | schema-error              | must be `manual` (schema)                                         |
 | body                 | error    | parse-error               | the paragraph of the tag must be only `[code]`, in lower case[^3] |
@@ -622,12 +637,13 @@ solution, when there is one.
 | body                 | error    | parse-error               | a section may be declared at most once                            |
 | body                 | error    | parse-error               | a heading `## [name]` that is not a section cannot come after the first section |
 | template             | error    | parse-error               | in a Markdown source, the section must have exactly one fenced code block |
-| template             | error    | forbidden-block-element   | in every form, must be exactly one fenced code block              |
+| template             | error    | forbidden-block-element   | in every form, must be exactly one fenced code block, with its closing fence |
 | template             | error    | blank-text                | if defined, must have at least one visible character              |
 | tests                | error    | parse-error               | the section must have a fenced block with an info string, or a paragraph with only an inline link, in each block; two links need a blank line between them |
 | tests                | error    | parse-error               | the link of a test source must have a relative origin with no query or fragment, and a file name with an extension |
 | rubric               | error    | parse-error               | the section must have exactly one unordered list                  |
 | rubric[]             | error    | parse-error               | holds only its first paragraph, the feedback and the comment, see [Rubric section](#rubric-section) |
+| rubric[]             | error    | parse-error               | starts with a paragraph: the criterion is not a heading, a quote or another block |
 | rubric[]             | error    | parse-error               | carries at most one feedback block and one comment block          |
 | template, tests, rubric | error | parse-error               | the section must have at least one block                          |
 | answerKey            | error    | parse-error               | at most one `## [answer-key]` section may be declared             |

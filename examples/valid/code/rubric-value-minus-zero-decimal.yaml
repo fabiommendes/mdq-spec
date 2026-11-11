@@ -1,0 +1,17 @@
+id: valor-menos-zero-decimal
+title: O valor [-0.0] é [0]
+type: code
+language: python
+stem: Escreva a função `tabuada(n)`, que devolve os dez primeiros múltiplos de `n`.
+tests:
+  - format: pytest
+    text: |
+      # mdq: [+2] Devolve os múltiplos de três
+      def test_tres(): ...
+
+      # mdq: [-0.0] Observação sem valor
+      def test_observacao(): ...
+rubric:
+  - value: 0.0
+    binding: manual
+    text: Observação para o professor

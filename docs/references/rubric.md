@@ -38,7 +38,9 @@ The item above has the value 3, the modifier `example` and the criterion
 The value is a number between square brackets, with no space inside them. It
 is the `RUBRIC_VALUE` terminal: an optional sign (`+` or `-`) and a required
 number, an `INTEGER` or a `DECIMAL` (see [Tokens](grammar.md#tokens)). A value
-has no exponent. It is the form of the `percent` value of a
+has no exponent: in a YAML or JSON document any finite number is a valid
+`value`, and the Markdown form writes it as a plain decimal (`1e-7` is
+`[+0.0000001]`). It is the form of the `percent` value of a
 [multiple choice](choices.md) choice, without the `%`.
 
 | Written      | Value | Kind                                    |

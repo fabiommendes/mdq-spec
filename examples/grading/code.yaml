@@ -35,9 +35,13 @@
 #   instructor?: number
 #
 #   // What the grading gives: the score, "pending" (responses.md, "Pending")
-#   // or "error". A score is compared with a tolerance of 1e-9, as the
-#   // fractions of the formula are not exact in binary.
+#   // or "error". A score is compared with a tolerance of 1e-9, unless
+#   // `exact` is true.
 #   score: number | "pending" | "error"
+#
+#   // The score is computed exactly and rounded once (code.md, "Score"), so
+#   // it must equal `score`, the nearest double, with no tolerance.
+#   exact?: boolean
 #
 #   // The error of the grading, when `score` is "error" (responses.md,
 #   // "Errors"). `ValueError` is a host error: the `manual` or `instructor`
@@ -700,3 +704,159 @@ questions:
         manual: [1]
         score: error
         error: ValueError
+
+  - name: "Decimal values, three cases"
+    question:
+      tests:
+        - format: py
+          text: |
+            # mdq: [0.1] a
+            def test_a(): ...
+            def test_b(): ...
+            def test_c(): ...
+      rubric:
+        - {value: 0.05, binding: manual, text: Clareza}
+    automation: semi-automatic
+    examples:
+      - name: "everything earned is exactly 1, not 1.0000000000000002"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 2, verdict: pass}
+            - {source: 0, line: 3, verdict: pass}
+            - {source: 0, line: 4, verdict: pass}
+        manual: [1]
+        score: 1.0
+        exact: true
+
+  - name: "Decimal value, three cases, no rubric"
+    question:
+      tests:
+        - format: py
+          text: |
+            # mdq: [0.07] a
+            def test_a(): ...
+            def test_b(): ...
+            def test_c(): ...
+            # mdq: [1.1] b
+            def test_d(): ...
+    automation: automatic
+    examples:
+      - name: "all pass: exactly 1"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 2, verdict: pass}
+            - {source: 0, line: 3, verdict: pass}
+            - {source: 0, line: 4, verdict: pass}
+            - {source: 0, line: 6, verdict: pass}
+        score: 1.0
+        exact: true
+
+  - name: "Decimal value, twenty-nine cases"
+    question:
+      tests:
+        - format: py
+          text: |
+            # mdq: [0.1] a
+            def test_01(): ...
+            def test_02(): ...
+            def test_03(): ...
+            def test_04(): ...
+            def test_05(): ...
+            def test_06(): ...
+            def test_07(): ...
+            def test_08(): ...
+            def test_09(): ...
+            def test_10(): ...
+            def test_11(): ...
+            def test_12(): ...
+            def test_13(): ...
+            def test_14(): ...
+            def test_15(): ...
+            def test_16(): ...
+            def test_17(): ...
+            def test_18(): ...
+            def test_19(): ...
+            def test_20(): ...
+            def test_21(): ...
+            def test_22(): ...
+            def test_23(): ...
+            def test_24(): ...
+            def test_25(): ...
+            def test_26(): ...
+            def test_27(): ...
+            def test_28(): ...
+            def test_29(): ...
+    automation: automatic
+    examples:
+      - name: "all pass: exactly 1, not 0.9999999999999998"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 2, verdict: pass}
+            - {source: 0, line: 3, verdict: pass}
+            - {source: 0, line: 4, verdict: pass}
+            - {source: 0, line: 5, verdict: pass}
+            - {source: 0, line: 6, verdict: pass}
+            - {source: 0, line: 7, verdict: pass}
+            - {source: 0, line: 8, verdict: pass}
+            - {source: 0, line: 9, verdict: pass}
+            - {source: 0, line: 10, verdict: pass}
+            - {source: 0, line: 11, verdict: pass}
+            - {source: 0, line: 12, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 14, verdict: pass}
+            - {source: 0, line: 15, verdict: pass}
+            - {source: 0, line: 16, verdict: pass}
+            - {source: 0, line: 17, verdict: pass}
+            - {source: 0, line: 18, verdict: pass}
+            - {source: 0, line: 19, verdict: pass}
+            - {source: 0, line: 20, verdict: pass}
+            - {source: 0, line: 21, verdict: pass}
+            - {source: 0, line: 22, verdict: pass}
+            - {source: 0, line: 23, verdict: pass}
+            - {source: 0, line: 24, verdict: pass}
+            - {source: 0, line: 25, verdict: pass}
+            - {source: 0, line: 26, verdict: pass}
+            - {source: 0, line: 27, verdict: pass}
+            - {source: 0, line: 28, verdict: pass}
+            - {source: 0, line: 29, verdict: pass}
+            - {source: 0, line: 30, verdict: pass}
+        score: 1.0
+        exact: true
+      - name: "one case fails: 28/29 rounded once"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 2, verdict: pass}
+            - {source: 0, line: 3, verdict: pass}
+            - {source: 0, line: 4, verdict: pass}
+            - {source: 0, line: 5, verdict: pass}
+            - {source: 0, line: 6, verdict: pass}
+            - {source: 0, line: 7, verdict: pass}
+            - {source: 0, line: 8, verdict: pass}
+            - {source: 0, line: 9, verdict: pass}
+            - {source: 0, line: 10, verdict: pass}
+            - {source: 0, line: 11, verdict: pass}
+            - {source: 0, line: 12, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 14, verdict: pass}
+            - {source: 0, line: 15, verdict: pass}
+            - {source: 0, line: 16, verdict: pass}
+            - {source: 0, line: 17, verdict: pass}
+            - {source: 0, line: 18, verdict: pass}
+            - {source: 0, line: 19, verdict: pass}
+            - {source: 0, line: 20, verdict: pass}
+            - {source: 0, line: 21, verdict: pass}
+            - {source: 0, line: 22, verdict: pass}
+            - {source: 0, line: 23, verdict: pass}
+            - {source: 0, line: 24, verdict: pass}
+            - {source: 0, line: 25, verdict: pass}
+            - {source: 0, line: 26, verdict: pass}
+            - {source: 0, line: 27, verdict: pass}
+            - {source: 0, line: 28, verdict: pass}
+            - {source: 0, line: 29, verdict: pass}
+            - {source: 0, line: 30, verdict: fail}
+        score: 0.9655172413793104
+        exact: true

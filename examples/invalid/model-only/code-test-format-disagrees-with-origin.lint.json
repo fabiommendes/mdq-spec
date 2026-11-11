@@ -1,0 +1,7 @@
+[
+  {
+    "code": "test-format-disagrees-with-origin",
+    "severity": "error",
+    "path": ["tests", 0, "format"]
+  }
+]

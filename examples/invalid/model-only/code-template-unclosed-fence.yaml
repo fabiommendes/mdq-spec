@@ -1,0 +1,5 @@
+# code.md, "Template": the fenced block of the template has its closing fence.
+# Without it, the block swallows the sections that follow it in Markdown.
+type: code
+stem: Escreva a função `tabuada(n)`.
+template: "```py\ndef tabuada(n):\n    ..."

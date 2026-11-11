@@ -1,0 +1,6 @@
+# code.md, "Test format": the format of a linked file is the extension of its origin.
+type: code
+stem: Escreva a função `tabuada(n)`.
+tests:
+  - format: pytest
+    origin: test_tabuada.py
