@@ -84,12 +84,12 @@ describe("validateDocument routes each valid example to its schema", () => {
 });
 
 describe("valid questions declare a known question type", () => {
-	it.each(
-		VALID_QUESTIONS.map((path) => [relativeId(path), path]),
-	)("%s", (_name, path) => {
-		const document = loadDocument(path) as { type?: string };
-		expect(QUESTION_TYPES).toContain(document.type);
-	});
+	for (const path of VALID_QUESTIONS) {
+		corpusIt(SCHEMA, relativeId(path), () => {
+			const document = loadDocument(path) as { type?: string };
+			expect(QUESTION_TYPES).toContain(document.type);
+		});
+	}
 });
 
 describe("invalid examples", () => {

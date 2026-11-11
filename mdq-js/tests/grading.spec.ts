@@ -123,6 +123,8 @@ describe("grading files", () => {
 			.sort();
 		expect(names).toEqual([
 			"automation",
+			// r2: issue/mdq-js-porte-do-tipo-code (code.yaml is not run yet)
+			"code",
 			"essay",
 			"exam",
 			"fill-in",

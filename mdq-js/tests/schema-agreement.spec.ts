@@ -520,7 +520,17 @@ describe("zod-json-schema agreement", () => {
 		]);
 
 		/** Object-typed `$defs` entries deliberately left untested, with why. */
-		const OBJECT_DEFS_SKIPPED: Record<string, string> = {};
+		const OBJECT_DEFS_SKIPPED: Record<string, string> = {
+			// r2: issue/mdq-js-porte-do-tipo-code
+			code: "the code question type has no Zod model yet",
+			"code#/$defs/RubricItem": "the code question type has no Zod model yet",
+			"code#/$defs/TestSource": "the code question type has no Zod model yet",
+			// The runner report is not a question; the port adds its model with
+			// the code type.
+			"runner-report": "the runner report has no Zod model yet",
+			"runner-report#/$defs/Case": "the runner report has no Zod model yet",
+			"runner-report#/$defs/Output": "the runner report has no Zod model yet",
+		};
 
 		/** Enum-typed `$defs` entries checked against a Zod enum's `.options` above. */
 		const ENUM_DEFS_TESTED = new Set([
