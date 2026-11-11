@@ -1,11 +1,12 @@
 ---
 type: issue
-status: backlog
+status: completed
 tags: [mdq-js, code]
 relatedTo: [questoes-de-codigo-com-correcao-automatica-tipo-code]
 kind: enhancement
 created: 2026-11-10
 creator: claude
+closed: 2026-11-11
 ---
 
 # mdq-js: porte do tipo code
