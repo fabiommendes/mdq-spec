@@ -42,6 +42,7 @@ export type LintCode =
 	| "reject-without-feedback"
 	| "relative-tolerance-around-zero"
 	| "relative-tolerance-over-one"
+	| "rubric-without-positive-item"
 	| "setext-heading"
 	| "stray-choice-marker"
 	| "undeclared-id-after-include-all"
@@ -89,6 +90,7 @@ const SEVERITY_BY_CODE = {
 	"reject-without-feedback": "info",
 	"relative-tolerance-around-zero": "warning",
 	"relative-tolerance-over-one": "info",
+	"rubric-without-positive-item": "warning",
 	"setext-heading": "warning",
 	"stray-choice-marker": "warning",
 	"undeclared-id-after-include-all": "warning",

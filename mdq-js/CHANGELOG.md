@@ -13,14 +13,24 @@ that it implements.
 Implements part of the unreleased MDQ specification. The library now passes
 the whole shared corpus (`examples/`), as mdq-py does.
 
+### Added
+
+- The `code` question type (`docs/question-types/code.md`): the `[code]` tag, the sections `## [template]`, `## [tests]`, `## [rubric]` and `## [answer-key]`, test sources (a fence or a link to a file), the rubric and the annotations of a test source. The model rules, the lint `rubric-without-positive-item` and the model code `test-format-disagrees-with-origin` are new.
+- `resolveTests(question, texts)` returns a copy of a code question with the text of its linked test sources. `fullRubric(question)` lists every item of the question, `referenceSolution(question)` is the first fenced block of the answer key, and `isResolved(question)` tells whether every source has a text.
+- `publicForm` of a code question keeps `template`, `language` and `file`, and adds `publicTests` (`format`, `text`, `firstLine`, `example`), absent when no region is public. It throws `UnresolvedTestSource` while a source has no text. `correctResponses` gives the reference solution, or `[]`.
+- `parseReport` and `checkReport` validate a runner report (strict schema, cases are checked when the status is `completed`). A bad report is a `ReportError`.
+- `scoreResponse` takes a third argument, `grading` (`CodeGrading`: `report`, `manual`, `instructor`), and `scoreResponses` takes `reports`, `manual` and `instructor` by question id. A code score is computed with exact arithmetic. New errors: `UnresolvedTestSource` and `ReportError`.
+
 ### Removed
 
 - `css/daisyui.css`. The package ships only `css/plain.css`; a consumer on daisyUI keeps its own stylesheet for the `mdq-*` classes.
 
 ### Changed
 
+- A heading that starts with `[` after `## [answer-key]` in an essay is a `forbidden-block-element` error, as in mdq-py.
 - `Ordering` reorders by drag and drop. A handle (`.mdq-ordering-grip`) replaces the move up and move down buttons: drag it, or drag the whole line with a mouse or pen, and use the arrow keys on it (up and down move the line, left and right change its level). A touch drags from the handle only, so the page still scrolls over the text. While a line is dragged the "Not used" list shows as a target, even when empty, and the page scrolls near the top and bottom of the window. `Esc` cancels. The messages `orderingMoveUp` and `orderingMoveDown` are gone; `orderingGrip`, `orderingGripHint` and `orderingDropUnused` are new.
 - An escaped `\[^slug]` and `&#91;^slug]` in a fill-in stem are text, not blanks, as in mdq-py.
+- The `setext-heading` warning also covers a line of `-` of any length right after text, and a `---` line glued to the heading of a `[template]`, `[tests]` or `[rubric]` section.
 - `publicForm` omits `weight: 1`, the default, as mdq-py does.
 - `publicForm` leaves out `shuffle` and `grading` when they are `inherit`, the default, as mdq-py does. Before, an explicit `inherit` was copied.
 - Diagnostic messages and comments say "true or false" for the question type; `true-false` stays the value of `type`.

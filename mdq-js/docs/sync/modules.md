@@ -26,12 +26,14 @@ differs states the reason in its header comment.
 | `mdq/_include_keys.py`              | `src/include-keys.ts`                    |
 | `mdq/_schedule.py`                  | `src/schedule.ts`                        |
 | `mdq/_banks.py`                     | `src/banks.ts`                           |
-| `mdq/_parser/_<name>.py`            | `src/parser/<name>.ts` (`_blocks`, `_choices`, `_exam`, `_fill_in`, `_frontmatter`, `_numeric`, `_ordering`, `_question`, `_short_answer`, `_spaces`, `_tags`) |
+| `mdq/_parser/_<name>.py`            | `src/parser/<name>.ts` (`_blocks`, `_choices`, `_code`, `_exam`, `_fill_in`, `_frontmatter`, `_numeric`, `_ordering`, `_question`, `_rubric`, `_short_answer`, `_spaces`, `_tags`) |
 | `mdq/models/_base.py`               | `src/models/base.ts` (`FamilyRules`: the validators a family adds) |
 | `mdq/models/_choice.py`             | `src/models/choice.ts`                   |
 | `mdq/models/_numeric.py`            | `src/models/numeric.ts`                  |
 | `mdq/models/_text.py`               | `src/models/text.ts`                     |
 | `mdq/models/_fill_in.py`            | `src/models/fill-in.ts`                  |
+| `mdq/models/_code.py`               | `src/models/code.ts` (model rules, `fullRubric`, `referenceSolution`, `codeAutomation`, `resolveTests`) and `src/models/code-grading.ts` (`scoreCode`, `CodeGrading`, exact `BigInt` fractions); the public form is in `src/models/public-form.ts`; render is not ported |
+| `mdq/models/_report.py`             | `src/schema/runner-report.ts` (Zod `RunnerReport`, `ReportCase`, `ReportOutput`) and `src/models/report.ts` (`parseReport`, `checkReport`); `ReportError` in `src/errors.ts` |
 | `mdq/models/_ordering.py`           | `src/models/ordering.ts`                 |
 | `mdq/models/_exam.py`               | `src/models/exam.ts` (`validateQuestionModel`, `validateExamModel`, `FAMILY_RULES`, `lint`, `lintQuestion`, `lintExam`) |
 | `mdq/models/_lint.py` (common rules) | `src/models/lint.ts` (the `lint` of a family is its `FamilyRules.lint`; `baseLint` is in `base.ts`) |
@@ -41,7 +43,7 @@ differs states the reason in its header comment.
 | `mdq/models/_regex.py`              | `src/models/regex.ts`                    |
 | `mdq/models/_query.py`              | `src/models/query.ts`                    |
 | `mdq/models/_slugify.py`            | `src/models/slugify.ts`                  |
-| `mdq/models/_score.py`              | `src/models/score.ts` (result types, `scoreResponse`, `prevalidate`, `scoreResponses`; each family scores in its own module: `scoreMultipleChoice` in `choice.ts`, `scoreNumeric`, `scoreText` and `scoreShortAnswer` in `text.ts`, `scoreFillIn`, `scoreOrdering`) |
+| `mdq/models/_score.py`              | `src/models/score.ts` (result types, `scoreResponse` and `scoreResponses`, which take the `reports`, `manual` and `instructor` of a code question, `prevalidate`; each family scores in its own module: `scoreMultipleChoice` in `choice.ts`, `scoreNumeric`, `scoreText` and `scoreShortAnswer` in `text.ts`, `scoreFillIn`, `scoreOrdering`) |
 | `tests/_corpus.py`                  | `tests/corpus.ts`                        |
 | `tests/strategies/`                 | `tests/arbitraries.ts`                   |
 
@@ -50,7 +52,7 @@ Only in TypeScript:
 - `src/models/public-form.ts`: `publicForm` and `correctResponses`. Python
   spreads `public()` and `correct_responses()` over `models/_base.py`,
   `_choice.py`, `_numeric.py`, `_text.py`, `_fill_in.py` and `_ordering.py`
-  as methods. Here one module dispatches on `type`, like `models/exam.ts`.
+  as methods, and `_code.py` too. Here one module dispatches on `type`, like `models/exam.ts`.
   `public` is a reserved word in strict-mode JavaScript, hence `publicForm`.
 
 - `src/parser/text.ts` and `src/parser/tree.ts`: helpers that markdown-it-py

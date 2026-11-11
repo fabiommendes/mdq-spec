@@ -243,9 +243,9 @@ export function parseExamDocument(
 				diagnostic(
 					"warning",
 					"setext-heading",
-					"a '---' line right after text is a setext heading, not a " +
-						"block boundary; put a blank line before the '---' that " +
-						"opens a block",
+					"a '---' line, or a line of '-', right after text is a setext " +
+						"heading, not a block boundary; put a blank line before the " +
+						"'---' that opens a block",
 					["questions", blockIndex, ...field],
 				),
 			);
@@ -327,17 +327,20 @@ export function parseExam(source: string): Exam {
 	return result.data;
 }
 
+/** The underline of a setext section heading. */
+const SECTION_UNDERLINE_RE = /^ {0,3}-+$/u;
 /** A `[section]` line of a question: `[extra]`, with or without `##`. */
 const SECTION_LINE_RE =
-	/^ {0,3}(?:##[ \t]+)?\[(?<name>answer-key|extra|accept|reject)\][ \t]*(?:#+[ \t]*)?$/u;
+	/^ {0,3}(?:##[ \t]+)?\[(?<name>answer-key|template|tests|rubric|extra|accept|reject)\][ \t]*(?:#+[ \t]*)?$/u;
 
 /**
  * The path, inside its question, of the field that holds the `---` line at
  * `lines[index]`, glued to the text line before it.
  *
  * When that text line is a type-specific section heading (`[extra]`,
- * `[accept]`, `[reject]` or `[answer-key]`), the path points at the section;
- * otherwise it is `stem` before the body tag and `epilogue` after it.
+ * `[accept]`, `[reject]`, `[answer-key]`, `[template]`, `[tests]` or
+ * `[rubric]`), the path points at the section; otherwise it is `stem` before
+ * the body tag and `epilogue` after it.
  */
 function gluedField(
 	lines: readonly string[],
@@ -347,14 +350,32 @@ function gluedField(
 	codeLines: ReadonlySet<number>,
 ): PathStep[] {
 	if (!bodySeen) return ["stem"];
-	const name = SECTION_LINE_RE.exec(rstrip(lines[index - 1] ?? "", " \t"))
-		?.groups?.name;
-	if (name === undefined) return ["epilogue"];
-	if (name === "answer-key") return ["answerKey"];
-	if (name === "extra") return ["extra"];
 	const first = starts[starts.length - 1] ?? 0;
+	// The section that holds the line: the nearest section heading above it.
+	let heading: number | undefined;
+	for (let i = index - 1; i >= first; i--) {
+		if (
+			!codeLines.has(i) &&
+			SECTION_LINE_RE.test(rstrip(lines[i] ?? "", " \t"))
+		) {
+			heading = i;
+			break;
+		}
+	}
+	if (heading === undefined) return ["epilogue"];
+	const name = SECTION_LINE_RE.exec(rstrip(lines[heading] ?? "", " \t"))?.groups
+		?.name as string;
+	if (name === "answer-key") return ["answerKey"];
+	if (
+		name === "extra" ||
+		name === "template" ||
+		name === "tests" ||
+		name === "rubric"
+	) {
+		return [name];
+	}
 	let position = 0;
-	for (let i = first; i < index - 1; i++) {
+	for (let i = first; i < heading; i++) {
 		if (codeLines.has(i)) continue;
 		const earlier = SECTION_LINE_RE.exec(rstrip(lines[i] ?? "", " \t"));
 		if (earlier?.groups?.name === name) position++;
@@ -451,10 +472,14 @@ function splitExamBlocks(
 			continue;
 		}
 
+		// A `---`, or a longer underline of a section heading (`[tests]` over
+		// `-------`), right after text is a setext underline.
 		if (
-			line === "---" &&
 			!blankBefore &&
-			strip(lines[index - 1] ?? "", " \t") !== ""
+			strip(lines[index - 1] ?? "", " \t") !== "" &&
+			(line === "---" ||
+				(SECTION_UNDERLINE_RE.test(line) &&
+					SECTION_LINE_RE.test(rstrip(lines[index - 1] ?? "", " \t"))))
 		) {
 			glued.push([
 				index,

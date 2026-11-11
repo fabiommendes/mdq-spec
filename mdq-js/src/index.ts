@@ -13,6 +13,14 @@ export * from "./diagnostics.js";
 export * from "./errors.js";
 export * from "./loading.js";
 export * from "./models/base.js";
+export {
+	type FullRubricItem,
+	fullRubric,
+	isResolved,
+	referenceSolution,
+	resolveTests,
+} from "./models/code.js";
+export { type CodeGrading, scoreCode } from "./models/code-grading.js";
 export * from "./models/exam.js";
 export * from "./models/fill-in.js";
 export {
@@ -23,6 +31,7 @@ export {
 } from "./models/presentation.js";
 export * from "./models/public-form.js";
 export * from "./models/query.js";
+export { checkReport, parseReport } from "./models/report.js";
 export * from "./models/score.js";
 export * from "./models/slugify.js";
 export * from "./models/text.js";

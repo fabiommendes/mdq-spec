@@ -26,12 +26,14 @@ import {
 	scoreMultipleSelection,
 	scoreTrueFalse,
 } from "./choice.js";
+import { type CodeGrading, scoreCode } from "./code-grading.js";
 import { resolveQuestion } from "./exam.js";
 import { scoreFillIn } from "./fill-in.js";
 import { scoreNumeric } from "./numeric.js";
 import { scoreOrdering } from "./ordering.js";
 import {
 	type Prevalidation,
+	parseTextResponse,
 	prevalidateText,
 	scoreEssay,
 	scoreShortAnswer,
@@ -61,6 +63,15 @@ export interface QuestionScore {
 	readonly blanks?: Readonly<Record<string, BlankScore | null>>;
 }
 
+/** What the host adds to the responses of the code questions of an exam, by question id. */
+export interface ExamCodeGrading {
+	readonly reports?: Readonly<Record<string, unknown>>;
+	readonly manual?: Readonly<
+		Record<string, readonly (number | null | undefined)[]>
+	>;
+	readonly instructor?: Readonly<Record<string, number>>;
+}
+
 /** What one attempt at an exam was worth (`docs/exam.md`, "Exam score"). */
 export interface ExamScore {
 	/** `null` while a response is pending. */
@@ -80,10 +91,16 @@ export interface ExamScore {
  *
  * @throws {ResponseError} If the response has the wrong shape.
  * @throws {NotAutoGradable} If the response waits for an instructor.
+ *
+ * @param grading What the host adds for a code question: the runner report and
+ *   the scores of the instructor. Any other type ignores it. A code question
+ *   throws `UnresolvedTestSource`, `ReportError` or `RangeError` as `scoreCode`
+ *   does.
  */
 export function scoreResponse(
 	question: Question,
 	response: unknown,
+	grading: CodeGrading = {},
 ): QuestionScore {
 	switch (question.type) {
 		case "multiple-choice":
@@ -102,6 +119,9 @@ export function scoreResponse(
 			return scoreFillIn(question, response);
 		case "ordering":
 			return scoreOrdering(question, response);
+		case "code":
+			parseTextResponse(response);
+			return scoreCode(question, grading);
 	}
 }
 
@@ -125,19 +145,34 @@ export function prevalidate(
 	);
 }
 
+/** The entry of `key`, ignoring the properties `Object` has. */
+function own<T>(map: Readonly<Record<string, T>> | undefined, key: string) {
+	return map !== undefined && Object.hasOwn(map, key) ? map[key] : undefined;
+}
+
 /**
  * Score the responses of one attempt at an exam: a mapping from question id to
  * response (`docs/responses.md`, "Responses to an exam"; `docs/exam.md`, "Exam
  * score"). The include blocks of the exam must be resolved.
  *
+ * A code question also takes the runner report of its response (`reports`),
+ * the scores of the instructor for its manual items (`manual`) and, when it
+ * has no item at all, one score for the whole response (`instructor`), each by
+ * question id. See `scoreCode`. A key of these mappings that is not a code
+ * question of the exam is an error, as for `responses`.
+ *
  * @throws {UnresolvedInclude} The exam still holds an include block.
  * @throws {MissingIdError} A question has no id.
  * @throws {ResponseError} A key of `responses` is not a question of the exam,
  *   or a response cannot be graded by its question.
+ * @throws {UnresolvedTestSource} A code question has an unresolved test source.
+ * @throws {ReportError} A code question that has a test source has no valid report.
+ * @throws {RangeError} The scores of the instructor do not fit a code question.
  */
 export function scoreResponses(
 	exam: Exam,
 	responses: ExamResponses,
+	grading: ExamCodeGrading = {},
 ): ExamScore {
 	const questions: (Question & { id: string })[] = [];
 	for (const entry of exam.questions) {
@@ -153,6 +188,19 @@ export function scoreResponses(
 	for (const key of Object.keys(responses)) {
 		if (!ids.has(key)) {
 			throw new ResponseError(`response for unknown question ${pyRepr(key)}`);
+		}
+	}
+
+	const codeIds = new Set(
+		questions.filter((q) => q.type === "code").map((q) => q.id),
+	);
+	for (const mapping of [grading.reports, grading.manual, grading.instructor]) {
+		for (const key of Object.keys(mapping ?? {})) {
+			if (!codeIds.has(key)) {
+				throw new ResponseError(
+					`${pyRepr(key)} is not a code question of the exam`,
+				);
+			}
 		}
 	}
 
@@ -175,7 +223,14 @@ export function scoreResponses(
 			result = { score: 0, feedback: [] };
 		} else {
 			try {
-				result = scoreResponse(resolveQuestion(exam, question), response);
+				result =
+					question.type === "code"
+						? scoreResponse(question, response, {
+								report: own(grading.reports, question.id),
+								manual: own(grading.manual, question.id),
+								instructor: own(grading.instructor, question.id),
+							})
+						: scoreResponse(resolveQuestion(exam, question), response);
 			} catch (error) {
 				if (!(error instanceof NotAutoGradable)) throw error;
 				pending.push(question.id);

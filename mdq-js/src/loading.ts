@@ -540,6 +540,7 @@ const QUESTION_TAGS = [
 	"essay",
 	"fill-in",
 	"ordering",
+	"code",
 ];
 
 function valueAt(data: unknown, path: readonly PathStep[]): unknown {

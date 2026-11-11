@@ -36,6 +36,7 @@ import {
 	trueFalseRules,
 	withChoiceIds,
 } from "./choice.js";
+import { codeAutomation, codeRules } from "./code.js";
 import { blankAutomation, blankWithIds, fillInRules } from "./fill-in.js";
 import {
 	checkIdAndTitleDefined,
@@ -71,6 +72,7 @@ export const FAMILY_RULES: Partial<Record<QuestionType, FamilyRules<any>>> = {
 	essay: essayRules,
 	"fill-in": fillInRules,
 	ordering: orderingRules,
+	code: codeRules,
 };
 
 /**
@@ -412,7 +414,7 @@ export function resolveQuestion(exam: Exam, question: Question): Question {
  * How much of the grading the library does without an instructor
  * (`docs/question-types/base.md`, "Automation"): `automatic` for choice,
  * true or false and numeric questions, `manual` for an essay, and a rule of
- * their own for short answer, fill-in and ordering.
+ * their own for short answer, fill-in, ordering and code.
  */
 export function automation(question: Question): Automation {
 	switch (question.type) {
@@ -426,6 +428,8 @@ export function automation(question: Question): Automation {
 			);
 		case "ordering":
 			return question.unmatched === "manual" ? "semi-automatic" : "automatic";
+		case "code":
+			return codeAutomation(question);
 		case "fill-in": {
 			const levels = new Set(
 				question.blanks.map((blank) =>

@@ -43,6 +43,7 @@ import {
 	type RawChoice,
 	SLUG_PREFIX_RE,
 } from "./choices.js";
+import { parseCodeBody } from "./code.js";
 import { parseFillInBody } from "./fill-in.js";
 import {
 	anyQuestionFrontmatterField,
@@ -200,6 +201,7 @@ const TAG_BODY: Readonly<
 	Record<string, readonly [ReadonlySet<string>, string]>
 > = {
 	essay: [new Set(["essay"]), "an essay (`[essay]`)"],
+	code: [new Set(["code"]), "a code question (`[code]`)"],
 	ordering: [new Set(["ordering"]), "an ordering (`[ordering]`)"],
 	"short-answer": [
 		new Set(["short-answer"]),
@@ -546,6 +548,13 @@ export class MDQParser {
 	}
 
 	applyTypeSpecificFrontmatter(questionType: unknown): void {
+		if (questionType === "code") {
+			for (const key of ["language", "file"]) {
+				if (Object.hasOwn(this.frontmatter, key)) {
+					this.state[key] = this.frontmatter[key];
+				}
+			}
+		}
 		if (GRADED_QUESTION_TYPES.includes(questionType as string)) {
 			for (const key of ["shuffle", "grading"]) {
 				if (
@@ -602,8 +611,8 @@ export class MDQParser {
 		let questionType: unknown = isPythonTruthy(this.frontmatter.type)
 			? this.frontmatter.type
 			: undefined;
-		// An ordering body ends its own epilogue at the first section.
-		let orderingEpilogue: readonly Node[] | null = null;
+		// An ordering or code body ends its own epilogue at the first section.
+		let bodyEpilogue: readonly Node[] | null = null;
 		const node = this.cursor.peek();
 		if (node !== null) this.cursor.mark(["type"], node);
 
@@ -649,6 +658,14 @@ export class MDQParser {
 					questionType = questionType ?? "essay";
 					this.parseEssayBody();
 					break;
+				case "code":
+					questionType = questionType ?? "code";
+					{
+						const [fields, epilogueNodes] = parseCodeBody(this.cursor);
+						Object.assign(this.state, fields);
+						bodyEpilogue = epilogueNodes;
+					}
+					break;
 				case "numeric":
 					questionType = questionType ?? "numeric";
 					this.parseNumericBody(tag, bodyNode);
@@ -663,7 +680,7 @@ export class MDQParser {
 							bodyNode,
 						);
 						Object.assign(this.state, fields);
-						orderingEpilogue = epilogueNodes;
+						bodyEpilogue = epilogueNodes;
 					}
 					break;
 				case "short-answer":
@@ -694,7 +711,7 @@ export class MDQParser {
 		const epilogueBlocks: readonly Node[] =
 			questionType === "essay"
 				? this.parseAnswerKey()
-				: (orderingEpilogue ?? this.reader.children.slice(this.cursor.pos));
+				: (bodyEpilogue ?? this.reader.children.slice(this.cursor.pos));
 		this.reportDetachedTags(epilogueBlocks, questionType === "fill-in");
 		if (epilogueBlocks.length > 0) {
 			const epilogueText = this.reader.joinBlocks(epilogueBlocks);

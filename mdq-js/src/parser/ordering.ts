@@ -89,7 +89,7 @@ function gcd(a: number, b: number): number {
  * CommonMark backslash and entity processing. A word ends at the first space
  * or tab. `null` when the info string is empty.
  */
-function fenceLanguage(info: string): string | null {
+export function fenceLanguage(info: string): string | null {
 	const text = strip(md.utils.unescapeAll(info), " \t");
 	return text.split(/[ \t]/u, 1)[0] || null;
 }

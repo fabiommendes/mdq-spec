@@ -9,6 +9,7 @@
  */
 
 import * as z from "zod";
+import { UNICODE_SPACE } from "../parser/text.js";
 import {
 	BooleanChoice,
 	DiacriticsType,
@@ -42,6 +43,7 @@ export const QuestionType = z.enum([
 	"essay",
 	"fill-in",
 	"ordering",
+	"code",
 ]);
 export type QuestionType = z.infer<typeof QuestionType>;
 
@@ -243,6 +245,87 @@ export const OrderingQuestion = z
 	);
 export type OrderingQuestion = z.infer<typeof OrderingQuestion>;
 
+/**
+ * `schema/code.yaml#/$defs/TestSource/properties/format` -- the first word of
+ * an info string: no Unicode space and no backtick. No `u` flag, as
+ * `UNIT_PATTERN`.
+ */
+export const TEST_FORMAT_PATTERN = new RegExp(`^[^${UNICODE_SPACE}\`]+$`);
+
+/**
+ * `schema/code.yaml#/$defs/TestSource/properties/origin` -- the `ORIGIN`
+ * terminal of docs/question-types/code.md: a relative path with no scheme,
+ * query, fragment or line break, and a file name with an extension.
+ */
+export const TEST_ORIGIN_PATTERN =
+	/^(?![A-Za-z][A-Za-z0-9+.-]*:)(?!\/)[^?#\r\n]*[.][^.\\/?#\r\n]+$/;
+
+/** `schema/code.yaml#/properties/language` -- not only Unicode spaces. */
+export const CODE_LANGUAGE_PATTERN = new RegExp(`[^${UNICODE_SPACE}]`);
+
+/** `schema/code.yaml#/properties/file` -- a plain name. */
+export const CODE_FILE_PATTERN = new RegExp(
+	`^(?!\\.\\.?$)(?![${UNICODE_SPACE}]+$)[^/\\\\]+$`,
+);
+
+/**
+ * `schema/code.yaml#/$defs/TestSource` -- a fenced block or a linked file. The
+ * `anyOf` of the YAML is the refinement: a source has a `text` or an `origin`.
+ */
+export const TestSource = z
+	.strictObject({
+		format: z
+			.string()
+			.regex(TEST_FORMAT_PATTERN)
+			.meta({ examples: ["pytest", "py", "iospec"] }),
+		text: z.string().optional(),
+		origin: z
+			.string()
+			.regex(TEST_ORIGIN_PATTERN)
+			.meta({ examples: ["test_conta.py", "tests/conta.iospec"] })
+			.optional(),
+	})
+	.refine(
+		(source) => source.text !== undefined || source.origin !== undefined,
+		{
+			error: "a test source must have a `text` or an `origin`",
+		},
+	);
+export type TestSource = z.infer<typeof TestSource>;
+
+/** `schema/code.yaml#/$defs/RubricItem` -- a manual item of `## [rubric]`. */
+export const RubricItem = z.strictObject({
+	value: z.number().optional(),
+	binding: z.literal("manual"),
+	text: z.string(),
+	feedback: z.string().optional(),
+	comment: z.string().optional(),
+});
+export type RubricItem = z.infer<typeof RubricItem>;
+
+/** `schema/code.yaml` -- a source file the student submits, graded by tests and a rubric. */
+export const CodeQuestion = z.strictObject({
+	...questionBaseShape,
+	type: z.literal("code"),
+	language: z
+		.string()
+		.min(1)
+		.regex(CODE_LANGUAGE_PATTERN)
+		.meta({ examples: ["python", "c", "prolog"] })
+		.optional(),
+	file: z
+		.string()
+		.min(1)
+		.regex(CODE_FILE_PATTERN)
+		.meta({ examples: ["conta.py", "main.c"] })
+		.optional(),
+	tests: z.array(TestSource).min(1).optional(),
+	rubric: z.array(RubricItem).min(1).optional(),
+	template: z.string().optional(),
+	answerKey: z.string().optional(),
+});
+export type CodeQuestion = z.infer<typeof CodeQuestion>;
+
 /** Any question document, discriminated by `type`. */
 // r2: adr-0015
 export const Question = z.discriminatedUnion("type", [
@@ -254,6 +337,7 @@ export const Question = z.discriminatedUnion("type", [
 	EssayQuestion,
 	FillInQuestion,
 	OrderingQuestion,
+	CodeQuestion,
 ]);
 export type Question = z.infer<typeof Question>;
 
@@ -267,4 +351,5 @@ export const QUESTION_SCHEMAS = {
 	essay: EssayQuestion,
 	"fill-in": FillInQuestion,
 	ordering: OrderingQuestion,
+	code: CodeQuestion,
 } as const satisfies Record<QuestionType, z.ZodType>;

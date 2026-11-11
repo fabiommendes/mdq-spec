@@ -11,7 +11,9 @@ import {
 	MissingIdError,
 	publicForm,
 	type Question,
+	resolveTests,
 	scoreResponse,
+	UnresolvedTestSource,
 	withIds,
 } from "@mdq";
 import { describe, expect, it } from "vitest";
@@ -29,7 +31,7 @@ interface Case {
 	readonly question: Record<string, unknown>;
 	readonly public?: unknown;
 	readonly correctResponses?: unknown;
-	readonly error?: "MissingIdError";
+	readonly error?: "MissingIdError" | "UnresolvedTestSource";
 }
 
 const CASES = casesOf<Case>(PUBLIC_FILE);
@@ -68,8 +70,11 @@ describe("public form cases", () => {
 		corpusIt(PUBLIC_FORM, testCase.name, () => {
 			const question = questionOf(testCase.question);
 			if (testCase.error !== undefined) {
-				expect(testCase.error).toBe("MissingIdError");
-				expect(() => publicForm(question)).toThrow(MissingIdError);
+				const error =
+					testCase.error === "MissingIdError"
+						? MissingIdError
+						: UnresolvedTestSource;
+				expect(() => publicForm(question)).toThrow(error);
 				return;
 			}
 			expect(json(publicForm(question))).toEqual(testCase.public);
@@ -80,7 +85,11 @@ describe("public form cases", () => {
 	}
 
 	for (const testCase of CASES) {
-		if (testCase.error !== undefined || testCase.question.type === "essay") {
+		if (
+			testCase.error !== undefined ||
+			testCase.question.type === "essay" ||
+			testCase.question.type === "code"
+		) {
 			continue;
 		}
 		corpusIt(PUBLIC_FORM, `${testCase.name} scores one`, () => {
@@ -152,7 +161,19 @@ const CORPUS_QUESTIONS = VALID_QUESTIONS.flatMap((path) => {
 	const document = loadDocument(path);
 	const loaded = load(document as Record<string, unknown>);
 	if (errorsOf(loaded.diagnostics).length > 0) return [];
-	return [[relativeId(path), withIds(loaded.document as Question)] as const];
+	let question = loaded.document as Question;
+	// A linked source has no text until the host resolves it.
+	if (question.type === "code") {
+		const texts = Object.fromEntries(
+			(question.tests ?? []).flatMap((source) =>
+				source.origin === undefined
+					? []
+					: [[source.origin, "def test_a(): ...\n"]],
+			),
+		);
+		question = resolveTests(question, texts);
+	}
+	return [[relativeId(path), withIds(question)] as const];
 });
 
 describe("valid corpus", () => {
@@ -168,7 +189,8 @@ describe("valid corpus", () => {
 			expect(leaked).toEqual([]);
 		});
 
-		if (question.type === "essay") continue;
+		// A manual item of a code question waits for the instructor.
+		if (question.type === "essay" || question.type === "code") continue;
 		if (lint(question).some((entry) => SHADOWING_CODES.has(entry.code))) {
 			continue;
 		}

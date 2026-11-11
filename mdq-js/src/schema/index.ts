@@ -13,3 +13,4 @@
 export * from "./common.js";
 export * from "./exam.js";
 export * from "./questions.js";
+export * from "./runner-report.js";

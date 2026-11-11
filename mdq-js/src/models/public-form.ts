@@ -11,10 +11,12 @@
  */
 
 import { exactLiteral } from "../exact.js";
+import { publicText } from "../parser/rubric.js";
 import { strip } from "../parser/text.js";
 import type {
 	Blank,
 	ChoiceBlank,
+	CodeQuestion,
 	DiacriticsType,
 	EssayQuestion,
 	FillInQuestion,
@@ -34,6 +36,7 @@ import type {
 } from "../schema/index.js";
 import { effectiveGrading } from "./base.js";
 import { requireChoiceId, unspecifiedChoiceScore } from "./choice.js";
+import { annotationsOf, referenceSolution, requireResolved } from "./code.js";
 import { blankEffectiveUnmatched } from "./fill-in.js";
 import {
 	effectiveNumericDomain,
@@ -146,6 +149,23 @@ export type PublicOrderingQuestion = PublicBase<OrderingQuestion> &
 		pool: OrderingLine[];
 	};
 
+/** A public region of a test source that has a text (`publicTests`). */
+export type PublicTest = {
+	format: string;
+	text: string;
+	firstLine: number;
+	example: boolean;
+};
+
+/**
+ * `tests`, `rubric` and `answerKey` are private. `publicTests` is derived,
+ * and absent when no region is public.
+ */
+export type PublicCodeQuestion = PublicBase<CodeQuestion> &
+	Pick<CodeQuestion, "template" | "language" | "file"> & {
+		publicTests?: PublicTest[];
+	};
+
 /** A question as a student may see it. */
 export type PublicQuestion =
 	| PublicMultipleChoiceQuestion
@@ -155,7 +175,8 @@ export type PublicQuestion =
 	| PublicShortAnswerQuestion
 	| PublicEssayQuestion
 	| PublicFillInQuestion
-	| PublicOrderingQuestion;
+	| PublicOrderingQuestion
+	| PublicCodeQuestion;
 
 const BASE_KEYS = [
 	"type",
@@ -362,6 +383,32 @@ function orderingMaxLevel(question: OrderingQuestion): { maxLevel?: number } {
 	return { maxLevel: 1 + Math.max(...levels) };
 }
 
+/**
+ * The public regions that have a text: one entry for each, in the order of
+ * the test sources and then of the lines (public-form.md, "Public tests").
+ *
+ * @throws {UnresolvedTestSource} A test source has no text.
+ */
+function publicTests(question: CodeQuestion): PublicTest[] {
+	requireResolved(question);
+	const entries: PublicTest[] = [];
+	for (const source of question.tests ?? []) {
+		const scan = annotationsOf(source);
+		for (const note of scan.items) {
+			const shown = note.public ? publicText(scan, note) : null;
+			if (shown !== null) {
+				entries.push({
+					format: source.format,
+					text: shown[0],
+					firstLine: shown[1],
+					example: note.example,
+				});
+			}
+		}
+	}
+	return entries;
+}
+
 function publicBlank(
 	blank: Blank,
 	unmatched: Unmatched | undefined,
@@ -396,6 +443,8 @@ function publicBlank(
  *
  * @throws {MissingIdError} A choice has no id. Call `withIds` first, and
  *   store the result: grading needs the same ids.
+ * @throws {UnresolvedTestSource} A code question has a test source with no
+ *   text. Call `resolveTests` first.
  */
 export function publicForm(
 	question: MultipleChoiceQuestion,
@@ -413,6 +462,7 @@ export function publicForm(
 export function publicForm(question: EssayQuestion): PublicEssayQuestion;
 export function publicForm(question: FillInQuestion): PublicFillInQuestion;
 export function publicForm(question: OrderingQuestion): PublicOrderingQuestion;
+export function publicForm(question: CodeQuestion): PublicCodeQuestion;
 export function publicForm(question: Question): PublicQuestion;
 export function publicForm(question: Question): PublicQuestion {
 	const base = copy(question, BASE_KEYS);
@@ -463,6 +513,14 @@ export function publicForm(question: Question): PublicQuestion {
 				pool: orderingPool(question),
 				...orderingMaxLevel(question),
 			} as PublicQuestion;
+		case "code": {
+			const tests = publicTests(question);
+			return {
+				...base,
+				...copy(question, ["template", "language", "file"]),
+				...(tests.length > 0 ? { publicTests: tests } : {}),
+			} as PublicQuestion;
+		}
 	}
 }
 
@@ -488,7 +546,9 @@ function blankCorrectResponses(
  * fill-in question returns a record from blank id to the responses of that
  * blank instead, since a list of full responses would hold every combination.
  * An essay gives its `answerKey`, a model answer that does not score 1
- * automatically.
+ * automatically. A code question gives its reference solution, or nothing;
+ * it passes every test case, but a manual item still waits for the
+ * instructor.
  *
  * @throws {MissingIdError} A correct choice has no id.
  */
@@ -501,7 +561,7 @@ export function correctResponses(
 ): Record<string, boolean>[];
 export function correctResponses(question: NumericQuestion): NumericAnswer[];
 export function correctResponses(
-	question: ShortAnswerQuestion | EssayQuestion,
+	question: ShortAnswerQuestion | EssayQuestion | CodeQuestion,
 ): string[];
 export function correctResponses(
 	question: FillInQuestion,
@@ -558,5 +618,9 @@ export function correctResponses(question: Question): unknown {
 			].map((block) =>
 				block.map(([level, text]): OrderingLine => [level, text]),
 			);
+		case "code": {
+			const solution = referenceSolution(question);
+			return solution === null ? [] : [solution];
+		}
 	}
 }

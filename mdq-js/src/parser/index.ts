@@ -9,6 +9,8 @@ export {
 	findAnswerKeyForbiddenElements,
 	findForbiddenElements,
 	findStrayChoiceMarkers,
+	firstFencedCode,
+	hasUnclosedFence,
 	reconstructBlocks,
 } from "./blocks.js";
 export { SLUG_PREFIX_RE } from "./choices.js";
@@ -26,6 +28,13 @@ export {
 	parseQuestionDocument,
 	type RawDocument,
 } from "./question.js";
+export {
+	type Annotation,
+	type Annotations,
+	checkCriterionStart,
+	RubricSyntaxError,
+	scanAnnotations,
+} from "./rubric.js";
 export { SourceMap } from "./source-map.js";
 export { findUnicodeSpaces } from "./spaces.js";
 

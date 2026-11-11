@@ -146,6 +146,26 @@ export class BlockReader {
 		return text;
 	}
 
+	/**
+	 * Whether `node` is a fenced code block with no closing fence: it runs to
+	 * the end of the text, so in a document it swallows what follows it.
+	 */
+	isUnclosedFence(node: Node): boolean {
+		if (node.type !== "fence") return false;
+		const lines = this.rawLines(node);
+		const marker = node.markup;
+		const last = lines[lines.length - 1] ?? "";
+		if (lines.length < 2) return true;
+		const bare = last.replace(/^ +/u, "");
+		if (last.length - bare.length > 3) return true;
+		const run = strip(bare, " \t");
+		return !(
+			run !== "" &&
+			[...run].every((char) => char === marker[0]) &&
+			run.length >= marker.length
+		);
+	}
+
 	joinBlocks(nodes: readonly Node[]): string | null {
 		if (nodes.length === 0) return null;
 		return nodes.map((n) => this.blockText(n)).join("\n\n");
@@ -375,6 +395,26 @@ export function reconstructBlocks(src: string): [string, string][] {
 	return reader.children.map((node) => [node.type, reader.blockText(node)]);
 }
 
+/** Whether a top-level fenced code block of `src` has no closing fence. */
+export function hasUnclosedFence(src: string): boolean {
+	const reader = new BlockReader(src);
+	return reader.children.some((node) => reader.isUnclosedFence(node));
+}
+
+/**
+ * code.md, "Answer key": the code text of the first fenced code block that
+ * is a direct child of `src`, an `answerKey` field; `null` when there is
+ * none. An indented block and a block inside a list or a quote do not count.
+ * The code text is the content between the fences, with a line ending U+000A
+ * after each line.
+ */
+export function firstFencedCode(src: string): string | null {
+	for (const node of new BlockReader(src).children) {
+		if (node.type === "fence") return node.content ?? "";
+	}
+	return null;
+}
+
 /**
  * Join the soft line breaks of a paragraph into one space.
  *
@@ -527,15 +567,26 @@ export function findForbiddenElements(
 
 /**
  * essay.md, "Answer key": the section holds every block except an H1
- * heading. Return one description per H1 heading (ATX or setext) in `src`, an
- * `answerKey` field checked on its own, in source order.
+ * heading and a heading that starts with `[` under the rule of the epilogue
+ * (question-base.md, "Forbidden elements"), which also cannot follow
+ * `## [answer-key]`. Return one description per such heading (ATX or setext,
+ * any level) in `src`, an `answerKey` field checked on its own, in source
+ * order. A heading that starts a link and an escaped heading (`## \[x]`) are
+ * not reported.
  */
 export function findAnswerKeyForbiddenElements(src: string): string[] {
 	if (!strip(src)) return [];
 	const reader = new BlockReader(src);
-	return reader.children
-		.filter((node) => node.type === "heading" && node.tag === "h1")
-		.map(() => "an H1 heading");
+	const found: string[] = [];
+	for (const node of reader.children) {
+		if (node.type !== "heading") continue;
+		if (node.tag === "h1") {
+			found.push("an H1 heading");
+		} else if (startsWithBracket(reader.rawText(node))) {
+			found.push("a heading starting with '['");
+		}
+	}
+	return found;
 }
 
 /**

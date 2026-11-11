@@ -38,6 +38,7 @@ import { validateDocument } from "@mdq";
 import {
 	BooleanChoice,
 	ChoiceBlank,
+	CodeQuestion,
 	DiacriticsType,
 	EssayContent,
 	EssayQuestion,
@@ -65,10 +66,15 @@ import {
 	Question,
 	QuestionType,
 	questionBaseShape,
+	ReportCase,
+	ReportOutput,
+	RubricItem,
+	RunnerReport,
 	ScoredChoice,
 	ShortAnswerBlank,
 	ShortAnswerQuestion,
 	Statement,
+	TestSource,
 	Tolerance,
 	TrueFalseGrading,
 	TrueFalseQuestion,
@@ -260,7 +266,9 @@ describe("zod-json-schema agreement", () => {
 			["essay", EssayQuestion, undefined],
 			["fill-in", FillInQuestion, undefined],
 			["ordering", OrderingQuestion, undefined],
+			["code", CodeQuestion, undefined],
 			["exam", Exam, undefined],
+			["runner-report", RunnerReport, undefined],
 		];
 
 		it.each(pairs)("%s", (defKey, zodSchema, options) => {
@@ -322,6 +330,26 @@ describe("zod-json-schema agreement", () => {
 				"ordering#/$defs/Alternative (OrderingAlternative)",
 				def("ordering").$defs.Alternative,
 				OrderingAlternative,
+			],
+			[
+				"code#/$defs/TestSource (TestSource)",
+				def("code").$defs.TestSource,
+				TestSource,
+			],
+			[
+				"code#/$defs/RubricItem (RubricItem)",
+				def("code").$defs.RubricItem,
+				RubricItem,
+			],
+			[
+				"runner-report#/$defs/Case (ReportCase)",
+				def("runner-report").$defs.Case,
+				ReportCase,
+			],
+			[
+				"runner-report#/$defs/Output (ReportOutput)",
+				def("runner-report").$defs.Output,
+				ReportOutput,
 			],
 			["exam#/$defs/Include (Include)", def("exam").$defs.Include, Include],
 			[
@@ -427,6 +455,7 @@ describe("zod-json-schema agreement", () => {
 				"essay",
 				"fill-in",
 				"ordering",
+				"code",
 			];
 			const jsonConsts = questionTypeKeys.map(
 				(key) => def(key).allOf[1].properties.type.const,
@@ -515,22 +544,18 @@ describe("zod-json-schema agreement", () => {
 			"fill-in#/$defs/ShortAnswerBlank",
 			"fill-in#/$defs/NumericBlank",
 			"ordering#/$defs/Alternative",
+			"code",
+			"code#/$defs/TestSource",
+			"code#/$defs/RubricItem",
 			"exam#/$defs/Include",
 			"exam#/$defs/IncludeAll",
+			"runner-report",
+			"runner-report#/$defs/Case",
+			"runner-report#/$defs/Output",
 		]);
 
 		/** Object-typed `$defs` entries deliberately left untested, with why. */
-		const OBJECT_DEFS_SKIPPED: Record<string, string> = {
-			// r2: issue/mdq-js-porte-do-tipo-code
-			code: "the code question type has no Zod model yet",
-			"code#/$defs/RubricItem": "the code question type has no Zod model yet",
-			"code#/$defs/TestSource": "the code question type has no Zod model yet",
-			// The runner report is not a question; the port adds its model with
-			// the code type.
-			"runner-report": "the runner report has no Zod model yet",
-			"runner-report#/$defs/Case": "the runner report has no Zod model yet",
-			"runner-report#/$defs/Output": "the runner report has no Zod model yet",
-		};
+		const OBJECT_DEFS_SKIPPED: Record<string, string> = {};
 
 		/** Enum-typed `$defs` entries checked against a Zod enum's `.options` above. */
 		const ENUM_DEFS_TESTED = new Set([

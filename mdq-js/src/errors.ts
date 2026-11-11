@@ -146,6 +146,14 @@ export class MissingIdError extends GradingError {}
 export class UnresolvedInclude extends GradingError {}
 
 /**
+ * An operation that needs the text of a test source met a source that is not
+ * resolved: the grading and the public form of a code question. A linked
+ * source has an `origin` and no `text` until `resolveTests` fills it. Mirrors
+ * `UnresolvedTestSource` in `mdq-py/mdq/errors.py`.
+ */
+export class UnresolvedTestSource extends GradingError {}
+
+/**
  * A response has the wrong shape for its question, so it is rejected and
  * never scored (`docs/responses.md`, "Errors"). Mirrors `ResponseError` in
  * `mdq-py/mdq/errors.py`.
@@ -158,3 +166,11 @@ export class ResponseError extends GradingError {}
  * `mdq-py/mdq/errors.py`.
  */
 export class NotAutoGradable extends GradingError {}
+
+/**
+ * A code question is graded with a runner report that does not follow
+ * `schema/runner-report.yaml`, does not fit the question, or is missing while
+ * the question has a test source (`docs/runner-report.md`, "Errors"). Mirrors
+ * `ReportError` in `mdq-py/mdq/errors.py`.
+ */
+export class ReportError extends GradingError {}

@@ -15,7 +15,7 @@
  * The first word of a test name is its group, one per Python test:
  * `multiple-choice`, `multiple-selection`, `true-false`, `numeric`,
  * `short-answer`, `short-answer-prevalidation`, `fill-in`, `ordering`,
- * `essay`, `automation`, `exam-question-effective`, `exam-effective` and
+ * `essay`, `code`, `automation`, `exam-question-effective`, `exam-effective` and
  * `exam-score`.
  */
 
@@ -34,12 +34,14 @@ import {
 	MdqError,
 	NotAutoGradable,
 	type Question,
+	ReportError,
 	ResponseError,
 	resolveQuestion,
 	scoreBlanks,
 	scoreResponse,
 	scoreResponses,
 	shuffleFor,
+	UnresolvedTestSource,
 } from "@mdq";
 import {
 	blankAutomation,
@@ -123,7 +125,6 @@ describe("grading files", () => {
 			.sort();
 		expect(names).toEqual([
 			"automation",
-			// r2: issue/mdq-js-porte-do-tipo-code (code.yaml is not run yet)
 			"code",
 			"essay",
 			"exam",
@@ -463,6 +464,51 @@ describe("essay", () => {
 });
 
 //
+// Code
+//
+const CODE_ERRORS = {
+	ReportError,
+	UnresolvedTestSource,
+	// An error of the host, not of the response or the document.
+	ValueError: RangeError,
+} as const;
+
+describe("code", () => {
+	for (const testCase of questionsOf("code")) {
+		for (const example of testCase.examples as Plain[]) {
+			corpusIt(GRADING, `code.${testCase.name}/${example.name}`, () => {
+				const question = loadQuestion({
+					type: "code",
+					stem: testCase.name,
+					...(testCase.question as Plain),
+				});
+				expect(automation(question)).toBe(testCase.automation);
+				// The response does not matter: the report is what the runner made of it.
+				const grade = () =>
+					scoreResponse(question, "", {
+						report: example.report,
+						manual: example.manual as (number | null)[] | undefined,
+						instructor: example.instructor as number | undefined,
+					});
+				if (example.score === "pending") {
+					expect(grade).toThrow(NotAutoGradable);
+				} else if (example.score === "error") {
+					const error = CODE_ERRORS[example.error as keyof typeof CODE_ERRORS];
+					expect(grade).toThrow(error);
+					if (example.error === "ValueError") {
+						expect(grade).not.toThrow(MdqError);
+					}
+				} else if (example.exact) {
+					expect(grade().score).toBe(example.score);
+				} else {
+					expectApprox(grade().score, example.score as number);
+				}
+			});
+		}
+	}
+});
+
+//
 // Automation
 //
 describe("automation", () => {
@@ -579,7 +625,12 @@ describe("exam score", () => {
 					expect(() => scoreResponses(exam, responses)).toThrow(ResponseError);
 					return;
 				}
-				const result = scoreResponses(exam, responses);
+				const result = scoreResponses(exam, responses, {
+					reports: example.reports as Record<string, unknown> | undefined,
+					manual: example.manual as
+						| Record<string, (number | null)[]>
+						| undefined,
+				});
 				if (example.score === "pending") {
 					expect(result.score).toBeNull();
 				} else {
