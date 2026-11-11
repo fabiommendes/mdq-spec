@@ -40,6 +40,10 @@ the whole shared corpus (`examples/`), as mdq-py does.
 - The JSON files are imported with `with { type: "json" }`, so the built package loads in plain Node ESM, not only through a bundler.
 - `zod` is a peer dependency (`^4.3.6`), so a consumer that builds schemas over the exported ones shares one zod copy. The diagnostics of `load` for an exam no longer depend on how zod reports union issues: the `grading` union and each entry of `questions` are validated member by member. Verified with zod 4.3.6, 4.4.3 and 4.6.7.
 
+### Fixed
+
+- `Essay` of `mdq/solid`: a saved answer shows in the `<textarea>` of a server-rendered page. The markup carried the text in a `value` attribute, which a textarea ignores, and hydration did not set it.
+
 ### Added
 
 - A diagnostic of a `.mdq.md` document (question or exam) has its source position too. A frontmatter field has the exact span of its YAML node, with columns. A part of the body (`stem`, `epilogue`, `answerKey`, the tag, `choices` and each choice, each blank, each pattern or ordering line, `instructions`, each `questions[i]`) has the lines of its block, with no columns. The parser fills a `SourceMap` (`parseQuestionDocument` and `parseExamDocument` take it as an optional last argument). A `ParseError` line counts from the first line of the file, not of the body, when the parser has a `SourceMap`.

@@ -18,5 +18,12 @@ export default defineConfig({
 		globals: true,
 		environment: "node",
 		include: ["tests/**/*.{test,spec}.{ts,tsx}"],
+		// Compiled for the server by `vitest.ssr.config.ts`, and for hydration by
+		// `vitest.hydrate.config.ts`.
+		exclude: [
+			"tests/**/*.ssr.spec.tsx",
+			"tests/**/*.hydrate.spec.tsx",
+			"node_modules/**",
+		],
 	},
 });

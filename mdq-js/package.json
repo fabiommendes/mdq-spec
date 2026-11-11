@@ -25,7 +25,7 @@
 		"docs:clean": "rimraf docs/api",
 		"docs:typedoc": "typedoc --options typedoc.json",
 		"docs": "pnpm run docs:clean && pnpm run docs:typedoc",
-		"test": "vitest run",
+		"test": "vitest run && vitest run -c vitest.ssr.config.ts && vitest run -c vitest.hydrate.config.ts",
 		"test:watch": "vitest",
 		"typecheck": "tsc -p tsconfig.json",
 		"lint": "biome check",

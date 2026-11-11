@@ -1,4 +1,5 @@
 import {
+	createRenderEffect,
 	createSignal,
 	createUniqueId,
 	type JSX,
@@ -106,10 +107,11 @@ export function Essay(props: EssayProps): JSX.Element {
 					<Show when={content() === "code" && props.question.highlight}>
 						{(language) => <span class="mdq-language">{language()}</span>}
 					</Show>
+					{/* A textarea ignores a `value` attribute, so the server markup carries the text as content. The effect on `ref` sets the live `value`, which hydration does not. */}
 					<textarea
 						class="mdq-textarea"
 						data-content={content()}
-						value={text()}
+						ref={(box) => createRenderEffect(() => (box.value = text()))}
 						spellcheck={content() !== "code"}
 						placeholder={
 							content() === "code"
@@ -125,7 +127,9 @@ export function Essay(props: EssayProps): JSX.Element {
 						}}
 						aria-labelledby={stemId}
 						aria-describedby={hasFeedback() ? feedbackId : undefined}
-					/>
+					>
+						{text()}
+					</textarea>
 					<Show when={content() === "text"}>
 						<p class="mdq-note">{messages().markdownSupported}</p>
 					</Show>
