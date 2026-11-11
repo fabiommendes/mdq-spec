@@ -176,3 +176,13 @@ Only where the feature itself only exists on one side. Python additionally
 tests the CLI and the Moodle/GIFT/Aiken conversions, which
 [README.md](README.md) lists as deliberate non-goals for TypeScript; there is
 nothing for a TypeScript test to mirror there.
+
+### Known differences
+
+* A document with several test sources of a code question reports the
+  annotation errors (`invalid-rubric-item`, `blank-text`) of every source in
+  Python. In TypeScript, if one source fails the Zod schema (for instance, a
+  `format` with a space), the model rules do not run, so the annotation
+  errors of the other sources are not reported until the schema errors are
+  fixed. The model rules run only after the whole document passes Zod (ADR-0015).
+  `resolveTests` is not affected: it checks every source it fills.

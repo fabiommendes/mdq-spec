@@ -59,9 +59,20 @@ export interface RubricLine {
 	readonly criterion: string;
 }
 
-/** The value of the number of a `RUBRIC_VALUE`; `-0` is 0. */
+/**
+ * The value of the number of a `RUBRIC_VALUE`: the nearest double (rubric.md,
+ * "Value"); `-0` is 0.
+ *
+ * @throws {RubricSyntaxError} The number is not finite as a double.
+ */
 function toNumber(text: string): number {
 	const number = Number(text);
+	if (!Number.isFinite(number)) {
+		const shown = text.length <= 20 ? text : `${text.slice(0, 20)}...`;
+		throw new RubricSyntaxError(
+			`the value [${shown}] is not finite as a double`,
+		);
+	}
 	return number === 0 ? 0 : number;
 }
 
@@ -100,8 +111,9 @@ export function checkCriterionStart(text: string): void {
  * modifiers and the criterion (docs/references/rubric.md, "Item").
  *
  * @param line The line after the list marker, or after the `mdq:` marker.
- * @throws {RubricSyntaxError} A `{` that does not open a modifier, or a
- *   criterion that starts with a character the grammar excludes.
+ * @throws {RubricSyntaxError} A `{` that does not open a modifier, a
+ *   criterion that starts with a character the grammar excludes, or a value
+ *   that is not finite as a double.
  */
 export function parseItemLine(line: string): RubricLine {
 	let rest = strip(line, " \t");

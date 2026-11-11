@@ -78,18 +78,37 @@ function exact(value: number): Fraction {
 
 const bitLength = (value: bigint): number => value.toString(2).length;
 
-/** The double nearest to `value`, ties to even: one rounding. */
+/** The smallest exponent of the last bit of a double: `2 ** -1074`. */
+const MIN_EXPONENT = -1074;
+
+/**
+ * The double nearest to `value`, ties to even: one rounding over the whole
+ * range, subnormals included. Like `float(Fraction)` in Python, a negative
+ * value that underflows gives `-0`.
+ */
 function toDouble(value: Fraction): number {
 	if (value.num === 0n) return 0;
 	const negative = value.num < 0n;
 	const num = negative ? -value.num : value.num;
-	// A quotient of 55 bits or more, plus a sticky bit, rounds right in `Number`.
-	const shift = 55 - (bitLength(num) - bitLength(value.den));
-	const top = shift >= 0 ? num << BigInt(shift) : num;
-	const bottom = shift >= 0 ? value.den : value.den << BigInt(-shift);
-	const quotient = top / bottom;
-	const sticky = top % bottom === 0n ? 0n : 1n;
-	const result = Number((quotient << 1n) | sticky) * 2 ** -(shift + 1);
+	const { den } = value;
+	// The exponent of the leading bit of the value: 2 ** top <= value.
+	let top = bitLength(num) - bitLength(den);
+	const reaches = (exponent: number): boolean =>
+		exponent >= 0
+			? num >= den << BigInt(exponent)
+			: num << BigInt(-exponent) >= den;
+	if (!reaches(top)) top -= 1;
+	// 53 bits of mantissa, fewer in a subnormal: the exponent of the last bit.
+	const last = Math.max(top - 52, MIN_EXPONENT);
+	const scaledNum = last < 0 ? num << BigInt(-last) : num;
+	const scaledDen = last < 0 ? den : den << BigInt(last);
+	let quotient = scaledNum / scaledDen;
+	const twice = (scaledNum % scaledDen) * 2n;
+	if (twice > scaledDen || (twice === scaledDen && quotient % 2n === 1n)) {
+		quotient += 1n;
+	}
+	// `quotient` is at most 2 ** 53 and the product is a double: it is exact.
+	const result = Number(quotient) * 2 ** last;
 	return negative ? -result : result;
 }
 

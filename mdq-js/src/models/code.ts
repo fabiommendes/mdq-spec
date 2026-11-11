@@ -76,18 +76,27 @@ export function isResolved(question: CodeQuestion): boolean {
 	return (question.tests ?? []).every(isResolvedSource);
 }
 
+/** The scan of each source, kept while the source object lives. */
+const scans = new WeakMap<TestSource, { text: string; scan: Annotations }>();
+
 /**
- * The annotations of the text of `source`, with their regions.
+ * The annotations of the text of `source`, with their regions. The scan of a
+ * source is done once, as `cached_property` does in mdq-py.
  *
  * @throws {UnresolvedTestSource} The source has no text.
  */
 export function annotationsOf(source: TestSource): Annotations {
-	if (source.text === undefined) {
+	const { text } = source;
+	if (text === undefined) {
 		throw new UnresolvedTestSource(
 			`the test source ${pyRepr(source.origin)} is not resolved: it has no text`,
 		);
 	}
-	return scanAnnotations(source.text);
+	const cached = scans.get(source);
+	if (cached?.text === text) return cached.scan;
+	const scan = scanAnnotations(text);
+	scans.set(source, { text, scan });
+	return scan;
 }
 
 /**
