@@ -165,7 +165,14 @@ entry when the port is done.
      not `true`, unknown keys rejected, `meta` free). Cases are checked only
      with the status `completed`.
   9. Grading and the check order: unresolved source, scores of the
-     instructor, report, pending. The floor at -1 is the question's own. Exam:
+     instructor, report, pending. The floor at -1 is the question's own. The
+     score is exact: a double sum of `0.1 * n / n` gives `1.0000000000000002`
+     or `0.9999999999999998`. Port it with exact rational arithmetic: read
+     each value and each manual score from its decimal text (`String(value)`,
+     which can have an exponent), scale all of them by a common power of ten
+     into `BigInt`, keep the credit, the discount and `P` as `BigInt`
+     fractions and divide once at the end, rounding to the nearest double
+     (`examples/grading/code.yaml`, the vectors with `exact: true`). Exam:
      `scoreResponses` takes `reports`, `manual` and `instructor` by question
      id.
   10. Public form (`publicTests`), `correct_responses` (reference solution is the
