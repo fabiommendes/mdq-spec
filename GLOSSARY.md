@@ -503,13 +503,11 @@ incorrect orders of the lines, usually with feedback.
 
 ## Resolved
 
-An exam whose every entry is a question rather than an `include` still pointing
-elsewhere. Includes resolve before a document becomes a model, so grading
-always does.
+An exam whose every entry is a question rather than an `include` still pointing elsewhere. Includes resolve before a document becomes a model, so grading always does. Also a linked test source of a code question whose `text` is filled: a resolution step takes a map from origin to text. Grading and the public form fail on an unresolved test source.
 
 - tags: document-states
 - avoid: expanded, inlined, flattened
-- related: Include
+- related: Include, Test source
 
 ## Response
 
