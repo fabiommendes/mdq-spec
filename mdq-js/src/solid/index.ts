@@ -7,6 +7,7 @@
  */
 
 export * from "./ChoiceSelect.jsx";
+export * from "./Code.jsx";
 export * from "./Essay.jsx";
 export * from "./Feedback.jsx";
 export * from "./FillIn.jsx";

@@ -1,5 +1,6 @@
 import { type JSX, Match, Switch } from "solid-js";
 import type { PublicQuestion } from "../index.js";
+import { Code, type CodeProps } from "./Code.jsx";
 import { Essay, type EssayProps } from "./Essay.jsx";
 import { FillIn, type FillInProps } from "./FillIn.jsx";
 import { MultipleChoice, type MultipleChoiceProps } from "./MultipleChoice.jsx";
@@ -27,6 +28,7 @@ export type QuestionViewProps =
 	| EssayProps
 	| FillInProps
 	| OrderingProps
+	| CodeProps
 	| UnsupportedProps;
 
 /** A type this version does not know, such as one from a newer server. */
@@ -42,7 +44,8 @@ export interface UnsupportedProps {
 				| "short-answer"
 				| "essay"
 				| "fill-in"
-				| "ordering";
+				| "ordering"
+				| "code";
 		}
 	>;
 	messages?: Partial<Messages>;
@@ -93,6 +96,9 @@ export function QuestionView(props: QuestionViewProps): JSX.Element {
 			</Match>
 			<Match when={type() === "ordering"}>
 				<Ordering {...(props as OrderingProps)} />
+			</Match>
+			<Match when={type() === "code"}>
+				<Code {...(props as CodeProps)} />
 			</Match>
 		</Switch>
 	);

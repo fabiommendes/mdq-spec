@@ -32,6 +32,7 @@ const questions: PublicQuestion[] = [
 	{ type: "numeric", stem: "num", domain: "integer" },
 	{ type: "short-answer", stem: "sa" },
 	{ type: "essay", stem: "es" },
+	{ type: "code", stem: "co" },
 	{
 		type: "fill-in",
 		stem: "fi [^x]",
