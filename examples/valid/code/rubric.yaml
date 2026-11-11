@@ -1,0 +1,24 @@
+id: kelvin-revisao
+title: Celsius para kelvin, revisão manual
+type: code
+language: python
+stem: Escreva uma função `kelvin(c)` que converte graus Celsius em kelvin.
+rubric:
+  - value: 2
+    binding: manual
+    text: Nomes de variáveis claros
+    feedback: Escolha nomes que digam o que a variável guarda.
+    comment: Não descontar por nomes em inglês
+  - value: -1.5
+    binding: manual
+    text: Deixou código de depuração
+  - binding: manual
+    text: Comentou a conversão
+  - value: 0
+    binding: manual
+    text: Observação para o professor
+  - value: 3
+    binding: manual
+    text: "\\{c} e \\{k} aparecem só nos comentários"
+  - binding: manual
+    text: "\\> não começa um comentário"

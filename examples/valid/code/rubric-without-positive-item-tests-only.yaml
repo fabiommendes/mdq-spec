@@ -1,0 +1,10 @@
+id: so-pre-validacao
+title: Rubrica só com testes de valor zero
+type: code
+language: python
+stem: Escreva a função `kelvin(c)`, que converte graus Celsius em kelvin.
+tests:
+  - format: pytest
+    text: |
+      # mdq: [0] {example} Aceita um número
+      def test_numero(): ...

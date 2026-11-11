@@ -1,0 +1,10 @@
+id: kelvin-com-modelo
+title: Celsius para kelvin com modelo
+type: code
+language: python
+stem: Complete a função `kelvin(c)`, que converte graus Celsius em kelvin.
+template: |-
+  ```python
+  def kelvin(c):
+      ...
+  ```

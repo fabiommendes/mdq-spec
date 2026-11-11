@@ -1,0 +1,20 @@
+id: rios-voadores
+title: Rios voadores
+type: code
+language: python
+stem: >-
+  Escreva a função `vapor(area_km2, evapotranspiracao_mm)` que devolve o volume de
+  vapor, em km³, que a floresta devolve ao ar.
+rubric:
+  - binding: manual
+    text: Explica a unidade do resultado
+tests:
+  - format: pytest
+    text: |
+      def test_um():
+          assert True
+template: |-
+  ```python
+  def vapor(area_km2, evapotranspiracao_mm):
+      ...
+  ```

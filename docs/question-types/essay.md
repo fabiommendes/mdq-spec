@@ -148,6 +148,18 @@ The section holds any block, headings included, except an `H1` heading. A
 heading of the section, such as `### Criteria`, does not end it. Text after the
 section is part of the answer key, not an epilogue.
 
+The one exception is a heading that the
+[epilogue rule](question-base.md#forbidden-elements) forbids: a heading of any
+level, ATX or setext, whose text starts with optional `ws` + `[`, except a
+bracket that starts an inline, full or collapsed link. It MUST NOT appear after
+`## [answer-key]`, since it would be answer key text and hide a section written
+in the wrong place (`forbidden-block-element`). `## [rubric]`, `### [1] Criterion`
+and `## [x] done` are errors, and so is a shortcut reference such as `## [inpe]`.
+`## [INPE](https://www.inpe.br)` is valid, and so is an escaped heading,
+`## \[rubric]`, which is a literal heading of the section. The rule also
+applies to the `answerKey` field of a YAML or JSON document. A second
+`## [answer-key]` section is a `parse-error`.
+
 The blocks of the section, without the heading, are the `answerKey` field. The
 field allows the same normalization as `stem` and `epilogue`.
 
@@ -255,6 +267,7 @@ The [public form](../public-form.md) keeps `content` and `highlight`. `answerKey
 | epilogue  | error    | detached-tag                   | cannot have a paragraph with only `[essay]`                |
 | answerKey | error    | parse-error                    | at most one `## [answer-key]` section may be declared      |
 | answerKey | error    | forbidden-block-element        | cannot have an `H1` heading                                |
+| answerKey | error    | forbidden-block-element        | cannot have a heading that starts with `[`, links excepted |
 | answerKey | error    | invalid-frontmatter-field      | cannot be set in the frontmatter of a Markdown source      |
 | answerKey | error    | blank-text                     | if defined, must have at least one visible character       |
 | highlight | info     | unknown-highlight-language     | is not a recognized language identifier[^3]                |

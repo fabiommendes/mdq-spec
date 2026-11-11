@@ -1,0 +1,4 @@
+id: celsius-para-kelvin
+title: Celsius para kelvin
+type: code
+stem: Escreva uma função `kelvin(c)` que converte graus Celsius em kelvin.

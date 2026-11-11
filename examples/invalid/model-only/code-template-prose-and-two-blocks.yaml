@@ -1,0 +1,13 @@
+# code.md, "Template": prose and a second block are forbidden blocks.
+type: code
+stem: Escreva a função `kelvin(c)`.
+template: |-
+  Comece assim:
+
+  ```python
+  def kelvin(c): ...
+  ```
+
+  ```python
+  x = 1
+  ```

@@ -1,0 +1,14 @@
+# A linked test source after resolution: it has both `origin` and `text`.
+id: tabuada-resolvida
+title: Tabuada com fonte resolvida
+type: code
+language: python
+stem: Escreva a função `tabuada(n)`, que devolve os dez primeiros múltiplos de `n`.
+tests:
+  - format: py
+    origin: test_tabuada.py
+    text: |
+      from tabuada import tabuada
+
+      def test_tres():
+          assert tabuada(3)[:3] == [3, 6, 9]

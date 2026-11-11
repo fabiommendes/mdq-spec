@@ -1,0 +1,16 @@
+id: tabuada
+title: Tabuada
+type: code
+language: python
+file: tabuada.py
+stem: Escreva a função `tabuada(n)`, que devolve os dez primeiros múltiplos de `n`.
+tests:
+  - format: pytest
+    text: |
+      from tabuada import tabuada
+
+      def test_tres():
+          assert tabuada(3)[:3] == [3, 6, 9]
+
+      def test_zero():
+          assert tabuada(0) == [0] * 10

@@ -1,0 +1,702 @@
+# Vectors for the grading of a code question (docs/question-types/code.md,
+# "Grading", and docs/runner-report.md).
+#
+# Document structure
+#
+# Question {
+#   name: string
+#
+#   // The question's own fields, as in its YAML form, without `type` and
+#   // `stem`: `tests` (every source resolved, with `text`, unless the case
+#   // is about an unresolved source) and `rubric`.
+#   question: { tests?: TestSource[], rubric?: RubricItem[] }
+#
+#   // The `automation` of the question (code.md, "Automation").
+#   automation: "automatic" | "semi-automatic" | "manual"
+#
+#   examples: Example[]
+# }
+#
+# Example {
+#   name: string
+#
+#   // The runner report (runner-report.md) for the response. Absent when the
+#   // example grades a question that has no test source, or when the grading
+#   // gets no report for a question that has one (`ReportError`). The response itself
+#   // does not matter here: the report is what the runner made of it.
+#   report?: object
+#
+#   // The score that the instructor gave to each item of `rubric`, by
+#   // position, `null` for an item with no score yet. Absent: no score.
+#   manual?: (number | null)[]
+#
+#   // The score that the instructor gave to the whole response. Only for a
+#   // question that has no rubric item at all.
+#   instructor?: number
+#
+#   // What the grading gives: the score, "pending" (responses.md, "Pending")
+#   // or "error". A score is compared with a tolerance of 1e-9, as the
+#   // fractions of the formula are not exact in binary.
+#   score: number | "pending" | "error"
+#
+#   // The error of the grading, when `score` is "error" (responses.md,
+#   // "Errors"). `ValueError` is a host error: the `manual` or `instructor`
+#   // value does not fit the question.
+#   error?: "ReportError" | "UnresolvedTestSource" | "ValueError"
+# }
+questions:
+  - name: "Conta de luz: annotated source and a manual item"
+    question:
+      tests:
+        - format: pytest
+          text: |
+            import pytest
+            from conta import valor_conta
+
+            # mdq: [+3] {example} Acerta os exemplos do enunciado
+            def test_verde():
+                assert valor_conta(100, "verde") == pytest.approx(80.00)
+
+            def test_amarela():
+                assert valor_conta(150, "amarela") == pytest.approx(123.00)
+
+            # mdq: [+5] Correta para qualquer consumo e bandeira
+            @pytest.mark.parametrize("kwh", [0, 1, 37.5, 480, 10000])
+            def test_contra_gabarito(kwh):
+                assert valor_conta(kwh, "verde") >= 0
+
+            # mdq: [-2] Aceita bandeira que não existe
+            def test_bandeira_invalida():
+                with pytest.raises((KeyError, ValueError)):
+                    valor_conta(100, "roxa")
+      rubric:
+        - {value: 2, binding: manual, text: Nomes de variáveis claros}
+    automation: semi-automatic
+    examples:
+      - name: "all cases pass, manual item fully earned"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 5, verdict: pass}
+            - {source: 0, line: 8, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 17, verdict: pass}
+        manual: [1]
+        score: 1
+      - name: "partial: one of two cases of the first item, four of five of the second, half of the manual item"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 5, verdict: pass}
+            - {source: 0, line: 8, verdict: fail}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: fail}
+            - {source: 0, line: 17, verdict: pass}
+        manual: [0.5]
+        score: 0.65
+      - name: "negative item: the case that must pass fails, so the discount is the whole value"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 5, verdict: pass}
+            - {source: 0, line: 8, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 17, verdict: fail}
+        manual: [1]
+        score: 0.8
+      - name: "every non-pass verdict fails a case"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 5, verdict: timeout}
+            - {source: 0, line: 8, verdict: error}
+            - {source: 0, line: 13, verdict: resource-limit}
+            - {source: 0, line: 13, verdict: resource-limit}
+            - {source: 0, line: 13, verdict: skipped}
+            - {source: 0, line: 13, verdict: skipped}
+            - {source: 0, line: 13, verdict: fail}
+            - {source: 0, line: 17, verdict: pass}
+        manual: [0]
+        score: 0
+      - name: "a region goes from its annotation line to the line before the next one"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 4, verdict: pass}
+            - {source: 0, line: 10, verdict: fail}
+            - {source: 0, line: 11, verdict: pass}
+            - {source: 0, line: 15, verdict: fail}
+            - {source: 0, line: 16, verdict: pass}
+            - {source: 0, line: 19, verdict: pass}
+        manual: [0]
+        score: 0.4
+      - name: "a case before the first annotation runs and counts for nothing"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 2, verdict: fail}
+            - {source: 0, line: 5, verdict: pass}
+            - {source: 0, line: 8, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 17, verdict: pass}
+        manual: [1]
+        score: 1
+      - name: "a positive item with no case earns nothing"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 5, verdict: pass}
+            - {source: 0, line: 8, verdict: pass}
+            - {source: 0, line: 17, verdict: pass}
+        manual: [1]
+        score: 0.5
+      - name: "build error: every item of tests fails, the manual item still counts"
+        report:
+          status: build-error
+          cases: []
+        manual: [1]
+        score: 0
+      - name: "build error with a manual item that has no score"
+        report:
+          status: build-error
+          cases: []
+        manual: [null]
+        score: pending
+      - name: "runner error: pending, never 0"
+        report:
+          status: runner-error
+          cases: []
+        manual: [1]
+        score: pending
+      - name: "manual item with no score of the instructor"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 5, verdict: pass}
+            - {source: 0, line: 8, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 17, verdict: pass}
+        manual: [null]
+        score: pending
+      - name: "manual scores absent"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 5, verdict: pass}
+            - {source: 0, line: 8, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 17, verdict: pass}
+        score: pending
+      - name: "a case of a source that is not in tests"
+        report:
+          status: completed
+          cases:
+            - {source: 1, line: 5, verdict: pass}
+        manual: [1]
+        score: error
+        error: ReportError
+      - name: "a case after the last line of its source"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 20, verdict: pass}
+        manual: [1]
+        score: error
+        error: ReportError
+      - name: "version 1 is the version of the format"
+        report:
+          version: 1
+          status: completed
+          cases:
+            - {source: 0, line: 5, verdict: pass}
+            - {source: 0, line: 8, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 17, verdict: pass}
+        manual: [1]
+        score: 1
+      - name: "a version that the reader does not know"
+        report:
+          version: 2
+          status: completed
+          cases:
+            - {source: 0, line: 5, verdict: pass}
+            - {source: 0, line: 8, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 17, verdict: pass}
+        manual: [1]
+        score: error
+        error: ReportError
+      - name: "a field that the schema does not define"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 5, verdict: pass, coverage: 0.93}
+        manual: [1]
+        score: error
+        error: ReportError
+      - name: "meta holds the data of the runner and is ignored, at the root and in a case"
+        report:
+          status: completed
+          meta: {container: "a1b2c3", coverage: 0.93}
+          cases:
+            - {source: 0, line: 5, verdict: pass, meta: {coverage: 0.93}}
+            - {source: 0, line: 8, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 17, verdict: pass}
+        manual: [1]
+        score: 1
+      - name: "build error with cases that pass: the cases are ignored, the negative item discounts its whole value"
+        report:
+          status: build-error
+          build: "SyntaxError: invalid syntax (conta.py, line 2)"
+          cases:
+            - {source: 0, line: 5, verdict: pass}
+            - {source: 0, line: 8, verdict: pass}
+            - {source: 0, line: 13, verdict: pass}
+            - {source: 0, line: 17, verdict: pass}
+        manual: [0.5]
+        score: -0.1
+      - name: "build error: a case that does not fit the question is not checked"
+        report:
+          status: build-error
+          cases:
+            - {source: 7, line: 99, verdict: pass}
+        manual: [1]
+        score: 0
+      - name: "runner error: a case that does not fit the question is not checked"
+        report:
+          status: runner-error
+          cases:
+            - {source: 7, line: 99, verdict: pass}
+        manual: [1]
+        score: pending
+      - name: "runner error with a message for a human"
+        report:
+          status: runner-error
+          message: "Sandbox sem memória: reinicie a execução"
+          cases: []
+        manual: [1]
+        score: pending
+      - name: "no report and a manual item with no score: the missing report is an error before the response is pending"
+        manual: [null]
+        score: error
+        error: ReportError
+      - name: "more scores than manual items"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 5, verdict: pass}
+        manual: [1, 1]
+        score: error
+        error: ValueError
+      - name: "a score of the instructor above 1"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 5, verdict: pass}
+        manual: [1.5]
+        score: error
+        error: ValueError
+      - name: "a score of the instructor below 0"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 5, verdict: pass}
+        manual: [-0.5]
+        score: error
+        error: ValueError
+      - name: "one score for the whole response, for a question that has rubric items"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 5, verdict: pass}
+        instructor: 0.5
+        score: error
+        error: ValueError
+
+  - name: "Negative item with several cases"
+    question:
+      tests:
+        - format: pytest
+          text: |
+            # mdq: [+4] Calcula o valor
+            def test_valor(): ...
+
+            # mdq: [-2] Rejeita entradas inválidas
+            @pytest.mark.parametrize("x", [-1, 0, "a", None])
+            def test_rejeita(x): ...
+    automation: automatic
+    examples:
+      - name: "one case of four fails: the discount is a quarter of the value"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 2, verdict: pass}
+            - {source: 0, line: 6, verdict: pass}
+            - {source: 0, line: 6, verdict: pass}
+            - {source: 0, line: 6, verdict: pass}
+            - {source: 0, line: 6, verdict: fail}
+        score: 0.875
+      - name: "every case of the negative item fails: the discount is the whole value"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 2, verdict: pass}
+            - {source: 0, line: 6, verdict: fail}
+            - {source: 0, line: 6, verdict: error}
+            - {source: 0, line: 6, verdict: timeout}
+            - {source: 0, line: 6, verdict: skipped}
+        score: 0.5
+      - name: "a skipped case of the negative item is not passed: it discounts"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 2, verdict: pass}
+            - {source: 0, line: 6, verdict: pass}
+            - {source: 0, line: 6, verdict: pass}
+            - {source: 0, line: 6, verdict: pass}
+            - {source: 0, line: 6, verdict: skipped}
+        score: 0.875
+      - name: "the negative item has no case: no credit and no discount"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 2, verdict: pass}
+        score: 1
+
+  - name: "Decimal values"
+    question:
+      tests:
+        - format: pytest
+          text: |
+            # mdq: [0.5] Importa o módulo
+            def test_import(): ...
+
+            # mdq: [1.5] Calcula o valor
+            def test_a(): ...
+            def test_b(): ...
+
+            # mdq: [-0.25] Não usa eval
+            def test_eval(): ...
+    automation: automatic
+    examples:
+      - name: "credit 0.5 + 1.5 * 1/2 = 1.25, discount 0.25, over 2"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 2, verdict: pass}
+            - {source: 0, line: 5, verdict: pass}
+            - {source: 0, line: 6, verdict: fail}
+            - {source: 0, line: 9, verdict: fail}
+        score: 0.5
+
+  - name: "Floor at -1"
+    question:
+      tests:
+        - format: pytest
+          text: |
+            # mdq: [+1] Funciona
+            def test_a(): ...
+
+            # mdq: [-3] Não usa eval
+            def test_b(): ...
+
+            # mdq: [-3] Não usa exec
+            def test_c(): ...
+    automation: automatic
+    examples:
+      - name: "every item passes"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 2, verdict: pass}
+            - {source: 0, line: 5, verdict: pass}
+            - {source: 0, line: 8, verdict: pass}
+        score: 1
+      - name: "the positive item fails and one negative item fails: (0 - 3) / 1 is below the floor"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 2, verdict: fail}
+            - {source: 0, line: 5, verdict: fail}
+            - {source: 0, line: 8, verdict: pass}
+        score: -1
+      - name: "both negative items fail"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 2, verdict: pass}
+            - {source: 0, line: 5, verdict: fail}
+            - {source: 0, line: 8, verdict: fail}
+        score: -1
+      - name: "only the positive item fails"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 2, verdict: fail}
+            - {source: 0, line: 5, verdict: pass}
+            - {source: 0, line: 8, verdict: pass}
+        score: 0
+
+  - name: "Public region with the value 0"
+    question:
+      tests:
+        - format: pytest
+          text: |
+            # mdq: [0] {public} Aceita os dois argumentos
+            def test_assinatura(): ...
+
+            # mdq: [+4] Calcula o valor
+            def test_valor(): ...
+    automation: automatic
+    examples:
+      - name: "the pre-validation fails and counts for nothing"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 2, verdict: fail}
+            - {source: 0, line: 5, verdict: pass}
+        score: 1
+      - name: "the pre-validation passes and counts for nothing"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 2, verdict: pass}
+            - {source: 0, line: 5, verdict: fail}
+        score: 0
+
+  - name: "Unannotated source is an implicit item of value 1"
+    question:
+      tests:
+        - format: pytest
+          text: |
+            def test_a(): ...
+
+            def test_b(): ...
+
+            def test_c(): ...
+
+            def test_d(): ...
+        - format: pytest
+          text: |
+            # mdq: [+3] Caso difícil
+            def test_e(): ...
+    automation: automatic
+    examples:
+      - name: "the cases of the implicit item share it in equal parts: 3 of 4, and the other source"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 1, verdict: pass}
+            - {source: 0, line: 3, verdict: pass}
+            - {source: 0, line: 5, verdict: pass}
+            - {source: 0, line: 7, verdict: fail}
+            - {source: 1, line: 2, verdict: pass}
+        score: 0.9375
+      - name: "the implicit item with every case failed"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 1, verdict: fail}
+            - {source: 0, line: 3, verdict: fail}
+            - {source: 0, line: 5, verdict: fail}
+            - {source: 0, line: 7, verdict: fail}
+            - {source: 1, line: 2, verdict: pass}
+        score: 0.75
+
+  - name: "Implicit item, every kind of verdict"
+    question:
+      tests:
+        - format: pytest
+          text: |
+            def test_a(): ...
+            def test_b(): ...
+            def test_c(): ...
+            def test_d(): ...
+            def test_e(): ...
+    automation: automatic
+    examples:
+      - name: "only pass passes: 2 of 5"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 1, verdict: pass}
+            - {source: 0, line: 2, verdict: pass}
+            - {source: 0, line: 3, verdict: timeout}
+            - {source: 0, line: 4, verdict: error}
+            - {source: 0, line: 5, verdict: skipped}
+        score: 0.4
+
+  - name: "Manual items of both signs next to tests"
+    question:
+      tests:
+        - format: pytest
+          text: |
+            def test_a(): ...
+      rubric:
+        - {value: 1, binding: manual, text: Código legível}
+        - {value: -1, binding: manual, text: Deixou código de depuração}
+    automation: semi-automatic
+    examples:
+      - name: "the credit is the fraction of the value, the discount is the fraction applied"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 1, verdict: pass}
+        manual: [1, 0.5]
+        score: 0.75
+      - name: "the negative manual item has no score"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 1, verdict: pass}
+        manual: [1, null]
+        score: pending
+
+  - name: "Manual item of value 0 is never pending"
+    question:
+      tests:
+        - format: pytest
+          text: |
+            def test_a(): ...
+      rubric:
+        - {value: 0, binding: manual, text: Observação para o professor}
+    automation: automatic
+    examples:
+      - name: "no score needed"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 1, verdict: pass}
+        manual: [null]
+        score: 1
+
+  - name: "Rubric with no positive item"
+    question:
+      tests:
+        - format: pytest
+          text: |
+            # mdq: [0] {example} Aceita um número
+            def test_numero(): ...
+      rubric:
+        - {value: -1, binding: manual, text: Usou uma biblioteca externa}
+    automation: semi-automatic
+    examples:
+      - name: "the sum of the positive values is 0, so the score is 0"
+        report:
+          status: completed
+          cases:
+            - {source: 0, line: 2, verdict: pass}
+        manual: [1]
+        score: 0
+
+  - name: "Manual items only"
+    question:
+      rubric:
+        - {value: 2, binding: manual, text: Nomes de variáveis claros}
+    automation: manual
+    examples:
+      - name: "fully earned"
+        manual: [1]
+        score: 1
+      - name: "half earned"
+        manual: [0.5]
+        score: 0.5
+      - name: "no score yet"
+        manual: [null]
+        score: pending
+      - name: "fewer scores than manual items"
+        manual: []
+        score: error
+        error: ValueError
+      - name: "one score for the whole response, for a question that has a rubric item"
+        instructor: 0.5
+        score: error
+        error: ValueError
+
+  - name: "No test source and no rubric: graded as an essay"
+    question: {}
+    automation: manual
+    examples:
+      - name: "the instructor scores the whole response"
+        instructor: 0.5
+        score: 0.5
+      - name: "no score yet"
+        score: pending
+      - name: "the score of the instructor above 1"
+        instructor: 1.5
+        score: error
+        error: ValueError
+      - name: "a list of scores, for a question that has no manual item"
+        manual: [1]
+        score: error
+        error: ValueError
+
+  - name: "Test source that is not resolved"
+    question:
+      tests:
+        - format: py
+          origin: test_conta.py
+    automation: automatic
+    examples:
+      - name: "grading needs the text of the source, even with a report that makes the response pending"
+        report:
+          status: runner-error
+          cases: []
+        score: error
+        error: UnresolvedTestSource
+      - name: "the unresolved source is checked before the scores of the instructor"
+        manual: [1]
+        score: error
+        error: UnresolvedTestSource
+
+  - name: "Test source and no report"
+    question:
+      tests:
+        - format: pytest
+          text: |
+            def test_a(): ...
+    automation: automatic
+    examples:
+      - name: "the grading needs a report"
+        score: error
+        error: ReportError
+      - name: "the scores of the instructor are checked before the report: a ValueError, not a ReportError"
+        manual: [1]
+        score: error
+        error: ValueError

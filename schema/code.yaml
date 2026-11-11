@@ -1,0 +1,173 @@
+"$schema": "https://json-schema.org/draft/2020-12/schema"
+"$id": "https://raw.githubusercontent.com/fabiommendes/mdq-spec/main/schema/code.yaml"
+title: Code question
+description: >-
+  A question whose student submits one source file. Test sources and a rubric
+  score the submission: a runner executes the test cases, and the instructor
+  applies the manual rubric items. Extends the common question-base schema.
+  The rubric items that the annotations of a test source declare are not in
+  this document: they are part of the `text` of the test source.
+
+allOf:
+  - "$ref": "./question-base.yaml"
+  - type: object
+    properties:
+      type:
+        const: code
+
+      language:
+        type: string
+        description: >-
+          The programming language of the submission, not empty and not only
+          Unicode spaces. The host derives the
+          syntax highlighting from it and, with the format of a test source,
+          chooses the runner. It is not compared with the format of the test
+          sources.
+        minLength: 1
+        pattern: "[^\\t\\n\\v\\f\\r \\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]"
+        examples:
+          - python
+          - c
+          - prolog
+
+      file:
+        type: string
+        description: >-
+          The name of the file the student submits: a plain name, with no `/`
+          and no `\`, that is not `.` or `..` and not only Unicode spaces. A question whose tests need no file name, such as a test
+          of input and output, omits it.
+        minLength: 1
+        pattern: "^(?!\\.\\.?$)(?![\\t\\n\\v\\f\\r \\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]+$)[^/\\\\]+$"
+        examples:
+          - conta.py
+          - main.c
+
+      tests:
+        type: array
+        description: >-
+          The test sources, in the order of the `## [tests]` section. The
+          runner report names a source by its index in this list.
+        items:
+          "$ref": "#/$defs/TestSource"
+        minItems: 1
+
+      rubric:
+        type: array
+        description: >-
+          The manual rubric items, in the order of the `## [rubric]` section.
+          The items that a test applies are not here: they are the
+          annotations in the `text` of each test source.
+        items:
+          "$ref": "#/$defs/RubricItem"
+        minItems: 1
+
+      template:
+        type: string
+        description: >-
+          The starting code the student receives, written as Markdown. In a
+          Markdown source it is the content of the `## [template]` section,
+          without the heading: exactly one fenced code block.
+
+      answerKey:
+        type: string
+        description: >-
+          A model answer, written as Markdown. In a Markdown source it is the
+          content of the `## [answer-key]` section, without the heading. The
+          first fenced code block is the reference solution. A host MUST NOT
+          show it to the student before the student submits the response. An
+          empty value or one with no visible character is a `blank-text`
+          error, like `title`.
+
+    required:
+      - type
+
+"$defs":
+  TestSource:
+    title: Test source
+    description: >-
+      One block of test text: a fenced block of the `## [tests]` section or a
+      file that a link of the section points to. The core does not read the
+      content. A source with `origin` and no `text` is unresolved.
+    type: object
+    properties:
+      format:
+        type: string
+        description: >-
+          The test format: the first word of the info string of a fence, or
+          the extension of a linked file. Case is kept.
+        minLength: 1
+        examples:
+          - pytest
+          - py
+          - iospec
+      text:
+        type: string
+        description: >-
+          The text of the source. For a fenced block it is the content of
+          the block, with a line ending after each line. A source that a
+          link declares has no `text` until it is resolved.
+      origin:
+        type: string
+        description: >-
+          The destination of the link: a relative path with no scheme, no
+          query and no fragment. A fenced block has no origin.
+        minLength: 1
+        pattern: "^(?![A-Za-z][A-Za-z0-9+.-]*:)(?!/)[^?#]+$"
+        examples:
+          - test_conta.py
+          - tests/conta.iospec
+    required:
+      - format
+    anyOf:
+      - required:
+          - text
+      - required:
+          - origin
+    additionalProperties: false
+
+  RubricItem:
+    title: Rubric item
+    description: >-
+      A rubric item of the `## [rubric]` section. It has the shape of a choice
+      of a choice list, with `value` and `binding` in the place of the
+      verdict field of the choice.
+    type: object
+    properties:
+      value:
+        type: number
+        description: >-
+          The value of the item, in relative points. A positive value is a
+          credit, a negative value is a discount and zero counts for nothing.
+          When omitted, the value is 1.
+        examples:
+          - 2
+          - -1
+          - 0.5
+      binding:
+        description: >-
+          What applies the item. `manual` is the only binding of a rubric item
+          in this section: the instructor scores it.
+        const: manual
+      text:
+        type: string
+        description: >-
+          The criterion, written as Markdown. An empty value or one with no
+          visible character is a `blank-text` error.
+      feedback:
+        type: string
+        description: >-
+          Text shown to the student after grading. Same rules as the feedback
+          of a choice.
+      comment:
+        type: string
+        description: >-
+          Text for other instructors, never shown to students. Same rules as
+          the comment of a choice.
+    required:
+      - binding
+      - text
+    additionalProperties: false
+
+# Rejects any key not defined by question-base.yaml or by the object schema
+# above, as in the other question types.
+unevaluatedProperties: false

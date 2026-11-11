@@ -1,0 +1,15 @@
+id: so-descontos
+title: Rubrica sem item positivo
+type: code
+language: python
+stem: Escreva a função `dobro(x)`.
+tests:
+  - format: pytest
+    text: |
+      # mdq: [0] {example} Aceita um número
+      def test_numero():
+          dobro(1)
+rubric:
+  - value: -1
+    binding: manual
+    text: Usou uma biblioteca externa

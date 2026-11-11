@@ -34,6 +34,13 @@
 #     // skipped question.
 #     responses: { [qid of string]: any },
 #
+#     // Optional. For each code question, by id: the runner report for its
+#     // response (runner-report.md) and the scores of the instructor for its
+#     // manual items (responses.md, "Code"). A code question with no entry
+#     // here has no report.
+#     reports?: { [qid of string]: object },
+#     manual?: { [qid of string]: (number | null)[] },
+#
 #     // The exam score, or "pending" when an essay waits for the
 #     // instructor, or "malformed" when the responses are rejected (an id
 #     // that names no question, or a response the question rejects).
@@ -60,6 +67,15 @@ definitions:
   mc-choices: &mc-choices
     - { id: a, text: "certa", score: 1 }
     - { id: b, text: "errada" }
+  # Scores -1 when both cases fail: (0 - 3) / 1 is under the floor.
+  code-tests: &code-tests
+    - format: pytest
+      text: |
+        # mdq: [+1] Funciona
+        def test_a(): ...
+
+        # mdq: [-3] Não usa eval
+        def test_b(): ...
   ms-choices: &ms-choices
     - { id: a, text: "certa", correct: true }
     - { id: b, text: "errada", correct: false }
@@ -146,6 +162,61 @@ cases:
         penalty: full
       - responses: { q1: b, q2: b }
         score: -0.5
+
+  # A code question floors its own score at -1 (code.md, "Score"), and then
+  # `penalty` applies as to any question. Here q1 has weight 2 and scores -1,
+  # and q2 has weight 1 and scores 1.
+  - name: "code question at -1, penalty none"
+    exam:
+      penalty: none
+      questions:
+        - { id: q1, type: code, stem: "Pergunta 1", weight: 2, tests: *code-tests }
+        - { id: q2, type: multiple-choice, stem: "Pergunta 2", weight: 1, choices: *mc-scored-choices }
+    examples:
+      - responses: { q1: "print(eval(input()))\n", q2: a }
+        reports:
+          q1:
+            status: completed
+            cases:
+              - { source: 0, line: 2, verdict: fail }
+              - { source: 0, line: 5, verdict: fail }
+        score: 0.3333333333333333
+        penalty: none
+        questions: { q1: -1, q2: 1 }
+  - name: "code question at -1, penalty capped"
+    exam:
+      penalty: capped
+      questions:
+        - { id: q1, type: code, stem: "Pergunta 1", weight: 2, tests: *code-tests }
+        - { id: q2, type: multiple-choice, stem: "Pergunta 2", weight: 1, choices: *mc-scored-choices }
+    examples:
+      - responses: { q1: "print(eval(input()))\n", q2: a }
+        reports:
+          q1:
+            status: completed
+            cases:
+              - { source: 0, line: 2, verdict: fail }
+              - { source: 0, line: 5, verdict: fail }
+        score: 0
+        penalty: capped
+        questions: { q1: -1, q2: 1 }
+  - name: "code question at -1, penalty full"
+    exam:
+      penalty: full
+      questions:
+        - { id: q1, type: code, stem: "Pergunta 1", weight: 2, tests: *code-tests }
+        - { id: q2, type: multiple-choice, stem: "Pergunta 2", weight: 1, choices: *mc-scored-choices }
+    examples:
+      - responses: { q1: "print(eval(input()))\n", q2: a }
+        reports:
+          q1:
+            status: completed
+            cases:
+              - { source: 0, line: 2, verdict: fail }
+              - { source: 0, line: 5, verdict: fail }
+        score: -0.3333333333333333
+        penalty: full
+        questions: { q1: -1, q2: 1 }
 
   # A skipped question scores 0 and keeps its weight.
   - name: "Skipped questions"

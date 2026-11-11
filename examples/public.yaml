@@ -18,10 +18,12 @@
 #   // blank id to the correct responses of that blank.
 #   correctResponses?: list | object
 #
-#   // The question is not addressable: building its public form fails
-#   // with this error (docs/public-form.md, "Addressability"). Then
-#   // `public` and `correctResponses` are absent.
-#   error?: "MissingIdError"
+#   // Building its public form fails with this error: the question is not
+#   // addressable (`MissingIdError`, docs/public-form.md, "Addressability"),
+#   // or a code question has a test source that is not resolved
+#   // (`UnresolvedTestSource`, "Public tests"). Then `public` and
+#   // `correctResponses` are absent.
+#   error?: "MissingIdError" | "UnresolvedTestSource"
 # }
 #
 # `public()` and `correct_responses()` are the Python names. They are not
@@ -347,6 +349,272 @@ cases:
     public:
       type: essay
       stem: Explique por que a Amazônia é chamada de "rios voadores".
+    correctResponses: []
+
+  #
+  # Code
+  #
+  - name: code keeps template, language and file, and lists one entry for each public region
+    question:
+      type: code
+      id: conta-de-luz
+      language: python
+      file: conta.py
+      stem: Escreva a função `valor_conta(kwh, bandeira)`, que devolve o total em reais.
+      template: |-
+        ```python
+        def valor_conta(kwh, bandeira):
+            ...
+        ```
+      tests:
+        - format: pytest
+          text: |
+            import pytest
+            from conta import valor_conta
+
+            # mdq: [+3] {example} Acerta os exemplos do enunciado
+            # mdq: > Confira a bandeira.
+            # mdq: ! Só para o professor.
+            def test_verde():
+                assert valor_conta(100, "verde") == pytest.approx(80.00)
+
+            def test_amarela():
+                assert valor_conta(150, "amarela") == pytest.approx(123.00)
+
+            # mdq: [0] {public} Aceita bandeira em maiúsculas
+            def test_maiuscula():
+                valor_conta(1, "VERDE")
+
+            # mdq: [+5] Correta para qualquer consumo
+            def test_contra_gabarito():
+                assert valor_conta(0, "verde") == 0
+        - format: py
+          origin: test_extra.py
+          text: |
+            def test_extra(): ...
+      rubric:
+        - value: 2
+          binding: manual
+          text: Nomes de variáveis claros
+          feedback: Escolha nomes que digam o que a variável guarda.
+          comment: Não descontar por nomes em inglês
+      answerKey: |-
+        ```python
+        ADICIONAL = {"verde": 0.00, "amarela": 0.02, "vermelha": 0.05}
+
+        def valor_conta(kwh, bandeira):
+            return kwh * (0.80 + ADICIONAL[bandeira])
+        ```
+    public:
+      type: code
+      id: conta-de-luz
+      language: python
+      file: conta.py
+      stem: Escreva a função `valor_conta(kwh, bandeira)`, que devolve o total em reais.
+      template: |-
+        ```python
+        def valor_conta(kwh, bandeira):
+            ...
+        ```
+      publicTests:
+        - format: pytest
+          text: |-
+            def test_verde():
+                assert valor_conta(100, "verde") == pytest.approx(80.00)
+
+            def test_amarela():
+                assert valor_conta(150, "amarela") == pytest.approx(123.00)
+          firstLine: 7
+          example: true
+        - format: pytest
+          text: |-
+            def test_maiuscula():
+                valor_conta(1, "VERDE")
+          firstLine: 14
+          example: false
+    correctResponses:
+      - |
+        ADICIONAL = {"verde": 0.00, "amarela": 0.02, "vermelha": 0.05}
+
+        def valor_conta(kwh, bandeira):
+            return kwh * (0.80 + ADICIONAL[bandeira])
+
+  - name: code with only the tag has no correct response
+    question:
+      type: code
+      stem: Escreva uma função `kelvin(c)` que converte graus Celsius em kelvin.
+    public:
+      type: code
+      stem: Escreva uma função `kelvin(c)` que converte graus Celsius em kelvin.
+    correctResponses: []
+
+  - name: code with hidden tests has no public tests, and an answer key with no fenced block has no correct response
+    question:
+      type: code
+      stem: Escreva uma função `kelvin(c)` que converte graus Celsius em kelvin.
+      tests:
+        - format: pytest
+          text: |
+            # mdq: [+1] Converte o zero
+            def test_zero(): ...
+      answerKey: Some 273,15 ao valor em Celsius.
+    public:
+      type: code
+      stem: Escreva uma função `kelvin(c)` que converte graus Celsius em kelvin.
+    correctResponses: []
+
+  - name: code with an unresolved test source has no public form
+    question:
+      type: code
+      stem: Escreva uma função `kelvin(c)` que converte graus Celsius em kelvin.
+      tests:
+        - format: py
+          origin: test_kelvin.py
+    error: UnresolvedTestSource
+
+  - name: code omits a public region with no text
+    question:
+      type: code
+      stem: Escreva uma função `kelvin(c)` que converte graus Celsius em kelvin.
+      tests:
+        - format: pytest
+          text: |
+            # mdq: [+1] {public} Converte o zero
+            def test_zero(): ...
+
+            # mdq: [0] {public} Só há linhas em branco abaixo
+
+
+            # mdq: [+2] Converte o ponto de ebulição
+            def test_cem(): ...
+
+            # mdq: [0] {example} A fonte acaba aqui
+    public:
+      type: code
+      stem: Escreva uma função `kelvin(c)` que converte graus Celsius em kelvin.
+      publicTests:
+        - format: pytest
+          text: |-
+            def test_zero(): ...
+          firstLine: 2
+          example: false
+    correctResponses: []
+
+  - name: code with only public regions with no text has no public tests
+    question:
+      type: code
+      stem: Escreva uma função `kelvin(c)` que converte graus Celsius em kelvin.
+      tests:
+        - format: pytest
+          text: |
+            def test_zero(): ...
+
+            # mdq: [0] {public} A fonte acaba aqui
+    public:
+      type: code
+      stem: Escreva uma função `kelvin(c)` que converte graus Celsius em kelvin.
+    correctResponses: []
+
+  - name: code public region has no blank line at either end of its text
+    question:
+      type: code
+      stem: Escreva a função `valor_conta(kwh, bandeira)`, que devolve o total em reais.
+      tests:
+        - format: pytest
+          text: |
+            # mdq: [+3] {example} Acerta os exemplos
+            # mdq: > Confira a tarifa.
+
+            def test_verde():
+                assert valor_conta(100, "verde") == pytest.approx(80.00)
+
+
+            # mdq: [+5] Correta para qualquer consumo
+            def test_qualquer(): ...
+    public:
+      type: code
+      stem: Escreva a função `valor_conta(kwh, bandeira)`, que devolve o total em reais.
+      publicTests:
+        - format: pytest
+          text: |-
+            def test_verde():
+                assert valor_conta(100, "verde") == pytest.approx(80.00)
+          firstLine: 4
+          example: true
+    correctResponses: []
+
+  - name: code lists the public tests in the order of the test sources
+    question:
+      type: code
+      stem: Escreva a função `tabuada(n)`, que devolve os dez primeiros múltiplos de `n`.
+      tests:
+        - format: pytest
+          text: |
+            # mdq: [+2] Caso oculto
+            def test_oculto(): ...
+
+            # mdq: [0] {public} Aceita zero
+            def test_zero(): ...
+        - format: iospec
+          text: |
+            # mdq: [+1] {example} Exemplo do enunciado
+            3
+            3 6 9
+    public:
+      type: code
+      stem: Escreva a função `tabuada(n)`, que devolve os dez primeiros múltiplos de `n`.
+      publicTests:
+        - format: pytest
+          text: |-
+            def test_zero(): ...
+          firstLine: 5
+          example: false
+        - format: iospec
+          text: |-
+            3
+            3 6 9
+          firstLine: 2
+          example: true
+    correctResponses: []
+
+  - name: code reference solution is the first fenced block that is a direct child of the answer key
+    question:
+      type: code
+      stem: Escreva uma função `kelvin(c)` que converte graus Celsius em kelvin.
+      answerKey: |-
+        * Uma tentativa que não serve:
+
+          ```python
+          def kelvin(c):
+              return c
+          ```
+
+        ```python
+        def kelvin(c):
+            return c + 273.15
+        ```
+    public:
+      type: code
+      stem: Escreva uma função `kelvin(c)` que converte graus Celsius em kelvin.
+    correctResponses:
+      - |
+        def kelvin(c):
+            return c + 273.15
+
+  - name: code answer key with a fenced block only inside a list has no correct response
+    question:
+      type: code
+      stem: Escreva uma função `kelvin(c)` que converte graus Celsius em kelvin.
+      answerKey: |-
+        * A resposta:
+
+          ```python
+          def kelvin(c):
+              return c + 273.15
+          ```
+    public:
+      type: code
+      stem: Escreva uma função `kelvin(c)` que converte graus Celsius em kelvin.
     correctResponses: []
 
   #

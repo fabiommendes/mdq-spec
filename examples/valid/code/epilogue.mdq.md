@@ -1,0 +1,11 @@
+---
+id: area-do-cerrado
+title: Área do Cerrado
+---
+
+Escreva uma função `area_cerrado(percentual)`, que devolve a área do Cerrado em
+km², dado o percentual do território brasileiro que ele ocupa.
+
+[code]
+
+Use 8.510.000 km² como área do Brasil.

@@ -1,0 +1,11 @@
+# A heading that starts with a link is valid in the answer key.
+id: pantanal-cheia
+title: Cheia do Pantanal
+type: essay
+stem: Explique por que o Pantanal alaga a cada ano.
+answerKey: |-
+  O rio Paraguai transborda na estação chuvosa e cobre a planície.
+
+  ## [INPE](https://www.inpe.br)
+
+  Um ponto por causa citada.

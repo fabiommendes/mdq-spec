@@ -1,0 +1,11 @@
+# essay.md, "Answer key": a heading that starts with `[` is a forbidden block
+# element in the answer key, as in the epilogue. Schema-valid (`answerKey` is a
+# string), rejected by the model.
+type: essay
+stem: "Explique por que o Pantanal alaga a cada ano."
+answerKey: |-
+  O rio Paraguai transborda na estação chuvosa.
+
+  ### [1] Critério
+
+  Um ponto por causa citada.

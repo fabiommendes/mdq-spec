@@ -1,0 +1,30 @@
+id: conta-de-luz
+title: Conta de luz
+type: code
+language: python
+file: conta.py
+stem: |-
+  A tarifa de energia é R$ 0,80 por kWh. A bandeira tarifária soma um adicional por kWh: verde R$ 0,00, amarela R$ 0,02 e vermelha R$ 0,05.
+
+  Escreva a função `valor_conta(kwh, bandeira)`, que devolve o total em reais.
+epilogue: Os valores de `kwh` são números não negativos.
+template: |-
+  ```python
+  def valor_conta(kwh, bandeira):
+      ...
+  ```
+tests:
+  - format: py
+    origin: test_conta.py
+rubric:
+  - value: 2
+    binding: manual
+    text: Nomes de variáveis claros
+    comment: Não descontar por nomes em inglês
+answerKey: |-
+  ```python
+  ADICIONAL = {"verde": 0.00, "amarela": 0.02, "vermelha": 0.05}
+
+  def valor_conta(kwh, bandeira):
+      return kwh * (0.80 + ADICIONAL[bandeira])
+  ```

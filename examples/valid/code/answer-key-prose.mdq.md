@@ -1,0 +1,23 @@
+---
+id: kelvin-gabarito-texto
+title: Celsius para kelvin, gabarito em texto
+type: code
+---
+
+Escreva uma função `kelvin(c)` que converte graus Celsius em kelvin.
+
+[code]
+
+## [answer-key]
+
+Some 273,15 ao valor em Celsius.
+
+~~~python
+def kelvin(c):
+    return c + 273.15
+~~~
+
+```python
+def outra(c):
+    return c
+```

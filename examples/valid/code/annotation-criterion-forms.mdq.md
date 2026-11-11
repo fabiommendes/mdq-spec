@@ -1,0 +1,23 @@
+---
+id: criterios-de-anotacao
+title: Formas do critério de uma anotação
+type: code
+language: python
+---
+
+Escreva a função `kelvin(c)`, que converte graus Celsius em kelvin.
+
+[code]
+
+## [tests]
+
+```pytest
+# mdq: [+1] \{c} aparece no código
+def test_chave(): ...
+
+# mdq: [+1] [Guia](https://example.com/guia) de estilo
+def test_guia(): ...
+
+# mdq: [+1] [Guia][] de estilo
+def test_referencia(): ...
+```

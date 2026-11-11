@@ -1,0 +1,9 @@
+id: tabuada-arquivo
+title: Tabuada com arquivo de testes
+type: code
+language: python
+file: tabuada.py
+stem: Escreva a função `tabuada(n)`, que devolve os dez primeiros múltiplos de `n`.
+tests:
+  - format: py
+    origin: test_tabuada.py

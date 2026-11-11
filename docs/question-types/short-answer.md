@@ -190,7 +190,7 @@ LAZY_TEXT       : LAZY_START /[^\r\n]*/
 LAZY_EXACT_MID  : LAZY_START /[^`\r\n]*(`+[^`\r\n]*)*/
 LAZY_EXACT_TEXT : LAZY_START /[^`\r\n]*(`+[^`\r\n]+)*/
 LAZY_FENCE      : /`{1,2}/
-LAZY_PLAIN_TEXT : /(?!>|!(?!\[)|[*+-][ \t]|0{0,8}1[.)][ \t]|#{1,6}([ \t]|(?=[\r\n]))|~{3}|(\*[ \t]*){3,}(?=[\r\n])|(-[ \t]*){3,}(?=[\r\n])|(_[ \t]*){3,}(?=[\r\n])|\[(?:\^[^\]\r\n]+|(?:essay|numeric|short-answer|ordering|true-false|multiple-choice|multiple-selection|fill-in)(?:[\/(][^\]\r\n]*)?)\][ \t]*:)[^`\/ \t\r\n][^\r\n]*/
+LAZY_PLAIN_TEXT : /(?!>|!(?!\[)|[*+-][ \t]|0{0,8}1[.)][ \t]|#{1,6}([ \t]|(?=[\r\n]))|~{3}|(\*[ \t]*){3,}(?=[\r\n])|(-[ \t]*){3,}(?=[\r\n])|(_[ \t]*){3,}(?=[\r\n])|\[(?:\^[^\]\r\n]+|(?:essay|code|numeric|short-answer|ordering|true-false|multiple-choice|multiple-selection|fill-in)(?:[\/(][^\]\r\n]*)?)\][ \t]*:)[^`\/ \t\r\n][^\r\n]*/
 ```
 
 The rules `ws` and `nl`, and the terminal `LAZY_START`, are defined in

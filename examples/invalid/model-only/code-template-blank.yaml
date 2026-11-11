@@ -1,0 +1,4 @@
+# code.md, "Template": an empty `template` is a `blank-text` error.
+type: code
+stem: Escreva a função `kelvin(c)`.
+template: ""

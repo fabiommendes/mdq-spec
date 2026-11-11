@@ -1,0 +1,5 @@
+# code.md, "Template": the `template` field is one fenced code block in every
+# form. Code with no fence is a forbidden block element.
+type: code
+stem: Escreva a função `kelvin(c)`.
+template: "def kelvin(c):\n    ..."

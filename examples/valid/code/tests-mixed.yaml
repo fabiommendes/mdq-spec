@@ -1,0 +1,14 @@
+id: tabuada-mista
+title: Tabuada com várias fontes de testes
+type: code
+language: python
+stem: Escreva um programa que leia `n` e escreva os dez primeiros múltiplos de `n`.
+tests:
+  - format: pytest
+    text: |
+      def test_um():
+          assert True
+  - format: IOSpec
+    origin: casos/tabuada.IOSpec
+  - format: py
+    origin: casos/limites.py

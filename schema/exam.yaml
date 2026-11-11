@@ -117,7 +117,7 @@ properties:
       type to a strategy of that type. Types absent from the mapping are
       graded as `symmetric`. A question that declares its own
       `grading` ignores this field entirely.
-      Short answer, numeric, essay and ordering questions have no `grading`
+      Short answer, numeric, essay, code and ordering questions have no `grading`
       field, so this field does not apply to them, and the mapping has no key
       for them.
     oneOf:
@@ -163,8 +163,9 @@ properties:
     default: none
     description: >-
       The exam's policy for whether a negative question score survives.
-      Questions never clamp their own score -- this is the only place
-      clamping happens. `none` floors each question score at 0 before
+      A question never clamps its own score at 0: only the exam does it.
+      The one floor of a question is the one at -1 of a `code` question,
+      which does not depend on the exam. `none` floors each question score at 0 before
       weighting it into the total. `capped` keeps the full, possibly
       negative, question values but floors the exam total at 0. `full`
       floors nothing, at either level.
@@ -225,6 +226,7 @@ additionalProperties: false
       - "$ref": "./multiple-selection.yaml"
       - "$ref": "./true-false.yaml"
       - "$ref": "./essay.yaml"
+      - "$ref": "./code.yaml"
       - "$ref": "./numeric.yaml"
       - "$ref": "./short-answer.yaml"
       - "$ref": "./fill-in.yaml"

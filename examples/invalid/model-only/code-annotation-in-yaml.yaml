@@ -1,0 +1,8 @@
+type: code
+stem: Escreva a função `kelvin(c)`.
+tests:
+  - format: pytest
+    text: |
+      # mdq: [+1] {manual} Passa nos casos
+      def test_zero():
+          pass

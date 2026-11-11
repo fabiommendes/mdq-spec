@@ -1,0 +1,12 @@
+# An escaped `\[name]` heading in the answer key is a literal heading.
+# The field keeps the backslash.
+id: pantanal-cheia
+title: Cheia do Pantanal
+type: essay
+stem: Explique por que o Pantanal alaga a cada ano.
+answerKey: |-
+  O rio Paraguai transborda na estação chuvosa e cobre a planície.
+
+  ## \[rubric]
+
+  Um ponto por causa citada.

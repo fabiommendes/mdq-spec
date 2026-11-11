@@ -1,0 +1,10 @@
+[
+  {
+    "code": "invalid-rubric-item",
+    "severity": "error",
+    "path": [
+      "rubric",
+      0
+    ]
+  }
+]

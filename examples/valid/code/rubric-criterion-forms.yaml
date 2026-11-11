@@ -1,0 +1,14 @@
+id: criterios-da-rubrica
+title: Formas do critério de um item da rubrica
+type: code
+language: python
+stem: Escreva a função `kelvin(c)`, que converte graus Celsius em kelvin.
+rubric:
+  - value: 1
+    binding: manual
+    text: "[Guia](https://example.com/guia) de estilo"
+  - value: 1
+    binding: manual
+    text: "[Guia][] de estilo"
+  - binding: manual
+    text: "[Guia][ref] de estilo"

@@ -180,7 +180,7 @@ blank_line    : ws? nl
 
 COMMENT_MARK  : /!(?!\[)/
 MARK_INDENT   : /[ ]{1,3}/
-LAZY_START    : /(?:(?:[ ]{4}|[ ]{0,3}\t)[ \t]*[^ \t\r\n]|(?!>|!(?!\[)|[*+-][ \t]|0{0,8}1[.)][ \t]|#{1,6}([ \t]|(?=[\r\n]))|`{3}|~{3}|(\*[ \t]*){3,}(?=[\r\n])|(-[ \t]*){3,}(?=[\r\n])|(_[ \t]*){3,}(?=[\r\n])|\[(?:\^[^\]\r\n]+|(?:essay|numeric|short-answer|ordering|true-false|multiple-choice|multiple-selection|fill-in)(?:[\/(][^\]\r\n]*)?)\][ \t]*:)[^ \t\r\n])/
+LAZY_START    : /(?:(?:[ ]{4}|[ ]{0,3}\t)[ \t]*[^ \t\r\n]|(?!>|!(?!\[)|[*+-][ \t]|0{0,8}1[.)][ \t]|#{1,6}([ \t]|(?=[\r\n]))|`{3}|~{3}|(\*[ \t]*){3,}(?=[\r\n])|(-[ \t]*){3,}(?=[\r\n])|(_[ \t]*){3,}(?=[\r\n])|\[(?:\^[^\]\r\n]+|(?:essay|code|numeric|short-answer|ordering|true-false|multiple-choice|multiple-selection|fill-in)(?:[\/(][^\]\r\n]*)?)\][ \t]*:)[^ \t\r\n])/
 ```
 
 `md_inline` is any markdown inline element except a line ending.
@@ -221,7 +221,7 @@ underline: it turns the text into a heading, which is a `parse-error`. See
 [Continuation lines](patterns.md#continuation-lines).
 
 The terminal also excludes a line that starts with a tag: a reserved label
-(`short-answer`, `numeric`, `essay`, `ordering`, `true-false`,
+(`short-answer`, `numeric`, `essay`, `code`, `ordering`, `true-false`,
 `multiple-choice`, `multiple-selection` or `fill-in`, with an optional suffix,
 or a blank label `^slug` with an optional suffix) between brackets, followed by
 a colon, such as `[short-answer/reject]: Rio` or `[^capital/short-answer]: Brasília`.

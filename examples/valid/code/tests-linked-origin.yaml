@@ -1,0 +1,20 @@
+id: origens-de-link
+title: Formas da origem de um link
+type: code
+language: python
+stem: Escreva a função `kelvin(c)`, que converte graus Celsius em kelvin.
+tests:
+  - format: py
+    origin: testes/função.py
+  - format: py
+    origin: meus testes.py
+  - format: py
+    origin: test_a.py
+  - format: py
+    origin: test_b.py
+  - format: py
+    origin: test_c.py
+  - format: py
+    origin: testes/tabuada_dois.py
+  - format: py
+    origin: testes/a&b.py

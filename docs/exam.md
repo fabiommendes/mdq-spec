@@ -189,7 +189,7 @@ the instructions and the stem and epilogue of a question forbid: the error
 
 Inside an exam, a block after the body of a question MUST NOT use `---` as a
 thematic break. This covers the epilogue and the type-specific sections that
-follow it: the `## [answer-key]` section of an essay and the `## [extra]`,
+follow it: the `## [answer-key]` section of an essay or a code question and the `## [extra]`,
 `## [accept]` and `## [reject]` sections of an ordering question. Use `***` or
 `___` instead. After the body of a question, a `---` line starts the
 frontmatter of the next block, so a thematic break followed by text that YAML
@@ -367,8 +367,12 @@ and `meta` belong to whichever document declares them.
 
 A question's score ranges from -1 to 1. Whether a negative score survives into
 the exam is decided once, by the exam, through `penalty`. A question never
-clamps its own score, so an instructor can read a question's score without
-knowing anything about the exam that will eventually contain it.
+clamps its own score at 0, so an instructor can read a question's score without
+knowing anything about the exam that will eventually contain it. The score of a
+question is already in the range, with one exception: the negative items of the
+rubric of a [code](question-types/code.md#score) question have no bound, so
+that question floors its score at -1 (`max(-1, ...)`) before `penalty` applies.
+The floor at -1 belongs to the question and does not depend on the exam.
 
 `penalty` accepts three values. `"none"`, the default, floors each question
 score at 0 before weighting it into the total. `"capped"` keeps the full,
@@ -413,7 +417,7 @@ selection question has no abstention, since an unticked choice asserts that the
 choice is false. Every wrong verdict is then a mistake, so `no-mistakes` and
 `all-or-nothing` are the same strategy there, and only `all-or-nothing` exists.
 
-Short answer, numeric, essay and ordering questions have no `grading` field. The exam's `grading` does not apply to them: each scores in [0, 1] by the rules of its own type, and `penalty` then applies as to any other question. A `grading` mapping cannot have a key for these types: such a key is a `schema-error`.
+Short answer, numeric, essay, code and ordering questions have no `grading` field. The exam's `grading` does not apply to them: each scores by the rules of its own type, in [0, 1] except code, which scores in [-1, 1] because the discounts of its rubric have no bound, and `penalty` then applies as to any other question. A `grading` mapping cannot have a key for these types: such a key is a `schema-error`.
 
 The mapping takes the shape:
 
@@ -539,7 +543,7 @@ exam frontmatter.
 | questions[]     | error    | unknown-include-field           | an include block allows only `include`, or `includeAll` with `max`                                                                                                                                               |
 | questions[].max | error    | schema-error                    | must be a positive integer (schema)                                                                                                                                                                               |
 | questions       | warning  | exam-without-questions          | should contain at least one question[^10]                                                                                                                                                                         |
-| instructions, questions[].{stem,epilogue,answerKey,extra,accept,reject} | warning  | setext-heading                  | should not contain a setext heading, see [Question and include blocks](#question-and-include-blocks)                                                                                                              |
+| instructions, questions[].{stem,epilogue,template,tests,rubric,answerKey,extra,accept,reject} | warning  | setext-heading                  | should not contain a setext heading, see [Question and include blocks](#question-and-include-blocks)                                                                                                              |
 | instructions    | warning  | unsafe-thematic-break           | should not write a thematic break with `-`, see [Question and include blocks](#question-and-include-blocks); the same rule for questions is in [generic fields](question-types/question-base.md#additional-rules) |
 | questions[].includeAll | warning  | empty-include-all               | should add at least one question when it resolves                                                                                                                                                                 |
 | questions[].id  | warning  | undeclared-id-after-include-all | should be declared on an inline question after `includeAll`                                                                                                                                                      |

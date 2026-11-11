@@ -1,0 +1,200 @@
+"$schema": "https://json-schema.org/draft/2020-12/schema"
+"$id": "https://raw.githubusercontent.com/fabiommendes/mdq-spec/main/schema/runner-report.yaml"
+title: Runner report
+description: >-
+  The JSON document that a runner returns after it executes the test sources
+  of a code question against a submission: a status and one verdict for each
+  test case. MDQ turns the report into a score through the rubric of the
+  question, see docs/runner-report.md. This is not a question or an exam: no
+  `type` selects it.
+type: object
+properties:
+  version:
+    description: >-
+      The version of the format of the report. This schema is the version 1,
+      and a report with no `version` is a version 1 report. A reader that does
+      not know the value does not grade the report.
+    const: 1
+    default: 1
+
+  status:
+    description: >-
+      How the execution ended. `completed`: the runner ran the test cases and
+      `cases` is the result. `build-error`: the submission did not build, so
+      no case ran. `runner-error`: the infrastructure failed, and the report
+      says nothing about the submission. With any status but `completed`,
+      `cases` is ignored.
+    enum:
+      - completed
+      - build-error
+      - runner-error
+
+  cases:
+    type: array
+    description: >-
+      The test cases that the runner executed, in any order. One entry for each
+      case, also for the cases that a parametrized test defines on the same
+      line.
+    items:
+      "$ref": "#/$defs/Case"
+
+  build:
+    type: string
+    description: >-
+      The message of the compiler or of the syntax error, as the runner got it.
+      A runner MAY set it with any status, for example for the warnings of a
+      build that worked.
+
+  message:
+    type: string
+    description: >-
+      A short message for a human, mainly with `runner-error`, for example the
+      reason of the failure. Not used in grading.
+
+  runner:
+    type: object
+    description: What ran the tests. Free information for the host, not used in grading.
+    properties:
+      name:
+        type: string
+        description: The name of the runner.
+        minLength: 1
+      version:
+        type: string
+        description: The version of the runner.
+        minLength: 1
+      language:
+        type: string
+        description: The programming language of the toolchain that ran the submission.
+        minLength: 1
+      toolchainVersion:
+        type: string
+        description: The version of that toolchain.
+        minLength: 1
+    required:
+      - name
+    additionalProperties: false
+
+  hashes:
+    type: object
+    description: >-
+      SHA-256 digests that tie the report to its input. A digest is 64 lowercase
+      hexadecimal digits, computed over the UTF-8 encoding of the text, with
+      no change to its line endings.
+    properties:
+      submission:
+        "$ref": "#/$defs/Digest"
+      sources:
+        type: array
+        description: >-
+          The digest of the text of each test source, in the order of `tests`
+          of the question.
+        items:
+          "$ref": "#/$defs/Digest"
+    additionalProperties: false
+
+  meta:
+    type: object
+    description: >-
+      Data of the runner that the format does not define, for example a
+      coverage figure or the identifier of a container. Any key and any JSON
+      value. MDQ ignores it.
+    additionalProperties: true
+
+required:
+  - status
+  - cases
+
+additionalProperties: false
+
+"$defs":
+  Digest:
+    type: string
+    pattern: "^[0-9a-f]{64}$"
+    examples:
+      - e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+
+  Case:
+    title: Test case
+    description: One test case and the verdict of the runner for it.
+    type: object
+    properties:
+      source:
+        type: integer
+        description: >-
+          Which test source the case comes from: its 0-based index in `tests`
+          of the question.
+        minimum: 0
+      line:
+        type: integer
+        description: >-
+          The line of the test source where the case is defined, counted from 1
+          as in `text` of the source. It decides the region and so the rubric
+          item of the case.
+        minimum: 1
+      verdict:
+        description: >-
+          The result of the case. Only `pass` passes. A case is binary: the
+          runner does not return a score.
+        enum:
+          - pass
+          - fail
+          - error
+          - timeout
+          - resource-limit
+          - skipped
+      id:
+        type: string
+        description: >-
+          A name to show for the case, such as `test_verde` or `test_x[3]`.
+        minLength: 1
+      message:
+        type: string
+        description: A short message about the verdict.
+      expected:
+        type: string
+        description: The expected value, for a diff with `actual`.
+      actual:
+        type: string
+        description: The value the submission produced, for a diff with `expected`.
+      stdout:
+        "$ref": "#/$defs/Output"
+      stderr:
+        "$ref": "#/$defs/Output"
+      duration:
+        type: number
+        description: The time the case took, in seconds.
+        minimum: 0
+      memory:
+        type: number
+        description: The peak memory of the case, in bytes.
+        minimum: 0
+      meta:
+        type: object
+        description: >-
+          Data of the runner that the format does not define, for example a
+          coverage figure or the identifier of a container. Any key and any JSON
+          value. MDQ ignores it.
+        additionalProperties: true
+    required:
+      - source
+      - line
+      - verdict
+    additionalProperties: false
+
+  Output:
+    title: Captured output
+    description: >-
+      What a case wrote to a stream, and whether the runner cut it.
+    type: object
+    properties:
+      text:
+        type: string
+        description: The captured text, at most what the runner kept.
+      truncated:
+        type: boolean
+        description: >-
+          `true` when the runner cut the text. When omitted, the text is whole.
+    required:
+      - text
+    additionalProperties: false

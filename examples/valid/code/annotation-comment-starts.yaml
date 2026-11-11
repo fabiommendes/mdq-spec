@@ -1,0 +1,24 @@
+id: marcadores-de-comentario
+title: Marcadores de comentário de várias linguagens
+type: code
+language: python
+stem: Escreva a função `kelvin(c)`, que converte graus Celsius em kelvin.
+tests:
+  - format: html
+    text: |
+      <!-- mdq: [0] Depois de abrir um comentário HTML
+      <p id="resultado"></p>
+  - format: sql
+    text: |
+      -- mdq: [0] Depois de dois hífens
+      SELECT 273.15;
+  - format: prolog
+    text: |
+      % mdq: [0] Depois de porcentagem
+      kelvin(0, 273.15).
+  - format: lisp
+    text: |
+      ; mdq: [0] Depois de ponto e vírgula
+      (kelvin 0)
+  - format: pytest
+    text: "\t# mdq: [0] Depois de uma tabulação\ndef test_zero(): ...\n"

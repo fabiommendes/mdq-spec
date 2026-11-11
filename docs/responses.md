@@ -49,6 +49,7 @@ takes only the responses of this document.
 | numeric            | a number, a string, or a `{value, unit}` mapping   |
 | short-answer       | the text the student wrote                         |
 | essay              | the text the student wrote, as a string            |
+| code               | the content of the submitted file, as a string     |
 | fill-in            | a mapping of blank id to that blank's own response |
 | ordering           | a list of `[indentation level, text]` pairs        |
 
@@ -233,6 +234,41 @@ format of the string (Markdown, HTML or another) depends on the host, and MDQ
 does not define it. See [essay](question-types/essay.md#response).
 
 
+### Code
+
+The content of the file the student submitted, as a string, as the student wrote
+it.
+
+```yaml
+response: "def valor_conta(kwh, bandeira):\n    return kwh * 0.8\n"
+```
+
+Any other value (a number, a boolean, a list or a mapping) is a malformed
+response (`ResponseError`), as for a short answer. `""` is a response, not a
+skip: the runner runs it, and only `null` skips the question, see
+[Skipping](#skipping).
+
+The grading of a code question takes more than the response. It takes the
+[runner report](runner-report.md) that a runner produced for the response, and
+the scores that the instructor gave to the manual items of the rubric: one
+score in `[0, 1]` for each item of the `rubric` list, by its position, or `null`
+for an item with no score yet. A question with no rubric item takes one score of
+the instructor for the whole response, as an essay does. The grading fails when
+a test source of the question is unresolved (`UnresolvedTestSource`), and when
+the report is not valid for the question (`ReportError`). The score is defined
+in [code](question-types/code.md#grading). The grading checks the test sources
+first, then the scores of the instructor (`ValueError`), then the report
+(`ReportError`).
+
+The scores of the instructor MUST fit the question. The list of scores has
+exactly one entry for each item of `rubric`, and each entry is `null` or a
+number in `[0, 1]`. The single score for the whole response is a number in
+`[0, 1]`, and only a question with no rubric item at all takes it: the question
+has no item in `rubric` and no item in its test sources, implicit items
+included. Any other case is a host error (`ValueError`), as for the scores of a
+pending fill-in blank.
+
+
 ### Fill in the blanks
 
 A mapping from blank id to that blank's response, each taking whatever its own
@@ -356,20 +392,29 @@ denominator of the exam total, exactly as an explicit `null` would.
 A response with a key not present in the exam MUST be rejected as non-gradable
 and not silently ignored.
 
+A code question of an exam takes, besides its response, its
+[runner report](runner-report.md) and the scores of the instructor, as it does
+alone. How the host gives them to the scorer, by question id, is not defined.
+
 ### Pending
 
 A response is **pending** when the question does not settle it: every response
-to an essay question, a response to a `manual` short answer question, a
-response that matches no pattern of a short answer question with
+to an essay question, a response to a code question that has a manual rubric
+item (with a value other than 0) with no score of the instructor, or that has no
+rubric item and no score of the instructor, or whose report has the status
+`runner-error` (the failure is of the infrastructure, so the response is never
+0), a response to a `manual` short answer question, a response that matches no pattern of a short answer question with
 `unmatched: manual`, an ordering response that matches no declared answer
 under `unmatched: manual`, and a fill-in response with a pending blank. See
 [Automation](question-types/question-base.md#automation).
 
 A pending response has no score until the instructor supplies one, and shows
 no feedback. The score of an instructor for a pending response is in the range
-`[0, 1]`, for every question type. For a fill in, the instructor scores each
-pending blank in that range, and the question's `grading` strategy then combines the blank
-scores as usual, see [Grading](question-types/fill-in.md#grading). An
+`[0, 1]`, for every question type. For a code question, the instructor scores
+each manual item of the rubric in that range, and the formula of the question
+combines them with the tests, see [Score](question-types/code.md#score). For a fill in, the instructor
+scores each pending blank in that range, and the question's `grading` strategy
+then combines the blank scores as usual, see [Grading](question-types/fill-in.md#grading). An
 exam-level scorer accepts it and reports it as pending rather than scored. An
 LMS should not have to strip essay answers out of its response map before
 grading.
@@ -403,5 +448,9 @@ own bugs.
 | an ordering line outside the presented pool, used more often than the pool offers it, (under `fixed`) at another level, or (under `lenient` or `strict`, with `content: text`) not a valid outline | `ResponseError` |
 | a key naming no question in the exam              | `ResponseError`     |
 | a score asked of a pending response                | `NotAutoGradable`   |
+| a code question graded with an unresolved test source | `UnresolvedTestSource` |
+| a code question graded with a report that is not valid for it, or with no report while it has a test source, see [Errors](runner-report.md#errors) | `ReportError` |
 | a fill-in pending blank with no instructor score, see [Blank scores](question-types/fill-in.md#blank-scores) | `NotAutoGradable` |
 | a fill-in instructor score for an id that is not a pending blank, or outside `[0, 1]` (host error) | `ValueError` |
+| a code instructor score list with a length other than the items of `rubric`, or a score outside `[0, 1]` (host error) | `ValueError` |
+| a code single instructor score, for a question that has a rubric item, or outside `[0, 1]` (host error) | `ValueError` |

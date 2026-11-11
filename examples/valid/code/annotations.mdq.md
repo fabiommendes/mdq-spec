@@ -1,0 +1,68 @@
+---
+id: conta-de-luz-anotada
+title: Conta de luz com todas as anotações
+type: code
+language: python
+file: conta.py
+---
+
+A tarifa de energia é R$ 0,80 por kWh. A bandeira tarifária soma um adicional
+por kWh: verde R$ 0,00, amarela R$ 0,02 e vermelha R$ 0,05.
+
+Escreva a função `valor_conta(kwh, bandeira)`, que devolve o total em reais.
+
+[code]
+
+## [tests]
+
+```pytest
+import pytest
+from conta import valor_conta
+
+# mdq: [+3] {example} Acerta os exemplos do enunciado
+def test_verde():
+    assert valor_conta(100, "verde") == pytest.approx(80.00)
+
+def test_amarela():
+    assert valor_conta(150, "amarela") == pytest.approx(123.00)
+
+# mdq: [0] {public} Aceita os dois argumentos
+# mdq: > A função recebe o consumo e a bandeira.
+def test_assinatura():
+    valor_conta(1, "verde")
+
+#  mdq: [+5] Correta para qualquer consumo e bandeira
+#  mdq: > Confira o adicional de cada bandeira.
+#  mdq: >
+#  mdq: > Teste também o consumo zero.
+#  mdq: ! Os valores de consumo vêm do gabarito.
+@pytest.mark.parametrize("kwh", [0, 1, 480])
+def test_contra_gabarito(kwh):
+    assert valor_conta(kwh, "verde") >= 0
+
+# mdq: [-2] Aceita bandeira que não existe
+def test_bandeira_invalida():
+    with pytest.raises((KeyError, ValueError)):
+        valor_conta(100, "roxa")
+
+# mdq: {public}{example} Sem valor, vale 1
+def test_vermelha():
+    x = 1  # mdq: [9] não é anotação, há código antes do marcador
+    # xmdq: [9] não é anotação, há uma letra antes do marcador
+    # MDQ: [9] não é anotação, o marcador é minúsculo
+    # mdq : [9] não é anotação, há um espaço antes dos dois-pontos
+    assert valor_conta(10, "vermelha") == pytest.approx(8.50)
+```
+
+```c
+#include <assert.h>
+#include "tabuada.h"
+
+// mdq: [+1] Caso trivial
+void test_zero(void) { assert(tabuada(0, 5) == 0); }
+
+/*
+ * mdq: [+2] Casos gerais
+ */
+void test_tres(void) { assert(tabuada(3, 3) == 9); }
+```

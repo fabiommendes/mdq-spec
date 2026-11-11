@@ -70,6 +70,7 @@ TYPE_SCHEMAS = {
     "multiple-selection": "multiple-selection.yaml",
     "true-false": "true-false.yaml",
     "essay": "essay.yaml",
+    "code": "code.yaml",
     "numeric": "numeric.yaml",
     "short-answer": "short-answer.yaml",
     "fill-in": "fill-in.yaml",

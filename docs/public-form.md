@@ -150,6 +150,46 @@ A client that validates the submission needs it.
 | highlight | public      |
 | answerKey | private     |
 
+### Code
+
+| Field       | Public form                                                                |
+| ----------- | -------------------------------------------------------------------------- |
+| language    | public                                                                     |
+| file        | public                                                                     |
+| template    | public                                                                     |
+| tests       | private                                                                    |
+| rubric      | private                                                                    |
+| answerKey   | private                                                                    |
+| publicTests | derived, see [Public tests](#public-tests)                                 |
+
+The public form of a code question holds the fields of the table and no test
+text, no rubric item and no reference solution. What the student sees of the
+rubric, and when, is a policy of the host, see
+[Feedback](question-types/code.md#feedback).
+
+#### Public tests
+
+`publicTests` is a derived list with one entry for each
+[public region](question-types/code.md#public-regions) that has a text, the
+regions of an item with `{public}` or `{example}`, in the order of the test sources and then of the
+lines. Each entry is an object with all four fields:
+
+| Field       | Value                                                                    |
+| ----------- | ------------------------------------------------------------------------ |
+| `format`    | The [test format](question-types/code.md#test-format) of the source.     |
+| `text`      | The text of the region, for display.                                     |
+| `firstLine` | The line of the source of the first line of `text`, counted from 1.      |
+| `example`   | `true` for a region with `{example}`, `false` for one with `{public}`.   |
+
+The text of a region has no line of its annotation, so the feedback and the
+comment of the item stay private. It has no blank line at either end, and
+`firstLine` is the line of its first line. It has no import that comes before the first
+annotation either, and a runner always runs the whole source, never only this
+text. A public region whose text is empty has no entry. The list is omitted when
+there is no entry. A test source that
+is not resolved makes the public form fail (`UnresolvedTestSource`), since the
+text decides which regions exist.
+
 ### Fill in the blanks
 
 | Field             | Public form                                        |
@@ -270,6 +310,7 @@ would hold every combination of the blank responses.
 | numeric            | one response: the `answer` as the document holds it         |
 | short-answer       | the text of each literal pattern of `accept`                        |
 | essay              | one response: the `answerKey`, or none when it is absent            |
+| code               | one response: the reference solution, or none when there is none    |
 | fill-in            | each blank id mapped to the correct responses of the blank          |
 | ordering           | the lines of the `[ordering]` block, then of each `## [accept]`     |
 
@@ -300,6 +341,12 @@ The rules for each type:
 * **Essay**: the answer key is a model answer. A response to an essay is
   always [pending](responses.md#pending), so this response does not score 1
   automatically.
+* **Code**: the list holds the reference solution, the code text of the first
+  fenced block of the `answerKey`, see
+  [Answer key](question-types/code.md#answer-key). It passes every test case,
+  but it does not score 1 automatically: a manual item of the rubric still waits
+  for the instructor, as in an essay. A question with no such block has no
+  correct response.
 * **Fill in the blanks**: every blank id is a key. A choice blank follows the
   rule of multiple choice, a numeric blank the rule of numeric, and a short
   answer blank the rule of short answer. A blank with no correct response maps
@@ -345,7 +392,7 @@ below have a scope.
 | fill-in, choice blank | the choices of the blank      | `[qid, blank id, choice id]` |
 
 `qid` is the `id` of the question, or the empty string when it has none. The
-other types (numeric, short answer, essay and ordering) and the blanks that are
+other types (numeric, short answer, essay, code and ordering) and the blanks that are
 not choice blanks have no scope: their presented form is their public form.
 An ordering question has no scope because its lines have no id and its pool is
 public and canonical, see [Pool](#pool). The host still shuffles the pool.

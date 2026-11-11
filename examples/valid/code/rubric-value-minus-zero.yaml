@@ -1,0 +1,17 @@
+id: valor-menos-zero
+title: O valor [-0] é [0]
+type: code
+language: python
+stem: Escreva a função `kelvin(c)`, que converte graus Celsius em kelvin.
+tests:
+  - format: pytest
+    text: |
+      # mdq: [+2] Converte o zero
+      def test_zero(): ...
+
+      # mdq: [-0] Observação sem valor
+      def test_observacao(): ...
+rubric:
+  - value: 0
+    binding: manual
+    text: Observação para o professor

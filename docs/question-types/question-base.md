@@ -277,7 +277,7 @@ REQUIRED.
 
 ### Body tags
 
-Short answer, numeric, essay, ordering and fill in the blanks questions open
+Short answer, numeric, essay, code, ordering and fill in the blanks questions open
 their body, or each of its blocks, with a bracketed tag. All the tags follow
 one convention. The colon tells whether content follows:
 
@@ -307,6 +307,7 @@ table. The rules `ws` and `nl` are defined in
 | Type                | Tag                                                          | Form     | Content                                                      |
 | ------------------- | ------------------------------------------------------------ | -------- | ------------------------------------------------------------ |
 | essay               | `[essay]`                                                    | no colon | none                                                         |
+| code                | `[code]`                                                     | no colon | none                                                         |
 | ordering            | `[ordering]:`                                                | colon    | a code block or a `ul` list, on the next line                |
 | short answer        | `[short-answer]:`, `[short-answer/accept]:`                  | colon    | one pattern on the tag line, or a pattern list on the next line |
 | short answer        | `[short-answer]`, `[short-answer/accept]`                    | no colon | none: the block has no pattern                               |
@@ -349,7 +350,7 @@ label is reserved. A label is reserved when it is one of these:
 ```lark
 reserved_label : TYPE_NAME (label_end | "/" LABEL_REST | "(" LABEL_REST)
                | "^" ID "/" LABEL_REST
-TYPE_NAME      : "essay"i | "numeric"i | "short-answer"i | "ordering"i
+TYPE_NAME      : "essay"i | "code"i | "numeric"i | "short-answer"i | "ordering"i
                | "true-false"i | "multiple-choice"i | "multiple-selection"i
                | "fill-in"i
 ```
@@ -365,6 +366,13 @@ suffixes are the same case, with a specific message: they are fields of the
 frontmatter only, so `[short-answer/preAccept]: b` is a `parse-error`, as is
 the block form `[short-answer/preAccept]:` followed by a list.
 
+The `essay` and `code` tags have no form with a colon, and they have their own
+message: `[essay]: x` is a `parse-error` "the tag of an essay has no content:
+write `[essay]` without a colon", and `[code]: x` is a `parse-error` "the tag of
+a code question has no content: write `[code]` without a colon". A line that
+starts with such a label cannot be a lazy continuation line either: after a
+list item, it is a `parse-error`, as in [Grammar](../references/grammar.md).
+
 Any other label is an ordinary link reference definition, valid in the stem
 and in the epilogue: `[ibge]: https://www.ibge.gov.br`. Without this rule,
 a mistyped tag would be a link definition that passes with no sign.
@@ -376,7 +384,7 @@ of the run starts the [epilogue](#epilogue). A known tag in the epilogue
 defines nothing. It is a `detached-tag` error at the path `epilogue`, in every
 type: a tag of a short answer after a paragraph (`[short-answer/reject]: x`),
 a second tag of a type that has one (`[numeric]:`), a blank definition of a
-fill-in question, and the tags of an ordering or essay question. The message
+fill-in question, and the tags of an ordering, essay or code question. The message
 tells the author to move the tag up, before the epilogue. A tag inside a code
 block does not count. `forbidden-block-element` stays for the forbidden
 elements that are not tags.
@@ -422,7 +430,7 @@ the instructor grades, write `[short-answer]` with no colon.
 ### Type inference
 
 A question without `type` in the frontmatter takes its type from the body.
-Short answer, numeric, essay, ordering and fill in the blanks questions are
+Short answer, numeric, essay, code, ordering and fill in the blanks questions are
 identified by the bracketed tag that opens their body, see each type. A body
 that is a [choice list](../references/choices.md) takes its type from the
 normalized values of its choice markers (see
@@ -449,9 +457,10 @@ Any block elements below the body are collected in the epilogue. The block
 elements MUST follow the same rules as the block elements of the stem.
 
 Sections that are specific to a type, such as the `## [answer-key]` section of
-an essay or the `## [extra]`, `## [accept]` and `## [reject]` sections of an
+an essay, the `## [template]`, `## [tests]` and `## [rubric]` sections of a code
+question or the `## [extra]`, `## [accept]` and `## [reject]` sections of an
 ordering question, come after the epilogue. The epilogue ends where the first
-of those sections starts, so it MUST NOT contain a `## [name]` heading.
+of those sections starts, so it MUST NOT contain a heading that starts with `[`.
 
 The heading of such a section is a CommonMark `H2` heading whose text is the
 name in square brackets, alone on its line. It accepts every form CommonMark
@@ -470,9 +479,18 @@ gives an `H2`:
 An implementation SHOULD warn about the setext form inside an exam, where the
 underline is easy to mistake for a block boundary (`setext-heading`, see
 [exam](../exam.md#question-and-include-blocks)). The warning points at the
-section (`answerKey`, `extra`, or `accept`/`reject` with the section index).
+section (`template`, `tests`, `rubric`, `answerKey`, `extra`, or `accept`/`reject`
+with the section index).
 A section with no content is a `parse-error`, except where the question type
-says otherwise (the `## [answer-key]` section of an essay).
+says otherwise (the `## [answer-key]` section of an essay or a code question).
+
+A section that holds free blocks, such as the `## [answer-key]` section of an
+essay, ends at the end of the question. A heading after it that the epilogue
+rule forbids (see [Forbidden elements](#forbidden-elements): a heading of any
+level whose text starts with optional `ws` + `[`, the three link forms
+excepted) is also a `forbidden-block-element` error at the path of the section
+(`answerKey`). An escaped heading (`## \[x]`) is a literal heading and is
+valid there.
 
 Inside a `ul` content block, a heading indented by 2 columns or more belongs
 to the last item of the list, as in CommonMark; indent the heading by at most 1
@@ -491,7 +509,7 @@ question settles without the instructor:
 | `manual`         | every response is pending                          |
 
 Multiple choice, multiple selection, true or false and numeric questions are
-`automatic`. Essay questions are `manual`. A [short answer](short-answer.md#automation)
+`automatic`. Essay questions are `manual`. A [code](code.md#automation) question derives it from its test sources and rubric. A [short answer](short-answer.md#automation)
 question, an [ordering](ordering.md#automation) question and a
 [fill in the blanks](fill-in.md#automation) question derive it from their
 fields.
@@ -631,10 +649,10 @@ not whether the subtag names a real language.
 [^9]: Inside an exam a `---` line opens a frontmatter or include block, so a
 thematic break written with `-` changes meaning when the question is pasted
 into one (`unsafe-thematic-break`, see [exam.md](../exam.md#question-and-include-blocks)).
-The check runs on `stem`, `epilogue`, the `answerKey` of an essay and the
+The check runs on `stem`, `epilogue`, the `answerKey` of an essay or a code question and the
 `extra`, `accept` and `reject` sections of an ordering question, the fields in
 which an exam reads `---` as a block boundary. An ordering section holds only
-list items or code, so only the essay `answerKey` can carry a thematic break.
+list items or code, so only the `answerKey` of an essay or a code question can carry one.
 [^10]: Specified in [Common grammar rules](../references/grammar.md#the-non-ascii-whitespace-lint):
 `non-ascii-whitespace` (warning) for U+0085, U+2028, U+2029 and for a Unicode
 space in a syntax position, `non-ascii-whitespace-in-prose` (info) for any other
