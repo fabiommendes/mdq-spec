@@ -860,3 +860,15 @@ questions:
             - {source: 0, line: 30, verdict: fail}
         score: 0.9655172413793104
         exact: true
+
+  - name: "A value beyond 2^53 is the nearest double (rubric.md, Value)"
+    question:
+      rubric:
+        - {value: 9007199254740993, binding: manual, text: Clareza}
+        - {value: 3, binding: manual, text: Nomes}
+    automation: manual
+    examples:
+      - name: "9007199254740993 counts as 9007199254740992"
+        manual: [0, 1]
+        score: 3.3306690738754686e-16
+        exact: true

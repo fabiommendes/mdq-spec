@@ -42,6 +42,10 @@ has no exponent: in a YAML or JSON document any finite number is a valid
 `value`, and the Markdown form writes it as a plain decimal (`1e-7` is
 `[+0.0000001]`). It is the form of the `percent` value of a
 [multiple choice](choices.md) choice, without the `%`.
+The value is an IEEE 754 double: the number written is read as the nearest
+double, and a number that is not finite as a double (such as
+a number with 320 digits) is an `invalid-rubric-item`. Exact scoring starts
+from the shortest decimal text of that double.
 
 | Written      | Value | Kind                                    |
 | ------------ | ----- | --------------------------------------- |
