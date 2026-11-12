@@ -111,3 +111,8 @@ Revisado: a org `@mdq` não está disponível no npm. Os pacotes ficam sem escop
 by: claude
 
 Detecção de MDQ em .md antecipada para o M1, combinando três vias: (1) linguagem mdq (Change Language Mode ou files.associations), (2) setting mdq.files com globs, mantendo o arquivo como markdown, (3) heurística: só o type: de topo no frontmatter, com um tipo de questão ou exam, sem parsear o corpo. Também *.mdq passou a ser reconhecido, como no FileLoader da mdq-py.
+
+---
+by: claude
+
+Revisado de novo: o npm recusou `mdq` sem escopo ("too similar to existing packages"). Os pacotes ficam na org `@mdq-format`: `@mdq-format/core` (mdq-js, subpath `@mdq-format/core/solid`) e `@mdq-format/schema`. O `$id` oficial é `https://cdn.jsdelivr.net/npm/@mdq-format/schema@0.1/mdq.schema.json`. Substitui o comentário anterior sobre `mdq` e `mdq-schema`.
