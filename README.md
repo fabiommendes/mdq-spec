@@ -36,6 +36,15 @@ it:
 | [mdq-py](https://github.com/fabiommendes/mdq-py) | Python     | Reference implementation: parser, linter, grading and `mdq` CLI  |
 | [mdq-js](https://github.com/fabiommendes/mdq-js) | TypeScript | Port of the parser and validators, for use in the browser        |
 
+The JSON Schema is on npm as
+[`@mdq-format/schema`](https://www.npmjs.com/package/@mdq-format/schema). A
+question or exam in YAML or JSON can refer to it, so editors validate and
+complete the document:
+
+```yaml
+$schema: https://cdn.jsdelivr.net/npm/@mdq-format/schema@0.1/mdq.schema.json
+```
+
 
 ## Contents
 
@@ -193,7 +202,7 @@ lints documents, scores responses, and converts questions to and from GIFT,
 Aiken and Moodle XML.
 
 ```bash
-uv tool install "git+https://github.com/fabiommendes/mdq-py"
+uv tool install mdq
 
 mdq new multiple-choice         # scaffold a question
 mdq validate question.mdq.md    # check errors and lint warnings
@@ -208,8 +217,12 @@ See the [mdq-py README](mdq-py/README.md).
 The TypeScript package ports the parser and the schemas (as Zod validators) for
 web applications.
 
+```bash
+npm install @mdq-format/core zod
+```
+
 ```ts
-import { parseQuestion } from "mdq";
+import { parseQuestion } from "@mdq-format/core";
 
 const question = parseQuestion(source);
 ```

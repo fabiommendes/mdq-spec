@@ -1,0 +1,25 @@
+{
+	"name": "@mdq-format/schema",
+	"version": "0.1.0",
+	"description": "JSON Schema of MDQ, a Markdown format for questions and exams.",
+	"keywords": ["mdq", "json-schema", "quiz", "exam", "markdown"],
+	"author": "Fábio Macêdo Mendes",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/fabiommendes/mdq-spec.git",
+		"directory": "schema"
+	},
+	"homepage": "https://github.com/fabiommendes/mdq-spec#readme",
+	"bugs": {
+		"url": "https://github.com/fabiommendes/mdq-spec/issues"
+	},
+	"exports": {
+		".": "./mdq.schema.json",
+		"./*": "./*"
+	},
+	"files": ["*.yaml", "mdq.schema.json"],
+	"publishConfig": {
+		"access": "public"
+	}
+}

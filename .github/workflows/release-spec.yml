@@ -1,0 +1,57 @@
+# r2: adr-0004
+# Publish the JSON Schema of the specification to npm as @mdq-format/schema.
+# Push a tag like `spec-v0.1.0` from this repository. The version in
+# schema/package.json is the version of the specification.
+#
+# npm uses trusted publishing: the package must list this repository, this
+# workflow file and the "npm" environment as a trusted publisher.
+name: Release spec
+
+on:
+  push:
+    tags:
+      - "spec-v*.*.*"
+
+jobs:
+  release:
+    name: Audit and publish the schema to npm
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        working-directory: schema
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      # Node 24 comes with npm 11, which trusted publishing needs.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - name: Check that the tag and the $id of the schemas match the version
+        run: |
+          version="$(node -p 'require("./package.json").version')"
+          if [ "${GITHUB_REF_NAME}" != "spec-v${version}" ]; then
+            echo "tag ${GITHUB_REF_NAME} does not match version ${version}" >&2
+            exit 1
+          fi
+          # Before 1.0.0 the $id holds major.minor; after it, only the major.
+          major="${version%%.*}"
+          if [ "$major" = "0" ]; then range="${version%.*}"; else range="$major"; fi
+          prefix="https://cdn.jsdelivr.net/npm/@mdq-format/schema@${range}/"
+          for file in *.yaml mdq.schema.json; do
+            if ! grep -q "\"\\?\\\$id\"\\?: \"${prefix}" "$file"; then
+              echo "$file: \$id does not start with ${prefix}" >&2
+              exit 1
+            fi
+          done
+      - name: Audit the specification, the corpus and the bundle copies
+        working-directory: .
+        run: uv run scripts/spec_audit.py --check
+      - name: Publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --provenance

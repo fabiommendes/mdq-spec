@@ -1,5 +1,5 @@
 "$schema": "https://json-schema.org/draft/2020-12/schema"
-"$id": "https://raw.githubusercontent.com/fabiommendes/mdq-spec/main/schema/runner-report.yaml"
+"$id": "https://cdn.jsdelivr.net/npm/@mdq-format/schema@0.1/runner-report.yaml"
 title: Runner report
 description: >-
   The JSON document that a runner returns after it executes the test sources

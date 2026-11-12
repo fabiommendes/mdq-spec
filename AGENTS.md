@@ -276,10 +276,18 @@ Rules:
   run their tests. To publish mdq-py, update the version in
   `mdq-py/pyproject.toml` and the changelog, then push a tag
   `mdq-py-v<version>` to `origin`. See
-  `.github/workflows/release-mdq-py.yml`. mdq-js works the same way: the
-  version in `mdq-js/package.json` and a tag `mdq-js-v<version>`
-  (`.github/workflows/release-mdq-js.yml`). The VS Code extension too: the version in `mdq-vscode/package.json` and a tag
+  `.github/workflows/release-mdq-py.yml`. mdq-js (npm `@mdq-format/core`)
+  works the same way: the version in `mdq-js/package.json` and a tag
+  `mdq-js-v<version>` (`.github/workflows/release-mdq-js.yml`). The VS Code
+  extension too: the version in `mdq-vscode/package.json` and a tag
   `mdq-vscode-v<version>` (`.github/workflows/release-mdq-vscode.yml`).
+- The specification has its own version, in `schema/package.json` and the root
+  changelog. A tag `spec-v<version>` publishes the JSON Schema to npm as
+  `@mdq-format/schema` (`.github/workflows/release-spec.yml`). The `$id` of
+  each schema holds the major and minor version before 1.0.0
+  (`@mdq-format/schema@0.1`) and only the major after it. When that part of
+  the version changes, change every `$id` in `schema/*.yaml` and run
+  `r2 audit`.
 - The parent `codehood` repository ignores this directory. Later, it will
   include it as a subtree.
 
