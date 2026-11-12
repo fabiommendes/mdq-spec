@@ -276,8 +276,9 @@ Rules:
   run their tests. To publish mdq-py, update the version in
   `mdq-py/pyproject.toml` and the changelog, then push a tag
   `mdq-py-v<version>` to `origin`. See
-  `.github/workflows/release-mdq-py.yml`. The VS Code extension works the
-  same way: the version in `mdq-vscode/package.json` and a tag
+  `.github/workflows/release-mdq-py.yml`. mdq-js works the same way: the
+  version in `mdq-js/package.json` and a tag `mdq-js-v<version>`
+  (`.github/workflows/release-mdq-js.yml`). The VS Code extension too: the version in `mdq-vscode/package.json` and a tag
   `mdq-vscode-v<version>` (`.github/workflows/release-mdq-vscode.yml`).
 - The parent `codehood` repository ignores this directory. Later, it will
   include it as a subtree.

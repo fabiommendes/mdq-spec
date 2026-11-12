@@ -1,0 +1,60 @@
+# r2: adr-0004
+# Publish mdq-js to npm. Push a tag like `mdq-js-v0.1.0` from this
+# repository. The subtree repository cannot run the tests, so the release runs
+# here, after the tests pass.
+#
+# npm uses trusted publishing: the "mdq" package must list this repository,
+# this workflow file and the "npm" environment as a trusted publisher. npm
+# shows that setting only for a package that exists, so the first release
+# needs the secret NPM_TOKEN (a granular access token that can publish). Remove
+# the secret after trusted publishing is set up.
+name: Release mdq-js
+
+on:
+  push:
+    tags:
+      - "mdq-js-v*.*.*"
+
+jobs:
+  release:
+    name: Test and publish to npm
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        working-directory: mdq-js
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: mdq-js/package.json
+      # Node 24 comes with npm 11, which trusted publishing needs.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: pnpm
+          cache-dependency-path: mdq-js/pnpm-lock.yaml
+      - name: Check that the tag matches the package version
+        run: |
+          version="$(node -p 'require("./package.json").version')"
+          if [ "${GITHUB_REF_NAME}" != "mdq-js-v${version}" ]; then
+            echo "tag ${GITHUB_REF_NAME} does not match version ${version}" >&2
+            exit 1
+          fi
+      - uses: astral-sh/setup-uv@v6
+      - name: Check that the bundled schema is up to date
+        working-directory: .
+        run: uv run scripts/schema_bundle.py --check
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm node:check
+      - name: Publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --provenance

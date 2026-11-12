@@ -11,6 +11,8 @@ The specification uses [Semantic Versioning](https://semver.org/). Before
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-12
+
 First version of the specification.
 
 ### Added
