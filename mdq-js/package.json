@@ -35,6 +35,15 @@
 	"keywords": [],
 	"author": "Fábio Macêdo Mendes",
 	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/fabiommendes/mdq-spec.git",
+		"directory": "mdq-js"
+	},
+	"homepage": "https://github.com/fabiommendes/mdq-js#readme",
+	"bugs": {
+		"url": "https://github.com/fabiommendes/mdq-spec/issues"
+	},
 	"packageManager": "pnpm@10.15.1",
 	"dependencies": {
 		"@noble/hashes": "^2.4.0",

@@ -10,7 +10,9 @@ that it implements.
 
 ## [Unreleased]
 
-Implements part of the unreleased MDQ specification. The library now passes
+## [0.1.0] - 2026-11-12
+
+First release on npm. Implements MDQ specification 0.1.0. The library passes
 the whole shared corpus (`examples/`), as mdq-py does.
 
 ### Added
