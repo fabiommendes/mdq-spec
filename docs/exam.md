@@ -93,8 +93,9 @@ frontmatter takes precedence, consistently with the rule for questions.
 The frontmatter MUST NOT hold a key that is not a field of the table above. Any
 other key is the `invalid-frontmatter-field` error, as for a question, see
 [Frontmatter](question-types/question-base.md#frontmatter). This covers the
-fields that the body sets: `instructions` (the text before the first question)
-and `questions` (the question and include blocks), and `comment` (the `#` lines
+fields that the body sets: `instructions` (the text before the first question),
+`attachments` (the [`## [attachments]`](#attachments) section) and
+`questions` (the question and include blocks), and `comment` (the `#` lines
 at the start of the frontmatter). The rule is for Markdown;
 an exam written in YAML or JSON may use all the fields of its schema.
 
@@ -134,6 +135,54 @@ blocks. Any markdown block element is allowed in the instructions except:
   instructions with one are a `forbidden-block-element` error. A setext
   underline of `---` makes an H2, which `setext-heading` reports.
 - A fenced block between `---` (like a YAML frontmatter)
+
+## Attachments
+
+An exam MAY have an `## [attachments]` section, with the files that the exam
+gives to the student, such as a table of constants for every question. It
+comes between the instructions and the first question block:
+
+```lark
+exam_body           : instructions? attachments_section? question_block*
+```
+
+`attachments_section` is defined in
+[Attachments](question-types/question-base.md#position), and its content, its
+names and its JSON form follow the same rules as in a question, see
+[Attachments](question-types/question-base.md#attachments). The exam holds the
+list in its `attachments` field.
+
+````md
+# [prova-energia] Energia no Brasil
+
+Responda às duas questões. A tabela vale para a prova toda.
+
+## [attachments]
+
+[tarifas por bandeira](dados/tarifas-2024.pdf)
+
+===
+
+Qual fonte gera a maior parte da energia elétrica do Brasil?
+
+* [*] Hidrelétrica
+* [ ] Eólica
+````
+
+In the instructions, a line `## [attachments]` always opens the section, also
+in its setext form (`[attachments]` over `---`), which `setext-heading`
+reports. A literal heading with this text is written with an escape:
+`## \[attachments]`. Only the name `attachments` is reserved: another heading
+`## [name]` stays text of the instructions. The section holds only fenced
+blocks and link paragraphs, so a paragraph or any other block of instructions
+after it is a `parse-error`. The section ends at the first question block,
+which a `===` separator or a `---` line opens.
+
+A `## [attachments]` section after the body of a question belongs to that
+question, also after the last question of the exam. The attachments of the
+exam and of each question are separate lists: a name of the exam can repeat in
+a question. The [public form](public-form.md) of an exam is not defined: a
+host reads the `attachments` of the exam from the exam document.
 
 ## Question and include blocks
 
@@ -528,7 +577,8 @@ it, since an exam with no questions cannot be answered.
 
 The rules for `id`, `uuid`, `locale`, `title`, `author`, `tags` and `meta` in
 [generic fields](question-types/question-base.md#additional-rules) also apply to the
-exam frontmatter.
+exam frontmatter. The rules for `attachments` there also apply to the
+`attachments` of the exam.
 
 | Field           | Level    | Code                            | Rule                                                                                                                                                                                                              |
 | --------------- | -------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -539,11 +589,16 @@ exam frontmatter.
 | description, course | error | blank-text                  | if defined, must have at least one visible character                                                                                                                                                              |
 | instructions    | error    | forbidden-block-element         | must not hold an H1 heading, ATX or setext (`===`), see [Body](#body)                                                                                                                                              |
 | instructions    | error    | blank-text                      | must have at least one visible character                                                                                                                                                                          |
+| attachments     | error    | parse-error                     | the section comes at most once, between the instructions and the first question block, and no block of instructions follows it, see [Attachments](#attachments)                                                    |
+| attachments[].name | error | duplicate-attachment-name       | must be unique in the `attachments` of the exam                                                                                                                                                                   |
+| attachments[].name | error | attachment-name-disagrees-with-origin | with an `origin`, must be the last segment of the origin                                                                                                                                                    |
+| attachments[].format | error | attachment-format-disagrees-with-origin | with an `origin`, must be the extension of the origin                                                                                                                                                     |
+| attachments     | error    | invalid-frontmatter-field       | cannot be set in the frontmatter of a Markdown source                                                                                                                                                             |
 | questions[].{epilogue,answerKey,extra,accept,reject} | error    | parse-error                     | must not use `---` as a thematic break inside an exam                                                                                                                                                             |
 | questions[]     | error    | unknown-include-field           | an include block allows only `include`, or `includeAll` with `max`                                                                                                                                               |
 | questions[].max | error    | schema-error                    | must be a positive integer (schema)                                                                                                                                                                               |
 | questions       | warning  | exam-without-questions          | should contain at least one question[^10]                                                                                                                                                                         |
-| instructions, questions[].{stem,epilogue,template,tests,rubric,answerKey,extra,accept,reject} | warning  | setext-heading                  | should not contain a setext heading, see [Question and include blocks](#question-and-include-blocks)                                                                                                              |
+| instructions, attachments, questions[].{stem,epilogue,attachments,template,tests,rubric,answerKey,extra,accept,reject} | warning  | setext-heading                  | should not contain a setext heading, see [Question and include blocks](#question-and-include-blocks)                                                                                                              |
 | instructions    | warning  | unsafe-thematic-break           | should not write a thematic break with `-`, see [Question and include blocks](#question-and-include-blocks); the same rule for questions is in [generic fields](question-types/question-base.md#additional-rules) |
 | questions[].includeAll | warning  | empty-include-all               | should add at least one question when it resolves                                                                                                                                                                 |
 | questions[].id  | warning  | undeclared-id-after-include-all | should be declared on an inline question after `includeAll`                                                                                                                                                      |

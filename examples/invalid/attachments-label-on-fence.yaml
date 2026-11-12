@@ -1,0 +1,10 @@
+# question-base.md, "JSON form": only a link has a `label`.
+type: numeric
+stem: Qual é a vazão média do rio São Francisco em Sobradinho, em m³/s?
+answer: 2000
+attachments:
+  - name: vazoes.csv
+    format: csv
+    text: |
+      ano,vazao
+    label: vazões

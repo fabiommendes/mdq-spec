@@ -31,16 +31,11 @@ allOf:
           - prolog
 
       file:
-        type: string
+        "$ref": "./question-base.yaml#/$defs/file-name"
         description: >-
           The name of the file the student submits: a plain name, with no `/`
           and no `\`, that is not `.` or `..` and not only Unicode spaces. A question whose tests need no file name, such as a test
           of input and output, omits it.
-        minLength: 1
-        pattern: "^(?!\\.\\.?$)(?![\\t\\n\\v\\f\\r \\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]+$)[^/\\\\]+$"
-        examples:
-          - conta.py
-          - main.c
 
       tests:
         type: array

@@ -1,0 +1,10 @@
+# code.md, "Sections": `## [answer-key]` comes in any order with the other
+# sections. It ends at the heading of the next section, here `## [tests]`.
+type: code
+stem: Escreva a função `kelvin(c)`, que converte graus Celsius em kelvin.
+answerKey: Some 273,15.
+tests:
+- format: pytest
+  text: |
+    def test_zero():
+        pass

@@ -71,8 +71,10 @@ The frontmatter MUST NOT hold a key that is not a field of the frontmatter
 table of its question type or of the table below. Any other key is an error
 (`invalid-frontmatter-field`). This covers a field that the body sets (for
 example `stem`, `choices`, `answer`, `blanks`, `accept` or `reject`, the
-`unit` of a numeric question, and the `comment`, which the `#` lines at the
-start of the frontmatter set, see above) and a key that no question type
+`unit` of a numeric question, the `attachments`, which the
+[`## [attachments]`](#attachments) section sets, and the `comment`, which the
+`#` lines at the start of the frontmatter set, see above) and a key that no
+question type
 defines. The
 message of the error says when the key is a field of the body, and shows the
 body syntax that sets it. Only `id` and `type` can be set both in the
@@ -456,11 +458,13 @@ such a value as an unmarked choice: the answer key would change in silence.
 Any block elements below the body are collected in the epilogue. The block
 elements MUST follow the same rules as the block elements of the stem.
 
-Sections that are specific to a type, such as the `## [answer-key]` section of
-an essay, the `## [template]`, `## [tests]` and `## [rubric]` sections of a code
-question or the `## [extra]`, `## [accept]` and `## [reject]` sections of an
-ordering question, come after the epilogue. The epilogue ends where the first
-of those sections starts, so it MUST NOT contain a heading that starts with `[`.
+The [`## [attachments]`](#attachments) section, which every question type has,
+and the sections that are specific to a type, such as the `## [answer-key]`
+section of an essay, the `## [template]`, `## [tests]` and `## [rubric]`
+sections of a code question or the `## [extra]`, `## [accept]` and
+`## [reject]` sections of an ordering question, come after the epilogue. The
+epilogue ends where the first of those sections starts, so it MUST NOT contain
+a heading that starts with `[`.
 
 The heading of such a section is a CommonMark `H2` heading whose text is the
 name in square brackets, alone on its line. It accepts every form CommonMark
@@ -479,22 +483,197 @@ gives an `H2`:
 An implementation SHOULD warn about the setext form inside an exam, where the
 underline is easy to mistake for a block boundary (`setext-heading`, see
 [exam](../exam.md#question-and-include-blocks)). The warning points at the
-section (`template`, `tests`, `rubric`, `answerKey`, `extra`, or `accept`/`reject`
-with the section index).
+section (`attachments`, `template`, `tests`, `rubric`, `answerKey`, `extra`, or
+`accept`/`reject` with the section index).
 A section with no content is a `parse-error`, except where the question type
 says otherwise (the `## [answer-key]` section of an essay or a code question).
 
 A section that holds free blocks, such as the `## [answer-key]` section of an
-essay, ends at the end of the question. A heading after it that the epilogue
+essay or a code question, ends at the heading of the next section of the
+question, or at the end of the question. In it, a heading that the epilogue
 rule forbids (see [Forbidden elements](#forbidden-elements): a heading of any
 level whose text starts with optional `ws` + `[`, the three link forms
-excepted) is also a `forbidden-block-element` error at the path of the section
-(`answerKey`). An escaped heading (`## \[x]`) is a literal heading and is
-valid there.
+excepted) and that is not the heading of a section of the question is also a
+`forbidden-block-element` error at the path of the section (`answerKey`). An
+escaped heading (`## \[x]`) is a literal heading and is valid there.
 
 Inside a `ul` content block, a heading indented by 2 columns or more belongs
 to the last item of the list, as in CommonMark; indent the heading by at most 1
 column there, or use a code block.
+
+
+## Attachments
+
+An **attachment** is a file that the question gives to the student: input
+data, a starting file to edit, a PDF with a table. Every question type has an
+optional `## [attachments]` section that declares them. An exam has one too,
+see [exam](../exam.md#attachments).
+
+````md
+Qual região do Brasil consumiu mais energia elétrica em 2024?
+
+* [*] Sudeste
+* [ ] Nordeste
+* [ ] Norte
+
+## [attachments]
+
+[consumo por região](dados/consumo-2024.csv)
+
+```csv tarifas.csv
+regiao,tarifa_kwh
+Sudeste,0.80
+```
+````
+
+### Position
+
+The section comes after the epilogue, with the
+[heading rule of type-specific sections](#epilogue). In a type with sections
+(essay, code, ordering), it comes in any order with the sections of the type.
+In the other types, it is the only section: it ends
+the epilogue and holds every block up to the end of the question. A question
+has at most one `## [attachments]` section.
+
+```lark
+attachments_section : blank_line* section_heading "attachments" nl blank_line* attachments blank_line*
+attachments         : attachment_fence (blank_line* attachments)?
+                    | link_paragraph (blank_line+ attachments
+                                     | blank_line* attachment_fence (blank_line* attachments)?)?
+attachment_info     : ws? INFO_WORD ws INFO_WORD ws?
+INFO_WORD           : /[^ \t]+/
+```
+
+The rules `ws`, `nl` and `blank_line` are defined in
+[Common grammar rules](../references/grammar.md). `section_heading` and
+`link_paragraph` are the rules of [code](code.md#sections). The grammar of the
+section is the grammar of the test sources of `## [tests]`: two link
+paragraphs need a blank line between them, and a fenced block needs no blank
+line before or after it. `attachment_fence` is a CommonMark fenced code block
+whose info string matches `attachment_info`. Any other block, such as a
+paragraph with text, a list, an indented code block, an image, an autolink, a
+reference link or a link in a list item, is a `parse-error`.
+
+| Position of `## [attachments]`                          | Result                                  |
+| ------------------------------------------------------- | --------------------------------------- |
+| before the body                                         | `forbidden-block-element` at `stem`     |
+| after the epilogue, in any order with the type sections | the section                             |
+| after `## [answer-key]`                                 | the section: it ends the answer key     |
+| a second `## [attachments]`                             | `parse-error`                           |
+| a section with no block, only blank lines               | `parse-error`                           |
+
+An escaped heading, `## \[attachments]`, is a literal heading. It follows the
+rules of the block where it is.
+
+### Fenced attachment
+
+The info string of a fenced block in `## [attachments]` is syntax of MDQ, not
+text. It is read as the format of a test source (see
+[Test format](code.md#test-format)): CommonMark first removes the backslash
+escapes and replaces the entity references, then the text is split on spaces
+and tabs. The spaces and tabs at either end do not count. The info string MUST
+have exactly two words: the **format** and the **name** of the attachment, as
+in ```` ```python conta_base.py ````. An info string with zero, one, or three
+or more words is a `parse-error`, so ```` ```conta_base.py ```` (no format) and
+```` ```python conta_base.py {.numberLines} ```` are faults.
+
+This rule is for the info string of a fence in `## [attachments]`. In content,
+such as a stem, an epilogue, an answer key or the block of an
+[ordering](ordering.md#body) question, the info string is free text of
+CommonMark: only its first word is read, as the language, and the rest is
+ignored. `## [tests]` also reads only the first word, see
+[Test format](code.md#test-format).
+
+The text of the attachment is the **code text** of the block, as defined in
+[code](code.md#json-form). MDQ does not compare the format with the
+extension of the name: ```` ```python dados.csv ```` is valid.
+
+### Linked attachment
+
+A paragraph whose only content is an inline link declares a linked attachment.
+The link follows the `link_paragraph` rule of [code](code.md#test-sources): its
+**origin** has the `ORIGIN` shape (a relative path with no scheme, no query and
+no fragment, and an extension in the last segment), and a fault is a
+`parse-error`. The format is the extension of the origin, as for a test source.
+
+The name is the **last segment** of the origin: the text after its last `/`.
+`[dados](dados/consumo-2024.csv)` has the name `consumo-2024.csv`. Only `/`
+separates segments, and MDQ does not decode percent-encoding, so `%20` stays
+in the name. A last segment that breaks the name rule below, such as
+`casos\dados.csv` or `<dados/chuvas 2024.csv>`, is a `parse-error`. Its message
+says that the name of a linked attachment is the last segment of its origin.
+
+The **label** is the link text as plain text: the characters of its text and
+code spans, without the markup of emphasis, links and HTML, and without the
+spaces at either end. A link text with no visible character gives no label,
+and a label equal to the name is omitted. The title of the link is not used.
+
+MDQ does not read the file of a link, and never fills its text: there is no
+resolution step for an attachment. The host serves the file, which can be a
+binary file such as a PDF or an image. For a host, the origin is relative to
+the file that declares the link, as for a [test source](code.md#json-form):
+the file of the question, for a question that an exam includes.
+
+### Name
+
+The name of an attachment is a file name with no directory. It follows the
+rule of the `file` of a [code](code.md#frontmatter) question, and two more:
+
+* it is not empty, and it is not `.` or `..`;
+* it has no `/` and no `\`;
+* it has no [Unicode space](../references/grammar.md#unicode-spaces) and no
+  backtick.
+
+The rule is the same in every form, so the name of every attachment of a YAML
+or JSON document can be written back in a fence. In YAML and JSON, a name that
+breaks it is a `schema-error`. In Markdown, it is a `parse-error`.
+
+Two attachments of a question MUST NOT have the same name
+(`duplicate-attachment-name`, at the `name` of the second). The names are
+compared as strings, with case and with no Unicode normalization: `Dados.csv`
+and `dados.csv` are two names. Two links with the same origin also repeat a
+name. The attachments of an exam and of its questions are separate lists, and
+a name can repeat between them.
+
+### JSON form
+
+Each attachment becomes an object of the `attachments` list, in document
+order.
+
+| Field    | Source                                                                   |
+| -------- | ------------------------------------------------------------------------ |
+| `name`   | Always present. The second word of the info string, or the last segment of the origin. |
+| `format` | The first word of the info string, or the extension of the origin.      |
+| `text`   | The code text of a fenced block. Absent in a link.                       |
+| `origin` | The origin of a link. Absent in a fenced block.                          |
+| `label`  | The label of a link, when it has one. Absent in a fenced block.          |
+
+An attachment has exactly one of `text` and `origin`, and a `label` only with
+an `origin` (`schema-error`). The `format` is one word, with the rule of the
+`format` of a test source: not empty, with no Unicode space and no backtick. A
+tilde fence such as `~~~a`b dados.csv` reads the format ``a`b``, which breaks
+it: it is a `schema-error` at `attachments[i].format`, as for a test source.
+With an `origin`, the `name` MUST be the last segment of the origin
+(`attachment-name-disagrees-with-origin`) and the `format` MUST be its
+extension (`attachment-format-disagrees-with-origin`), both at the field. A
+`label` that is defined has at least one visible character (`blank-text`).
+
+```yaml
+attachments:
+  - name: consumo-2024.csv
+    format: csv
+    origin: dados/consumo-2024.csv
+    label: consumo por região
+  - name: tarifas.csv
+    format: csv
+    text: |
+      regiao,tarifa_kwh
+      Sudeste,0.80
+```
+
+The Markdown form of the list writes a fence ```` ```format name ```` with the
+text of each fenced attachment, and a link `[label](origin)` for each linked
+attachment, with the name as the link text when there is no label.
 
 
 ## Automation
@@ -575,7 +754,8 @@ additional fields. Those rules are covered in their own dedicated document.
 ## Public form
 
 The [public form](../public-form.md) of a question is the question as a student may see it. It keeps the
-base fields except `author`, `meta` and `comment`, which are private. Each
+base fields except `author`, `meta` and `comment`, which are private, and it
+keeps each attachment without its `origin`. Each
 question type removes its own private fields, such as the answer and the
 feedback. The [correct responses](../public-form.md#correct-responses) are the responses that score 1.
 
@@ -637,6 +817,20 @@ the schema rejects their empty string.
 | id                       | warning  | redundant-id              | should not be set both in the frontmatter and as a slug[^12] |
 | any text                 | warning  | non-ascii-whitespace      | U+0085, U+2028, U+2029, or a Unicode space in a syntax position[^10] |
 | any text                 | info     | non-ascii-whitespace-in-prose | any other Unicode space outside ASCII[^10]                       |
+| attachments              | error    | schema-error              | must have at least one attachment (schema) |
+| attachments[]            | error    | schema-error              | must have exactly one of `text` and `origin`, and a `label` only with an `origin` (schema) |
+| attachments[].name       | error    | schema-error              | must be a file name: not empty, not `.` or `..`, with no `/`, no `\`, no Unicode space and no backtick (schema) |
+| attachments[].name       | error    | duplicate-attachment-name | must be unique in the `attachments` of the question, see [Name](#name) |
+| attachments[].name       | error    | attachment-name-disagrees-with-origin | with an `origin`, must be the last segment of the origin |
+| attachments[].format     | error    | schema-error              | must be a word: not empty, with no Unicode space and no backtick (schema) |
+| attachments[].format     | error    | attachment-format-disagrees-with-origin | with an `origin`, must be the extension of the origin |
+| attachments[].origin     | error    | schema-error              | must be a relative path with no scheme, query, fragment or line break, and a file name with an extension (schema) |
+| attachments[].label      | error    | blank-text                | if defined, must have at least one visible character |
+| attachments              | error    | parse-error               | the section is declared at most once, and has at least one block, see [Position](#position) |
+| attachments              | error    | parse-error               | each block is a fenced block whose info string has exactly two words, or a paragraph with only an inline link; two links need a blank line between them |
+| attachments              | error    | parse-error               | the name of a fence, and the last segment of the origin of a link, follow the rule of [Name](#name) |
+| attachments              | error    | parse-error               | the link of an attachment has a relative origin with no query or fragment, and a file name with an extension |
+| attachments              | error    | invalid-frontmatter-field | cannot be set in the frontmatter of a Markdown source |
 
 [^11]: A field that the body sets, or a key that no question type defines,
 is not valid in the frontmatter. See [Frontmatter](#frontmatter).

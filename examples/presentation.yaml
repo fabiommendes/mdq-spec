@@ -99,6 +99,41 @@ cases:
     responses:
     - {real: wrong-1, presented: "7589d676"}
 
+  - name: attachments are the same as in the public form
+    seed: s3cr3t
+    question:
+      type: multiple-choice
+      id: encontro-das-aguas
+      stem: Which two rivers meet near Manaus without mixing for several kilometers?
+      choices:
+      - {id: correct, text: Negro and Solimões, score: 1}
+      - {id: wrong-1, text: Madeira and Tapajós}
+      shuffle: false
+      attachments:
+      - {name: encontro.pdf, format: pdf, origin: mapas/encontro.pdf, label: mapa do encontro}
+      - name: vazoes.csv
+        format: csv
+        text: |
+          rio,vazao
+          Negro,28400
+    presented:
+      type: multiple-choice
+      id: encontro-das-aguas
+      stem: Which two rivers meet near Manaus without mixing for several kilometers?
+      shuffle: false
+      choices:
+      - {id: "f412a138", text: Negro and Solimões}
+      - {id: "7589d676", text: Madeira and Tapajós}
+      attachments:
+      - {name: encontro.pdf, format: pdf, label: mapa do encontro}
+      - name: vazoes.csv
+        format: csv
+        text: |
+          rio,vazao
+          Negro,28400
+    responses:
+    - {real: correct, presented: "f412a138"}
+
   - name: shuffle in the case overrides the question and gives the sorted order
     seed: s3cr3t
     question:

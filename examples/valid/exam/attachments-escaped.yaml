@@ -1,0 +1,16 @@
+# exam.md, "Attachments": `## \[attachments]` is a literal heading, so it and
+# the paragraph after it stay in the instructions.
+type: exam
+id: prova-cerrado
+title: Cerrado
+instructions: |-
+  Leia o texto de apoio.
+
+  ## \[attachments]
+
+  O texto de apoio está impresso na folha de rosto.
+questions:
+- type: short-answer
+  stem: Qual bioma brasileiro é conhecido como savana tropical?
+  accept:
+  - Cerrado

@@ -1,0 +1,8 @@
+# exam.md, "Attachments": the attachments of an exam follow the rules of a question.
+type: exam
+title: Caatinga
+attachments:
+  - name: mapas/caatinga.pdf
+    format: pdf
+    origin: mapas/caatinga.pdf
+questions: []

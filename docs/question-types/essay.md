@@ -117,10 +117,14 @@ instructor who grades the response.
 
 The section is placed after the `[essay]` tag and after the epilogue, if there
 is one. It starts with an `H2` heading with the text `[answer-key]` alone on its
-line. It holds the blocks after the heading, up to the end of the question: the
-end of the file or, in an exam, the next block.
+line. It comes before or after the
+[`## [attachments]`](question-base.md#attachments) section, each at most once.
+It holds the blocks after the heading, up to the heading of the next section of
+the question (`## [attachments]`) or up to the end of the question: the end of
+the file or, in an exam, the next block.
 
 ```lark
+essay_sections : (attachments_section answer_key? | answer_key attachments_section?)?
 answer_key : blank_line* atx_answer_key nl md_block*
            | blank_line+ setext_answer_key nl md_block*
 atx_answer_key    : ws? "##" ws "[answer-key]" (ws ("#"+ ws?)?)?
@@ -128,10 +132,12 @@ setext_answer_key : ws? "[answer-key]" ws? nl ws? "-"+ ws?
 ```
 
 The rules `ws`, `nl` and `blank_line` are defined in
-[Common grammar rules](../references/grammar.md). A setext heading needs a blank
+[Common grammar rules](../references/grammar.md), and `attachments_section` in
+[Attachments](question-base.md#position). A setext heading needs a blank
 line before it: without one, `[answer-key]` is a lazy line of the paragraph
-before it, as in CommonMark. `md_block` is any CommonMark
-block except an H1 heading.
+before it, as in CommonMark. `md_block` is any CommonMark block except an H1
+heading and the heading of a section of the question, which ends the answer
+key.
 
 The heading follows the
 [heading rule of type-specific sections](question-base.md#epilogue): an ATX
@@ -146,18 +152,22 @@ sequence CommonMark allows) or a setext heading, as CommonMark reads both as
 
 The section holds any block, headings included, except an `H1` heading. A
 heading of the section, such as `### Criteria`, does not end it. Text after the
-section is part of the answer key, not an epilogue.
+section is part of the answer key, not an epilogue, up to the heading of the
+next section.
 
 The one exception is a heading that the
-[epilogue rule](question-base.md#forbidden-elements) forbids: a heading of any
-level, ATX or setext, whose text starts with optional `ws` + `[`, except a
-bracket that starts an inline, full or collapsed link. It MUST NOT appear after
-`## [answer-key]`, since it would be answer key text and hide a section written
-in the wrong place (`forbidden-block-element`). `## [rubric]`, `### [1] Criterion`
-and `## [x] done` are errors, and so is a shortcut reference such as `## [inpe]`.
+[epilogue rule](question-base.md#forbidden-elements) forbids and that is not
+the heading of a section of the question: a heading of any level, ATX or
+setext, whose text starts with optional `ws` + `[`, except a bracket that
+starts an inline, full or collapsed link. It MUST NOT appear in the answer
+key, since it would be answer key text and hide a section written in the
+wrong place (`forbidden-block-element`). `## [rubric]` (a section of a code
+question, not of an essay), `## [hints]`, `### [1] Criterion` and
+`## [x] done` are errors, and so is a shortcut reference such as `## [inpe]`.
 `## [INPE](https://www.inpe.br)` is valid, and so is an escaped heading,
 `## \[rubric]`, which is a literal heading of the section. The rule also
-applies to the `answerKey` field of a YAML or JSON document. A second
+applies to the `answerKey` field of a YAML or JSON document, where every such
+heading is an error, the names of the sections included. A second
 `## [answer-key]` section is a `parse-error`.
 
 The blocks of the section, without the heading, are the `answerKey` field. The

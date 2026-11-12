@@ -1,0 +1,20 @@
+# question-base.md, "Attachments": the section comes before `## [answer-key]`.
+# The title of a link is not used.
+id: chuvas-no-semiarido
+title: Chuvas no semiárido
+type: essay
+stem: >-
+  Analise a série de chuvas do anexo e explique por que o semiárido nordestino
+  tem secas longas.
+attachments:
+- name: chuvas-semiarido.csv
+  format: csv
+  origin: dados/chuvas-semiarido.csv
+  label: série de chuvas
+- name: semiarido.pdf
+  format: pdf
+  origin: mapas/semiarido.pdf
+  label: mapa do semiárido
+answerKey: >-
+  As chuvas se concentram em poucos meses e variam muito de um ano para outro.
+  A evaporação alta e o solo raso guardam pouca água.

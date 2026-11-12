@@ -1,0 +1,11 @@
+[
+  {
+    "code": "duplicate-attachment-name",
+    "severity": "error",
+    "path": [
+      "attachments",
+      1,
+      "name"
+    ]
+  }
+]

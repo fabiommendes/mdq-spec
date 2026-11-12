@@ -1,0 +1,11 @@
+[
+  {
+    "code": "attachment-format-disagrees-with-origin",
+    "severity": "error",
+    "path": [
+      "attachments",
+      0,
+      "format"
+    ]
+  }
+]

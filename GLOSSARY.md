@@ -67,6 +67,12 @@ check it (`answer`, `accept`, per-choice `score`) or only a human can
 - related: Correct response
 - pt: gabarito
 
+## attachment
+
+A file that a question or an exam gives to the student, declared in the `## [attachments]` section as a fenced code block or a link. Its name is a file name with no directory.
+
+- related: origin
+
 ## Automation
 
 How many responses a question settles without the instructor: `automatic`

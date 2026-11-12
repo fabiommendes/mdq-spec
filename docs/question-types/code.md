@@ -96,7 +96,8 @@ have the extension `.pl`.
 [^2]: Optional. A plain file name, with no `/` and no `\`. It MUST NOT be empty,
 be only [Unicode spaces](../references/grammar.md#unicode-spaces), or be `.` or
 `..` (`schema-error`). A test of input and output needs no name, so it omits the
-field.
+field. The name of an [attachment](question-base.md#name) follows the same rule,
+with two more.
 
 A question has no other frontmatter field of its own. `tests`, `rubric`,
 `template` and `answerKey` are not frontmatter fields: a Markdown source sets
@@ -151,21 +152,23 @@ section, or at the end of the question.
 | `## [template]`     | `template`   | one fenced code block                              |
 | `## [tests]`        | `tests`      | fenced blocks and paragraphs with a link           |
 | `## [rubric]`       | `rubric`     | one list of manual rubric items                    |
+| `## [attachments]`  | `attachments` | fenced blocks and paragraphs with a link, see [Attachments](question-base.md#attachments) |
 | `## [answer-key]`   | `answerKey`  | any block except an `H1` heading                   |
 
-`## [template]`, `## [tests]` and `## [rubric]` come in any order, each at most
-once. A second section of the same name is a `parse-error`. `## [answer-key]`,
-when it exists, is the last section and holds every block up to the end of the
-question, as in [essay](essay.md#answer-key). A section with no block, only
-blank lines, is a `parse-error`, except `## [answer-key]`. A heading
-`## [name]` with another name is not a section. Before the first section it
-stays in the epilogue, where it is a `forbidden-block-element` error. After the
-first section started it is a `parse-error`, since it would be a block of that
-section, or a section in the wrong place (`## [hints]` after `## [tests]`). An
-escaped heading, `## \[name]`, is a literal heading.
+The sections come in any order, each at most once. A second section of the
+same name is a `parse-error`. `## [answer-key]` holds every block up to the
+heading of the next section or up to the end of the question, as in
+[essay](essay.md#answer-key). A section with no block, only blank lines, is a
+`parse-error`, except `## [answer-key]`. A heading `## [name]` with another
+name is not a section. Before the first section it stays in the epilogue, where
+it is a `forbidden-block-element` error. In `## [answer-key]` it is a
+`forbidden-block-element` error too, see [essay](essay.md#answer-key). After
+another section started it is a `parse-error`, since it would be a block of
+that section, or a section in the wrong place (`## [hints]` after
+`## [tests]`). An escaped heading, `## \[name]`, is a literal heading.
 
 ```lark
-code_sections    : (template_section | tests_section | rubric_section)* answer_key?
+code_sections    : (template_section | tests_section | rubric_section | attachments_section | answer_key)*
 template_section : blank_line* section_heading "template" nl fenced_block blank_line*
 tests_section    : blank_line* section_heading "tests" nl blank_line* test_sources blank_line*
 test_sources     : fenced_block (blank_line* test_sources)?
@@ -178,14 +181,16 @@ Two link paragraphs need a blank line between them, as CommonMark reads two
 lines with no blank line as one paragraph. A fenced block needs no blank line
 before or after it. `answer_key` is defined in [essay](essay.md#answer-key). `section_heading`
 stands for the heading of the section, whose name follows it in the rules above.
-`fenced_block` is a CommonMark fenced code block. `test_source` is defined
+`fenced_block` is a CommonMark fenced code block. `attachments_section` is
+defined in [Attachments](question-base.md#position). `test_source` is defined
 in [Test sources](#test-sources) and `rubric_list` in
 [Rubric section](#rubric-section).
 
-After `## [answer-key]`, a heading that the epilogue rule forbids (see
-[essay](essay.md#answer-key)) is a `forbidden-block-element` error in every
-question type, because it would be text of the answer key and hide a section
-that is in the wrong place.
+In `## [answer-key]`, a heading that the epilogue rule forbids and that is not
+the heading of a section of the question (see [essay](essay.md#answer-key)) is
+a `forbidden-block-element` error, because it would be text of the answer key
+and hide a section that is in the wrong place. The heading of a section ends
+the answer key.
 
 ### Template
 
@@ -477,8 +482,8 @@ the other derived values. Its content is.
 ### Answer key
 
 The `## [answer-key]` section is optional. It follows the rules of the
-[essay answer key](essay.md#answer-key): it is the last section, it holds any
-block except an `H1` heading, a section with no block defines no answer key, and
+[essay answer key](essay.md#answer-key): it ends at the heading of the next
+section, it holds any block except an `H1` heading, a section with no block defines no answer key, and
 a host MUST NOT show it to the student before the student submits the response.
 
 The **reference solution** is a derived value: the code text of the first fenced
@@ -635,7 +640,7 @@ solution, when there is one.
 | body                 | error    | foreign-choice-marker     | the `[code]` tag cannot be a list item[^4]                        |
 | epilogue             | error    | detached-tag              | cannot have a paragraph with only `[code]`                        |
 | body                 | error    | parse-error               | a section may be declared at most once                            |
-| body                 | error    | parse-error               | a heading `## [name]` that is not a section cannot come after the first section |
+| body                 | error    | parse-error               | a heading `## [name]` that is not a section cannot come after the first section, except in `## [answer-key]` |
 | template             | error    | parse-error               | in a Markdown source, the section must have exactly one fenced code block |
 | template             | error    | forbidden-block-element   | in every form, must be exactly one fenced code block, with its closing fence |
 | template             | error    | blank-text                | if defined, must have at least one visible character              |

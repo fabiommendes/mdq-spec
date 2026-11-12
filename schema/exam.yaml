@@ -193,6 +193,18 @@ properties:
       - PT1H30M
       - P1DT2H
 
+  attachments:
+    type: array
+    description: >-
+      The files that the exam gives to the student, in the order of the
+      `## [attachments]` section between the instructions and the first
+      question. The names are unique in the list (the model rule
+      `duplicate-attachment-name`). The attachments of each question are in
+      the question.
+    items:
+      "$ref": "./question-base.yaml#/$defs/Attachment"
+    minItems: 1
+
   questions:
     type: array
     description: >-

@@ -19,7 +19,8 @@ seeded order and an opaque label in the place of each choice id, see
 [Presented form](#presented-form). Without it, an id such as `correct` gives the
 answer away to anyone who reads the traffic between the client and the host.
 
-The public form of an exam is not defined.
+The public form of an exam is not defined. A host reads the `attachments` of
+an exam from the exam document.
 
 
 ## General rules
@@ -76,8 +77,16 @@ form.
 | author   | private     |
 | meta     | private     |
 | comment  | private     |
+| attachments | each attachment without its `origin` |
 
 The fields are defined in [question-base.md](question-types/question-base.md).
+
+An [attachment](question-types/question-base.md#attachments) keeps its `name`,
+its `format`, and its `text` (a fenced attachment) or its `label` (a linked
+attachment). The `origin` is private: it is a path in the files of the author.
+A host that serves the file of a linked attachment finds it by its name in the
+private document, where the names are unique. MDQ never reads the file, so a
+linked attachment never makes the public form fail.
 
 
 ## Fields by question type

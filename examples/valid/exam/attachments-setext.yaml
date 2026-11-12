@@ -1,0 +1,16 @@
+# exam.md, "Attachments": the setext form opens the section of the exam, and
+# `setext-heading` reports it at `attachments`.
+type: exam
+id: prova-pantanal
+title: Pantanal
+instructions: Leia o mapa antes de responder.
+attachments:
+- name: cheias.pdf
+  format: pdf
+  origin: mapas/cheias.pdf
+  label: mapa das cheias
+questions:
+- type: short-answer
+  stem: Qual rio forma a maior parte da planície do Pantanal?
+  accept:
+  - Paraguai

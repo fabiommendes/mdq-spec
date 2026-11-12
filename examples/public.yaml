@@ -352,6 +352,64 @@ cases:
     correctResponses: []
 
   #
+  # Attachments
+  #
+  - name: attachments keep name, format, text and label, and drop the origin
+    question:
+      type: essay
+      stem: Analise a série de chuvas do anexo e explique as secas do semiárido.
+      attachments:
+        - name: chuvas-semiarido.csv
+          format: csv
+          origin: dados/chuvas-semiarido.csv
+          label: série de chuvas
+        - name: semiarido.pdf
+          format: pdf
+          origin: mapas/semiarido.pdf
+        - name: postos.csv
+          format: csv
+          text: |
+            posto,municipio
+            1,Cabaceiras
+    public:
+      type: essay
+      stem: Analise a série de chuvas do anexo e explique as secas do semiárido.
+      attachments:
+        - name: chuvas-semiarido.csv
+          format: csv
+          label: série de chuvas
+        - name: semiarido.pdf
+          format: pdf
+        - name: postos.csv
+          format: csv
+          text: |
+            posto,municipio
+            1,Cabaceiras
+    correctResponses: []
+
+  - name: a linked attachment never makes the public form fail
+    question:
+      type: multiple-choice
+      stem: Com a tabela do anexo, qual região consumiu mais energia em 2024?
+      choices:
+        - {id: sudeste, text: Sudeste, score: 1}
+        - {id: norte, text: Norte}
+      attachments:
+        - name: consumo-2024.pdf
+          format: pdf
+          origin: ../dados/consumo-2024.pdf
+    public:
+      type: multiple-choice
+      stem: Com a tabela do anexo, qual região consumiu mais energia em 2024?
+      choices:
+        - {id: sudeste, text: Sudeste}
+        - {id: norte, text: Norte}
+      attachments:
+        - name: consumo-2024.pdf
+          format: pdf
+    correctResponses: [sudeste]
+
+  #
   # Code
   #
   - name: code keeps template, language and file, and lists one entry for each public region

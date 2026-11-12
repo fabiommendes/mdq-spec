@@ -1,0 +1,42 @@
+# exam.md, "Attachments": the section of the exam comes between the
+# instructions and the first question block. A section after the body of a
+# question belongs to the question, also in the last question. The exam and
+# each question have separate lists, so `constantes.pdf` repeats with no error.
+type: exam
+id: prova-energia
+title: Energia no Brasil
+instructions: Responda às duas questões. A tabela de constantes vale para a prova toda.
+attachments:
+- name: constantes.pdf
+  format: pdf
+  origin: dados/constantes.pdf
+  label: tabela de constantes
+questions:
+- id: fonte-principal
+  title: Fonte principal
+  type: multiple-choice
+  stem: Qual fonte gera a maior parte da energia elétrica do Brasil?
+  choices:
+  - text: Hidrelétrica
+    score: 1
+  - text: Eólica
+  - text: Nuclear
+- id: potencia-eolica
+  title: Potência eólica
+  type: numeric
+  stem: >-
+    Use a série do anexo para estimar a potência eólica instalada no Nordeste, em
+    GW.
+  answer: 30
+  tolerance:
+    absolute: 5
+  domain: integer
+  attachments:
+  - name: eolica-nordeste.csv
+    format: csv
+    origin: dados/eolica-nordeste.csv
+    label: série de potência
+  - name: constantes.pdf
+    format: pdf
+    origin: questao/constantes.pdf
+    label: constantes da questão

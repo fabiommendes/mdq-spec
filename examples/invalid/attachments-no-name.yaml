@@ -1,0 +1,7 @@
+# question-base.md, "JSON form": `name` is always present.
+type: numeric
+stem: Qual é a vazão média do rio São Francisco em Sobradinho, em m³/s?
+answer: 2000
+attachments:
+  - format: csv
+    origin: dados/vazoes.csv

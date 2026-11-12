@@ -1,0 +1,50 @@
+# question-base.md, "Attachments": the forms of a link and of a fence.
+# - A label equal to the name is omitted, and a link text with no visible
+#   character gives no label.
+# - The label is plain text: the markup of emphasis and code spans is removed.
+# - The name is the last segment of the origin: a space in a directory is valid.
+# - `%20` is not decoded.
+# - The origin and the info string are read after the backslash escapes and the
+#   entity references of CommonMark.
+# - A fence name needs no extension, and spaces around the words do not count.
+id: vazao-de-itaipu
+title: Vazão de Itaipu
+type: numeric
+stem: >-
+  Com os dados dos anexos, qual foi a vazão média do rio Paraná em Itaipu, em
+  m³/s?
+answer: 11000
+tolerance:
+  absolute: 500
+domain: integer
+attachments:
+- name: vazoes.csv
+  format: csv
+  origin: dados/vazoes.csv
+- name: cotas.csv
+  format: csv
+  origin: dados/cotas.csv
+- name: serie.csv
+  format: csv
+  origin: dados de 2024/serie.csv
+  label: série 2024
+- name: relatorio%20anual.pdf
+  format: pdf
+  origin: relatorio%20anual.pdf
+  label: resumo
+- name: vazao_maxima.csv
+  format: csv
+  origin: dados/vazao_maxima.csv
+  label: com escape
+- name: a&b.csv
+  format: csv
+  origin: dados/a&b.csv
+  label: com entidade
+- name: LEIAME
+  format: text
+  text: |
+    Fonte: Operador Nacional do Sistema Elétrico.
+- name: vazao_media.csv
+  format: csv
+  text: |
+    ano,vazao

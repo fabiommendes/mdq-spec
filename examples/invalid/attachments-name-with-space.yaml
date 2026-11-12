@@ -1,0 +1,9 @@
+# question-base.md, "Name": a name has no Unicode space, so a fence can write it.
+type: numeric
+stem: Qual é a vazão média do rio São Francisco em Sobradinho, em m³/s?
+answer: 2000
+attachments:
+  - name: vazões 2024.csv
+    format: csv
+    text: |
+      ano,vazao

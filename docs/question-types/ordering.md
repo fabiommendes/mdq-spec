@@ -212,7 +212,7 @@ The body has a very simple grammar:
 ordering : ws? "[" "ordering" "]" ws? ":" ws? nl content epilogue? section*
 content  : md_code_block | md_ul
 
-section : ordering_extra | ordering_accept | ordering_reject
+section : ordering_extra | ordering_accept | ordering_reject | attachments_section
 
 ordering_extra  : section_heading{"extra"} nl blank_line* content
 ordering_accept : section_heading{"accept"} nl blank_line* (observations blank_line*)? content
@@ -226,8 +226,10 @@ setext_heading{name}  : ws? "[" name "]" ws? nl ws? "-"+ ws?
 
 `md_code_block` and `md_ul` are respectively markdown representations of
 fenced code blocks and unordered lists. The rules `ws`, `nl`, `blank_line` and
-`observations` are defined in [Common grammar rules](../references/grammar.md).
-`section_heading` has two forms: an ATX heading (`## [extra]`) and a setext
+`observations` are defined in [Common grammar rules](../references/grammar.md),
+and `attachments_section` in [Attachments](question-base.md#position): the
+`## [attachments]` section comes in any order with the other sections, at most
+once. `section_heading` has two forms: an ATX heading (`## [extra]`) and a setext
 heading (`[extra]` followed by a line of `-`). A setext heading MUST follow a
 blank line: without one, CommonMark reads `[extra]` as a lazy line of the block
 before it (a list item or an epilogue paragraph), so there is no heading.

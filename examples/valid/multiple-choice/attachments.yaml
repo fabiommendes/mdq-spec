@@ -1,0 +1,28 @@
+# question-base.md, "Attachments": a multiple choice question has no section of
+# its own, so `## [attachments]` ends the epilogue. The link gives the name from
+# the last segment of the origin and the label from the link text. The fence
+# gives the format and the name from the two words of its info string.
+id: consumo-por-regiao
+title: Consumo de energia por região
+type: multiple-choice
+stem: >-
+  Com os dados do anexo, qual região do Brasil consumiu mais energia elétrica
+  em 2024?
+choices:
+- text: Sudeste
+  score: 1
+- text: Nordeste
+- text: Norte
+epilogue: Os valores estão em GWh.
+attachments:
+- name: consumo-2024.csv
+  format: csv
+  origin: dados/consumo-2024.csv
+  label: consumo por região
+- name: bandeiras.csv
+  format: csv
+  text: |
+    bandeira,adicional_kwh
+    verde,0.00
+    amarela,0.02
+    vermelha,0.05

@@ -1,0 +1,29 @@
+# question-base.md, "Attachments": in a code question the section comes in any
+# order with `## [template]`, `## [tests]` and `## [rubric]`. MDQ does not
+# compare an attachment with `file`, `template` or the tests.
+id: conta-de-luz-anexos
+title: Conta de luz com anexos
+type: code
+language: python
+file: conta.py
+stem: >-
+  Escreva a função `valor_conta(kwh, bandeira)`. A tabela de bandeiras e um
+  arquivo de partida estão nos anexos.
+tests:
+- format: py
+  origin: test_conta.py
+attachments:
+- name: bandeiras-2024.csv
+  format: csv
+  origin: dados/bandeiras-2024.csv
+  label: tabela de bandeiras
+- name: conta_base.py
+  format: python
+  text: |
+    def valor_conta(kwh, bandeira):
+        ...
+template: |-
+  ```python
+  def valor_conta(kwh, bandeira):
+      ...
+  ```

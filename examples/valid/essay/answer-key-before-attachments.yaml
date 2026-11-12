@@ -1,0 +1,19 @@
+# essay.md, "Answer key": `## [answer-key]` is not the last section. It ends
+# at the heading of the next section, here `## [attachments]`. A heading of the
+# answer key, such as `### Critérios`, does not end it.
+id: mare-em-sao-luis
+title: Marés em São Luís
+type: essay
+stem: >-
+  Use a tabela de marés do anexo para explicar por que São Luís tem uma das
+  maiores amplitudes de maré do Brasil.
+answerKey: |-
+  ### Critérios
+
+  A baía é rasa e larga, e o formato do litoral amplia a onda de maré.
+attachments:
+- name: mares.csv
+  format: csv
+  text: |
+    dia,preamar_m,baixamar_m
+    1,6.4,0.3

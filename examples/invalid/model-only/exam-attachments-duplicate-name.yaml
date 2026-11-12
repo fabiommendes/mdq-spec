@@ -1,0 +1,11 @@
+# exam.md, "Attachments": two attachments of the exam have the same name.
+type: exam
+title: Caatinga
+attachments:
+  - name: caatinga.pdf
+    format: pdf
+    origin: 2023/caatinga.pdf
+  - name: caatinga.pdf
+    format: pdf
+    origin: 2024/caatinga.pdf
+questions: []

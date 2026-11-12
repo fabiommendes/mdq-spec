@@ -1,0 +1,26 @@
+# question-base.md, "Attachments": in an ordering question the section comes
+# in any order with `## [extra]`, `## [accept]` and `## [reject]`.
+id: ciclo-da-cana
+title: Ciclo da cana-de-açúcar
+type: ordering
+stem: Ordene as etapas da produção de etanol de cana. O fluxograma do anexo ajuda.
+content: text
+lines:
+- [0, Colheita da cana.]
+- [0, Moagem e extração do caldo.]
+- [0, Fermentação do caldo.]
+- [0, Destilação do vinho.]
+extra:
+- [0, Torrefação dos grãos.]
+attachments:
+- name: usina.pdf
+  format: pdf
+  origin: figuras/usina.pdf
+  label: fluxograma da usina
+reject:
+- lines:
+  - [0, Colheita da cana.]
+  - [0, Fermentação do caldo.]
+  - [0, Moagem e extração do caldo.]
+  - [0, Destilação do vinho.]
+  feedback: A fermentação vem depois da moagem.
