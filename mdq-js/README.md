@@ -47,13 +47,12 @@ Status compared to mdq-py:
 
 ## Installation
 
-The package is not on npm yet. Install it from the repository:
-
 ```bash
-pnpm add github:fabiommendes/mdq-js
+npm install @mdq-format/core zod
 ```
 
-`solid-js` is an optional peer dependency, reserved for the planned components.
+`zod` is a peer dependency. `solid-js` is an optional peer dependency, needed
+only for the components of `@mdq-format/core/solid`.
 
 
 ## Usage
@@ -62,7 +61,7 @@ pnpm add github:fabiommendes/mdq-js
 source is not a valid MDQ question:
 
 ```ts
-import { parseQuestion } from "mdq";
+import { parseQuestion } from "@mdq-format/core";
 
 const question = parseQuestion(`
 What is the capital of Brazil?
@@ -83,7 +82,7 @@ To validate separately, parse into an unvalidated object and pass it to a
 validator. Validators return a result instead of throwing:
 
 ```ts
-import { parseQuestionDocument, validateDocument } from "mdq";
+import { parseQuestionDocument, validateDocument } from "@mdq-format/core";
 
 const raw = parseQuestionDocument(source);
 const result = validateDocument(raw);

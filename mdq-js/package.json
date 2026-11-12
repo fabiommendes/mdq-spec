@@ -1,5 +1,5 @@
 {
-	"name": "mdq",
+	"name": "@mdq-format/core",
 	"version": "0.1.0",
 	"description": "A parser for Markdown-based quizzes. It supports various question types and integrates with SolidJS for rendering.",
 	"type": "module",
@@ -30,7 +30,7 @@
 		"typecheck": "tsc -p tsconfig.json",
 		"lint": "biome check",
 		"prepare": "pnpm run build",
-		"node:check": "tsc -p tsconfig.build.json && node --input-type=module -e \"await import('mdq')\""
+		"node:check": "tsc -p tsconfig.build.json && node --input-type=module -e \"await import('@mdq-format/core')\""
 	},
 	"keywords": [],
 	"author": "Fábio Macêdo Mendes",
@@ -77,5 +77,8 @@
 		"vite-plugin-solid": "^2.11.9",
 		"vitest": "^3.2.4",
 		"zod": "^4.6.7"
+	},
+	"publishConfig": {
+		"access": "public"
 	}
 }
