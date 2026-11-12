@@ -12,8 +12,8 @@
 		"skipLibCheck": true,
 		"types": ["node"],
 		"paths": {
-			"mdq": ["../mdq-js/src/index.ts"],
-			"mdq/solid": ["../mdq-js/src/solid/index.ts"]
+			"@mdq-format/core": ["../mdq-js/src/index.ts"],
+			"@mdq-format/core/solid": ["../mdq-js/src/solid/index.ts"]
 		},
 		"noEmit": true,
 		"jsx": "preserve",

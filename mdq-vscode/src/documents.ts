@@ -14,7 +14,7 @@
  *    a question that takes its type from the body is not found this way.
  */
 
-import { QUESTION_TYPES } from "mdq";
+import { QUESTION_TYPES } from "@mdq-format/core";
 
 /** The format `load` reads a document in. */
 export type Format = "mdq" | "yaml" | "json";

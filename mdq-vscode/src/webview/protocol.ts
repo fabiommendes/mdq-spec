@@ -6,8 +6,8 @@
  * webview then never crosses back.
  */
 
-import type { Format } from "mdq";
-import type { Locale } from "mdq/solid";
+import type { Format } from "@mdq-format/core";
+import type { Locale } from "@mdq-format/core/solid";
 
 /** Extension to webview: the document to show. */
 export interface ShowMessage {

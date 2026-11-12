@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { load, type Question } from "mdq";
+import { load, type Question } from "@mdq-format/core";
 import { describe, expect, it } from "vitest";
 import { review } from "../src/webview/grade.js";
 

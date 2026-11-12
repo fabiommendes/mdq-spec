@@ -4,8 +4,12 @@ import {
 	type PublicQuestion,
 	publicForm,
 	type Question,
-} from "mdq";
-import { type Locale, type QuestionMode, QuestionView } from "mdq/solid";
+} from "@mdq-format/core";
+import {
+	type Locale,
+	type QuestionMode,
+	QuestionView,
+} from "@mdq-format/core/solid";
 import {
 	type Component,
 	createMemo,

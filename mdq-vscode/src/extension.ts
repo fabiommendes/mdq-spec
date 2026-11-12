@@ -7,7 +7,7 @@
  * is in `package.json`, not here. The preview is in `preview.ts`.
  */
 
-import { load, type Diagnostic as MdqDiagnostic } from "mdq";
+import { load, type Diagnostic as MdqDiagnostic } from "@mdq-format/core";
 import * as vscode from "vscode";
 import { type Format, mdqFormat } from "./documents.js";
 import { PreviewPanel } from "./preview.js";

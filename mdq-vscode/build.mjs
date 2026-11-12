@@ -23,8 +23,8 @@ for (const [from, to] of [
 }
 
 const alias = {
-	mdq: join(mdqSrc, "index.ts"),
-	"mdq/solid": join(mdqSrc, "solid", "index.ts"),
+	"@mdq-format/core": join(mdqSrc, "index.ts"),
+	"@mdq-format/core/solid": join(mdqSrc, "solid", "index.ts"),
 };
 
 // mdq-js sources import `solid-js` from mdq-js/node_modules. Two copies

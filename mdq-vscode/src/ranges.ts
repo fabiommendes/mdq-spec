@@ -6,7 +6,7 @@
  * has no dependency on `vscode`, so it is tested on its own.
  */
 
-import type { Diagnostic } from "mdq";
+import type { Diagnostic } from "@mdq-format/core";
 
 /** A 0-based range, the end exclusive, as VS Code reads it. */
 export interface EditorRange {

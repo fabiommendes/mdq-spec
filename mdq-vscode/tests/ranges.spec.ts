@@ -1,4 +1,4 @@
-import { load } from "mdq";
+import { load } from "@mdq-format/core";
 import { describe, expect, it } from "vitest";
 import { editorRange } from "../src/ranges.js";
 

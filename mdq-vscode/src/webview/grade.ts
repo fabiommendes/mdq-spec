@@ -11,7 +11,7 @@ import {
 	NotAutoGradable,
 	type Question,
 	scoreResponse,
-} from "mdq";
+} from "@mdq-format/core";
 
 /** The `value` and `result` props of a view in review mode. */
 export interface Review {
