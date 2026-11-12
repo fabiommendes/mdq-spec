@@ -84,8 +84,10 @@ describe("validateDocument routes each valid example to its schema", () => {
 });
 
 describe("valid questions declare a known question type", () => {
+	// Not `SCHEMA`: an example that the Zod schemas reject for another field
+	// still declares a known type.
 	for (const path of VALID_QUESTIONS) {
-		corpusIt(SCHEMA, relativeId(path), () => {
+		it(relativeId(path), () => {
 			const document = loadDocument(path) as { type?: string };
 			expect(QUESTION_TYPES).toContain(document.type);
 		});

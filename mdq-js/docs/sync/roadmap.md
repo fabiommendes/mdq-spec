@@ -103,3 +103,16 @@ entry when the port is done.
 
 * `render` of the `code` question type and the fence-closing change of
   mdq-py commit d084229 have no counterpart: mdq-js ports no render.
+* The `## [attachments]` section and the free position of `## [answer-key]`
+  in essay and code (r2: issue/mdq-js-porte-de-anexos-e-da-posicao-livre-do-answer-key).
+  mdq-py reads the section with one shared reader,
+  `mdq/_parser/_attachments.py` (`split_sections`, `parse_attachments`,
+  `link_paragraph`), which the readers of code, ordering, essay, the other
+  types and the exam call. The model is `Attachment` in `mdq/models/_base.py`,
+  with the field `attachments` on `BaseQuestion` and `Exam`. `public()`
+  drops `origin`. The converters report `field-dropped` for `attachments`.
+  The corpus examples are listed in `tests/not-ported.ts`, and
+  `tests/schema-agreement.spec.ts` skips the `attachments` property and the
+  `Attachment` and `attachment-name` definitions
+  (`PROPERTIES_NOT_PORTED`, `OBJECT_DEFS_SKIPPED`). Remove them with the
+  port.

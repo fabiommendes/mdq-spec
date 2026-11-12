@@ -214,9 +214,21 @@ function setDiff(a: Set<string>, b: Set<string>): string[] {
 	return [...a].filter((value) => !b.has(value)).sort();
 }
 
+/**
+ * Properties of the JSON Schema that the Zod models do not have yet, with
+ * why. `assertShapesAgree` ignores them on the JSON side.
+ */
+const PROPERTIES_NOT_PORTED: Record<string, string> = {
+	// r2: issue/mdq-js-porte-de-anexos-e-da-posicao-livre-do-answer-key
+	attachments: "the attachments have no Zod model yet",
+};
+
 /** Assert two shapes declare the same properties and the same required keys. */
 function assertShapesAgree(name: string, jsonSide: Shape, zodSide: Shape) {
-	const missingProperties = setDiff(jsonSide.properties, zodSide.properties);
+	const missingProperties = setDiff(
+		jsonSide.properties,
+		zodSide.properties,
+	).filter((key) => !(key in PROPERTIES_NOT_PORTED));
 	const extraProperties = setDiff(zodSide.properties, jsonSide.properties);
 	expect(
 		missingProperties.length === 0 && extraProperties.length === 0,
@@ -555,7 +567,13 @@ describe("zod-json-schema agreement", () => {
 		]);
 
 		/** Object-typed `$defs` entries deliberately left untested, with why. */
-		const OBJECT_DEFS_SKIPPED: Record<string, string> = {};
+		const OBJECT_DEFS_SKIPPED: Record<string, string> = {
+			// r2: issue/mdq-js-porte-de-anexos-e-da-posicao-livre-do-answer-key
+			"question-base#/$defs/Attachment":
+				"the attachments have no Zod model yet",
+			"question-base#/$defs/attachment-name":
+				"the attachments have no Zod model yet",
+		};
 
 		/** Enum-typed `$defs` entries checked against a Zod enum's `.options` above. */
 		const ENUM_DEFS_TESTED = new Set([
