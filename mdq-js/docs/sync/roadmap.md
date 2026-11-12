@@ -83,7 +83,8 @@ The P phases are the ones of RFC 0001 in the root repository
 (`dev/rfc/0001-mdq-js-paridade.md`), which keeps the details and the history. The SolidJS components get their own plan.
 
 The CLI, format conversions (Moodle XML, GIFT, Aiken), `show`, `scaffold`,
-`render()` and the file-system question bank stay in Python.
+`render()`, `sync_question` (it builds on `render()`) and the file-system
+question bank stay in Python.
 
 ## Coordination with mdq-py
 
