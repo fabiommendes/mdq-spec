@@ -9,7 +9,7 @@
 # runs (.github/workflows/ci.yml).
 
 [commands.check]
-run = "uv run scripts/inexact_tables.py --check && uv run scripts/spec_audit.py --check && (cd mdq-py && uv run pytest -q && uv run mypy mdq && uv run ruff check) && (cd mdq-js && pnpm test && pnpm typecheck && pnpm lint) && (cd mdq-vscode && pnpm test && pnpm typecheck && pnpm lint && pnpm build)"
+run = "uv run scripts/inexact_tables.py --check && uv run scripts/spec_audit.py --check && uv run --no-project --with pytest --with PyYAML --with jsonschema --with markdown-it-py --with mdit-py-plugins --with lark pytest -q scripts && (cd mdq-py && uv run pytest -q && uv run mypy mdq && uv run ruff check) && (cd mdq-js && pnpm test && pnpm typecheck && pnpm lint) && (cd mdq-vscode && pnpm test && pnpm typecheck && pnpm lint && pnpm build)"
 help = "Spec audit, mdq-py, mdq-js and mdq-vscode tests, types and lint: the change is done when this passes."
 timeout = 1200
 

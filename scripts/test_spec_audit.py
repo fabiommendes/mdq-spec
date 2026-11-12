@@ -418,13 +418,13 @@ def fence_problems(source: str) -> list[str]:
     return problems
 
 
-@pytest.mark.parametrize("language", ["md", "json", "yaml", "lark"])
+@pytest.mark.parametrize("language", ["md", "json", "yaml", "lark", "python"])
 def test_fence_language_is_allowed(language: str) -> None:
-    body = {"json": "{}", "yaml": "a: 1", "lark": 'a: "x"', "md": "# T"}[language]
+    body = {"json": "{}", "yaml": "a: 1", "lark": 'a: "x"', "md": "# T", "python": "x = 1"}[language]
     assert fence_problems(f"```{language}\n{body}\n```\n") == []
 
 
-@pytest.mark.parametrize("info", ["", "regex", "python", "markdown"])
+@pytest.mark.parametrize("info", ["", "regex", "ruby", "markdown"])
 def test_fence_language_is_rejected(info: str) -> None:
     (problem,) = fence_problems(f"text\n\n```{info}\nx\n```\n")
     assert problem.startswith("doc.md:3: code fence has")
