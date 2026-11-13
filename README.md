@@ -62,7 +62,10 @@ $schema: https://cdn.jsdelivr.net/npm/@mdq-format/schema@0.1/mdq.schema.json
 MDQ files use the `.mdq.md`, `.md` or `.mdq` extension. Prefer `.mdq.md`: it
 tells MDQ files apart from other Markdown, and editors and forges that key off
 `.md` still treat the file as Markdown. A file holds either one question or one
-exam, and the parser tells them apart by content.
+exam, and the parser tells them apart by content. The same document in its
+YAML or JSON form uses `.mdq.yaml` or `.mdq.json` (plain `.yaml`, `.yml` and
+`.json` also work). See
+[File names](docs/question-types/question-base.md#file-names).
 
 A question has up to four parts, in this order:
 

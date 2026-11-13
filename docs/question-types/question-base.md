@@ -751,6 +751,30 @@ Each question defines its own rules for translating the body and eventual
 additional fields. Those rules are covered in their own dedicated document.
 
 
+## File names
+
+A file holds one question or one exam, in one of three forms. The suffix of the
+file name gives the form. A question and an exam use the same suffixes: the
+content tells them apart.
+
+| Form     | Suffixes                                             |
+| -------- | ---------------------------------------------------- |
+| Markdown | `.mdq.md` (preferred), `.md`, `.mdq`                 |
+| YAML     | `.mdq.yaml` (preferred), `.mdq.yml`, `.yaml`, `.yml` |
+| JSON     | `.mdq.json` (preferred), `.json`                     |
+
+The `.mdq` part tells an MDQ file apart from other files of the same form.
+Tools that find MDQ files by name alone, such as an editor or a schema catalog,
+SHOULD match only the names with `.mdq`. A tool that receives a file name, such
+as a command line argument, MUST accept every suffix in the table.
+
+The name without its suffix is the id a file-system question bank finds the
+question by: `pampa.mdq.yaml` and `pampa.md` both hold the question `pampa`.
+When more than one file has the same id, the bank picks one. Which one is
+implementation-defined, like the rest of the bank (see
+[exam.md](../exam.md#include-all)).
+
+
 ## Public form
 
 The [public form](../public-form.md) of a question is the question as a student may see it. It keeps the
