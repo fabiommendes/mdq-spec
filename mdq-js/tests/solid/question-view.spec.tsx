@@ -72,6 +72,21 @@ describe("QuestionView", () => {
 		expect(seen).toEqual(["b"]);
 	});
 
+	it.each(
+		questions,
+	)("renders afterStem right after the stem of a $type question", (question) => {
+		const { container } = render(() => (
+			<QuestionView
+				question={question}
+				afterStem={<aside data-testid="after-stem">extra</aside>}
+			/>
+		));
+		const stem = container.querySelector(".mdq-stem");
+		expect(stem?.nextElementSibling?.getAttribute("data-testid")).toBe(
+			"after-stem",
+		);
+	});
+
 	it("shows a note for a type it does not know", () => {
 		const { container } = render(() => (
 			<QuestionView

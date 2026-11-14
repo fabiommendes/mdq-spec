@@ -40,6 +40,8 @@ export interface OrderingProps {
 	mode?: QuestionMode;
 	/** Leaves out the score badge in `review` mode. */
 	hideScore?: boolean;
+	/** Rendered right after the stem, before the response controls. */
+	afterStem?: JSX.Element;
 	/**
 	 * A response that matches no declared answer is pending under
 	 * `unmatched: manual`, so the result may be pending. `correct` is the list
@@ -558,6 +560,7 @@ export function Ordering(props: OrderingProps): JSX.Element {
 			<div id={stemId} class="mdq-stem">
 				<Markdown text={props.question.stem} />
 			</div>
+			{props.afterStem}
 
 			<Show when={content() === "code" && props.question.highlight}>
 				{(language) => <span class="mdq-language">{language()}</span>}

@@ -23,6 +23,8 @@ export interface NumericProps {
 	mode?: QuestionMode;
 	/** Leaves out the score badge in `review` mode. The mark stays. */
 	hideScore?: boolean;
+	/** Rendered right after the stem, before the response controls. */
+	afterStem?: JSX.Element;
 	/** `correct` holds the `answer`; the verdict comes from the score. */
 	result?: QuestionResult<NumericResponse>;
 	messages?: Partial<Messages>;
@@ -75,6 +77,7 @@ export function Numeric(props: NumericProps): JSX.Element {
 			<div id={stemId} class="mdq-stem">
 				<Markdown text={props.question.stem} />
 			</div>
+			{props.afterStem}
 
 			<Show
 				when={mode() !== "readonly"}

@@ -73,6 +73,8 @@ export interface FillInProps {
 	mode?: QuestionMode;
 	/** Leaves out the score badge in `review` mode. The marks stay. */
 	hideScore?: boolean;
+	/** Rendered right after the stem, before the response controls. */
+	afterStem?: JSX.Element;
 	result?: FillInResult | PendingFillInResult;
 	messages?: Partial<Messages>;
 	locale?: Locale;
@@ -257,6 +259,7 @@ export function FillIn(props: FillInProps): JSX.Element {
 					)}
 				</For>
 			</div>
+			{props.afterStem}
 
 			<For each={warnings()}>
 				{(entry) => (

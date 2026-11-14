@@ -29,6 +29,8 @@ export interface CodeProps {
 	mode?: QuestionMode;
 	/** Leaves out the score badge in `review` mode. */
 	hideScore?: boolean;
+	/** Rendered right after the stem, before the response controls. */
+	afterStem?: JSX.Element;
 	/**
 	 * MDQ never runs code, so the result is pending until a runner report or an
 	 * instructor grades it. `correct` holds the reference solution, when there
@@ -100,6 +102,7 @@ export function Code(props: CodeProps): JSX.Element {
 			<div id={stemId} class="mdq-stem">
 				<Markdown text={props.question.stem} />
 			</div>
+			{props.afterStem}
 
 			<For each={examples()}>
 				{(test) => (

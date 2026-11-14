@@ -25,6 +25,8 @@ export interface MultipleSelectionProps {
 	mode?: QuestionMode;
 	/** Leaves out the score badge in `review` mode. The marks stay. */
 	hideScore?: boolean;
+	/** Rendered right after the stem, before the response controls. */
+	afterStem?: JSX.Element;
 	result?: QuestionResult<MultipleSelectionResponse>;
 	messages?: Partial<Messages>;
 	locale?: Locale;
@@ -100,6 +102,7 @@ export function MultipleSelection(props: MultipleSelectionProps): JSX.Element {
 			<div id={stemId} class="mdq-stem">
 				<Markdown text={props.question.stem} />
 			</div>
+			{props.afterStem}
 
 			<fieldset ref={fieldset} class="mdq-choices" aria-labelledby={stemId}>
 				<For each={props.question.choices}>

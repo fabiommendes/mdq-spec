@@ -27,6 +27,8 @@ export interface ShortAnswerProps {
 	mode?: QuestionMode;
 	/** Leaves out the score badge in `review` mode. The mark stays. */
 	hideScore?: boolean;
+	/** Rendered right after the stem, before the response controls. */
+	afterStem?: JSX.Element;
 	/**
 	 * `correct` is the list from `correctResponses()`: the literal patterns of
 	 * `accept`. It leaves out the regexes, so it never proves a response wrong;
@@ -105,6 +107,7 @@ export function ShortAnswer(props: ShortAnswerProps): JSX.Element {
 			<div id={stemId} class="mdq-stem">
 				<Markdown text={props.question.stem} />
 			</div>
+			{props.afterStem}
 
 			<Show
 				when={mode() !== "readonly"}

@@ -26,6 +26,8 @@ export interface EssayProps {
 	mode?: QuestionMode;
 	/** Leaves out the score badge in `review` mode. */
 	hideScore?: boolean;
+	/** Rendered right after the stem, before the response controls. */
+	afterStem?: JSX.Element;
 	/**
 	 * An essay is graded by an instructor, so the result is pending until then.
 	 * `correct` holds the answer key, when there is one and the student may see
@@ -90,6 +92,7 @@ export function Essay(props: EssayProps): JSX.Element {
 			<div id={stemId} class="mdq-stem">
 				<Markdown text={props.question.stem} />
 			</div>
+			{props.afterStem}
 
 			<Show
 				when={mode() === "answer"}
