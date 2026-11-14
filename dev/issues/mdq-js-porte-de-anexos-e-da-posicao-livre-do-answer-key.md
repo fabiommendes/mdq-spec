@@ -1,6 +1,6 @@
 ---
 type: issue
-status: backlog
+status: in_review
 tags: [mdq-js, anexos]
 relatedTo: [anexos-em-questoes-e-provas]
 kind: enhancement

@@ -20,9 +20,11 @@ import type { QuestionType } from "../schema/questions.js";
 import type { MdqDocument } from "../validate.js";
 import {
 	type Automation,
+	attachmentFieldRules,
 	baseFieldRules,
 	baseLint,
 	checkNoForbiddenBlockElements,
+	checkUniqueAttachmentNames,
 	type FamilyRules,
 	freeTextFields,
 	isGradedQuestion,
@@ -92,6 +94,8 @@ export function validateQuestionModel(
 		...(family?.fields?.(question, path) ?? []),
 	];
 	if (fields.length > 0) return fields;
+	const duplicate = checkUniqueAttachmentNames(record.attachments, path);
+	if (duplicate !== undefined) return [duplicate];
 	const forbidden = checkNoForbiddenBlockElements(record, path);
 	if (forbidden !== undefined) return [forbidden];
 	for (const check of family?.models ?? []) {
@@ -154,6 +158,7 @@ function examFieldRules(exam: Readonly<Record<string, unknown>>): Diagnostic[] {
 		...freeTextFields(exam, EXAM_TEXT_FIELDS),
 		...localeDiagnostics(exam.locale),
 		...uuidDiagnostics(exam.uuid),
+		...attachmentFieldRules(exam.attachments),
 	];
 	const instructions = exam.instructions;
 	if (typeof instructions === "string" && instructions && hasH1(instructions)) {
@@ -236,6 +241,8 @@ export function validateExamModel(exam: Exam): Diagnostic[] {
 		);
 	}
 	if (found.length > 0) return found;
+	const duplicateName = checkUniqueAttachmentNames(exam.attachments);
+	if (duplicateName !== undefined) return [duplicateName];
 	const duplicate = checkQuestionsHaveUniqueIds(entries);
 	return duplicate === undefined ? [] : [duplicate];
 }

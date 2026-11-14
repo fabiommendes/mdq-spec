@@ -26,7 +26,7 @@ differs states the reason in its header comment.
 | `mdq/_include_keys.py`              | `src/include-keys.ts`                    |
 | `mdq/_schedule.py`                  | `src/schedule.ts`                        |
 | `mdq/_banks.py`                     | `src/banks.ts`                           |
-| `mdq/_parser/_<name>.py`            | `src/parser/<name>.ts` (`_blocks`, `_choices`, `_code`, `_exam`, `_fill_in`, `_frontmatter`, `_numeric`, `_ordering`, `_question`, `_rubric`, `_short_answer`, `_spaces`, `_tags`) |
+| `mdq/_parser/_<name>.py`            | `src/parser/<name>.ts` (`_attachments`, `_blocks`, `_choices`, `_code`, `_exam`, `_fill_in`, `_frontmatter`, `_numeric`, `_ordering`, `_question`, `_rubric`, `_short_answer`, `_spaces`, `_tags`) |
 | `mdq/models/_base.py`               | `src/models/base.ts` (`FamilyRules`: the validators a family adds) |
 | `mdq/models/_choice.py`             | `src/models/choice.ts`                   |
 | `mdq/models/_numeric.py`            | `src/models/numeric.ts`                  |

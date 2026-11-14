@@ -10,6 +10,14 @@ that it implements.
 
 ## [Unreleased]
 
+### Added
+
+- Attachments (`docs/question-types/question-base.md`, "Attachments"; `docs/exam.md`, "Attachments"): the `## [attachments]` section in every question type and in the exam, as in mdq-py. The Zod schema `Attachment` (`name`, `format`, `text` or `origin`, `label`) and the field `attachments` of every question and of `Exam`, with the pattern constants `ATTACHMENT_NAME_PATTERN`, `ATTACHMENT_FORMAT_PATTERN` and `ATTACHMENT_ORIGIN_PATTERN`. New model errors `duplicate-attachment-name`, `attachment-name-disagrees-with-origin` and `attachment-format-disagrees-with-origin`. `attachments` in a frontmatter is `invalid-frontmatter-field`. `publicForm` and the presented form drop the `origin`, and the new type `PublicAttachment` describes the result.
+
+### Changed
+
+- `## [answer-key]` of an essay or a code question is no longer the last section: it comes in any order with the other sections of the question and ends at the heading of the next one. A second `## [answer-key]` is a `parse-error`.
+
 ## [0.1.0] - 2026-11-12
 
 First release on npm, as `@mdq-format/core`. Implements MDQ specification 0.1.0. The library passes

@@ -29,13 +29,31 @@ import {
 import { corpusIt, LINT } from "./not-ported.js";
 import { asMultiset, entryOf } from "./vectors.js";
 
+/**
+ * A `setext-heading` is parser-only too, except in the text fields that keep
+ * the underline: on a section heading, such as the `[attachments]` of an
+ * exam, only the parser sees it.
+ */
+function isSectionSetext(entry: {
+	code: string;
+	path: readonly (string | number)[];
+}): boolean {
+	return (
+		entry.code === "setext-heading" &&
+		!["stem", "epilogue", "instructions"].includes(String(entry.path.at(-1)))
+	);
+}
+
 /** Load `path` and check its non-error diagnostics against its `.lint.json`. */
 function expectMatchesLintJson(path: string): void {
 	expect(existsSync(lintSibling(path)), `${path} has no .lint.json`).toBe(true);
 	const pinned = loadLintSibling(path);
 	const expected = path.endsWith(SOURCE_SUFFIX)
 		? pinned
-		: pinned.filter((entry) => !PARSER_ONLY_CODES.has(entry.code));
+		: pinned.filter(
+				(entry) =>
+					!PARSER_ONLY_CODES.has(entry.code) && !isSectionSetext(entry),
+			);
 	const loaded = load(readText(path), { format: formatOf(path) });
 	const actual = loaded.diagnostics
 		.filter((d) => d.severity !== "error")

@@ -12,7 +12,11 @@ import { type Diagnostic, diagnostic, type PathStep } from "../diagnostics.js";
 import { hasVisibleCharacter, UUID_RE } from "../markdown.js";
 import { findForbiddenElements, reconstructBlocks } from "../parser/blocks.js";
 import { repr, rstrip, SPACE, strip } from "../parser/text.js";
-import type { GradingType, Question } from "../schema/index.js";
+import {
+	Attachment,
+	type GradingType,
+	type Question,
+} from "../schema/index.js";
 import type { MdqDocument } from "../validate.js";
 import {
 	checkIdAndTitleDefined,
@@ -176,6 +180,90 @@ const QUESTION_TEXT_FIELDS = [
 	"comment",
 ] as const;
 
+/**
+ * question-base.md, "JSON form": the rules of each attachment of a list. A
+ * `label` has a visible character (`blank-text`); with an `origin`, the
+ * `name` is its last segment (`attachment-name-disagrees-with-origin`) and
+ * the `format` is its extension (`attachment-format-disagrees-with-origin`).
+ * The second rule runs only when the first passes, and the third only when
+ * the second does, as the validators of the model.
+ *
+ * @param prefix Where the model that owns `attachments` sits in the document.
+ */
+export function attachmentFieldRules(
+	attachments: unknown,
+	prefix: readonly PathStep[] = [],
+): Diagnostic[] {
+	if (!Array.isArray(attachments)) return [];
+	const found: Diagnostic[] = [];
+	for (const [index, item] of attachments.entries()) {
+		const attachment = item as Readonly<Record<string, unknown>>;
+		const path = [...prefix, "attachments", index];
+		const blank = freeTextDiagnostics(attachment.label, "label", [
+			...path,
+			"label",
+		]);
+		if (blank.length > 0) {
+			found.push(...blank);
+			continue;
+		}
+		// The rules of the whole attachment run when its fields are valid.
+		if (!Attachment.safeParse(attachment).success) continue;
+		const { name, format, origin } = attachment;
+		if (typeof origin !== "string") continue;
+		const segment = origin.slice(origin.lastIndexOf("/") + 1);
+		if (name !== segment) {
+			found.push(
+				modelError(
+					"attachment-name-disagrees-with-origin",
+					`the name ${repr(String(name))} is not the last segment ${repr(segment)} of the origin ${repr(origin)}`,
+					[...path, "name"],
+				),
+			);
+			continue;
+		}
+		const extension = origin.slice(origin.lastIndexOf(".") + 1);
+		if (format !== extension) {
+			found.push(
+				modelError(
+					"attachment-format-disagrees-with-origin",
+					`the format ${repr(String(format))} is not the extension ${repr(extension)} of the origin ${repr(origin)}`,
+					[...path, "format"],
+				),
+			);
+		}
+	}
+	return found;
+}
+
+/**
+ * question-base.md, "Name": two attachments of one list do not have the same
+ * name (`duplicate-attachment-name`, at the `name` of the second). The names
+ * are compared as strings.
+ *
+ * @param prefix Where the model that owns `attachments` sits in the document.
+ */
+export function checkUniqueAttachmentNames(
+	attachments: unknown,
+	prefix: readonly PathStep[] = [],
+): Diagnostic | undefined {
+	if (!Array.isArray(attachments)) return undefined;
+	const seen = new Map<string, number>();
+	for (const [index, item] of attachments.entries()) {
+		const name = (item as { name: string }).name;
+		const first = seen.get(name);
+		if (first !== undefined) {
+			return modelError(
+				"duplicate-attachment-name",
+				`the attachment name ${repr(name)} is already used by attachments[${first}]`,
+				[...prefix, "attachments", index, "name"],
+			);
+		}
+		seen.set(name, index);
+	}
+	return undefined;
+}
+
 /** The field validators of `BaseQuestion`. */
 export function baseFieldRules(
 	question: Readonly<Record<string, unknown>>,
@@ -185,6 +273,7 @@ export function baseFieldRules(
 		...freeTextFields(question, QUESTION_TEXT_FIELDS, prefix),
 		...localeDiagnostics(question.locale, [...prefix, "locale"]),
 		...uuidDiagnostics(question.uuid, [...prefix, "uuid"]),
+		...attachmentFieldRules(question.attachments, prefix),
 	];
 }
 

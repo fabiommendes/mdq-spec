@@ -277,6 +277,68 @@ export type DiacriticsType = z.infer<typeof DiacriticsType>;
 export const SchemaUri = z.string();
 
 /**
+ * `schema/question-base.yaml#/$defs/attachment-name` -- a plain file name,
+ * not `.` or `..`, with no `/`, `\`, Unicode space or backtick, so a fence
+ * can write it back. No `u` flag, as `UNIT_PATTERN`.
+ */
+export const ATTACHMENT_NAME_PATTERN = new RegExp(
+	`^(?!\\.\\.?$)[^/\\\\${UNICODE_SPACE}\`]+$`,
+);
+
+/**
+ * `schema/question-base.yaml#/$defs/Attachment/properties/format` -- a word
+ * with no Unicode space and no backtick.
+ */
+export const ATTACHMENT_FORMAT_PATTERN = new RegExp(`^[^${UNICODE_SPACE}\`]+$`);
+
+/**
+ * `schema/question-base.yaml#/$defs/Attachment/properties/origin` -- the
+ * `ORIGIN` terminal of docs/question-types/code.md: a relative path with no
+ * scheme, query, fragment or line break, and a file name with an extension.
+ */
+export const ATTACHMENT_ORIGIN_PATTERN =
+	/^(?![A-Za-z][A-Za-z0-9+.-]*:)(?!\/)[^?#\r\n]*[.][^.\\/?#\r\n]+$/;
+
+/**
+ * `schema/question-base.yaml#/$defs/Attachment` -- a file that a question or
+ * an exam gives to the student: a fenced block, with its `text`, or a link,
+ * with its `origin` and, maybe, a `label`. The `oneOf` of the YAML is the
+ * refinement.
+ */
+export const Attachment = z
+	.strictObject({
+		name: z
+			.string()
+			.min(1)
+			.regex(ATTACHMENT_NAME_PATTERN)
+			.meta({ examples: ["consumo-2024.csv", "conta_base.py", "LEIAME"] }),
+		format: z
+			.string()
+			.min(1)
+			.regex(ATTACHMENT_FORMAT_PATTERN)
+			.meta({ examples: ["csv", "python", "pdf"] }),
+		text: z.string().optional(),
+		origin: z
+			.string()
+			.min(1)
+			.regex(ATTACHMENT_ORIGIN_PATTERN)
+			.meta({ examples: ["dados/consumo-2024.csv", "tabela.pdf"] })
+			.optional(),
+		label: z.string().optional(),
+	})
+	.refine(
+		(attachment) =>
+			(attachment.text === undefined) !== (attachment.origin === undefined),
+		{ error: "an attachment must have exactly one of `text` and `origin`" },
+	)
+	.refine(
+		(attachment) =>
+			attachment.label === undefined || attachment.origin !== undefined,
+		{ error: "only an attachment with an `origin` has a `label`" },
+	);
+export type Attachment = z.infer<typeof Attachment>;
+
+/**
  * Fields common to every question type -- `schema/question-base.yaml`.
  *
  * Exposed as a shape rather than a schema because the per-type schemas
@@ -297,6 +359,7 @@ export const questionBaseShape = {
 	tags: uniqueArray(z.string()).optional(),
 	weight: z.number().min(0).optional(),
 	meta: z.record(z.string(), z.unknown()).optional(),
+	attachments: z.array(Attachment).min(1).optional(),
 } as const;
 
 /**

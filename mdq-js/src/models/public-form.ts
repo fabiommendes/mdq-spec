@@ -14,6 +14,7 @@ import { exactLiteral } from "../exact.js";
 import { publicText } from "../parser/rubric.js";
 import { strip } from "../parser/text.js";
 import type {
+	Attachment,
 	Blank,
 	ChoiceBlank,
 	CodeQuestion,
@@ -48,8 +49,16 @@ import {
 } from "./numeric.js";
 import { effectiveUnmatched, matches, patternKind } from "./text.js";
 
-/** The fields every public form copies as they are. */
-type PublicBase<Q extends Question> = Pick<
+/** An attachment as a student sees it: the `origin` is a path of the author. */
+export type PublicAttachment = Omit<Attachment, "origin">;
+
+/**
+ * The fields every public form copies as they are, and the `attachments`
+ * without their `origin`.
+ */
+type PublicBase<Q extends Question> = {
+	attachments?: PublicAttachment[];
+} & Pick<
 	Q,
 	Extract<
 		| "type"
@@ -468,6 +477,12 @@ export function publicForm(question: Question): PublicQuestion {
 	const base = copy(question, BASE_KEYS);
 	// A `weight` of 1 is the default: mdq-py leaves it out, as of `to_dict()`.
 	if (base.weight === 1) delete base.weight;
+	if (question.attachments !== undefined) {
+		// public-form.md: the `origin` is a path in the files of the author.
+		base.attachments = question.attachments.map(
+			({ origin: _origin, ...kept }) => kept,
+		);
+	}
 	switch (question.type) {
 		case "multiple-choice":
 		case "multiple-selection":

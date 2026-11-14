@@ -12,6 +12,13 @@ import type { PathStep } from "../diagnostics.js";
 import { ParseError } from "../errors.js";
 import { md, span, startsAfter } from "../markdown.js";
 import {
+	ATTACHMENTS,
+	type AttachmentDict,
+	markAttachments,
+	parseAttachments,
+	sectionName,
+} from "./attachments.js";
+import {
 	BLOCK_NAMES,
 	type BlockCursor,
 	type BlockReader,
@@ -47,8 +54,13 @@ export interface OrderingAlternative {
 	comment?: string;
 }
 
-/** `[extra]`, `[accept]` or `[reject]`, the text of an `h2` section heading. */
-const ORDERING_SECTION_RE: RegExp = /^\[(?<name>extra|accept|reject)\]$/u;
+/** The sections of an ordering question. */
+const ORDERING_SECTIONS: ReadonlySet<string> = new Set([
+	"extra",
+	"accept",
+	"reject",
+	ATTACHMENTS,
+]);
 
 /**
  * An ordering `ul` item's line: the indentation to measure, the marker, and
@@ -260,8 +272,9 @@ export function checkOrderingTag(tag: OrderingTag): void {
 }
 
 /**
- * Fill `lines`, `extra`, `accept` and `reject` from an `[ordering]` block and
- * its `## [extra]`/`## [accept]`/`## [reject]` sections.
+ * Fill `lines`, `extra`, `accept`, `reject` and `attachments` from an
+ * `[ordering]` block and its `## [extra]`/`## [accept]`/`## [reject]`/
+ * `## [attachments]` sections.
  *
  * The optional epilogue sits between the content block and the first
  * section; the sections are contiguous after it and nothing follows the last
@@ -281,8 +294,8 @@ export function checkOrderingTag(tag: OrderingTag): void {
  *   a fenced code block nor a `ul` list, a blank line separates `[ordering]`
  *   from its block, a section has no content block, a section's content is
  *   not the same kind as `[ordering]`'s or its fence names another language
- *   than the `[ordering]` fence, two `## [extra]` sections are declared, a
- *   section's observations carry more than one feedback/comment block or
+ *   than the `[ordering]` fence, two `## [extra]` or `## [attachments]`
+ *   sections are declared, an attachment is malformed, a section's observations carry more than one feedback/comment block or
  *   interleave the two, or a block that is not a section follows the first
  *   section.
  */
@@ -310,14 +323,33 @@ export function parseOrderingBody(
 	const acceptRaw: RawAlternative[] = [];
 	const rejectRaw: RawAlternative[] = [];
 
+	let attachments: AttachmentDict[] | null = null;
+
 	for (;;) {
 		const node = cursor.peek();
-		if (node === null || node.type !== "heading" || node.tag !== "h2") break;
-		const name = ORDERING_SECTION_RE.exec(cursor.reader.rawText(node))?.groups
-			?.name;
-		if (name === undefined) break;
+		if (node === null) break;
+		const name = sectionName(cursor.reader, node, ORDERING_SECTIONS);
+		if (name === null) break;
 		const heading = cursor.read();
-		if (name === "extra") {
+		if (name === ATTACHMENTS) {
+			if (attachments !== null) {
+				throw new ParseError(
+					"the ## [attachments] section is declared at most once",
+					[],
+					lineOf(heading),
+				);
+			}
+			const blocks: Node[] = [];
+			for (
+				let block = cursor.peek();
+				block !== null && !isOrderingSection(cursor.reader, block);
+				block = cursor.peek()
+			) {
+				blocks.push(cursor.read());
+			}
+			attachments = parseAttachments(cursor.reader, heading, blocks);
+			markAttachments(cursor, heading, blocks);
+		} else if (name === "extra") {
 			if (extraRaw !== null) {
 				throw new ParseError("a question defines at most one [extra] section");
 			}
@@ -359,8 +391,10 @@ export function parseOrderingBody(
 
 	if (cursor.pos < children.length) {
 		throw new ParseError(
-			"only [extra], [accept] and [reject] sections can follow the " +
-				"first section; the epilogue goes before it",
+			"only [extra], [accept], [reject] and [attachments] sections can " +
+				"follow the first section; the epilogue goes before it",
+			[],
+			lineOf(children[cursor.pos] ?? null),
 		);
 	}
 
@@ -394,6 +428,7 @@ export function parseOrderingBody(
 	if (rejectRaw.length > 0) {
 		doc.reject = rejectRaw.map((alt) => orderingAlternative(alt, unit));
 	}
+	if (attachments !== null) doc.attachments = attachments;
 	return [doc, epilogueNodes];
 }
 
@@ -434,13 +469,12 @@ function checkSectionHighlight(
 	}
 }
 
-/** Whether `node` is an `## [extra]`, `## [accept]` or `## [reject]` heading. */
+/**
+ * Whether `node` is an `## [extra]`, `## [accept]`, `## [reject]` or
+ * `## [attachments]` heading.
+ */
 function isOrderingSection(reader: BlockReader, node: Node): boolean {
-	return (
-		node.type === "heading" &&
-		node.tag === "h2" &&
-		ORDERING_SECTION_RE.test(reader.rawText(node))
-	);
+	return sectionName(reader, node, ORDERING_SECTIONS) !== null;
 }
 
 /**

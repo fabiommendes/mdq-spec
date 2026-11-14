@@ -9,6 +9,7 @@
 
 import * as z from "zod";
 import {
+	Attachment,
 	DocumentId,
 	FillInGradingType,
 	GradingType,
@@ -96,6 +97,7 @@ export const Exam = z.strictObject({
 	author: z.string().optional(),
 	locale: z.string().optional(),
 	instructions: z.string().optional(),
+	attachments: z.array(Attachment).min(1).optional(),
 	comment: z.string().optional(),
 	tags: uniqueArray(z.string()).optional(),
 	meta: z.record(z.string(), z.unknown()).optional(),

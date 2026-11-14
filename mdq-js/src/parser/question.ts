@@ -29,6 +29,12 @@ import { SLUG_BODY_RE } from "../markdown.js";
 import { QUESTION_TYPES, type Question } from "../schema/questions.js";
 import { validateQuestion } from "../validate.js";
 import {
+	ATTACHMENTS,
+	markAttachments,
+	parseAttachments,
+	splitSections,
+} from "./attachments.js";
+import {
 	BlockCursor,
 	BlockReader,
 	parseItemList,
@@ -91,7 +97,12 @@ export type RawDocument = Record<string, unknown>;
  * choice marker (choices.md, "Choice marker").
  */
 export const BRACKET_ITEM_RE = /^[*+-][ \t]+\[[^\]\r\n]*\](?![([])/u;
-const ANSWER_KEY_RE = /^\[answer-key\]$/u;
+/** The sections of an essay, and of a type with no sections of its own. */
+const ESSAY_SECTIONS: ReadonlySet<string> = new Set([
+	"answer-key",
+	ATTACHMENTS,
+]);
+const BASE_SECTIONS: ReadonlySet<string> = new Set([ATTACHMENTS]);
 
 //
 // Public API
@@ -505,46 +516,28 @@ export class MDQParser {
 	}
 
 	/**
-	 * Look for the optional `## [answer-key]` section among the remaining
-	 * nodes. Only ever called for essay questions -- other types have no
-	 * answer-key syntax and the epilogue swallows everything after their body
-	 * verbatim.
+	 * Read the sections of an essay (`## [answer-key]` and `## [attachments]`)
+	 * or the `## [attachments]` section of a type with no sections of its own,
+	 * after the body. Each section ends at the heading of the next one or at
+	 * the end of the question.
 	 *
-	 * @returns The nodes that should still be treated as epilogue (i.e.
-	 *   everything before the heading, if one was found, or all remaining
-	 *   nodes otherwise). Does not advance `cursor.pos`.
+	 * @returns The nodes of the epilogue, before the first section.
 	 */
-	parseAnswerKey(): readonly Node[] {
-		const remaining = this.reader.children.slice(this.cursor.pos);
-		for (const [i, node] of remaining.entries()) {
-			if (node.type === "heading" && node.tag === "h2") {
-				if (ANSWER_KEY_RE.test(this.reader.rawText(node))) {
-					const answerBlocks = remaining.slice(i + 1);
-					for (const later of answerBlocks) {
-						if (
-							later.type === "heading" &&
-							later.tag === "h2" &&
-							ANSWER_KEY_RE.test(this.reader.rawText(later))
-						) {
-							throw new ParseError(
-								"a question defines at most one [answer-key] section",
-							);
-						}
-					}
-					const answerText = this.reader.joinBlocks(answerBlocks);
-					if (answerText) {
-						this.state.answerKey = answerText;
-						this.cursor.mark(
-							["answerKey"],
-							answerBlocks[0] as Node,
-							answerBlocks.at(-1),
-						);
-					}
-					return remaining.slice(0, i);
-				}
+	parseSections(names: ReadonlySet<string>): readonly Node[] {
+		const [epilogue, sections] = splitSections(this.cursor, names);
+		for (const { name, heading, blocks } of sections) {
+			if (name === ATTACHMENTS) {
+				this.state.attachments = parseAttachments(this.reader, heading, blocks);
+				markAttachments(this.cursor, heading, blocks);
+				continue;
+			}
+			const answerText = this.reader.joinBlocks(blocks);
+			if (answerText) {
+				this.state.answerKey = answerText;
+				this.cursor.mark(["answerKey"], blocks[0] as Node, blocks.at(-1));
 			}
 		}
-		return remaining;
+		return epilogue;
 	}
 
 	applyTypeSpecificFrontmatter(questionType: unknown): void {
@@ -710,8 +703,8 @@ export class MDQParser {
 
 		const epilogueBlocks: readonly Node[] =
 			questionType === "essay"
-				? this.parseAnswerKey()
-				: (bodyEpilogue ?? this.reader.children.slice(this.cursor.pos));
+				? this.parseSections(ESSAY_SECTIONS)
+				: (bodyEpilogue ?? this.parseSections(BASE_SECTIONS));
 		this.reportDetachedTags(epilogueBlocks, questionType === "fill-in");
 		if (epilogueBlocks.length > 0) {
 			const epilogueText = this.reader.joinBlocks(epilogueBlocks);

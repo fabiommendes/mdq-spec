@@ -15,10 +15,18 @@ import {
 } from "../diagnostics.js";
 import { MdqError, MissingFieldError, ParseError } from "../errors.js";
 import { includeKeyHint, misspelledIncludeKey } from "../include-keys.js";
-import { md, splitLines } from "../markdown.js";
+import { md, span, splitLines } from "../markdown.js";
 import { canonicalDuration, canonicalStart } from "../schedule.js";
 import type { Exam } from "../schema/exam.js";
 import { validateExam } from "../validate.js";
+import {
+	ATTACHMENTS,
+	type AttachmentDict,
+	markAttachments,
+	parseAttachments,
+	splitSections,
+} from "./attachments.js";
+import { BlockCursor, BlockReader } from "./blocks.js";
 import { SLUG_PREFIX_RE } from "./choices.js";
 import {
 	bodyLineOffset,
@@ -211,13 +219,37 @@ export function parseExamDocument(
 	const afterTitle = bodyOffset + titleIndex + 1;
 	const firstStart = starts[0] ?? lines.length - titleIndex - 1;
 	if (instructions !== undefined) {
-		doc.instructions = instructions;
-		const [first, end] = trimmedRange(
-			lines,
-			titleIndex + 1,
-			titleIndex + 1 + firstStart,
-		);
-		map.markLines(["instructions"], bodyOffset + first, bodyOffset + end);
+		// The line of the body where the text of the instructions starts.
+		const textStart =
+			titleIndex +
+			1 +
+			lines
+				.slice(titleIndex + 1)
+				.findIndex((line) => strip(line, " \t") !== "");
+		const found = examAttachments(instructions, bodyOffset + textStart, map);
+		let text: string | undefined = instructions;
+		let textEnd = titleIndex + 1 + firstStart;
+		if (found !== null) {
+			doc.attachments = found.attachments;
+			text = found.instructions;
+			textEnd = textStart + found.headingLine;
+			if (found.setext && warnings !== undefined) {
+				warnings.push(
+					diagnostic(
+						"warning",
+						"setext-heading",
+						"the heading of the [attachments] section is a setext " +
+							"heading; write it as `## [attachments]`",
+						[ATTACHMENTS],
+					),
+				);
+			}
+		}
+		if (text !== undefined) {
+			doc.instructions = text;
+			const [first, end] = trimmedRange(lines, titleIndex + 1, textEnd);
+			map.markLines(["instructions"], bodyOffset + first, bodyOffset + end);
+		}
 	}
 	if (warnings !== undefined) {
 		for (const [path, lineNumber] of malformed) {
@@ -274,6 +306,62 @@ export function parseExamDocument(
 	return doc;
 }
 
+/** The `## [attachments]` section of the text above the first question. */
+interface ExamAttachments {
+	instructions: string | undefined;
+	attachments: AttachmentDict[];
+	/** Whether the heading of the section is a setext heading. */
+	setext: boolean;
+	/** The 0-based line of the heading, relative to `instructions`. */
+	headingLine: number;
+}
+
+/**
+ * Split the text between the title and the first question block into the
+ * instructions and the `## [attachments]` section (exam.md, "Attachments").
+ *
+ * @param text The text between the title and the first question block.
+ * @param firstLine The 0-based line of the file where `text` starts. A
+ *   `ParseError` gets its `line`, and the section its position, from it.
+ * @returns `null` when `text` has no `## [attachments]` section.
+ * @throws {ParseError} The section is declared twice, or it holds a block
+ *   that is not an attachment, such as a paragraph of instructions.
+ */
+function examAttachments(
+	text: string,
+	firstLine: number,
+	map: SourceMap,
+): ExamAttachments | null {
+	const reader = new BlockReader(text);
+	const cursor = new BlockCursor(reader, [], map.view([], firstLine));
+	try {
+		const [before, sections] = splitSections(cursor, EXAM_SECTIONS);
+		const section = sections[0];
+		if (section === undefined) return null;
+		const headingLine = span(section.heading)[0];
+		const attachments = parseAttachments(
+			reader,
+			section.heading,
+			section.blocks,
+		);
+		markAttachments(cursor, section.heading, section.blocks);
+		return {
+			instructions:
+				before.length > 0
+					? cleanBlock(reader.lines.slice(0, headingLine).join("\n"))
+					: undefined,
+			attachments,
+			setext: !section.heading.markup.startsWith("#"),
+			headingLine,
+		};
+	} catch (error) {
+		if (error instanceof ParseError && error.line !== undefined) {
+			error.line += firstLine;
+		}
+		throw error;
+	}
+}
+
 /**
  * The range `[start, end)` of `lines`, without the blank lines at its ends.
  * A range of only blank lines stays as it is.
@@ -328,18 +416,21 @@ export function parseExam(source: string): Exam {
 }
 
 /** The underline of a setext section heading. */
+/** The sections of an exam, between the instructions and the first question. */
+const EXAM_SECTIONS: ReadonlySet<string> = new Set([ATTACHMENTS]);
+
 const SECTION_UNDERLINE_RE = /^ {0,3}-+$/u;
 /** A `[section]` line of a question: `[extra]`, with or without `##`. */
 const SECTION_LINE_RE =
-	/^ {0,3}(?:##[ \t]+)?\[(?<name>answer-key|template|tests|rubric|extra|accept|reject)\][ \t]*(?:#+[ \t]*)?$/u;
+	/^ {0,3}(?:##[ \t]+)?\[(?<name>answer-key|template|tests|rubric|attachments|extra|accept|reject)\][ \t]*(?:#+[ \t]*)?$/u;
 
 /**
  * The path, inside its question, of the field that holds the `---` line at
  * `lines[index]`, glued to the text line before it.
  *
  * When that text line is a type-specific section heading (`[extra]`,
- * `[accept]`, `[reject]`, `[answer-key]`, `[template]`, `[tests]` or
- * `[rubric]`), the path points at the section; otherwise it is `stem` before
+ * `[accept]`, `[reject]`, `[answer-key]`, `[template]`, `[tests]`,
+ * `[rubric]` or `[attachments]`), the path points at the section; otherwise it is `stem` before
  * the body tag and `epilogue` after it.
  */
 function gluedField(
@@ -370,7 +461,8 @@ function gluedField(
 		name === "extra" ||
 		name === "template" ||
 		name === "tests" ||
-		name === "rubric"
+		name === "rubric" ||
+		name === ATTACHMENTS
 	) {
 		return [name];
 	}
