@@ -16,6 +16,8 @@ that it implements.
 
 - The optional prop `afterStem` of `QuestionView` and of every question view in `mdq/solid`: content rendered right after the stem, before the response controls.
 
+- `CodeBlockProvider` in `mdq/solid`, with the type `CodeBlockRenderer`: every `Markdown` inside it, and the stem of a fill-in, renders each fenced code block with the given function, given the code and the first word of the info string, or with the default `<pre><code>` when it returns `undefined`. It lets a host put in HTML that a syntax highlighter made on the server. `renderMarkdown`, `renderTokens` and `splitStem` take the renderer as an optional last argument.
+
 ### Changed
 
 - `## [answer-key]` of an essay or a code question is no longer the last section: it comes in any order with the other sections of the question and ends at the heading of the next one. A second `## [answer-key]` is a `parse-error`.

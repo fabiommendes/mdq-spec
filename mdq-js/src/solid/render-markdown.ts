@@ -10,11 +10,45 @@
 
 import MarkdownIt from "markdown-it";
 
+/**
+ * Renders a fenced code block as HTML, or returns `undefined` to keep the
+ * default `<pre><code>`. `lang` is the first word of the info string, empty
+ * when there is none. The result goes into the page as is, so it must be
+ * trusted HTML, such as a syntax highlighter's output.
+ */
+export type CodeBlockRenderer = (
+	code: string,
+	lang: string,
+) => string | undefined;
+
+/** Options of one render. */
+export interface MarkdownRenderOptions {
+	/** Replaces the HTML of fenced code blocks. */
+	renderCodeBlock?: CodeBlockRenderer;
+}
+
 const md = new MarkdownIt({ html: false, linkify: true, typographer: true });
 
+const defaultFence = md.renderer.rules.fence;
+md.renderer.rules.fence = (tokens, idx, options, env, self) => {
+	const token = tokens[idx];
+	const render = (env as MarkdownRenderOptions | undefined)?.renderCodeBlock;
+	if (token && render) {
+		const lang = md.utils.unescapeAll(token.info).trim().split(/\s+/)[0] ?? "";
+		const html = render(token.content, lang);
+		if (html !== undefined) return html;
+	}
+	return defaultFence
+		? defaultFence(tokens, idx, options, env, self)
+		: self.renderToken(tokens, idx, options);
+};
+
 /** Render a Markdown string as a block of HTML. */
-export function renderMarkdown(text: string): string {
-	return md.render(text);
+export function renderMarkdown(
+	text: string,
+	options: MarkdownRenderOptions = {},
+): string {
+	return md.render(text, { ...options });
 }
 
 /** Render a Markdown string as one inline fragment, with no wrapping `<p>`. */
@@ -31,8 +65,11 @@ export function parseMarkdown(text: string): MarkdownToken[] {
 }
 
 /** Render block tokens as HTML. */
-export function renderTokens(tokens: MarkdownToken[]): string {
-	return md.renderer.render(tokens, md.options, {});
+export function renderTokens(
+	tokens: MarkdownToken[],
+	options: MarkdownRenderOptions = {},
+): string {
+	return md.renderer.render(tokens, md.options, { ...options });
 }
 
 /** Render inline tokens as HTML. */

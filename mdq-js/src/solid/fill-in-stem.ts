@@ -11,6 +11,7 @@
  */
 
 import {
+	type MarkdownRenderOptions,
 	type MarkdownToken,
 	parseMarkdown,
 	renderInlineTokens,
@@ -97,11 +98,12 @@ function splitInline(
 /**
  * The blocks of `stem`, with the blanks of `blankIds` located. A paragraph
  * with a blank is a `sentence`, so the controls can flow with its text;
- * every other block is HTML.
+ * every other block is HTML, rendered with `options`.
  */
 export function splitStem(
 	stem: string,
 	blankIds: ReadonlySet<string>,
+	options: MarkdownRenderOptions = {},
 ): StemBlock[] {
 	const tokens = parseMarkdown(stem);
 	const blocks: StemBlock[] = [];
@@ -130,7 +132,7 @@ export function splitStem(
 		blocks.push(
 			parts
 				? { kind: "sentence", parts }
-				: { kind: "html", html: renderTokens(block) },
+				: { kind: "html", html: renderTokens(block, options) },
 		);
 	}
 	return blocks;

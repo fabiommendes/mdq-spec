@@ -17,7 +17,7 @@ import { ChoiceSelect } from "./ChoiceSelect.jsx";
 import { Feedback } from "./Feedback.jsx";
 import { placedBlanks, type StemPart, splitStem } from "./fill-in-stem.js";
 import { Mark, type MarkKind, type Verdict, verdictOf } from "./Mark.jsx";
-import { Markdown } from "./Markdown.jsx";
+import { Markdown, useCodeBlockRenderer } from "./Markdown.jsx";
 import { type Locale, type Messages, useMessages } from "./messages.jsx";
 import { NumericInput } from "./NumericInput.jsx";
 import { Pending } from "./Pending.jsx";
@@ -116,8 +116,11 @@ export function FillIn(props: FillInProps): JSX.Element {
 	const blanks = createMemo(
 		() => new Map(props.question.blanks.map((blank) => [blank.id, blank])),
 	);
+	const renderCodeBlock = useCodeBlockRenderer();
 	const stem = createMemo(() =>
-		splitStem(props.question.stem, new Set(blanks().keys())),
+		splitStem(props.question.stem, new Set(blanks().keys()), {
+			renderCodeBlock,
+		}),
 	);
 	const order = createMemo(() => placedBlanks(stem()));
 	const label = (blankId: string) =>

@@ -5,8 +5,10 @@
  */
 
 import {
+	CodeBlockProvider,
 	en,
 	Feedback,
+	FillIn,
 	formatScore,
 	type LocalizedProps,
 	Mark,
@@ -14,6 +16,7 @@ import {
 	MdqProvider,
 	plainInline,
 	ptBR,
+	renderMarkdown,
 	Score,
 	useMessages,
 	verdictOf,
@@ -90,6 +93,71 @@ describe("Markdown", () => {
 		const { container } = render(() => <Markdown inline text="`O(n)`" />);
 		expect(container.querySelector("p")).toBeNull();
 		expect(container.querySelector("code")?.textContent).toBe("O(n)");
+	});
+});
+
+describe("CodeBlockProvider", () => {
+	const fenced = "Intro\n\n```py title\nx = 1\n```\n\n```\nplain\n```";
+	const seen: [string, string][] = [];
+	const highlight = (code: string, lang: string) => {
+		seen.push([code, lang]);
+		return lang ? `<pre class="hl">${lang}</pre>` : undefined;
+	};
+
+	it("renders fenced blocks with the provider's renderer", () => {
+		seen.length = 0;
+		const { container } = render(() => (
+			<CodeBlockProvider render={highlight}>
+				<Markdown text={fenced} />
+			</CodeBlockProvider>
+		));
+		expect(seen).toEqual([
+			["x = 1\n", "py"],
+			["plain\n", ""],
+		]);
+		expect(container.querySelector("pre.hl")?.textContent).toBe("py");
+		// `undefined` keeps the default block.
+		expect(container.querySelectorAll("pre code")[0]?.textContent).toBe(
+			"plain\n",
+		);
+	});
+
+	it("keeps the default blocks without a provider", () => {
+		const { container } = render(() => <Markdown text={fenced} />);
+		expect(container.querySelector("code.language-py")?.textContent).toBe(
+			"x = 1\n",
+		);
+	});
+
+	it("reaches the stem of a fill-in", () => {
+		const { container } = render(() => (
+			<CodeBlockProvider render={highlight}>
+				<FillIn
+					question={{
+						type: "fill-in",
+						stem: "```py\nx = 1\n```\n\nThe [^a] blank.",
+						blanks: [{ id: "a", type: "short-answer" }],
+					}}
+				/>
+			</CodeBlockProvider>
+		));
+		expect(container.querySelector("pre.hl")?.textContent).toBe("py");
+	});
+});
+
+describe("renderMarkdown", () => {
+	it("takes a code block renderer", () => {
+		const html = renderMarkdown("```js\n1\n```", {
+			renderCodeBlock: (code, lang) => `<x-code>${lang}:${code}</x-code>`,
+		});
+		expect(html).toBe("<x-code>js:1\n</x-code>");
+	});
+
+	it("does not keep the renderer for the next render", () => {
+		renderMarkdown("```js\n1\n```", { renderCodeBlock: () => "<hr>" });
+		expect(renderMarkdown("```js\n1\n```")).toContain(
+			'<code class="language-js">',
+		);
 	});
 });
 
