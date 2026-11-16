@@ -11,7 +11,7 @@ import type { PublicCodeQuestion } from "../index.js";
 import { firstFencedCode } from "../parser/index.js";
 import type { TextResponse } from "../responses.js";
 import { Feedback } from "./Feedback.jsx";
-import { Markdown } from "./Markdown.jsx";
+import { CodeBlock, Markdown } from "./Markdown.jsx";
 import { type Locale, type Messages, useMessages } from "./messages.jsx";
 import { Pending } from "./Pending.jsx";
 import { Score } from "./Score.jsx";
@@ -106,9 +106,11 @@ export function Code(props: CodeProps): JSX.Element {
 
 			<For each={examples()}>
 				{(test) => (
-					<pre class="mdq-code" data-example data-format={test.format}>
-						<code>{test.text}</code>
-					</pre>
+					<CodeBlock
+						code={test.text}
+						lang={props.question.language}
+						attributes={{ "data-example": "", "data-format": test.format }}
+					/>
 				)}
 			</For>
 
@@ -116,7 +118,11 @@ export function Code(props: CodeProps): JSX.Element {
 				when={mode() === "answer"}
 				fallback={
 					<Panel label={messages().yourAnswer}>
-						<CodeText text={written()} empty={messages().noAnswer} />
+						<CodeText
+							text={written()}
+							lang={props.question.language}
+							empty={messages().noAnswer}
+						/>
 					</Panel>
 				}
 			>
@@ -155,7 +161,7 @@ export function Code(props: CodeProps): JSX.Element {
 			<Show when={keyText()}>
 				{(key) => (
 					<Panel label={messages().modelAnswer} tone="key">
-						<CodeText text={key()} empty="" />
+						<CodeText text={key()} lang={props.question.language} empty="" />
 					</Panel>
 				)}
 			</Show>
@@ -189,15 +195,17 @@ function Panel(
 }
 
 /** Code as a block, or the note for an empty text. */
-function CodeText(props: { text: string; empty: string }): JSX.Element {
+function CodeText(props: {
+	text: string;
+	lang: string | undefined;
+	empty: string;
+}): JSX.Element {
 	return (
 		<Show
 			when={props.text.trim()}
 			fallback={<p class="mdq-empty">{props.empty}</p>}
 		>
-			<pre class="mdq-code">
-				<code>{props.text}</code>
-			</pre>
+			<CodeBlock code={props.text} lang={props.lang} />
 		</Show>
 	);
 }

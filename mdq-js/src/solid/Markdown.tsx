@@ -38,6 +38,39 @@ export function useCodeBlockRenderer(): CodeBlockRenderer | undefined {
 	return useContext(CodeBlockContext);
 }
 
+export interface CodeBlockProps {
+	code: string;
+	/** The language the renderer highlights `code` in; empty for none. */
+	lang?: string;
+	/** Extra attributes of the plain `<pre>`, such as `data-example`. */
+	attributes?: Record<string, string>;
+}
+
+/**
+ * A block of code (`.mdq-code`) drawn by the nearest `CodeBlockProvider`,
+ * like the fenced blocks of `Markdown`, or as a plain `<pre><code>`.
+ */
+export function CodeBlock(props: CodeBlockProps): JSX.Element {
+	const renderCodeBlock = useCodeBlockRenderer();
+	const html = createMemo(() =>
+		renderCodeBlock?.(props.code, props.lang ?? ""),
+	);
+	return (
+		<Show
+			when={html()}
+			fallback={
+				<pre class="mdq-code" {...props.attributes}>
+					<code>{props.code}</code>
+				</pre>
+			}
+		>
+			{(rendered) => (
+				<div class="mdq-code" {...props.attributes} innerHTML={rendered()} />
+			)}
+		</Show>
+	);
+}
+
 export interface MarkdownProps {
 	/** Nothing is rendered when it is empty or absent. */
 	text: string | undefined;

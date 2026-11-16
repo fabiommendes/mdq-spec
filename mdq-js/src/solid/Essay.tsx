@@ -11,7 +11,7 @@ import {
 import type { PublicEssayQuestion } from "../index.js";
 import type { TextResponse } from "../responses.js";
 import { Feedback } from "./Feedback.jsx";
-import { Markdown } from "./Markdown.jsx";
+import { CodeBlock, Markdown } from "./Markdown.jsx";
 import { type Locale, type Messages, useMessages } from "./messages.jsx";
 import { Pending } from "./Pending.jsx";
 import { Score } from "./Score.jsx";
@@ -101,6 +101,7 @@ export function Essay(props: EssayProps): JSX.Element {
 						<AnswerText
 							content={content()}
 							text={text()}
+							lang={props.question.highlight}
 							empty={messages().noAnswer}
 						/>
 					</Panel>
@@ -148,7 +149,12 @@ export function Essay(props: EssayProps): JSX.Element {
 			<Show when={keyText()}>
 				{(key) => (
 					<Panel label={messages().modelAnswer} tone="key">
-						<AnswerText content={content()} text={key()} empty="" />
+						<AnswerText
+							content={content()}
+							text={key()}
+							lang={props.question.highlight}
+							empty=""
+						/>
 					</Panel>
 				)}
 			</Show>
@@ -189,14 +195,14 @@ function Panel(
 function AnswerText(props: {
 	content: string;
 	text: string;
+	/** The language of a `code` text, for the `CodeBlockProvider`. */
+	lang?: string | null;
 	empty: string;
 }): JSX.Element {
 	return (
 		<Switch fallback={<p class="mdq-empty">{props.empty}</p>}>
 			<Match when={props.text.trim() && props.content === "code"}>
-				<pre class="mdq-code">
-					<code>{props.text}</code>
-				</pre>
+				<CodeBlock code={props.text} lang={props.lang ?? ""} />
 			</Match>
 			<Match when={props.text.trim() && props.content === "plain"}>
 				<pre class="mdq-plain">{props.text}</pre>

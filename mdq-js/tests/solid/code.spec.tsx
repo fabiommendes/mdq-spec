@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import type { PublicCodeQuestion } from "@mdq/index.js";
-import { Code, ptBR } from "@mdq/solid/index.js";
+import { Code, CodeBlockProvider, ptBR } from "@mdq/solid/index.js";
 import { fireEvent, render, screen } from "@solidjs/testing-library";
 import { createSignal } from "solid-js";
 
@@ -175,6 +175,44 @@ describe("readonly mode", () => {
 			<Code question={question} value={"<img src=x>"} mode="readonly" />
 		));
 		expect(document.querySelector("img")).toBeNull();
+	});
+});
+
+describe("with a CodeBlockProvider", () => {
+	const highlight = (code: string, lang: string) =>
+		`<pre class="hl" data-lang="${lang}">${code.length}</pre>`;
+
+	it("draws the answer and the reference solution with the provider", () => {
+		render(() => (
+			<CodeBlockProvider render={highlight}>
+				<Code
+					question={question}
+					value="print(1)"
+					mode="review"
+					result={{ pending: true, correct: ["print(2)"] }}
+				/>
+			</CodeBlockProvider>
+		));
+		for (const name of ["Your answer", "Model answer"]) {
+			const block = screen
+				.getByRole("region", { name })
+				.querySelector(".mdq-code pre.hl");
+			expect(block?.getAttribute("data-lang")).toBe(question.language);
+			expect(block?.textContent).toBe("8");
+		}
+	});
+
+	it("keeps the plain block when the provider has no HTML", () => {
+		render(() => (
+			<CodeBlockProvider render={() => undefined}>
+				<Code question={question} value="print(1)" mode="readonly" />
+			</CodeBlockProvider>
+		));
+		expect(
+			screen
+				.getByRole("region", { name: "Your answer" })
+				.querySelector("pre.mdq-code code")?.textContent,
+		).toBe("print(1)");
 	});
 });
 
