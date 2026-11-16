@@ -262,6 +262,12 @@ Rules:
   git subtree push --prefix=mdq-vscode mdq-vscode main
   ```
 
+- `python3 scripts/check_mirrors.py [mdq-py|mdq-js|mdq-vscode]` compares the
+  tree of each subtree directory with the tree of `main` in its public mirror
+  and prints the `git subtree push` command when they differ. CI runs it on
+  pushes to `main` with `--warn` (a mirror lags until someone pushes), and each
+  release workflow fails when the mirror of its package is stale. Push the
+  subtree before the release tag.
 - To bring in commits made directly in a subtree repository, pull without
   `--squash`, because the history is kept:
 

@@ -31,6 +31,9 @@ jobs:
         working-directory: mdq-vscode
     steps:
       - uses: actions/checkout@v4
+      - name: Check that the mdq-vscode mirror is current
+        working-directory: .
+        run: python3 scripts/check_mirrors.py mdq-vscode
       - uses: pnpm/action-setup@v4
         with:
           package_json_file: mdq-vscode/package.json

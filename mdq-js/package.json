@@ -18,10 +18,11 @@
 	},
 	"files": [
 		"dist",
+		"!dist/.build-sha",
 		"css"
 	],
 	"scripts": {
-		"build": "tsc -p tsconfig.build.json",
+		"build": "tsc -p tsconfig.build.json && node scripts/build-sha.mjs",
 		"docs:clean": "rimraf docs/api",
 		"docs:typedoc": "typedoc --options typedoc.json",
 		"docs": "pnpm run docs:clean && pnpm run docs:typedoc",

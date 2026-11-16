@@ -21,6 +21,9 @@ jobs:
         working-directory: mdq-py
     steps:
       - uses: actions/checkout@v4
+      - name: Check that the mdq-py mirror is current
+        working-directory: .
+        run: python3 scripts/check_mirrors.py mdq-py
       - name: Check that the spec, mdq-py and mdq-js share MAJOR.MINOR
         working-directory: .
         run: python3 scripts/check_versions.py
