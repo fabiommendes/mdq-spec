@@ -1,5 +1,5 @@
 "$schema": "https://json-schema.org/draft/2020-12/schema"
-"$id": "https://cdn.jsdelivr.net/npm/@mdq-format/schema@0.1/exam.yaml"
+"$id": "https://cdn.jsdelivr.net/npm/@mdq-format/schema@0.2/exam.yaml"
 title: Exam
 description: >-
   A set of questions gathered for assessment. An exam is recognized by its
@@ -19,7 +19,7 @@ properties:
       write it. Only a document in YAML or JSON may hold it; in a Markdown
       frontmatter it is an `invalid-frontmatter-field`.
     examples:
-      - https://cdn.jsdelivr.net/npm/@mdq-format/schema@0.1/mdq.schema.json
+      - https://cdn.jsdelivr.net/npm/@mdq-format/schema@0.2/mdq.schema.json
 
   type:
     const: exam

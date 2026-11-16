@@ -1,5 +1,5 @@
 "$schema": "https://json-schema.org/draft/2020-12/schema"
-"$id": "https://cdn.jsdelivr.net/npm/@mdq-format/schema@0.1/code.yaml"
+"$id": "https://cdn.jsdelivr.net/npm/@mdq-format/schema@0.2/code.yaml"
 title: Code question
 description: >-
   A question whose student submits one source file. Test sources and a rubric

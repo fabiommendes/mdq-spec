@@ -1,5 +1,5 @@
 "$schema": "https://json-schema.org/draft/2020-12/schema"
-"$id": "https://cdn.jsdelivr.net/npm/@mdq-format/schema@0.1/fill-in.yaml"
+"$id": "https://cdn.jsdelivr.net/npm/@mdq-format/schema@0.2/fill-in.yaml"
 title: Fill in the blanks question
 description: >-
   A question whose stem contains one or more named blanks, each answered

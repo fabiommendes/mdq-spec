@@ -42,7 +42,7 @@ question or exam in YAML or JSON can refer to it, so editors validate and
 complete the document:
 
 ```yaml
-$schema: https://cdn.jsdelivr.net/npm/@mdq-format/schema@0.1/mdq.schema.json
+$schema: https://cdn.jsdelivr.net/npm/@mdq-format/schema@0.2/mdq.schema.json
 ```
 
 

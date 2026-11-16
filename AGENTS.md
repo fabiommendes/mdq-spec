@@ -281,12 +281,20 @@ Rules:
   `mdq-js-v<version>` (`.github/workflows/release-mdq-js.yml`). The VS Code
   extension too: the version in `mdq-vscode/package.json` and a tag
   `mdq-vscode-v<version>` (`.github/workflows/release-mdq-vscode.yml`).
-- The specification has its own version, in `schema/package.json` and the root
-  changelog. A tag `spec-v<version>` publishes the JSON Schema to npm as
-  `@mdq-format/schema` (`.github/workflows/release-spec.yml`). The `$id` of
-  each schema holds the major and minor version before 1.0.0
-  (`@mdq-format/schema@0.1`) and only the major after it. When that part of
-  the version changes, change every `$id` in `schema/*.yaml` and run
+- The specification, mdq-py and mdq-js share MAJOR.MINOR (`schema/package.json`,
+  `mdq-py/pyproject.toml`, `mdq-js/package.json`). Only the patch may differ. A
+  minor or major bump of one is a bump of all three, in the same change: set
+  the version in the three manifests (and `mdq-py/uv.lock`), move `[Unreleased]`
+  under the new version in each changelog and say which specification version
+  each implementation implements. `scripts/check_versions.py` enforces the rule
+  in CI and at the start of each release workflow. `mdq-vscode` keeps its own
+  version.
+- The specification root changelog and a tag `spec-v<version>` publish the JSON
+  Schema to npm as `@mdq-format/schema` (`.github/workflows/release-spec.yml`).
+  The `$id` of each schema holds the major and minor version before 1.0.0
+  (`@mdq-format/schema@0.2`) and only the major after it. When that part of
+  the version changes, change every `$id` in `schema/*.yaml` and the
+  `$schema` lines in `README.md`, `schema/README.md` and `examples/`, then run
   `r2 audit`.
 - The parent `codehood` repository ignores this directory. Later, it will
   include it as a subtree.

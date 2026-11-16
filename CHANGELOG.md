@@ -11,6 +11,10 @@ The specification uses [Semantic Versioning](https://semver.org/). Before
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-16
+
+The specification, mdq-py and mdq-js now share MAJOR.MINOR. The `$id` of each schema is now `https://cdn.jsdelivr.net/npm/@mdq-format/schema@0.2/<file>`.
+
 ### Added
 
 - File names (`docs/question-types/question-base.md`, "File names"): a document in Markdown uses `.mdq.md`, `.md` or `.mdq`; in YAML, `.mdq.yaml`, `.mdq.yml`, `.yaml` or `.yml`; in JSON, `.mdq.json` or `.json`. The `.mdq` forms are preferred, and a tool that finds MDQ files by name alone should match only them. The name without the suffix is the id a file-system question bank finds a question by.

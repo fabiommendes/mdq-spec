@@ -1,6 +1,6 @@
 {
 	"name": "@mdq-format/schema",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "JSON Schema of MDQ, a Markdown format for questions and exams.",
 	"keywords": ["mdq", "json-schema", "quiz", "exam", "markdown"],
 	"author": "Fábio Macêdo Mendes",

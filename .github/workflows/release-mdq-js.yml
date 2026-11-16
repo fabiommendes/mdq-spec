@@ -28,6 +28,9 @@ jobs:
         working-directory: mdq-js
     steps:
       - uses: actions/checkout@v4
+      - name: Check that the spec, mdq-py and mdq-js share MAJOR.MINOR
+        working-directory: .
+        run: python3 scripts/check_versions.py
       - uses: pnpm/action-setup@v4
         with:
           package_json_file: mdq-js/package.json

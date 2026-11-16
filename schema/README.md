@@ -12,7 +12,7 @@ specification.
 Use the bundle from a YAML or JSON document:
 
 ```yaml
-$schema: https://cdn.jsdelivr.net/npm/@mdq-format/schema@0.1/mdq.schema.json
+$schema: https://cdn.jsdelivr.net/npm/@mdq-format/schema@0.2/mdq.schema.json
 type: multiple-choice
 ```
 
