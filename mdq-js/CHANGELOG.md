@@ -10,6 +10,10 @@ that it implements.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-16
+
+Implements MDQ specification 0.2.0. The version now follows the specification and mdq-py: all three share MAJOR.MINOR. The `$id` of the bundled schema is now `https://cdn.jsdelivr.net/npm/@mdq-format/schema@0.2/mdq.schema.json`.
+
 ### Added
 
 - Attachments (`docs/question-types/question-base.md`, "Attachments"; `docs/exam.md`, "Attachments"): the `## [attachments]` section in every question type and in the exam, as in mdq-py. The Zod schema `Attachment` (`name`, `format`, `text` or `origin`, `label`) and the field `attachments` of every question and of `Exam`, with the pattern constants `ATTACHMENT_NAME_PATTERN`, `ATTACHMENT_FORMAT_PATTERN` and `ATTACHMENT_ORIGIN_PATTERN`. New model errors `duplicate-attachment-name`, `attachment-name-disagrees-with-origin` and `attachment-format-disagrees-with-origin`. `attachments` in a frontmatter is `invalid-frontmatter-field`. `publicForm` and the presented form drop the `origin`, and the new type `PublicAttachment` describes the result.
