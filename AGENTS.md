@@ -298,7 +298,7 @@ Rules:
 - The specification root changelog and a tag `spec-v<version>` publish the JSON
   Schema to npm as `@mdq-format/schema` (`.github/workflows/release-spec.yml`).
   The `$id` of each schema holds the major and minor version before 1.0.0
-  (`@mdq-format/schema@0.2`) and only the major after it. When that part of
+  (`@mdq-format/schema@0.3`) and only the major after it. When that part of
   the version changes, change every `$id` in `schema/*.yaml` and the
   `$schema` lines in `README.md`, `schema/README.md` and `examples/`, then run
   `r2 audit`.

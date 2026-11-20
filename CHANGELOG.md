@@ -11,6 +11,10 @@ The specification uses [Semantic Versioning](https://semver.org/). Before
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-20
+
+The `$id` of each schema is now `https://cdn.jsdelivr.net/npm/@mdq-format/schema@0.3/<file>`.
+
 ### Added
 
 - Question type `upload` (`docs/question-types/upload.md`, `schema/upload.yaml`): the response is a list of 1 to `maxFiles` files, each a `{name, path, size}` mapping that the host fills. The frontmatter has `maxFiles`, `maxSize` and `extensions`. The body is the tag `[upload]` with no colon. The answer key is optional, as in an essay, and the instructor grades every response.

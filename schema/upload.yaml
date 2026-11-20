@@ -1,5 +1,5 @@
 "$schema": "https://json-schema.org/draft/2020-12/schema"
-"$id": "https://cdn.jsdelivr.net/npm/@mdq-format/schema@0.2/upload.yaml"
+"$id": "https://cdn.jsdelivr.net/npm/@mdq-format/schema@0.3/upload.yaml"
 title: Upload question
 description: >-
   A question whose response is one or more files that the student sends: a

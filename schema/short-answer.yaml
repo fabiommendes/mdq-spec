@@ -1,5 +1,5 @@
 "$schema": "https://json-schema.org/draft/2020-12/schema"
-"$id": "https://cdn.jsdelivr.net/npm/@mdq-format/schema@0.2/short-answer.yaml"
+"$id": "https://cdn.jsdelivr.net/npm/@mdq-format/schema@0.3/short-answer.yaml"
 title: Short answer question
 description: >-
   A question answered with a short piece of free text, graded by comparing

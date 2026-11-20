@@ -1,5 +1,5 @@
 "$schema": "https://json-schema.org/draft/2020-12/schema"
-"$id": "https://cdn.jsdelivr.net/npm/@mdq-format/schema@0.2/essay.yaml"
+"$id": "https://cdn.jsdelivr.net/npm/@mdq-format/schema@0.3/essay.yaml"
 title: Essay question
 description: >-
   An open-ended question where the student writes a free-form answer,
