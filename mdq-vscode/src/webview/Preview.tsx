@@ -6,6 +6,7 @@ import {
 	type Question,
 } from "@mdq-format/core";
 import {
+	type HostResult,
 	type Locale,
 	type QuestionMode,
 	QuestionView,
@@ -19,6 +20,7 @@ import {
 	Show,
 	Switch,
 } from "solid-js";
+import { type FakeFile, withFile, withoutFile } from "./fake-upload.js";
 import { review } from "./grade.js";
 import type { ShowMessage } from "./protocol.js";
 
@@ -129,6 +131,9 @@ const View = QuestionView as unknown as Component<{
 	value?: unknown;
 	onChange?: (value: unknown) => void;
 	result?: object;
+	answerKey?: string;
+	upload?: (file: File) => Promise<HostResult<readonly FakeFile[]>>;
+	remove?: (name: string) => Promise<HostResult<readonly FakeFile[]>>;
 }>;
 
 function QuestionPreview(props: {
@@ -140,6 +145,20 @@ function QuestionPreview(props: {
 	const pub = createMemo(() => publicForm(props.question));
 	const graded = createMemo(() => review(props.question, response()));
 
+	const files = () => response() as readonly FakeFile[] | null | undefined;
+	const keep = (list: FakeFile[]): Promise<HostResult<readonly FakeFile[]>> => {
+		// No file is a skip, `null`, never `[]`.
+		setResponse(() => (list.length === 0 ? null : list));
+		return Promise.resolve({ ok: true, value: list });
+	};
+	const host = () =>
+		props.question.type === "upload"
+			? {
+					upload: (file: File) => keep(withFile(files(), file)),
+					remove: (name: string) => keep(withoutFile(files(), name)),
+				}
+			: {};
+
 	return (
 		<Switch>
 			<Match when={props.mode === "answer"}>
@@ -149,6 +168,7 @@ function QuestionPreview(props: {
 					locale={props.locale}
 					value={response()}
 					onChange={(value) => setResponse(() => value)}
+					{...host()}
 				/>
 			</Match>
 			<Match when={props.mode === "review"}>
@@ -166,6 +186,7 @@ function QuestionPreview(props: {
 						locale={props.locale}
 						value={(graded() as { response: unknown }).response}
 						result={(graded() as { result: object }).result}
+						answerKey={(graded() as { answerKey?: string }).answerKey}
 					/>
 				</Show>
 			</Match>

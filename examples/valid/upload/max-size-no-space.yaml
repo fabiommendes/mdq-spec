@@ -1,0 +1,6 @@
+# upload.md, "Size": the space before the unit is optional, and the number has up to three decimal places.
+id: upload-max-size-no-space
+title: Relatório de campo
+type: upload
+stem: Envie o relatório de campo sobre o Pantanal.
+maxSize: 1.5GB

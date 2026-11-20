@@ -1,0 +1,4 @@
+# `blank-text` on `answerKey`: defined, but only whitespace.
+type: upload
+stem: Envie o relatório de campo sobre o Pantanal.
+answerKey: "  "

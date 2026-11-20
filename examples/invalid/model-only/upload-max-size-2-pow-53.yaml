@@ -1,0 +1,4 @@
+# upload.md, "Size": 2^53 bytes is one above the limit: 8388608 GB is exactly 2^53 bytes.
+type: upload
+stem: Envie o relatório de campo sobre o Pantanal.
+maxSize: 8388608 GB

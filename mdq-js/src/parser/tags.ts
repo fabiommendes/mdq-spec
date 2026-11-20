@@ -15,6 +15,7 @@ import { repr, strip } from "./text.js";
 //
 // Body-start detection.
 const ESSAY_TAG_RE = /^\[essay\]$/u;
+const UPLOAD_TAG_RE = /^\[upload\]$/u;
 const CODE_TAG_RE = /^\[code\]$/u;
 export const SHORT_ANSWER_RE =
 	/^\[short-answer(?:\/(?<variant>accept|reject))?\][ \t]*:[ \t]*(?<rest>[^\n]*)$/u;
@@ -70,6 +71,7 @@ const ORDERING_TAG_RE = /^\[ordering\](?:[ \t]*:[ \t]*(?<rest>[^\n]*))?$/u;
  */
 const TYPE_NAMES = [
 	"essay",
+	"upload",
 	"code",
 	"numeric",
 	"short-answer",
@@ -105,7 +107,7 @@ const TAG_BARE_RE = /^[ \t]*\[(?<label>[^[\]\r\n]+)\][ \t]*$/u;
  * short answer tag; the others have one form.
  */
 const KNOWN_LABEL_RE = new RegExp(
-	`^(?:(?<essay>essay)|(?<code>code)|(?<ordering>ordering)|(?<numeric>numeric(?:\\(${UNIT_RE}\\))?)|(?<short>short-answer(?:\\/(?:accept|reject))?))$`,
+	`^(?:(?<essay>essay)|(?<upload>upload)|(?<code>code)|(?<ordering>ordering)|(?<numeric>numeric(?:\\(${UNIT_RE}\\))?)|(?<short>short-answer(?:\\/(?:accept|reject))?))$`,
 	"u",
 );
 const KNOWN_BLANK_KIND_RE = new RegExp(
@@ -124,6 +126,11 @@ export type Role = "accept" | "reject";
 /** `[essay]`. */
 export interface EssayTag {
 	readonly kind: "essay";
+}
+
+/** `[upload]`. */
+export interface UploadTag {
+	readonly kind: "upload";
 }
 
 /** `[code]`. */
@@ -188,6 +195,7 @@ export type BlankTag =
 	| UnrecognizedBlankTag;
 export type BodyTag =
 	| EssayTag
+	| UploadTag
 	| CodeTag
 	| OrderingTag
 	| ShortAnswerTag
@@ -258,6 +266,7 @@ export function readBlankTag(text: string): BlankTag | null {
 /** Read the body or blank tag `text` is, or `null` if it is no tag. */
 export function readBodyTag(text: string): BodyTag | null {
 	if (ESSAY_TAG_RE.test(text)) return { kind: "essay" };
+	if (UPLOAD_TAG_RE.test(text)) return { kind: "upload" };
 	if (CODE_TAG_RE.test(text)) return { kind: "code" };
 	const ordering = ORDERING_TAG_RE.exec(text);
 	if (ordering?.groups) {
@@ -419,6 +428,11 @@ export function checkTagLabel(label: string, colon: boolean): void {
 	if (blankId === undefined && known.groups?.essay && colon) {
 		throw new ParseError(
 			"the tag of an essay has no content: write `[essay]` without a colon",
+		);
+	}
+	if (blankId === undefined && known.groups?.upload && colon) {
+		throw new ParseError(
+			"the tag of an upload has no content: write `[upload]` without a colon",
 		);
 	}
 	if (blankId === undefined && known.groups?.code && colon) {

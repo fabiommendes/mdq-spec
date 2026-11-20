@@ -1,0 +1,15 @@
+# upload.md, "Answer key": the sections `## [attachments]` and
+# `## [answer-key]` come in any order.
+id: upload-mare-sao-luis-b
+title: Marés em São Luís
+type: upload
+stem: >-
+  Use a tabela de marés do anexo e envie um gráfico da amplitude de maré em São
+  Luís.
+answerKey: O gráfico mostra a amplitude de mais de 6 m.
+attachments:
+- name: mares.csv
+  format: csv
+  text: |
+    dia,preamar_m,baixamar_m
+    1,6.4,0.3

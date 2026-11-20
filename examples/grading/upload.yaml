@@ -1,0 +1,454 @@
+# Vectors for the grading of an upload question (docs/question-types/upload.md,
+# "Response" and "Grading") and for the size of `maxSize` in bytes.
+#
+# Document structure
+#
+# File {
+#   questions: Question[]
+#
+#   // The `maxSize` of the question as written and the number of bytes it
+#   // is (upload.md, "Size"): the number times the unit, computed exactly
+#   // as a decimal and rounded down. Only the strings and integers that
+#   // are valid. The strings that are not (`0.5 B`, `0 MB`, `8388608 GB`)
+#   // are in `examples/invalid/model-only/`.
+#   sizes: { maxSize: integer | string, bytes: integer }[]
+#
+#   // Values of `maxSize` that the functions that give the size in bytes
+#   // (`max_size_bytes`, `maxSizeBytes`) reject with an error, also when
+#   // they get the public form of a question that was not validated: not
+#   // an integer from 1 to 2^53 - 1 nor a size string whose bytes are in
+#   // that range.
+#   invalidSizes: any[]
+# }
+#
+# Question {
+#   name: string
+#
+#   // The question's own fields, as in its YAML form, without `type` and
+#   // `stem`: `maxFiles`, `maxSize` and `extensions`. Any of them can be
+#   // absent.
+#   question: { maxFiles?: integer, maxSize?: integer | string, extensions?: string[] }
+#
+#   // Responses and what they score (responses.md, "Upload"). An upload is
+#   // never graded by the library: a valid response is "pending", whatever
+#   // the files. A response that breaks a rule of upload.md, "Response", is
+#   // "malformed", and it is rejected, never scored.
+#   examples: { response: any, score: "pending" | "malformed" }[]
+# }
+#
+# A skipped upload (`null`) is not here. A skip is a response of the whole
+# exam, so it is in `exam.yaml`, as for the other types.
+#
+# Sizes in bytes: the integers of YAML go up to 2^53 - 1 exactly in every
+# implementation. 9007199254740992 is 2^53, one above the limit.
+questions:
+  #
+  # Valid responses
+  #
+  - name: "A valid response"
+    question: {}
+    examples:
+      - response:
+          - { name: ciclo-da-agua.pdf, path: uploads/2026/ana/ciclo-da-agua.pdf, size: 482133 }
+        score: pending
+      # The size can be 0 and the path is opaque: a URL is as good as a path.
+      - response:
+          - { name: vazio.txt, path: "https://armazem.exemplo/obj/9f2c", size: 0 }
+        score: pending
+      # A number with no fractional part is the integer (upload.md, footnote
+      # of "Response"): JSON does not tell 1 and 1.0 apart.
+      - response:
+          - { name: a.pdf, path: uploads/a.pdf, size: 1.0 }
+        score: pending
+      # 2^53 - 1 is the largest size, 2^53 is not valid.
+      - response:
+          - { name: grande.bin, path: uploads/grande.bin, size: 9007199254740991 }
+        score: pending
+      - response:
+          - { name: grande.bin, path: uploads/grande.bin, size: 9007199254740992 }
+        score: malformed
+
+  #
+  # The shape of the response
+  #
+  - name: "Shape of the response"
+    question: {}
+    examples:
+      - response: "ciclo-da-agua.pdf"
+        score: malformed
+      - response: 1
+        score: malformed
+      - response: true
+        score: malformed
+      - response: { name: a.pdf, path: uploads/a.pdf, size: 1 }
+        score: malformed
+      # `[]` is not a response. A student who sent no file skips the
+      # question with `null`.
+      - response: []
+        score: malformed
+      - response: ["a.pdf"]
+        score: malformed
+      - response: [null]
+        score: malformed
+      - response: [[a.pdf, uploads/a.pdf, 1]]
+        score: malformed
+      - response: [{ path: uploads/a.pdf, size: 1 }]
+        score: malformed
+      - response: [{ name: a.pdf, size: 1 }]
+        score: malformed
+      - response: [{ name: a.pdf, path: uploads/a.pdf }]
+        score: malformed
+      - response: [{}]
+        score: malformed
+      - response: [{ name: a.pdf, path: uploads/a.pdf, size: 1, tipo: "application/pdf" }]
+        score: malformed
+      - response: [{ name: a.pdf, path: uploads/a.pdf, size: 1, Size: 1 }]
+        score: malformed
+
+  - name: "The name of a file"
+    question: {}
+    examples:
+      - response: [{ name: ".", path: uploads/x, size: 1 }]
+        score: malformed
+      - response: [{ name: "..", path: uploads/x, size: 1 }]
+        score: malformed
+      - response: [{ name: "a/b", path: uploads/x, size: 1 }]
+        score: malformed
+      - response: [{ name: "a\\b", path: uploads/x, size: 1 }]
+        score: malformed
+      - response: [{ name: "/a", path: uploads/x, size: 1 }]
+        score: malformed
+      - response: [{ name: "", path: uploads/x, size: 1 }]
+        score: malformed
+      # Only Unicode spaces: ASCII spaces, a tab, an ideographic space.
+      - response: [{ name: "   ", path: uploads/x, size: 1 }]
+        score: malformed
+      - response: [{ name: "\t", path: uploads/x, size: 1 }]
+        score: malformed
+      - response: [{ name: "　", path: uploads/x, size: 1 }]
+        score: malformed
+      - response: [{ name: 1, path: uploads/x, size: 1 }]
+        score: malformed
+      - response: [{ name: null, path: uploads/x, size: 1 }]
+        score: malformed
+      - response: [{ name: true, path: uploads/x, size: 1 }]
+        score: malformed
+      - response: [{ name: [a.pdf], path: uploads/x, size: 1 }]
+        score: malformed
+      # A name with a dot or a space is a name. Leading and trailing spaces
+      # are not stripped, and a name with spaces inside is not blank.
+      - response: [{ name: ".gitignore", path: uploads/x, size: 1 }]
+        score: pending
+      - response: [{ name: "a b.pdf", path: uploads/x, size: 1 }]
+        score: pending
+      - response: [{ name: " a.pdf ", path: uploads/x, size: 1 }]
+        score: pending
+      - response: [{ name: "...", path: uploads/x, size: 1 }]
+        score: pending
+
+  - name: "The path of a file"
+    question: {}
+    examples:
+      - response: [{ name: a.pdf, path: "", size: 1 }]
+        score: malformed
+      - response: [{ name: a.pdf, path: 1, size: 1 }]
+        score: malformed
+      - response: [{ name: a.pdf, path: null, size: 1 }]
+        score: malformed
+      - response: [{ name: a.pdf, path: [uploads/a.pdf], size: 1 }]
+        score: malformed
+      # The path is opaque: MDQ does not read it, compare it or resolve it.
+      - response: [{ name: a.pdf, path: " ", size: 1 }]
+        score: pending
+      - response: [{ name: a.pdf, path: "../../etc/passwd", size: 1 }]
+        score: pending
+
+  - name: "The size of a file"
+    question: {}
+    examples:
+      - response: [{ name: a.pdf, path: uploads/a.pdf, size: -1 }]
+        score: malformed
+      - response: [{ name: a.pdf, path: uploads/a.pdf, size: 1.5 }]
+        score: malformed
+      - response: [{ name: a.pdf, path: uploads/a.pdf, size: 0.5 }]
+        score: malformed
+      - response: [{ name: a.pdf, path: uploads/a.pdf, size: true }]
+        score: malformed
+      - response: [{ name: a.pdf, path: uploads/a.pdf, size: false }]
+        score: malformed
+      - response: [{ name: a.pdf, path: uploads/a.pdf, size: "1" }]
+        score: malformed
+      - response: [{ name: a.pdf, path: uploads/a.pdf, size: null }]
+        score: malformed
+      - response: [{ name: a.pdf, path: uploads/a.pdf, size: [1] }]
+        score: malformed
+
+  #
+  # The number of files
+  #
+  - name: "maxFiles omitted is 1"
+    question: {}
+    examples:
+      - response:
+          - { name: a.pdf, path: uploads/a.pdf, size: 1 }
+        score: pending
+      - response:
+          - { name: a.pdf, path: uploads/a.pdf, size: 1 }
+          - { name: b.pdf, path: uploads/b.pdf, size: 1 }
+        score: malformed
+
+  - name: "maxFiles 2"
+    question: { maxFiles: 2 }
+    examples:
+      - response:
+          - { name: a.pdf, path: uploads/a.pdf, size: 1 }
+        score: pending
+      - response:
+          - { name: a.pdf, path: uploads/a.pdf, size: 1 }
+          - { name: b.pdf, path: uploads/b.pdf, size: 1 }
+        score: pending
+      - response:
+          - { name: a.pdf, path: uploads/a.pdf, size: 1 }
+          - { name: b.pdf, path: uploads/b.pdf, size: 1 }
+          - { name: c.pdf, path: uploads/c.pdf, size: 1 }
+        score: malformed
+      # The same name twice, even with different paths and sizes.
+      - response:
+          - { name: a.pdf, path: uploads/a1.pdf, size: 1 }
+          - { name: a.pdf, path: uploads/a2.pdf, size: 2 }
+        score: malformed
+      # The names are compared code point by code point, with no
+      # normalization and no case folding: `a.pdf` and `A.pdf` are two names,
+      # and so are the two spellings of `ação.pdf`.
+      - response:
+          - { name: a.pdf, path: uploads/a1.pdf, size: 1 }
+          - { name: A.pdf, path: uploads/a2.pdf, size: 1 }
+        score: pending
+      # U+00E7 U+00E3 in the first name (NFC), `c` U+0327 `a` U+0303 in the
+      # second (NFD).
+      - response:
+          - { name: "ação.pdf", path: uploads/nfc.pdf, size: 1 }
+          - { name: "ação.pdf", path: uploads/nfd.pdf, size: 1 }
+        score: pending
+      # The same path for two names is allowed: MDQ does not read it.
+      - response:
+          - { name: a.pdf, path: uploads/x.pdf, size: 1 }
+          - { name: b.pdf, path: uploads/x.pdf, size: 1 }
+        score: pending
+
+  - name: "maxFiles at the largest value"
+    question: { maxFiles: 9007199254740991 }
+    examples:
+      - response:
+          - { name: a.pdf, path: uploads/a.pdf, size: 1 }
+        score: pending
+
+  #
+  # The size limit
+  #
+  - name: "maxSize as an integer"
+    question: { maxSize: 1000 }
+    examples:
+      - response: [{ name: a.pdf, path: uploads/a.pdf, size: 1000 }]
+        score: pending
+      - response: [{ name: a.pdf, path: uploads/a.pdf, size: 1001 }]
+        score: malformed
+      - response: [{ name: a.pdf, path: uploads/a.pdf, size: 0 }]
+        score: pending
+
+  # The limit is for each file, not for the sum.
+  - name: "maxSize applies to each file"
+    question: { maxFiles: 2, maxSize: 1000 }
+    examples:
+      - response:
+          - { name: a.pdf, path: uploads/a.pdf, size: 1000 }
+          - { name: b.pdf, path: uploads/b.pdf, size: 1000 }
+        score: pending
+      - response:
+          - { name: a.pdf, path: uploads/a.pdf, size: 10 }
+          - { name: b.pdf, path: uploads/b.pdf, size: 1001 }
+        score: malformed
+
+  - name: "maxSize as a string in megabytes"
+    question: { maxSize: "5 MB" }
+    examples:
+      - response: [{ name: a.pdf, path: uploads/a.pdf, size: 5242880 }]
+        score: pending
+      - response: [{ name: a.pdf, path: uploads/a.pdf, size: 5242881 }]
+        score: malformed
+
+  - name: "maxSize with a leading zero"
+    question: { maxSize: "05 MB" }
+    examples:
+      - response: [{ name: a.pdf, path: uploads/a.pdf, size: 5242880 }]
+        score: pending
+      - response: [{ name: a.pdf, path: uploads/a.pdf, size: 5242881 }]
+        score: malformed
+
+  # 1.5 KB is 1536 bytes.
+  - name: "maxSize with a decimal"
+    question: { maxSize: "1.5 KB" }
+    examples:
+      - response: [{ name: a.pdf, path: uploads/a.pdf, size: 1536 }]
+        score: pending
+      - response: [{ name: a.pdf, path: uploads/a.pdf, size: 1537 }]
+        score: malformed
+
+  # 0.001 KB is 1.024 bytes, rounded down to 1.
+  - name: "maxSize that rounds down to 1 byte"
+    question: { maxSize: "0.001 KB" }
+    examples:
+      - response: [{ name: a.pdf, path: uploads/a.pdf, size: 1 }]
+        score: pending
+      - response: [{ name: a.pdf, path: uploads/a.pdf, size: 2 }]
+        score: malformed
+
+  - name: "maxSize at the largest value"
+    question: { maxSize: 9007199254740991 }
+    examples:
+      - response: [{ name: a.bin, path: uploads/a.bin, size: 9007199254740991 }]
+        score: pending
+
+  #
+  # The extensions
+  #
+  - name: "One extension"
+    question: { extensions: [".pdf"] }
+    examples:
+      - response: [{ name: relatorio.pdf, path: uploads/x, size: 1 }]
+        score: pending
+      # Only A to Z become a to z in the name.
+      - response: [{ name: RELATORIO.PDF, path: uploads/x, size: 1 }]
+        score: pending
+      - response: [{ name: "Relatório.PDF", path: uploads/x, size: 1 }]
+        score: pending
+      - response: [{ name: "relatorio.Pdf", path: uploads/x, size: 1 }]
+        score: pending
+      # The name must be longer than the extension: a name that is only the
+      # extension matches nothing.
+      - response: [{ name: ".pdf", path: uploads/x, size: 1 }]
+        score: malformed
+      - response: [{ name: ".PDF", path: uploads/x, size: 1 }]
+        score: malformed
+      - response: [{ name: "a.pdf.exe", path: uploads/x, size: 1 }]
+        score: malformed
+      - response: [{ name: "pdf", path: uploads/x, size: 1 }]
+        score: malformed
+      - response: [{ name: "apdf", path: uploads/x, size: 1 }]
+        score: malformed
+      - response: [{ name: "relatorio.pdf ", path: uploads/x, size: 1 }]
+        score: malformed
+      # Full-width letters are not A to Z: they do not become ASCII, so
+      # they do not match.
+      - response: [{ name: "relatorio.ＰＤＦ", path: uploads/x, size: 1 }]
+        score: malformed
+      - response: [{ name: "relatorio.ｐｄｆ", path: uploads/x, size: 1 }]
+        score: malformed
+
+  - name: "Several extensions"
+    question: { maxFiles: 3, extensions: [".pdf", ".png", ".jpg"] }
+    examples:
+      - response:
+          - { name: a.pdf, path: uploads/a, size: 1 }
+          - { name: b.PNG, path: uploads/b, size: 1 }
+          - { name: c.jpg, path: uploads/c, size: 1 }
+        score: pending
+      - response:
+          - { name: a.pdf, path: uploads/a, size: 1 }
+          - { name: b.gif, path: uploads/b, size: 1 }
+        score: malformed
+
+  - name: "A compound extension"
+    question: { extensions: [".tar.gz"] }
+    examples:
+      - response: [{ name: dados.tar.gz, path: uploads/x, size: 1 }]
+        score: pending
+      - response: [{ name: DADOS.TAR.GZ, path: uploads/x, size: 1 }]
+        score: pending
+      - response: [{ name: dados.gz, path: uploads/x, size: 1 }]
+        score: malformed
+      - response: [{ name: dados.tar, path: uploads/x, size: 1 }]
+        score: malformed
+      - response: [{ name: ".tar.gz", path: uploads/x, size: 1 }]
+        score: malformed
+
+  # `dados.tar.gz` matches `.gz` too: the name ends with it.
+  - name: "A short extension matches a compound name"
+    question: { extensions: [".gz"] }
+    examples:
+      - response: [{ name: dados.tar.gz, path: uploads/x, size: 1 }]
+        score: pending
+      - response: [{ name: dados.gz, path: uploads/x, size: 1 }]
+        score: pending
+
+  # `İ` (U+0130) is not folded: only A to Z are. `INI` matches `.ini`, and
+  # `İNİ` does not. A locale that lower-cases `I` to the dotless `ı` must not
+  # change `CONFIG.INI`, and U+212A (the Kelvin sign) is not a `K`.
+  - name: "Only A to Z are folded"
+    question: { extensions: [".ini", ".kml"] }
+    examples:
+      - response: [{ name: "CONFIG.INI", path: uploads/x, size: 1 }]
+        score: pending
+      - response: [{ name: "İSTANBUL.INI", path: uploads/x, size: 1 }]
+        score: pending
+      - response: [{ name: "CONFIG.İNİ", path: uploads/x, size: 1 }]
+        score: malformed
+      - response: [{ name: "CONFIG.ıni", path: uploads/x, size: 1 }]
+        score: malformed
+      - response: [{ name: "mapa.KML", path: uploads/x, size: 1 }]
+        score: pending
+      - response: [{ name: "mapa.KML", path: uploads/x, size: 1 }]
+        score: malformed
+
+  - name: "Extensions, a size and a count together"
+    question: { maxFiles: 2, maxSize: "512 KB", extensions: [".pdf"] }
+    examples:
+      - response:
+          - { name: a.pdf, path: uploads/a, size: 524288 }
+          - { name: b.pdf, path: uploads/b, size: 1 }
+        score: pending
+      - response:
+          - { name: a.pdf, path: uploads/a, size: 524289 }
+        score: malformed
+      - response:
+          - { name: a.txt, path: uploads/a, size: 1 }
+        score: malformed
+      - response:
+          - { name: a.pdf, path: uploads/a, size: 1 }
+          - { name: b.pdf, path: uploads/b, size: 1 }
+          - { name: c.pdf, path: uploads/c, size: 1 }
+        score: malformed
+
+sizes:
+  - { maxSize: 1, bytes: 1 }
+  - { maxSize: 9007199254740991, bytes: 9007199254740991 }
+  - { maxSize: "1 B", bytes: 1 }
+  - { maxSize: "1B", bytes: 1 }
+  - { maxSize: "1.999 B", bytes: 1 }
+  - { maxSize: "1 KB", bytes: 1024 }
+  - { maxSize: "512 KB", bytes: 524288 }
+  - { maxSize: "1.5 KB", bytes: 1536 }
+  - { maxSize: "0.001 KB", bytes: 1 }
+  - { maxSize: "5MB", bytes: 5242880 }
+  - { maxSize: "5 MB", bytes: 5242880 }
+  - { maxSize: "05 MB", bytes: 5242880 }
+  - { maxSize: "0.001 MB", bytes: 1048 }
+  - { maxSize: "1 GB", bytes: 1073741824 }
+  - { maxSize: "1.5GB", bytes: 1610612736 }
+  # The largest valid string: 8388608 GB is 2^53 bytes, this one is below it.
+  - { maxSize: "8388607.999 GB", bytes: 9007199253667250 }
+
+invalidSizes:
+  - true
+  - false
+  - 1.5
+  - 0
+  - -1
+  - 9007199254740992
+  - "0 B"
+  - "0.5 B"
+  - "0 MB"
+  - "8388608 GB"
+  - "5 mb"
+  - "5"
+  - ""

@@ -1,0 +1,4 @@
+# upload.md, "Extensions": each extension starts with `.`.
+type: upload
+stem: Envie o relatório de campo sobre o Pantanal.
+extensions: [pdf]

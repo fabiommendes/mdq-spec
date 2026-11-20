@@ -15,7 +15,7 @@
  * The first word of a test name is its group, one per Python test:
  * `multiple-choice`, `multiple-selection`, `true-false`, `numeric`,
  * `short-answer`, `short-answer-prevalidation`, `fill-in`, `ordering`,
- * `essay`, `code`, `automation`, `exam-question-effective`, `exam-effective` and
+ * `essay`, `upload`, `code`, `automation`, `exam-question-effective`, `exam-effective` and
  * `exam-score`.
  */
 
@@ -32,6 +32,7 @@ import {
 	gradingFor,
 	load,
 	MdqError,
+	maxSizeBytes,
 	NotAutoGradable,
 	type Question,
 	ReportError,
@@ -136,6 +137,7 @@ describe("grading files", () => {
 			"short-answer",
 			"short-answer-prevalidation",
 			"true-false",
+			"upload",
 		]);
 	});
 });
@@ -460,6 +462,39 @@ describe("essay", () => {
 				},
 			);
 		}
+	}
+});
+
+describe("upload", () => {
+	for (const testCase of questionsOf("upload")) {
+		for (const example of testCase.examples as Plain[]) {
+			corpusIt(
+				GRADING,
+				`upload.${testCase.name}/${reprOf(example.response)}`,
+				() => {
+					const question = binaryQuestion("upload", testCase);
+					const error =
+						example.score === "pending" ? NotAutoGradable : ResponseError;
+					expect(() => scoreOf(question, example.response)).toThrow(error);
+				},
+			);
+		}
+	}
+
+	for (const size of casesOf<Plain>(gradingFile("upload"), "sizes")) {
+		corpusIt(GRADING, `upload.size/${reprOf(size.maxSize)}`, () => {
+			expect(maxSizeBytes({ maxSize: size.maxSize as number | string })).toBe(
+				size.bytes,
+			);
+		});
+	}
+
+	for (const size of casesOf<unknown>(gradingFile("upload"), "invalidSizes")) {
+		corpusIt(GRADING, `upload.invalid-size/${reprOf(size)}`, () => {
+			expect(() => maxSizeBytes({ maxSize: size as number | string })).toThrow(
+				RangeError,
+			);
+		});
 	}
 });
 

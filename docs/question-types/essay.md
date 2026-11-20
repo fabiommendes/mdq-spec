@@ -67,7 +67,7 @@ These cases have no tag, and each one has its own diagnostic:
 | no `[essay]` paragraph at all                              | `parse-error`: the question has no body                    |
 | an `## [answer-key]` section before the tag                | `forbidden-block-element` at `stem`                        |
 | `* [essay]` (a list item) and no `type`                    | `foreign-choice-marker` at `choices`                       |
-| `* [essay]` (a list item) with `type: essay`               | `schema-error` at `choices`                                |
+| `* [essay]` (a list item) with `type: essay`               | `parse-error`: the question has no body                    |
 
 A paragraph with only `[essay]` is always the tag. It is never a
 [slug](question-base.md#slug). A slug can be `essay`, since the name of a type
@@ -289,7 +289,7 @@ language identifier. The match is case-insensitive (`Python` is `python`), and
 the reference list is the one of the Pygments version that the implementation
 ships.
 [^4]: A list item such as `* [essay]` reads as a choice with a foreign marker
-(see [Type inference](question-base.md#type-inference)).
+(see [Type inference](question-base.md#type-inference)). With `type: essay` in the frontmatter, the type is not inferred and the item is not a body, so it is a `parse-error`: the question has no body.
 [^5]: An example is `[essay] with at most 200 words`, when no tag follows it.
 Other cases are in [Body](#body).
 [^6]: An `## [answer-key]` section with no content is also reported, since it

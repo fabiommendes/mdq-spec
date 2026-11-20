@@ -1,0 +1,10 @@
+# upload.md, "Answer key": a heading that starts with `[` is a forbidden block
+# element. Schema-valid, rejected by the model.
+type: upload
+stem: Envie o relatório de campo sobre o Pantanal.
+answerKey: |-
+  O texto cita as cheias do rio Paraguai.
+
+  ### [1] Critério
+
+  Um ponto por causa citada.

@@ -1,0 +1,11 @@
+[
+  {
+    "code": "invalid-frontmatter-field",
+    "severity": "error",
+    "path": [
+      "answerKey"
+    ],
+    "line": 2,
+    "column": 1
+  }
+]

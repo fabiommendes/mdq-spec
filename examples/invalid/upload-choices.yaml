@@ -1,0 +1,5 @@
+# upload.md, "Body": `choices` with `type: upload` in a YAML document is a `schema-error`, as for an essay.
+type: upload
+stem: Envie o relatório de campo sobre o Pantanal.
+choices:
+  - {id: a, text: Relatório}

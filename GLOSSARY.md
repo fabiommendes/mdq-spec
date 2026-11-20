@@ -692,6 +692,15 @@ reads it as text. See `docs/references/grammar.md`.
 - tags: documents
 - avoid: whitespace
 
+## Upload
+
+A question type whose response is one or more files that the student sends. MDQ never reads the files; the host stores them, and the instructor grades the response.
+
+- tags: question-types
+- avoid: file question, attachment question
+- related: Question type, Attachment, Automation
+- code: mdq.models.UploadQuestion
+
 ## Weight
 
 How much a question counts towards its exam, relative to the other questions.

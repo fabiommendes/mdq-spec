@@ -50,6 +50,7 @@ takes only the responses of this document.
 | short-answer       | the text the student wrote                         |
 | essay              | the text the student wrote, as a string            |
 | code               | the content of the submitted file, as a string     |
+| upload             | a list of `{name, path, size}` file mappings       |
 | fill-in            | a mapping of blank id to that blank's own response |
 | ordering           | a list of `[indentation level, text]` pairs        |
 
@@ -269,6 +270,28 @@ included. Any other case is a host error (`ValueError`), as for the scores of a
 pending fill-in blank.
 
 
+### Upload
+
+The files the student sent, as a list of `{name, path, size}` mappings.
+
+```yaml
+response:
+  - name: ciclo-da-agua.pdf
+    path: uploads/2026/ana/ciclo-da-agua.pdf
+    size: 482133
+```
+
+The response is a list of 1 to `maxFiles` files. MDQ never reads the bytes of a
+file, and `path` is opaque to it. The response is malformed (`ResponseError`)
+when it is not a list, is an empty list, has an item that is not a mapping with
+exactly the keys `name`, `path` and `size` of the right types, repeats a `name`,
+has more items than `maxFiles`, has a `size` larger than `maxSize`, or has a
+`name` that matches no item of `extensions`. See
+[upload](question-types/upload.md#response) for the full rules.
+
+An upload response is always [pending](#pending). The instructor grades it.
+
+
 ### Fill in the blanks
 
 A mapping from blank id to that blank's response, each taking whatever its own
@@ -374,6 +397,9 @@ response: null   # skipped: scores 0, no feedback
 response: []     # answered "none of these": graded normally
 ```
 
+On an upload question, `[]` is not a response: it is malformed
+(`ResponseError`). A student who sent no file skips the question with `null`.
+
 
 ## Responses to an exam
 
@@ -399,7 +425,7 @@ alone. How the host gives them to the scorer, by question id, is not defined.
 ### Pending
 
 A response is **pending** when the question does not settle it: every response
-to an essay question, a response to a code question that has a manual rubric
+to an essay or upload question, a response to a code question that has a manual rubric
 item (with a value other than 0) with no score of the instructor, or that has no
 rubric item and no score of the instructor, or whose report has the status
 `runner-error` (the failure is of the infrastructure, so the response is never

@@ -88,6 +88,7 @@ describe("public form cases", () => {
 		if (
 			testCase.error !== undefined ||
 			testCase.question.type === "essay" ||
+			testCase.question.type === "upload" ||
 			testCase.question.type === "code"
 		) {
 			continue;
@@ -190,7 +191,13 @@ describe("valid corpus", () => {
 		});
 
 		// A manual item of a code question waits for the instructor.
-		if (question.type === "essay" || question.type === "code") continue;
+		if (
+			question.type === "essay" ||
+			question.type === "code" ||
+			question.type === "upload"
+		) {
+			continue;
+		}
 		if (lint(question).some((entry) => SHADOWING_CODES.has(entry.code))) {
 			continue;
 		}

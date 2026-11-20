@@ -48,6 +48,7 @@ const questions: PublicQuestion[] = [
 			[0, "B"],
 		],
 	},
+	{ type: "upload", stem: "up" },
 ];
 
 describe("QuestionView", () => {

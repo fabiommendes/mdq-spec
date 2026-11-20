@@ -212,6 +212,7 @@ const TAG_BODY: Readonly<
 	Record<string, readonly [ReadonlySet<string>, string]>
 > = {
 	essay: [new Set(["essay"]), "an essay (`[essay]`)"],
+	upload: [new Set(["upload"]), "an upload (`[upload]`)"],
 	code: [new Set(["code"]), "a code question (`[code]`)"],
 	ordering: [new Set(["ordering"]), "an ordering (`[ordering]`)"],
 	"short-answer": [
@@ -548,6 +549,13 @@ export class MDQParser {
 				}
 			}
 		}
+		if (questionType === "upload") {
+			for (const key of ["maxFiles", "maxSize", "extensions"]) {
+				if (Object.hasOwn(this.frontmatter, key)) {
+					this.state[key] = this.frontmatter[key];
+				}
+			}
+		}
 		if (GRADED_QUESTION_TYPES.includes(questionType as string)) {
 			for (const key of ["shuffle", "grading"]) {
 				if (
@@ -651,6 +659,9 @@ export class MDQParser {
 					questionType = questionType ?? "essay";
 					this.parseEssayBody();
 					break;
+				case "upload":
+					questionType = questionType ?? "upload";
+					break;
 				case "code":
 					questionType = questionType ?? "code";
 					{
@@ -702,7 +713,7 @@ export class MDQParser {
 		this.state.type = questionType;
 
 		const epilogueBlocks: readonly Node[] =
-			questionType === "essay"
+			questionType === "essay" || questionType === "upload"
 				? this.parseSections(ESSAY_SECTIONS)
 				: (bodyEpilogue ?? this.parseSections(BASE_SECTIONS));
 		this.reportDetachedTags(epilogueBlocks, questionType === "fill-in");

@@ -352,6 +352,46 @@ cases:
     correctResponses: []
 
   #
+  # Upload
+  #
+  - name: upload keeps its limits and an integer maxSize, and drops the answer key
+    question:
+      type: upload
+      stem: Desenhe o ciclo da água na bacia do rio São Francisco.
+      maxFiles: 2
+      maxSize: 5242880
+      extensions: [".pdf", ".png", ".jpg"]
+      answerKey: O desenho mostra evaporação, condensação e precipitação.
+    public:
+      type: upload
+      stem: Desenhe o ciclo da água na bacia do rio São Francisco.
+      maxFiles: 2
+      maxSize: 5242880
+      extensions: [".pdf", ".png", ".jpg"]
+    correctResponses: []
+
+  - name: upload keeps a string maxSize as written
+    question:
+      type: upload
+      stem: Envie a planilha das chuvas de Fortaleza.
+      maxSize: 1.5GB
+      answerKey: A planilha tem 12 meses.
+    public:
+      type: upload
+      stem: Envie a planilha das chuvas de Fortaleza.
+      maxSize: 1.5GB
+    correctResponses: []
+
+  - name: upload without limits or answer key has no correct response
+    question:
+      type: upload
+      stem: Envie uma foto do Pantanal.
+    public:
+      type: upload
+      stem: Envie uma foto do Pantanal.
+    correctResponses: []
+
+  #
   # Attachments
   #
   - name: attachments keep name, format, text and label, and drop the origin

@@ -1,0 +1,6 @@
+# upload.md, "Size": three decimal places are valid, and the size rounds down to 1 byte.
+id: upload-max-size-three-decimals
+title: Relatório de campo
+type: upload
+stem: Envie o relatório de campo sobre o Pantanal.
+maxSize: 0.001 KB

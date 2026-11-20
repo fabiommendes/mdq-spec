@@ -134,7 +134,7 @@ see [Type inference](question-base.md#type-inference).
 | no `[code]` paragraph at all                               | `parse-error`: the question has no body                    |
 | a section before the tag                                   | `forbidden-block-element` at `stem`                        |
 | `* [code]` (a list item) and no `type`                     | `foreign-choice-marker` at `choices`                       |
-| `* [code]` (a list item) with `type: code`                 | `schema-error` at `choices`                                |
+| `* [code]` (a list item) with `type: code`                 | `parse-error`: the question has no body                    |
 | `[code]: text`, with a colon                               | `parse-error`: the tag of a code question has no content: write `[code]` without a colon |
 
 ## Sections
@@ -668,7 +668,7 @@ solution, when there is one.
 [^3]: An example is `[code] in Python`, when no tag follows it. Other cases are
 in [Body](#body).
 [^4]: A list item such as `* [code]` reads as a choice with a foreign marker
-(see [Type inference](question-base.md#type-inference)).
+(see [Type inference](question-base.md#type-inference)). With `type: code` in the frontmatter, the type is not inferred and the item is not a body, so it is a `parse-error`: the question has no body.
 [^5]: A modifier that is not `manual`, `public` or `example`, a modifier in the
 wrong place, a modifier that repeats, a `{` that does not open a modifier, a
 criterion that starts with `[` that is not a link (`[ 3 ]`, `[3,5]`, `[50%]`, `[slug]`), `>` or `!`. See

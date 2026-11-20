@@ -28,6 +28,7 @@ export type QuestionResponse =
 	| FillInResponse
 	| TrueFalseResponse
 	| OrderingResponse
+	| UploadResponse
 	| null;
 
 /** multiple-choice: the id of the choice the student picked. */
@@ -48,6 +49,16 @@ export type TrueFalseResponse = Readonly<Record<string, boolean | null>>;
 
 /** short-answer and essay: the text the student wrote, before normalisation. */
 export type TextResponse = string;
+
+/** One file of an upload response: its name, where the host keeps it, its size in bytes. */
+export interface UploadFile {
+	readonly name: string;
+	readonly path: string;
+	readonly size: number;
+}
+
+/** upload: the files the student sent, from 1 to `maxFiles`. */
+export type UploadResponse = readonly UploadFile[];
 
 /**
  * numeric: the value the student entered. A number is read as its shortest

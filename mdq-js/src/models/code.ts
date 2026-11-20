@@ -12,7 +12,6 @@ import type { Diagnostic, PathStep } from "../diagnostics.js";
 import { InvalidDocumentError, UnresolvedTestSource } from "../errors.js";
 import { stripBom } from "../markdown.js";
 import {
-	findAnswerKeyForbiddenElements,
 	firstFencedCode,
 	hasUnclosedFence,
 	reconstructBlocks,
@@ -38,6 +37,7 @@ import {
 } from "./base.js";
 import { checkUnsafeThematicBreak } from "./lint.js";
 import { lintDiagnostic } from "./lint-codes.js";
+import { checkAnswerKeyHasNoH1 } from "./text.js";
 
 /**
  * One item of the full rubric (code.md, "Full rubric"): derived from the test
@@ -269,21 +269,6 @@ function checkTemplateIsOneFencedBlock(
 	);
 }
 
-/** code.md, "Answer key": the rules of the essay answer key. */
-function checkAnswerKeyHasNoForbiddenHeading(
-	question: CodeQuestion,
-	path: readonly PathStep[],
-): Diagnostic | undefined {
-	if (!question.answerKey) return undefined;
-	const [description] = findAnswerKeyForbiddenElements(question.answerKey);
-	if (description === undefined) return undefined;
-	return modelError(
-		"forbidden-block-element",
-		`'answerKey' holds ${description}, which code.md's "Answer key" does not allow`,
-		[...path, "answerKey"],
-	);
-}
-
 /**
  * code.md, "Additional Rules": the sum of the positive values of the full
  * rubric is 0. The lint needs the text of every test source, so it reports
@@ -319,7 +304,7 @@ export const codeRules: FamilyRules<CodeQuestion> = {
 			"answerKey",
 		]),
 	],
-	models: [checkTemplateIsOneFencedBlock, checkAnswerKeyHasNoForbiddenHeading],
+	models: [checkTemplateIsOneFencedBlock, checkAnswerKeyHasNoH1],
 	lint: (question) => [
 		...checkUnsafeThematicBreak(question.answerKey, ["answerKey"]),
 		...checkRubricHasPositiveItem(question),

@@ -1,0 +1,9 @@
+# upload.md, "Answer key": a Setext H1 in the answer key is a forbidden
+# block element. Schema-valid (`answerKey` is a string), rejected by the model.
+type: upload
+stem: Envie o relatório de campo sobre o Pantanal.
+answerKey: |-
+  Dados.
+
+  Conclusão
+  =========

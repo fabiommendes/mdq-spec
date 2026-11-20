@@ -64,3 +64,72 @@ describe("review with a response", () => {
 		expect(review(question, 42)).toHaveProperty("error");
 	});
 });
+
+describe("review of an upload", () => {
+	const withKey = load(
+		[
+			"---",
+			"id: ciclo-da-agua",
+			"title: Ciclo da água",
+			"---",
+			"",
+			"Desenhe o ciclo da água e envie uma foto do desenho.",
+			"",
+			"[upload]",
+			"",
+			"## [answer-key]",
+			"",
+			"O desenho mostra evaporação, condensação e precipitação.",
+			"",
+		].join("\n"),
+		{ kind: "question", ids: "fill" },
+	).document as Question;
+	const withoutKey = load(
+		[
+			"---",
+			"id: ciclo-sem-chave",
+			"title: Ciclo da água",
+			"---",
+			"",
+			"Desenhe o ciclo da água e envie uma foto do desenho.",
+			"",
+			"[upload]",
+			"",
+		].join("\n"),
+		{ kind: "question", ids: "fill" },
+	).document as Question;
+	const files = [
+		{ name: "desenho.png", path: "uploads/desenho.png", size: 2048 },
+	];
+
+	it("is pending without a response, with its answer key as guidance", () => {
+		expect(review(withKey, undefined)).toEqual({
+			response: null,
+			result: { pending: true, correct: [] },
+			answerKey: "O desenho mostra evaporação, condensação e precipitação.",
+		});
+	});
+
+	it("has no answer key to show when the question has none", () => {
+		const shown = review(withoutKey, undefined);
+		expect(shown).toEqual({
+			response: null,
+			result: { pending: true, correct: [] },
+		});
+		expect(shown).not.toHaveProperty("answerKey");
+	});
+
+	it("is pending with a valid response list, and does not score it", () => {
+		const shown = review(withKey, files);
+		expect(shown).toEqual({
+			response: files,
+			result: { pending: true, correct: [] },
+			answerKey: "O desenho mostra evaporação, condensação e precipitação.",
+		});
+	});
+
+	it("reports a malformed response list", () => {
+		expect(review(withKey, [])).toHaveProperty("error");
+		expect(review(withKey, "desenho.png")).toHaveProperty("error");
+	});
+});

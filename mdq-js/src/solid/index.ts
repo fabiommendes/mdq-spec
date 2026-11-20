@@ -27,3 +27,5 @@ export * from "./Score.jsx";
 export * from "./ShortAnswer.jsx";
 export * from "./TrueFalse.jsx";
 export * from "./types.js";
+// `jitter` stays out: it is a hook for the tests.
+export { type HostResult, Upload, type UploadProps } from "./Upload.jsx";

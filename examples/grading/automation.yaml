@@ -270,6 +270,17 @@ questions:
   - name: "Essay"
     question: { type: essay, stem: "Explique o efeito estufa." }
     automation: manual
+  - name: "Upload"
+    question: { type: upload, stem: "Envie o relatório de campo." }
+    automation: manual
+  - name: "Upload with limits"
+    question:
+      type: upload
+      stem: "Envie o relatório de campo."
+      maxFiles: 2
+      maxSize: "5 MB"
+      extensions: [".pdf"]
+    automation: manual
   - name: "Multiple choice"
     question:
       type: multiple-choice

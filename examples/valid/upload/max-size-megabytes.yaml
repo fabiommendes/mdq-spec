@@ -1,0 +1,6 @@
+# upload.md, "Size": a number, a space and a unit.
+id: upload-max-size-megabytes
+title: Relatório de campo
+type: upload
+stem: Envie o relatório de campo sobre o Pantanal.
+maxSize: 5 MB

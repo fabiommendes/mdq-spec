@@ -1628,6 +1628,7 @@ TAG_TYPES = {
     "numeric": re.compile(r"^[ \t]*\[numeric(?:\([^()\[\]]*\))?\]", re.M),
     "short-answer": re.compile(r"^[ \t]*\[short-answer(?:/(?:accept|reject))?\]", re.M),
     "essay": re.compile(r"^[ \t]*\[essay\]", re.M),
+    "upload": re.compile(r"^[ \t]*\[upload\]", re.M),
     "code": re.compile(r"^[ \t]*\[code\]", re.M),
     "ordering": re.compile(r"^[ \t]*\[ordering\]", re.M),
     "fill-in": re.compile(r"^\[\^[^\]]+\]", re.M),

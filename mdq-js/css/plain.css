@@ -639,3 +639,69 @@
 	outline: 2px solid currentColor;
 	outline-offset: 2px;
 }
+
+.mdq-upload {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.mdq-upload-label {
+	font-size: 0.875rem;
+	font-weight: bold;
+}
+
+.mdq-upload-input {
+	max-width: 100%;
+	font: inherit;
+}
+
+.mdq-upload-limits {
+	margin: 0;
+	font-size: 0.75rem;
+	opacity: 0.7;
+}
+
+.mdq-upload-files {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.mdq-upload-file {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.25rem 0.75rem;
+	padding: 0.25rem 0;
+}
+
+.mdq-upload-file[data-state="queued"],
+.mdq-upload-file[data-state="sending"],
+.mdq-upload-file[data-state="waiting"],
+.mdq-upload-file[data-state="removing"] {
+	opacity: 0.7;
+}
+
+.mdq-upload-file[data-state="error"] {
+	font-weight: bold;
+}
+
+.mdq-upload-size,
+.mdq-upload-note {
+	font-size: 0.875rem;
+}
+
+.mdq-upload-remove {
+	font: inherit;
+	cursor: pointer;
+}
+
+.mdq-upload-remove:disabled {
+	cursor: default;
+}
+
+.mdq-upload-status {
+	min-height: 1.25rem;
+	font-size: 0.875rem;
+}

@@ -1,0 +1,6 @@
+# upload.md, "Size": an integer is a number of bytes and stays an integer.
+id: upload-max-size-integer
+title: Relatório de campo
+type: upload
+stem: Envie o relatório de campo sobre o Pantanal.
+maxSize: 5242880

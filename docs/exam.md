@@ -238,7 +238,7 @@ the instructions and the stem and epilogue of a question forbid: the error
 
 Inside an exam, a block after the body of a question MUST NOT use `---` as a
 thematic break. This covers the epilogue and the type-specific sections that
-follow it: the `## [answer-key]` section of an essay or a code question and the `## [extra]`,
+follow it: the `## [answer-key]` section of an essay, upload or code question and the `## [extra]`,
 `## [accept]` and `## [reject]` sections of an ordering question. Use `***` or
 `___` instead. After the body of a question, a `---` line starts the
 frontmatter of the next block, so a thematic break followed by text that YAML
@@ -466,7 +466,7 @@ selection question has no abstention, since an unticked choice asserts that the
 choice is false. Every wrong verdict is then a mistake, so `no-mistakes` and
 `all-or-nothing` are the same strategy there, and only `all-or-nothing` exists.
 
-Short answer, numeric, essay, code and ordering questions have no `grading` field. The exam's `grading` does not apply to them: each scores by the rules of its own type, in [0, 1] except code, which scores in [-1, 1] because the discounts of its rubric have no bound, and `penalty` then applies as to any other question. A `grading` mapping cannot have a key for these types: such a key is a `schema-error`.
+Short answer, numeric, essay, upload, code and ordering questions have no `grading` field. The exam's `grading` does not apply to them: each scores by the rules of its own type, in [0, 1] except code, which scores in [-1, 1] because the discounts of its rubric have no bound, and `penalty` then applies as to any other question. A `grading` mapping cannot have a key for these types: such a key is a `schema-error`.
 
 The mapping takes the shape:
 

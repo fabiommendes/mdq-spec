@@ -32,6 +32,7 @@ differs states the reason in its header comment.
 | `mdq/models/_numeric.py`            | `src/models/numeric.ts`                  |
 | `mdq/models/_text.py`               | `src/models/text.ts`                     |
 | `mdq/models/_fill_in.py`            | `src/models/fill-in.ts`                  |
+| `mdq/models/_upload.py`             | `src/models/upload.ts` (`parseUploadResponse`, `scoreUpload`, `maxSizeBytes`, `matchesExtensions`, `uploadRules`; sizes with exact `BigInt`; mdq-py also takes a tuple as the list of a response, a leniency of Python only) |
 | `mdq/models/_code.py`               | `src/models/code.ts` (model rules, `fullRubric`, `referenceSolution`, `codeAutomation`, `resolveTests`) and `src/models/code-grading.ts` (`scoreCode`, `CodeGrading`, exact `BigInt` fractions); the public form is in `src/models/public-form.ts`; render is not ported |
 | `mdq/models/_report.py`             | `src/schema/runner-report.ts` (Zod `RunnerReport`, `ReportCase`, `ReportOutput`) and `src/models/report.ts` (`parseReport`, `checkReport`); `ReportError` in `src/errors.ts` |
 | `mdq/models/_ordering.py`           | `src/models/ordering.ts`                 |

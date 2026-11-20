@@ -650,9 +650,12 @@ export const shortAnswerRules: FamilyRules<ShortAnswerQuestion> = {
 		),
 };
 
-/** essay.md, "Answer key": the section holds any block except an H1. */
-function checkAnswerKeyHasNoH1(
-	question: EssayQuestion,
+/**
+ * essay.md, "Answer key": the section holds any block except an H1. Shared by
+ * the families whose answer key follows the essay's (essay, upload).
+ */
+export function checkAnswerKeyHasNoH1(
+	question: { readonly type: string; readonly answerKey?: string },
 	path: readonly PathStep[],
 ): Diagnostic | undefined {
 	if (!question.answerKey) return undefined;
@@ -660,7 +663,7 @@ function checkAnswerKeyHasNoH1(
 	if (description === undefined) return undefined;
 	return modelError(
 		"forbidden-block-element",
-		`'answerKey' holds ${description}, which essay.md's "Answer key" does not allow`,
+		`'answerKey' holds ${description}, which ${question.type}.md's "Answer key" does not allow`,
 		[...path, "answerKey"],
 	);
 }

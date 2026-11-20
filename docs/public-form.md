@@ -159,6 +159,18 @@ A client that validates the submission needs it.
 | highlight | public      |
 | answerKey | private     |
 
+### Upload
+
+| Field      | Public form |
+| ---------- | ----------- |
+| maxFiles   | public      |
+| maxSize    | public      |
+| extensions | public      |
+| answerKey  | private     |
+
+`maxSize` keeps the form of the document: an integer stays an integer, and a
+string stays the same string.
+
 ### Code
 
 | Field       | Public form                                                                |
@@ -320,6 +332,7 @@ would hold every combination of the blank responses.
 | short-answer       | the text of each literal pattern of `accept`                        |
 | essay              | one response: the `answerKey`, or none when it is absent            |
 | code               | one response: the reference solution, or none when there is none    |
+| upload             | none: the list is always empty                                      |
 | fill-in            | each blank id mapped to the correct responses of the blank          |
 | ordering           | the lines of the `[ordering]` block, then of each `## [accept]`     |
 
@@ -350,6 +363,9 @@ The rules for each type:
 * **Essay**: the answer key is a model answer. A response to an essay is
   always [pending](responses.md#pending), so this response does not score 1
   automatically.
+* **Upload**: the list is always empty. A response is a list of files that
+  the host stores, and a document cannot write one down. The answer key is
+  text that guides the instructor, not a response of the question.
 * **Code**: the list holds the reference solution, the code text of the first
   fenced block of the `answerKey`, see
   [Answer key](question-types/code.md#answer-key). It passes every test case,
@@ -401,7 +417,7 @@ below have a scope.
 | fill-in, choice blank | the choices of the blank      | `[qid, blank id, choice id]` |
 
 `qid` is the `id` of the question, or the empty string when it has none. The
-other types (numeric, short answer, essay, code and ordering) and the blanks that are
+other types (numeric, short answer, essay, upload, code and ordering) and the blanks that are
 not choice blanks have no scope: their presented form is their public form.
 An ordering question has no scope because its lines have no id and its pool is
 public and canonical, see [Pool](#pool). The host still shuffles the pool.

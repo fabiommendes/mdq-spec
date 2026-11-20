@@ -1,0 +1,4 @@
+# upload.md, "Extensions": a letter or a digit follows the first `.`.
+type: upload
+stem: Envie o relatório de campo sobre o Pantanal.
+extensions: ["..gz"]

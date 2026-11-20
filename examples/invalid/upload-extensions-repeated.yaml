@@ -1,0 +1,4 @@
+# upload.md, "Extensions": a repeated extension is a `schema-error`.
+type: upload
+stem: Envie o relatório de campo sobre o Pantanal.
+extensions: [".pdf", ".png", ".pdf"]

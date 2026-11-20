@@ -1,0 +1,4 @@
+# upload.md, "Size": a size that rounds down to 0 bytes is a `schema-error`. The schema accepts the string, the model rejects it.
+type: upload
+stem: Envie o relatório de campo sobre o Pantanal.
+maxSize: 0.5 B

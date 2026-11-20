@@ -1,0 +1,4 @@
+# upload.md, "Count": `maxFiles` is at most 2^53 - 1.
+type: upload
+stem: Envie o relatório de campo sobre o Pantanal.
+maxFiles: 9007199254740992

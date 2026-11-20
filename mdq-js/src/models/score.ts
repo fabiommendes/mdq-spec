@@ -38,6 +38,7 @@ import {
 	scoreEssay,
 	scoreShortAnswer,
 } from "./text.js";
+import { scoreUpload } from "./upload.js";
 
 /** What the response to one blank of a fill-in question was worth. */
 export interface BlankScore {
@@ -122,6 +123,8 @@ export function scoreResponse(
 		case "code":
 			parseTextResponse(response);
 			return scoreCode(question, grading);
+		case "upload":
+			return scoreUpload(question, response);
 	}
 }
 

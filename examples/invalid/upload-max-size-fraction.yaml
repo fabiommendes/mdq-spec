@@ -1,0 +1,4 @@
+# upload.md, "Size": a number of bytes is an integer.
+type: upload
+stem: Envie o relatório de campo sobre o Pantanal.
+maxSize: 1.5

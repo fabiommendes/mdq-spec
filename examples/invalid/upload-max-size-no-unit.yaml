@@ -1,0 +1,4 @@
+# upload.md, "Size": a string needs a unit.
+type: upload
+stem: Envie o relatório de campo sobre o Pantanal.
+maxSize: "5"

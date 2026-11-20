@@ -13,6 +13,7 @@ import { Numeric, type NumericProps } from "./Numeric.jsx";
 import { Ordering, type OrderingProps } from "./Ordering.jsx";
 import { ShortAnswer, type ShortAnswerProps } from "./ShortAnswer.jsx";
 import { TrueFalse, type TrueFalseProps } from "./TrueFalse.jsx";
+import { Upload, type UploadProps } from "./Upload.jsx";
 
 /**
  * The props of `QuestionView`: the props of the component for the type of
@@ -29,6 +30,7 @@ export type QuestionViewProps =
 	| FillInProps
 	| OrderingProps
 	| CodeProps
+	| UploadProps
 	| UnsupportedProps;
 
 /** A type this version does not know, such as one from a newer server. */
@@ -45,7 +47,8 @@ export interface UnsupportedProps {
 				| "essay"
 				| "fill-in"
 				| "ordering"
-				| "code";
+				| "code"
+				| "upload";
 		}
 	>;
 	messages?: Partial<Messages>;
@@ -99,6 +102,9 @@ export function QuestionView(props: QuestionViewProps): JSX.Element {
 			</Match>
 			<Match when={type() === "code"}>
 				<Code {...(props as CodeProps)} />
+			</Match>
+			<Match when={type() === "upload"}>
+				<Upload {...(props as UploadProps)} />
 			</Match>
 		</Switch>
 	);

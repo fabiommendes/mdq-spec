@@ -254,7 +254,7 @@ the stem.
 ### Bracketed tags
 
 Slugs and the type tags of the question types below share a bracketed spelling
--- `[Q1]`, `[choice-id]`, `[^capital]`, `[essay]`, `[numeric(kg)]`,
+-- `[Q1]`, `[choice-id]`, `[^capital]`, `[essay]`, `[upload]`, `[numeric(kg)]`,
 `[short-answer/accept]`. No whitespace is allowed anywhere between the
 brackets: `[ Q1 ]` and `[short-answer /accept]` are NOT tags, and are left
 alone as ordinary inline text. This mirrors what most markdown parsers already do with
@@ -279,7 +279,7 @@ REQUIRED.
 
 ### Body tags
 
-Short answer, numeric, essay, code, ordering and fill in the blanks questions open
+Short answer, numeric, essay, upload, code, ordering and fill in the blanks questions open
 their body, or each of its blocks, with a bracketed tag. All the tags follow
 one convention. The colon tells whether content follows:
 
@@ -309,6 +309,7 @@ table. The rules `ws` and `nl` are defined in
 | Type                | Tag                                                          | Form     | Content                                                      |
 | ------------------- | ------------------------------------------------------------ | -------- | ------------------------------------------------------------ |
 | essay               | `[essay]`                                                    | no colon | none                                                         |
+| upload              | `[upload]`                                                   | no colon | none                                                         |
 | code                | `[code]`                                                     | no colon | none                                                         |
 | ordering            | `[ordering]:`                                                | colon    | a code block or a `ul` list, on the next line                |
 | short answer        | `[short-answer]:`, `[short-answer/accept]:`                  | colon    | one pattern on the tag line, or a pattern list on the next line |
@@ -352,7 +353,7 @@ label is reserved. A label is reserved when it is one of these:
 ```lark
 reserved_label : TYPE_NAME (label_end | "/" LABEL_REST | "(" LABEL_REST)
                | "^" ID "/" LABEL_REST
-TYPE_NAME      : "essay"i | "code"i | "numeric"i | "short-answer"i | "ordering"i
+TYPE_NAME      : "essay"i | "upload"i | "code"i | "numeric"i | "short-answer"i | "ordering"i
                | "true-false"i | "multiple-choice"i | "multiple-selection"i
                | "fill-in"i
 ```
@@ -368,10 +369,12 @@ suffixes are the same case, with a specific message: they are fields of the
 frontmatter only, so `[short-answer/preAccept]: b` is a `parse-error`, as is
 the block form `[short-answer/preAccept]:` followed by a list.
 
-The `essay` and `code` tags have no form with a colon, and they have their own
-message: `[essay]: x` is a `parse-error` "the tag of an essay has no content:
-write `[essay]` without a colon", and `[code]: x` is a `parse-error` "the tag of
-a code question has no content: write `[code]` without a colon". A line that
+The `essay`, `upload` and `code` tags have no form with a colon, and they have
+their own message: `[essay]: x` is a `parse-error` "the tag of an essay has no
+content: write `[essay]` without a colon", `[upload]: x` is a `parse-error`
+"the tag of an upload has no content: write `[upload]` without a colon", and
+`[code]: x` is a `parse-error` "the tag of a code question has no content:
+write `[code]` without a colon". A line that
 starts with such a label cannot be a lazy continuation line either: after a
 list item, it is a `parse-error`, as in [Grammar](../references/grammar.md).
 
@@ -386,7 +389,7 @@ of the run starts the [epilogue](#epilogue). A known tag in the epilogue
 defines nothing. It is a `detached-tag` error at the path `epilogue`, in every
 type: a tag of a short answer after a paragraph (`[short-answer/reject]: x`),
 a second tag of a type that has one (`[numeric]:`), a blank definition of a
-fill-in question, and the tags of an ordering, essay or code question. The message
+fill-in question, and the tags of an ordering, essay, upload or code question. The message
 tells the author to move the tag up, before the epilogue. A tag inside a code
 block does not count. `forbidden-block-element` stays for the forbidden
 elements that are not tags.
@@ -432,7 +435,7 @@ the instructor grades, write `[short-answer]` with no colon.
 ### Type inference
 
 A question without `type` in the frontmatter takes its type from the body.
-Short answer, numeric, essay, code, ordering and fill in the blanks questions are
+Short answer, numeric, essay, upload, code, ordering and fill in the blanks questions are
 identified by the bracketed tag that opens their body, see each type. A body
 that is a [choice list](../references/choices.md) takes its type from the
 normalized values of its choice markers (see
@@ -460,7 +463,7 @@ elements MUST follow the same rules as the block elements of the stem.
 
 The [`## [attachments]`](#attachments) section, which every question type has,
 and the sections that are specific to a type, such as the `## [answer-key]`
-section of an essay, the `## [template]`, `## [tests]` and `## [rubric]`
+section of an essay or an upload question, the `## [template]`, `## [tests]` and `## [rubric]`
 sections of a code question or the `## [extra]`, `## [accept]` and
 `## [reject]` sections of an ordering question, come after the epilogue. The
 epilogue ends where the first of those sections starts, so it MUST NOT contain
@@ -486,10 +489,10 @@ underline is easy to mistake for a block boundary (`setext-heading`, see
 section (`attachments`, `template`, `tests`, `rubric`, `answerKey`, `extra`, or
 `accept`/`reject` with the section index).
 A section with no content is a `parse-error`, except where the question type
-says otherwise (the `## [answer-key]` section of an essay or a code question).
+says otherwise (the `## [answer-key]` section of an essay, upload or code question).
 
 A section that holds free blocks, such as the `## [answer-key]` section of an
-essay or a code question, ends at the heading of the next section of the
+essay, upload or code question, ends at the heading of the next section of the
 question, or at the end of the question. In it, a heading that the epilogue
 rule forbids (see [Forbidden elements](#forbidden-elements): a heading of any
 level whose text starts with optional `ws` + `[`, the three link forms
@@ -530,7 +533,7 @@ Sudeste,0.80
 
 The section comes after the epilogue, with the
 [heading rule of type-specific sections](#epilogue). In a type with sections
-(essay, code, ordering), it comes in any order with the sections of the type.
+(essay, upload, code, ordering), it comes in any order with the sections of the type.
 In the other types, it is the only section: it ends
 the epilogue and holds every block up to the end of the question. A question
 has at most one `## [attachments]` section.
@@ -688,7 +691,7 @@ question settles without the instructor:
 | `manual`         | every response is pending                          |
 
 Multiple choice, multiple selection, true or false and numeric questions are
-`automatic`. Essay questions are `manual`. A [code](code.md#automation) question derives it from its test sources and rubric. A [short answer](short-answer.md#automation)
+`automatic`. Essay and upload questions are `manual`. A [code](code.md#automation) question derives it from its test sources and rubric. A [short answer](short-answer.md#automation)
 question, an [ordering](ordering.md#automation) question and a
 [fill in the blanks](fill-in.md#automation) question derive it from their
 fields.
@@ -867,10 +870,10 @@ not whether the subtag names a real language.
 [^9]: Inside an exam a `---` line opens a frontmatter or include block, so a
 thematic break written with `-` changes meaning when the question is pasted
 into one (`unsafe-thematic-break`, see [exam.md](../exam.md#question-and-include-blocks)).
-The check runs on `stem`, `epilogue`, the `answerKey` of an essay or a code question and the
+The check runs on `stem`, `epilogue`, the `answerKey` of an essay, upload or code question and the
 `extra`, `accept` and `reject` sections of an ordering question, the fields in
 which an exam reads `---` as a block boundary. An ordering section holds only
-list items or code, so only the `answerKey` of an essay or a code question can carry one.
+list items or code, so only the `answerKey` of an essay, upload or code question can carry one.
 [^10]: Specified in [Common grammar rules](../references/grammar.md#the-non-ascii-whitespace-lint):
 `non-ascii-whitespace` (warning) for U+0085, U+2028, U+2029 and for a Unicode
 space in a syntax position, `non-ascii-whitespace-in-prose` (info) for any other

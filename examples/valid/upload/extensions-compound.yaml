@@ -1,0 +1,9 @@
+# upload.md, "Extensions": an extension can have inner dots, such as `.tar.gz`.
+id: upload-extensions-compound
+title: Relatório de campo
+type: upload
+stem: Envie o relatório de campo sobre o Pantanal.
+extensions:
+- .tar.gz
+- .zip
+- .c

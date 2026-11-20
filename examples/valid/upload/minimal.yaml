@@ -1,0 +1,6 @@
+# The smallest upload question: the tag `[upload]` and nothing else. The type
+# comes from the tag, `maxFiles` is 1 and any file is accepted.
+id: upload-minimal
+title: Desenho do ciclo da água
+type: upload
+stem: Desenhe o ciclo da água e envie uma foto do desenho.

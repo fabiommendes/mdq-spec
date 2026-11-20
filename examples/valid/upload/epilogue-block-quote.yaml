@@ -1,0 +1,7 @@
+# upload.md, "Feedback": a `>` block after the tag is an ordinary block quote
+# of the epilogue, not feedback.
+id: upload-epilogue-quote
+title: Foto da caatinga
+type: upload
+stem: Envie uma foto de uma planta da caatinga.
+epilogue: '> Fotografe a planta inteira.'

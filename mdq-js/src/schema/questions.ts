@@ -44,6 +44,7 @@ export const QuestionType = z.enum([
 	"fill-in",
 	"ordering",
 	"code",
+	"upload",
 ]);
 export type QuestionType = z.infer<typeof QuestionType>;
 
@@ -326,6 +327,45 @@ export const CodeQuestion = z.strictObject({
 });
 export type CodeQuestion = z.infer<typeof CodeQuestion>;
 
+/** The largest integer that every implementation reads exactly: 2^53 - 1. */
+const MAX_SAFE = Number.MAX_SAFE_INTEGER;
+
+/** `schema/upload.yaml#/allOf/1/properties/maxSize` -- a number, an optional space and a unit. */
+export const UPLOAD_SIZE_PATTERN = /^[0-9]+(\.[0-9]{1,3})? ?(B|KB|MB|GB)$/;
+
+/** `schema/upload.yaml#/allOf/1/properties/extensions/items` -- `.pdf`, `.tar.gz`. */
+export const UPLOAD_EXTENSION_PATTERN = /^\.[a-z0-9][a-z0-9._+-]*$/;
+
+/**
+ * `schema/upload.yaml` -- one or more files sent by the student. A `maxSize`
+ * string that rounds down to 0 bytes or goes above 2^53 - 1 is a model rule
+ * (`models/upload.ts`), not a schema one.
+ */
+export const UploadQuestion = z.strictObject({
+	...questionBaseShape,
+	type: z.literal("upload"),
+	maxFiles: z.number().int().min(1).max(MAX_SAFE).optional(),
+	maxSize: z
+		.union([
+			z.number().int().min(1).max(MAX_SAFE),
+			z
+				.string()
+				.regex(UPLOAD_SIZE_PATTERN)
+				.meta({ examples: ["5 MB", "1.5GB"] }),
+		])
+		.optional(),
+	extensions: uniqueArray(
+		z
+			.string()
+			.regex(UPLOAD_EXTENSION_PATTERN)
+			.meta({ examples: [".pdf", ".tar.gz"] }),
+	)
+		.min(1)
+		.optional(),
+	answerKey: z.string().optional(),
+});
+export type UploadQuestion = z.infer<typeof UploadQuestion>;
+
 /** Any question document, discriminated by `type`. */
 // r2: adr-0015
 export const Question = z.discriminatedUnion("type", [
@@ -338,6 +378,7 @@ export const Question = z.discriminatedUnion("type", [
 	FillInQuestion,
 	OrderingQuestion,
 	CodeQuestion,
+	UploadQuestion,
 ]);
 export type Question = z.infer<typeof Question>;
 
@@ -352,4 +393,5 @@ export const QUESTION_SCHEMAS = {
 	"fill-in": FillInQuestion,
 	ordering: OrderingQuestion,
 	code: CodeQuestion,
+	upload: UploadQuestion,
 } as const satisfies Record<QuestionType, z.ZodType>;

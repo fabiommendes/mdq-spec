@@ -34,6 +34,7 @@ import type {
 	ShortAnswerQuestion,
 	TrueFalseQuestion,
 	Unmatched,
+	UploadQuestion,
 } from "../schema/index.js";
 import { effectiveGrading } from "./base.js";
 import { requireChoiceId, unspecifiedChoiceScore } from "./choice.js";
@@ -122,6 +123,10 @@ export type PublicShortAnswerQuestion = PublicBase<ShortAnswerQuestion> &
 export type PublicEssayQuestion = PublicBase<EssayQuestion> &
 	Pick<EssayQuestion, "content" | "highlight">;
 
+/** `maxSize` stays as written; `answerKey` is private. */
+export type PublicUploadQuestion = PublicBase<UploadQuestion> &
+	Pick<UploadQuestion, "maxFiles" | "maxSize" | "extensions">;
+
 export type PublicChoiceBlank = Pick<ChoiceBlank, "id" | "type"> & {
 	choices: PublicChoice[];
 };
@@ -183,6 +188,7 @@ export type PublicQuestion =
 	| PublicNumericQuestion
 	| PublicShortAnswerQuestion
 	| PublicEssayQuestion
+	| PublicUploadQuestion
 	| PublicFillInQuestion
 	| PublicOrderingQuestion
 	| PublicCodeQuestion;
@@ -472,6 +478,7 @@ export function publicForm(question: EssayQuestion): PublicEssayQuestion;
 export function publicForm(question: FillInQuestion): PublicFillInQuestion;
 export function publicForm(question: OrderingQuestion): PublicOrderingQuestion;
 export function publicForm(question: CodeQuestion): PublicCodeQuestion;
+export function publicForm(question: UploadQuestion): PublicUploadQuestion;
 export function publicForm(question: Question): PublicQuestion;
 export function publicForm(question: Question): PublicQuestion {
 	const base = copy(question, BASE_KEYS);
@@ -505,6 +512,11 @@ export function publicForm(question: Question): PublicQuestion {
 			return {
 				...base,
 				...copy(question, ["content", "highlight"]),
+			} as PublicQuestion;
+		case "upload":
+			return {
+				...base,
+				...copy(question, ["maxFiles", "maxSize", "extensions"]),
 			} as PublicQuestion;
 		case "fill-in":
 			return {
@@ -563,7 +575,8 @@ function blankCorrectResponses(
  * An essay gives its `answerKey`, a model answer that does not score 1
  * automatically. A code question gives its reference solution, or nothing;
  * it passes every test case, but a manual item still waits for the
- * instructor.
+ * instructor. An upload gives nothing: a response is a list of files, which a
+ * document cannot write down.
  *
  * @throws {MissingIdError} A correct choice has no id.
  */
@@ -582,6 +595,7 @@ export function correctResponses(
 	question: FillInQuestion,
 ): Record<string, (string | number)[]>;
 export function correctResponses(question: OrderingQuestion): OrderingLine[][];
+export function correctResponses(question: UploadQuestion): never[];
 export function correctResponses(
 	question: Question,
 ):
@@ -637,5 +651,7 @@ export function correctResponses(question: Question): unknown {
 			const solution = referenceSolution(question);
 			return solution === null ? [] : [solution];
 		}
+		case "upload":
+			return [];
 	}
 }

@@ -59,6 +59,7 @@ import {
 	shortAnswerAutomation,
 	shortAnswerRules,
 } from "./text.js";
+import { uploadRules } from "./upload.js";
 
 /**
  * The rules of each question family, beyond `BaseQuestion`'s. A family module
@@ -75,6 +76,7 @@ export const FAMILY_RULES: Partial<Record<QuestionType, FamilyRules<any>>> = {
 	"fill-in": fillInRules,
 	ordering: orderingRules,
 	code: codeRules,
+	upload: uploadRules,
 };
 
 /**
@@ -420,12 +422,13 @@ export function resolveQuestion(exam: Exam, question: Question): Question {
 /**
  * How much of the grading the library does without an instructor
  * (`docs/question-types/base.md`, "Automation"): `automatic` for choice,
- * true or false and numeric questions, `manual` for an essay, and a rule of
+ * true or false and numeric questions, `manual` for an essay or an upload, and a rule of
  * their own for short answer, fill-in, ordering and code.
  */
 export function automation(question: Question): Automation {
 	switch (question.type) {
 		case "essay":
+		case "upload":
 			return "manual";
 		case "short-answer":
 			return shortAnswerAutomation(

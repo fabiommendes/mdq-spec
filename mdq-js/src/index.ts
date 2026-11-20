@@ -35,6 +35,7 @@ export { checkReport, parseReport } from "./models/report.js";
 export * from "./models/score.js";
 export * from "./models/slugify.js";
 export * from "./models/text.js";
+export { matchesExtensions, maxSizeBytes } from "./models/upload.js";
 export * from "./parser/index.js";
 export * from "./responses.js";
 export * from "./schema/index.js";

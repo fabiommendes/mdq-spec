@@ -1,0 +1,15 @@
+# An upload question in an exam with a scalar `grading`. The strategy does not
+# apply to the upload question (exam.md, "Grading").
+id: campo
+title: Trabalho de campo
+type: exam
+grading: partial
+questions:
+- stem: Qual é o maior bioma do Brasil?
+  choices:
+  - text: Amazônia
+    score: 1
+  - text: Pampa
+  type: multiple-choice
+- stem: Envie uma foto do seu caderno de campo.
+  type: upload

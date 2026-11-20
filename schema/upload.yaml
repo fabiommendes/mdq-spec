@@ -1,0 +1,85 @@
+"$schema": "https://json-schema.org/draft/2020-12/schema"
+"$id": "https://cdn.jsdelivr.net/npm/@mdq-format/schema@0.2/upload.yaml"
+title: Upload question
+description: >-
+  A question whose response is one or more files that the student sends: a
+  PDF, a photo of a diagram, a spreadsheet. MDQ never reads the files; the host
+  stores them. The instructor grades every response. Extends the common
+  question-base schema with the limits of the files and an optional answer key.
+
+allOf:
+  - "$ref": "./question-base.yaml"
+  - type: object
+    properties:
+      type:
+        const: upload
+
+      maxFiles:
+        type: integer
+        description: >-
+          The most files that one response holds. A response holds from 1 to
+          `maxFiles` files.
+        minimum: 1
+        maximum: 9007199254740991
+        default: 1
+        examples:
+          - 1
+          - 3
+
+      maxSize:
+        description: >-
+          The largest size of each file. An integer is a number of bytes. A
+          string is a number, an optional space and a unit among `B`, `KB`,
+          `MB` and `GB`, powers of 1024, in upper case. The size in bytes is
+          the number, with at most three decimal places, times the unit,
+          computed exactly and rounded down; a string that rounds down to 0
+          bytes or above 2^53 - 1 is a `schema-error` that the model checks.
+          No limit when omitted.
+        oneOf:
+          - type: integer
+            minimum: 1
+            maximum: 9007199254740991
+          - type: string
+            pattern: "^[0-9]+(\\.[0-9]{1,3})? ?(B|KB|MB|GB)$"
+            examples:
+              - 5 MB
+              - 1.5GB
+        examples:
+          - 1048576
+          - 5 MB
+          - 512 KB
+
+      extensions:
+        type: array
+        description: >-
+          The file extensions accepted, in lower case, each starting with `.`.
+          A file matches an extension when its name, with only `A-Z` folded
+          to `a-z`, ends with the extension and is longer than it. Any file
+          when omitted.
+        items:
+          type: string
+          pattern: "^\\.[a-z0-9][a-z0-9._+-]*$"
+          examples:
+            - .pdf
+            - .tar.gz
+        minItems: 1
+        uniqueItems: true
+        examples:
+          - [".pdf"]
+          - [".png", ".jpg", ".jpeg"]
+
+      answerKey:
+        type: string
+        description: >-
+          A model answer or the criteria of the grading, written as Markdown.
+          In a Markdown source it is the content of the `## [answer-key]`
+          section, without the heading. It guides the instructor while
+          grading. A host MUST NOT show it to the student before the student
+          submits the response, and MAY show it after, even while the response
+          is pending. An empty value or one with no visible character is a
+          `blank-text` error, like `title`.
+
+    required:
+      - type
+
+unevaluatedProperties: false

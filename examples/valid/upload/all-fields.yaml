@@ -1,0 +1,23 @@
+# Every field of an upload question. `maxSize` keeps the string as written.
+id: ciclo-da-agua
+title: Ciclo da água na bacia do São Francisco
+author: Fábio Macêdo Mendes
+locale: pt-BR
+type: upload
+weight: 2
+stem: >-
+  Desenhe o ciclo da água na bacia do rio São Francisco e envie uma foto ou um
+  PDF do desenho.
+maxFiles: 2
+maxSize: 5 MB
+extensions:
+- .pdf
+- .png
+- .jpg
+epilogue: Legende as etapas do ciclo.
+answerKey: >-
+  O desenho mostra evaporação, condensação, precipitação e escoamento até o
+  rio.
+tags:
+- hidrologia
+- geografia

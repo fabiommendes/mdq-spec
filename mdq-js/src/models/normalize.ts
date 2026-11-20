@@ -200,6 +200,7 @@ export function normalizeByType(question: Question, copy: Entries): void {
 			copy.blanks = question.blanks.map(normalizeBlank);
 			break;
 		case "essay":
+		case "upload":
 			break;
 	}
 }

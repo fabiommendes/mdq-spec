@@ -1,0 +1,6 @@
+# upload.md, "Size": `KB` is 1024 bytes.
+id: upload-max-size-kilobytes
+title: Relatório de campo
+type: upload
+stem: Envie o relatório de campo sobre o Pantanal.
+maxSize: 512 KB

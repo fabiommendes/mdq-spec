@@ -1,0 +1,4 @@
+# upload.md, "Size": a size above 2^53 - 1 bytes is a `schema-error`.
+type: upload
+stem: Envie o relatório de campo sobre o Pantanal.
+maxSize: 9999999999 GB

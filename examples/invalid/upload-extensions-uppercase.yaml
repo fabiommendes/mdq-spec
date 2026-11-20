@@ -1,0 +1,4 @@
+# upload.md, "Extensions": upper case letters are a `schema-error`.
+type: upload
+stem: Envie o relatório de campo sobre o Pantanal.
+extensions: [".PDF"]

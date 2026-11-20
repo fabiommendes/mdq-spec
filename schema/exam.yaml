@@ -117,7 +117,7 @@ properties:
       type to a strategy of that type. Types absent from the mapping are
       graded as `symmetric`. A question that declares its own
       `grading` ignores this field entirely.
-      Short answer, numeric, essay, code and ordering questions have no `grading`
+      Short answer, numeric, essay, upload, code and ordering questions have no `grading`
       field, so this field does not apply to them, and the mapping has no key
       for them.
     oneOf:
@@ -238,6 +238,7 @@ additionalProperties: false
       - "$ref": "./multiple-selection.yaml"
       - "$ref": "./true-false.yaml"
       - "$ref": "./essay.yaml"
+      - "$ref": "./upload.yaml"
       - "$ref": "./code.yaml"
       - "$ref": "./numeric.yaml"
       - "$ref": "./short-answer.yaml"

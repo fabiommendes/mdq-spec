@@ -79,6 +79,7 @@ import {
 	TrueFalseGrading,
 	TrueFalseQuestion,
 	Unmatched,
+	UploadQuestion,
 } from "@mdq/schema/index.js";
 import { describe, expect, it } from "vitest";
 import * as z from "zod";
@@ -279,6 +280,7 @@ describe("zod-json-schema agreement", () => {
 			["fill-in", FillInQuestion, undefined],
 			["ordering", OrderingQuestion, undefined],
 			["code", CodeQuestion, undefined],
+			["upload", UploadQuestion, undefined],
 			["exam", Exam, undefined],
 			["runner-report", RunnerReport, undefined],
 		];
@@ -468,6 +470,7 @@ describe("zod-json-schema agreement", () => {
 				"fill-in",
 				"ordering",
 				"code",
+				"upload",
 			];
 			const jsonConsts = questionTypeKeys.map(
 				(key) => def(key).allOf[1].properties.type.const,
@@ -546,6 +549,7 @@ describe("zod-json-schema agreement", () => {
 			"essay",
 			"fill-in",
 			"ordering",
+			"upload",
 			"exam",
 			"question-base",
 			"multiple-choice#/$defs/Choice",
@@ -669,6 +673,7 @@ describe("zod-json-schema agreement", () => {
 			"/$defs/question-base/properties/tags",
 			"/$defs/exam/properties/tags",
 			"/$defs/ordering/allOf[1]/properties/normalizations",
+			"/$defs/upload/allOf[1]/properties/extensions",
 		]);
 
 		/** `uniqueItems` paths deliberately left untested, with why. */
@@ -748,6 +753,21 @@ describe("zod-json-schema agreement", () => {
 			expect(
 				result.success,
 				"an ordering question with a duplicate normalization was accepted, but normalizations must be unique",
+			).toBe(false);
+		});
+
+		it("/$defs/upload/allOf[1]/properties/extensions -- duplicating an extension is rejected", () => {
+			const document = {
+				type: "upload",
+				stem: "Envie o relatório.",
+				extensions: [".pdf", ".pdf"],
+			};
+
+			const result = validateDocument(document);
+
+			expect(
+				result.success,
+				"an upload question with a duplicate extension was accepted, but extensions must be unique",
 			).toBe(false);
 		});
 	});

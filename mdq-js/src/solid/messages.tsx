@@ -111,6 +111,52 @@ export interface Messages {
 	orderingRemoved: (text: string) => string;
 	/** Announced after a line joins the answer, at the end. */
 	orderingAdded: (text: string, position: number, total: number) => string;
+	/** The label of the file chooser of an upload question. */
+	uploadChoose: string;
+	/** The line that states what an upload accepts. `size` is as written or formatted; each of `size` and `extensions` is null when unlimited. */
+	uploadLimits: (
+		count: number,
+		size: string | null,
+		extensions: readonly string[] | null,
+	) => string;
+	/** The reason a file is refused for being larger than the limit. `max` is formatted. */
+	uploadTooLarge: (name: string, max: string) => string;
+	/** The reason a file is refused for its extension. */
+	uploadWrongExtension: (name: string, extensions: readonly string[]) => string;
+	/** The reason a file is refused because the response would hold more files than allowed. */
+	uploadTooMany: (max: number) => string;
+	/** The status of a file that waits for the ones before it to be sent. */
+	uploadQueued: (name: string) => string;
+	/** Announced after a file is stored. */
+	uploadDone: (name: string) => string;
+	/** The status of a file that is being sent. */
+	uploadSending: (name: string) => string;
+	/** The status of a file whose host is busy, before it tries again. */
+	uploadWaiting: (name: string, seconds: number) => string;
+	/** The status of a file that could not be sent or removed. */
+	uploadFailed: (name: string) => string;
+	/** The name of the button that removes a file. */
+	uploadRemove: (name: string) => string;
+	/** Announced after a file is removed. */
+	uploadRemoved: (name: string) => string;
+	/** The note of an upload that holds no file yet. */
+	uploadNoFiles: string;
+	/** A size in bytes, as people read it: B, KB, MB or GB, powers of 1024. */
+	fileSize: (bytes: number) => string;
+}
+
+const SIZE_UNITS = ["B", "KB", "MB", "GB"] as const;
+
+/// Formats bytes in powers of 1024, with one decimal above B, in the given decimal separator.
+function formatSize(bytes: number, separator: string): string {
+	let value = bytes;
+	let unit = 0;
+	while (value >= 1024 && unit < SIZE_UNITS.length - 1) {
+		value /= 1024;
+		unit += 1;
+	}
+	const digits = unit === 0 ? String(value) : value.toFixed(1);
+	return `${digits.replace(".", separator)} ${SIZE_UNITS[unit]}`;
 }
 
 export const en: Messages = {
@@ -166,6 +212,30 @@ export const en: Messages = {
 	orderingRemoved: (text) => `${text} left out of the answer.`,
 	orderingAdded: (text, position, total) =>
 		`${text} added at position ${position} of ${total}.`,
+	uploadChoose: "Choose files",
+	uploadLimits: (count, size, extensions) =>
+		`${[
+			count === 1 ? "Up to 1 file" : `Up to ${count} files`,
+			...(size === null ? [] : [`${size} each`]),
+			...(extensions === null ? [] : [`accepted: ${extensions.join(", ")}`]),
+		].join("; ")}.`,
+	uploadTooLarge: (name, max) => `${name} is larger than ${max}.`,
+	uploadWrongExtension: (name, extensions) =>
+		`${name} is not an accepted type (${extensions.join(", ")}).`,
+	uploadTooMany: (max) =>
+		max === 1
+			? "Only 1 file is allowed. Remove it first, or send a file with the same name to replace it."
+			: `Only ${max} files are allowed. Remove one first, or send a file with the same name to replace it.`,
+	uploadQueued: (name) => `Queued: ${name}`,
+	uploadDone: (name) => `${name} uploaded.`,
+	uploadSending: (name) => `Sending ${name}…`,
+	uploadWaiting: (name, seconds) =>
+		`The server is busy. Sending ${name} again in ${seconds} s…`,
+	uploadFailed: (name) => `Could not send ${name}. Try again.`,
+	uploadRemove: (name) => `Remove ${name}`,
+	uploadRemoved: (name) => `${name} removed.`,
+	uploadNoFiles: "No files sent yet.",
+	fileSize: (bytes) => formatSize(bytes, "."),
 };
 
 export const ptBR: Messages = {
@@ -222,6 +292,30 @@ export const ptBR: Messages = {
 	orderingRemoved: (text) => `${text} deixada de fora da resposta.`,
 	orderingAdded: (text, position, total) =>
 		`${text} adicionada na posição ${position} de ${total}.`,
+	uploadChoose: "Escolher arquivos",
+	uploadLimits: (count, size, extensions) =>
+		`${[
+			count === 1 ? "No máximo 1 arquivo" : `No máximo ${count} arquivos`,
+			...(size === null ? [] : [`${size} cada`]),
+			...(extensions === null ? [] : [`aceitos: ${extensions.join(", ")}`]),
+		].join("; ")}.`,
+	uploadTooLarge: (name, max) => `${name} é maior que ${max}.`,
+	uploadWrongExtension: (name, extensions) =>
+		`${name} não é de um tipo aceito (${extensions.join(", ")}).`,
+	uploadTooMany: (max) =>
+		max === 1
+			? "Só é permitido 1 arquivo. Remova-o antes, ou envie um arquivo com o mesmo nome para substituí-lo."
+			: `Só são permitidos ${max} arquivos. Remova um antes, ou envie um arquivo com o mesmo nome para substituí-lo.`,
+	uploadQueued: (name) => `Na fila: ${name}`,
+	uploadDone: (name) => `${name} enviado.`,
+	uploadSending: (name) => `Enviando ${name}…`,
+	uploadWaiting: (name, seconds) =>
+		`O servidor está ocupado. Enviando ${name} de novo em ${seconds} s…`,
+	uploadFailed: (name) => `Não foi possível enviar ${name}. Tente de novo.`,
+	uploadRemove: (name) => `Remover ${name}`,
+	uploadRemoved: (name) => `${name} removido.`,
+	uploadNoFiles: "Nenhum arquivo enviado ainda.",
+	fileSize: (bytes) => formatSize(bytes, ","),
 };
 
 /** The dictionaries this package ships. */

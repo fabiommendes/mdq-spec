@@ -288,6 +288,41 @@ cases:
         pending: []
         skipped: [e]
 
+  # An upload waits for the instructor, as an essay does. Under an exam
+  # `grading` it still waits: the strategy does not apply to it. A skipped
+  # upload is skipped, not pending.
+  - name: "Pending upload"
+    exam:
+      grading: partial
+      questions:
+        - { id: q1, type: multiple-choice, stem: "Pergunta 1", weight: 1, choices: *mc-scored-choices }
+        - { id: u, type: upload, stem: "Envie o relatório de campo.", weight: 1, maxFiles: 2, maxSize: "5 MB", extensions: [".pdf"] }
+    examples:
+      - responses:
+          q1: a
+          u: [{ name: relatorio.pdf, path: uploads/relatorio.pdf, size: 482133 }]
+        score: pending
+        pending: [u]
+        provisional: 1
+        total_weight: 2
+        questions: { q1: 1, u: null }
+      - responses: { q1: a, u: null }
+        score: 0.5
+        pending: []
+        skipped: [u]
+      - responses: { q1: a }
+        score: 0.5
+        pending: []
+        skipped: [u]
+      # An upload that breaks a rule of the question is malformed, and so is
+      # the response to the exam.
+      - responses:
+          q1: a
+          u: [{ name: relatorio.txt, path: uploads/relatorio.txt, size: 1 }]
+        score: malformed
+      - responses: { q1: a, u: [] }
+        score: malformed
+
   # A response to the exam that names no question, or that a question
   # rejects, is malformed.
   - name: "Malformed responses to an exam"

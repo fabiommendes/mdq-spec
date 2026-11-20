@@ -11,6 +11,15 @@ The specification uses [Semantic Versioning](https://semver.org/). Before
 
 ## [Unreleased]
 
+### Added
+
+- Question type `upload` (`docs/question-types/upload.md`, `schema/upload.yaml`): the response is a list of 1 to `maxFiles` files, each a `{name, path, size}` mapping that the host fills. The frontmatter has `maxFiles`, `maxSize` and `extensions`. The body is the tag `[upload]` with no colon. The answer key is optional, as in an essay, and the instructor grades every response.
+- Examples of the `upload` type: `examples/valid/upload/` and `examples/valid/exam/upload-with-grading`; `examples/invalid/upload-*`, `examples/invalid/model-only/upload-*` and `examples/invalid/exam-grading-upload-key`; the vectors `examples/grading/upload.yaml` (responses, and the `maxSize` in bytes under `sizes`), plus cases of `grading/automation.yaml`, `grading/exam.yaml` and `public.yaml`.
+
+### Fixed
+
+- The Body tables of `essay.md` and `code.md` said that a tag written as a list item with the type forced in the frontmatter (`* [essay]` with `type: essay`, `* [code]` with `type: code`) is a `schema-error` at `choices`. It is a `parse-error` at `[]`: the question has no body, as the corpus always had. `upload.md` follows. A YAML or JSON document with `choices` on these types is still a `schema-error` at `choices`. New examples: `examples/invalid/code-tag-in-list-typed` and `examples/invalid/upload-tag-in-list-typed`.
+
 ## [0.2.0] - 2026-11-16
 
 The specification, mdq-py and mdq-js now share MAJOR.MINOR. The `$id` of each schema is now `https://cdn.jsdelivr.net/npm/@mdq-format/schema@0.2/<file>`.

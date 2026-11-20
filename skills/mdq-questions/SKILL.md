@@ -1,6 +1,6 @@
 ---
 name: mdq-questions
-description: Write questions and exams in MDQ, a markdown format for quizzes and exams (.mdq.md files). Use when authoring, reviewing or converting questions - multiple choice, multiple selection, true or false, short answer, numeric, fill-in-the-blanks, essay, ordering - or when assembling them into an exam.
+description: Write questions and exams in MDQ, a markdown format for quizzes and exams (.mdq.md files). Use when authoring, reviewing or converting questions - multiple choice, multiple selection, true or false, short answer, numeric, fill-in-the-blanks, essay, file upload, ordering - or when assembling them into an exam.
 ---
 
 # Writing MDQ questions
@@ -62,6 +62,7 @@ optional.
 | A number, with tolerance             | `[numeric(unit)]: ...`              | [numeric](references/numeric.md) |
 | Gaps inside a sentence               | `[^slug]` markers + definitions     | [fill-in](references/fill-in.md) |
 | Free text, graded by hand            | `[essay]`                           | [essay](references/essay.md) |
+| Files sent by the student, graded by hand | `[upload]`                     | [upload](references/upload.md) |
 | Sort lines into the right order      | `[ordering]:` + code block or list  | [ordering](references/ordering.md) |
 | Several questions in one file        | `# Title` + `===` separators        | [exam](references/exam.md) |
 

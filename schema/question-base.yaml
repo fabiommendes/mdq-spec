@@ -4,7 +4,7 @@ title: Question (base)
 description: >-
   Common properties shared by every MDQ question type. Question-type
   schemas (multiple-choice, multiple-selection, true-false, numeric,
-  short-answer, fill-in, essay, ordering) extend this schema, typically via `allOf` +
+  short-answer, fill-in, essay, upload, ordering) extend this schema, typically via `allOf` +
   `$ref`, and add their own `type`-specific fields (e.g. `choices`).
 type: object
 properties:

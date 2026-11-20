@@ -10,6 +10,10 @@ that it implements.
 
 ## [Unreleased]
 
+### Added
+
+- The `upload` question type: schema, model rules, `scoreResponse` (always pending), `maxSizeBytes`, `matchesExtensions` and the public form.
+
 ## [0.2.0] - 2026-11-16
 
 Implements MDQ specification 0.2.0. The version now follows the specification and mdq-py: all three share MAJOR.MINOR. The `$id` of the bundled schema is now `https://cdn.jsdelivr.net/npm/@mdq-format/schema@0.2/mdq.schema.json`.

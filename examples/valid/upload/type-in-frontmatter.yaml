@@ -1,0 +1,5 @@
+# `type: upload` in the frontmatter, with the tag `[upload]` in the body. Without it the type is inferred from the tag (see minimal.mdq.md).
+id: upload-type-in-frontmatter
+title: Relatório de campo
+type: upload
+stem: Envie o relatório de campo sobre o Pantanal.
