@@ -10,6 +10,10 @@ that it implements.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-20
+
+Implements MDQ specification 0.3.0. The `$id` of the bundled schema is now `https://cdn.jsdelivr.net/npm/@mdq-format/schema@0.3/mdq.schema.json`.
+
 ### Added
 
 - The `upload` question type: schema, model rules, `scoreResponse` (always pending), `maxSizeBytes`, `matchesExtensions` and the public form.
